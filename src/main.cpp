@@ -1371,7 +1371,7 @@ int64_t GetProofOfWorkReward(int nHeight, int64_t nFees)
 int64_t GetProofOfStakeReward(const CBlockIndex* pindexPrev, int64_t nCoinAge, int64_t nFees)
 {
     int64_t nSubsidy = STATIC_POS_REWARD;
-    if(nBestHeight < 17600)
+        if((pindexPrev->nHeight) > 17343)
           nSubsidy = 18 * COIN;
     return nSubsidy + nFees;
 }
@@ -4478,9 +4478,9 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
 int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
 {
     int64_t ret = blockValue * 3/4; //75%
-	
+
 	if(nHeight>53000)
            ret = blockValue * 1/10; //10%
-	
+
     return ret;
 }
