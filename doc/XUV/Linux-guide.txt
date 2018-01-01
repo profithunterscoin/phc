@@ -1,0 +1,171 @@
+XUVMasternode Set Up
+aziz199505 (25) in XUV•  6 days ago
+Hi, I would like to show you guys how to set up remote vps masternode for XUV. Just follow my guide you guys will able to set up a masternode less than 30 minutes! :)
+
+Let's get started.
+
+First you guys need create vps server. I will use vultr for this guide. Here is the link to start https://www.vultr.com/?ref=7188571
+
+Required Operating System: Ubuntu 14.04
+
+Setting Up a Server
+
+After creating Vultr Account click on the big plus sign
+2017-11-25 22_08_15-My Subscriptions - Vultr.com.png
+
+It will take you to the creating server page.
+
+1.First choose your server location. Which means choose the closest place to you. In my case Chicago.
+
+
+Choose Server Type.
+We would like to choose Ubuntu 14.04
+2017-11-25 22_13_49-Deploy Servers - Vultr.com.png
+
+Choose Cheapest Server Size :)
+2017-11-25 22_15_45-Deploy Servers - Vultr.com.png
+
+Give it a server name. I named simple XUV-1
+2017-11-25 22_18_41-Deploy Servers - Vultr.com.png
+
+Press Huge button Deploy Now and done. Let's wait until server is finished.
+
+Setting up a control wallet with a masternode configuration.
+
+After we have finished setting up a server. We are going to click on the manage
+2017-11-25 22_24_50-My Subscriptions - Vultr.com.png
+
+Download Putty In order to access to the server. Here is the link.
+https://the.earth.li/~sgtatham/putty/latest/w64/putty-64bit-0.70-installer.msi
+
+After downloading putty go to your windows search bar and search for the putty word it should show up. Now open up your putty in order to access to the server
+
+Now go back to your web browser. You should see this page.
+2017-11-25 22_29_51-Manage 104.238.164.50 - Vultr.com.png
+
+Copy your server ip address put it in the putty.
+2017-11-25 22_31_37-PuTTY Configuration.png
+
+Press Open and press Yes. You should see a terminal looks something like this.
+2017-11-25 22_33_45-Innova Core - Wallet.png
+
+Now type the username:root
+press enter
+after that copy or type the password. Copy the password from vultr and paste to the terminal simply right click on mouse will paste to the terminal. Password will be hidden.
+
+It is just simply copy paste from now on. Just copy what I have and paste to the terminal :).
+
+Let's update and upgrade the server
+sudo apt-get update -y
+apt-get upgrade -y
+Note: when you see the this thing just press enter inside terminal.
+2017-11-25 22_48_43-.png
+
+Let's install essentials
+sudo apt-get install -y build-essential libtool autotools-dev pkg-config libssl-dev libboost-all-dev autoconf automake
+
+Installing libsecp256k1
+sudo apt-get install git
+git clone https://github.com/bitcoin-core/secp256k1
+cd ~/secp256k1
+./autogen.sh
+./configure
+make
+./tests
+sudo make install
+
+Install libminiupnpc
+sudo apt-get install libqt4-dev libminiupnpc-dev
+
+Install libgmp
+sudo apt-get install libgmp-dev
+
+Install Openssl
+sudo apt-get install openssl
+
+Install Berkeley 4.8
+apt-get install software-properties-common && add-apt-repository ppa:bitcoin/bitcoin
+apt-get update
+apt-get install libdb4.8-dev libdb4.8++-dev
+
+Allocating Memory with Swap
+sudo dd if=/dev/zero of=/var/swap.img bs=1024k count=1000
+sudo mkswap /var/swap.img
+sudo swapon /var/swap.img
+sudo chmod 0600 /var/swap.img
+sudo chown root:root /var/swap.img
+
+Now we going to use nano. Nano is linux notepad
+sudo nano /etc/fstab
+Press bottom arrow and scroll to the bottom and paste this
+/var/swap.img none swap sw 0 0
+2017-11-25 23_51_34-Innova Core - Wallet.png
+Press CTRL-X > Press Y > Press [ENTER]
+
+Installing and Compile the Wallet From Source Code
+cd ~
+git clone https://github.com/XUVCoin/XUVCoin.git
+cd ~/XUV/src
+make -f makefile.unix # Headless
+Note: 10-20 Minutes Wait time here
+
+Command and Running XUVd
+strip XUVd
+sudo cp XUVd /usr/bin/
+XUVd
+
+Getting mastenrode private key
+Go to your windows XUVwallet and open up
+Now go to Help> Debug Window > Console > Type masternode genkey and you should see output this is going to be your masternode private key copy it and save it somewhere
+
+2017-11-25 23_59_27-Innova Core - Wallet.png
+
+Configuring XUVFor a Masternode
+Now do this.
+nano ~/.XUV
+/XUV.conf
+Copy and paste this.
+
+rpcuser=putanyworkyoulike
+rpcpassword=putanyworkyoulike
+rpcport=21116
+server=1
+listen=1
+daemon=1
+masternodeaddr=[your-server-ip-address-here my is 104.238.164.50 ]:21117
+masternode=1
+masternodeprivkey=[your masternode private key from step 11 my is 69TcHWwv9ZJK9gfxBAr2bbQQSTY7cmTy9DGpFsgBLt3VThtdPfe]
+
+Press CTRL-X > Press Y > Press [ENTER]
+
+We are done configuring the masternode now let's started XUVmasternode!
+XUVd
+Great we are almost finished!
+
+Configuring Masternode Cold Wallet
+Let's go back to windows XUVwallet.
+Go to Receive > New Address MN01 > Press OK2017-11-26 00_10_43-New receiving address.png
+Let's copy adress
+2017-11-26 00_11_38-root@innova-2_ ~_.innovacore.png
+Send Exactly 3000 XUV coins. NOTE: Go to your transactions wait for at least 15 confirmations
+
+Getting TxHash and TxIndex
+Now Go to Help > Debug Window > Console > Type masternode outputs
+You should see some thing like this but different values
+{
+    "1e665c23487ec14a147170ee4b4e24255ed1f9d032a49bb16df7b8c1f9fasdf8" : "0",
+}
+Copy this information and save it and exit out from console.
+
+Creating Masternode from windows.
+Now go back to your windows wallet go to Masternodes > Create
+Fill out like this
+2017-11-26 00_20_49-Add_Edit XUVNode.png
+Press OK
+
+Now Press Update
+2017-11-26 00_21_58-Innova Core - Wallet.png
+
+After that press Start All
+
+Your masternode is completed

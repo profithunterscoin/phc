@@ -1,0 +1,9 @@
+Building PHC
+
+See doc/readme-qt.rst for instructions on building PHC QT,
+the intended-for-end-users, nice-graphical-interface, reference
+implementation of PHC.
+
+See doc/build-*.txt for instructions on building phcd,
+the intended-for-services, no-graphical-interface, reference
+implementation of PHC.
