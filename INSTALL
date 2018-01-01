@@ -1,9 +1,0 @@
-Building XUV
-
-See doc/readme-qt.rst for instructions on building XUV QT,
-the intended-for-end-users, nice-graphical-interface, reference
-implementation of XUV.
-
-See doc/build-*.txt for instructions on building XUVd,
-the intended-for-services, no-graphical-interface, reference
-implementation of XUV.
