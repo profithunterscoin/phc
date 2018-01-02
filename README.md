@@ -6,11 +6,12 @@ PHC is a PoS-based cryptocurrency. PHC includes an Address Index feature, based 
 Initialize the Address Index By Running with -reindexaddr Command Line Argument.  It may take 10-15 minutes to build the initial index.
 
 - POW Reward: Dynamic (1-100 PHC per Block)
-- POS Reward: 3 - 100% Coinage Subsidy
-- Block Spacing: 120 Seconds (2 minutes)
+- POS Reward: 3% - 100% Coinage Subsidy
+- Block Spacing: 60 Seconds (1 minutes)
 - Diff Retarget: 2 Blocks
-- Maturity: 100 Blocks
+- Maturity: 101 Blocks
 - Stake Minimum Age: 1 Hour
+- Masternode Collateral: 10000 PHC
 - 40 MegaByte Maximum Block Size (40X Bitcoin Core)
 
 Main Network Information:
