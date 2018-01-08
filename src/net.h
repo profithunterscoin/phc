@@ -450,11 +450,11 @@ public:
         fPingQueued = false;
 
         // Firewall CNode Data
-        double nTrafficAverage;
-        double nTrafficRatio;
-        int nTrafficTimestamp;
-        int nSyncHeight;
-        int nSyncHeightOld;
+        nTrafficAverage = 0;
+        nTrafficRatio = 0;
+        nTrafficTimestamp = 0;
+        nSyncHeight = 0;
+        nSyncHeightOld = 0;
 
         // Node Lock
         {

@@ -1,0 +1,552 @@
+Setup Litecoin Mining pool using MPOS and NOMP as Stratum
+bbbadmin By: bbbadmin| 4,382 Views|In: Guide|Last Updated: January 28, 2017
+http://betbybitcoin.com/setup-litecoin-mining-pool-using-mpos-and-nomp-as-stratum/
+
+This a step by step guide on how to setup your own crypto-currency mining pool. This guide is going over how to setup an MPOS (Mining Portal Open Source) Pool using NOMP as stratum (Node Open Mining Portal). This is meant to setup a mining pool for a SINGLE CRYPTO CURRENCY. This is not a guide for a Multipool!!!!
+
+If you want to see what it looks like before you set it all up, head to the SparkPool
+
+For this guide purpose we I will be using litecoin (scrypt) Crypto Currency .
+
+Requirements
+
+VPS with at least 1GB of Ram you can get it from any where like vultr , lenode , digitalocen
+Ubuntu 14.04 x64
+Putty (http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html)
+WinSCP (http://winscp.net/eng/download.php)
+ 
+
+Setup
+
+At this point you should have your VPS started, putty up and running and your logged in as root.
+
+ 
+
+Update Ubuntu
+
+apt-get update 
+apt-get dist-upgrade
+
+Setup SWAP
+
+I am setting up a 4GB swap, which may be overkill but it’s the most common swap sized used in most guides so ill keep it at that.
+
+ 
+
+dd if=/dev/zero of=/mnt/myswap.swap bs=1M count=4000
+mkswap /mnt/myswap.swap
+swapon /mnt/myswap.swap
+
+ 
+
+Now let’s add it into fstab so it’ll activate at boot.
+
+nano /etc/fstab
+Add the following line at the end of the file.
+
+/mnt/myswap.swap none swap sw 0 0
+Ctrl+O to save, and Ctrl+X to exit the nano editor.
+
+Now your swap is setup, you can modify the size in the future if you need more or less.
+
+-Install Required Packages
+
+apt-get install git
+apt-get install build-essential libboost-all-dev libcurl4-openssl-dev libdb5.1-dev libdb5.1++-dev mysql-server
+
+Set a MySQL Root Password (different from your Ubuntu root pass!)
+
+ 
+
+Install Required Packages for Mining Portal Open Source (MPOS)
+apt-get install memcached php5-memcached php5-mysqlnd php5-curl php5-json libapache2-mod-php5
+
+sudo apt-get install libapache2-mod-php php
+
+Let’s get Apache Web Server Going:
+
+ 
+
+apache2ctl -k stop; sleep 2; sudo apache2ctl -k start
+ 
+
+You will get a message stating it could not reliably determine your servers domain name, don’t worry about this right now. The web server is still running, just go to your server’s ip (http://youserverip) in chrome
+
+ 
+
+Install Required Packages for NOMP Stratum
+ 
+
+curl –sL https://deb.nodesource.com/setup | bash
+apt-get install -y nodejs
+npm install –g npm
+npm install forever -g
+apt-add-repository ppa:chris-lea/redis-server
+apt-get update
+apt-get install redis-server
+
+ 
+
+Setup Webmin
+Webmin is a GUI interface for managing your server.
+
+ 
+
+nano /etc/apt/sources.list
+ 
+
+Press the Down Arrow on your keyboard to reach the end, and add these two lines below:
+
+ 
+
+deb http://download.webmin.com/download/repository sarge contrib
+deb http://webmin.mirror.somersettechsolutions.co.uk/repository sarge contrib
+
+Press Ctrl+O to save, and exit the nano editor with CTRL+X
+
+Let’s get Webmin’s GPG Key
+
+cd /root
+wget http://www.webmin.com/jcameron-key.asc
+apt-key add jcameron-key.asc
+
+Install Webmin
+
+apt-get update
+apt-get install webmin
+
+ 
+
+Webmin should now be installed, now let’s see if it works. Open your browser and go to https://yourserverip:10000/
+
+ 
+
+Go ahead and login.
+
+Username: root
+Password: Your server’s root password
+
+If any updates pop up in webmin, then go ahead and install those updates.
+
+ 
+
+Install phpMyAdmin
+
+apt-get install phpmyadmin
+ 
+
+Select Apache.
+You then will be asked to configure a database, hit ok and then put in the password you setup with MySQL earlier.
+
+Now we need to add phpmyadmin to Apache.
+
+ln -s /etc/phpmyadmin/apache.conf /etc/apache2/conf-available/phpmyadmin.conf
+a2enconf phpmyadmin
+service apache2 reload
+
+Head to http://yourserverip/phpmyadmin
+
+Login to make sure everything is good.
+
+Username: root
+Password: the one you setup earlier
+
+Once you login you will see 3 or 4 default databases on the left hand side. You are good to go.
+
+If you get a red error message on the bottom of phpmyadmin stating mcrypt is missing then do this:
+
+php5enmod mcrypt
+service apache2 restart
+
+Log back into phpmyadmin and the mcrypt error should be gone.
+
+Mining Pool Setup
+First let’s download some of the pool software on your PC. Yes, you’ll be using git and what not to download it on your server however there is a few files you will want to interact with on your PC.
+
+MPOS: https://github.com/MPOS/php-mpos/archive/master.zip
+
+Extract that somewhere on your PC that you can easily access.
+
+ 
+
+User Setup
+
+You never run things like your coin daemon (wallet), mysql, or other things as root!
+
+Let’s create a user for your mining pool.
+
+Login to ssh using putty as root.
+
+adduser usernameyouwant
+You’ll be prompted for a password, please use a password that is different from your root password.
+The other info it asks for you can either fill out or just leave blank and hit enter.
+
+Now let’s give that new user sudo access.
+
+adduser usernameyousetup sudo
+ 
+
+MySQL User and Database Setup
+Remember phpmyadmin? Head back to it: http://yourserverip/phpmyadmin
+
+Using the password you setup earlier, login as root.
+Head to the “Users” button on the top of the page
+
+Click on “Add user” in the middle of the page.
+
+-Fill in the “User name:” field with any username you’d prefer. I like to name it after the coin I am setting up a pool for.
+-Then click the button next to “Generate password:”
+-You can use your own password, but I prefer the generated password since it is very strong. Just remember to write it down somewhere.
+-Now click the checkbox for “Create database with same name and grant all privileges”
+
+If everything is good, then scroll down a bit and click “Go” in the bottom right of the page.
+-You should get a success message.
+
+Now let’s import the MPOS database.
+
+Click on your pool username/database you just created in the left side of phpmyadmin.
+
+Once you have clicked on the database, go ahead and click “Import” on the top of the
+
+You will see a “Choose File” button, go ahead and click it and browse to the location you extracted that MPOS we downloaded before to.
+
+Once you navigate to the “php-mpos-master” folder on your computer go ahead and click on the “sql” folder inside. Then click on “000_base_structure.sql” and click open.
+
+That’s all you have to do for settings
+
+Now click “Go” on the bottom of the page. You should get a success message stating your import was successful.
+
+The MySQL user and Database has been successfully setup for your mining pool.
+
+Litecoin Daemon Setup (Wallet)
+Now let’s setup the coin daemon, I will be using litecoin.
+
+Now boot up putty and login to that new user we setup earlier.
+
+We  download a prebuilt version Litecoin from there offilcail site here: https://download.litecoin.org/litecoin-0.14.2/linux/litecoin-0.14.2-x86_64-linux-gnu.tar.gz
+
+cd
+wget https://download.litecoin.org/litecoin-0.14.2/linux/litecoin-0.14.2-x86_64-linux-gnu.tar.gz
+tar -xzf litecoin*
+cd litecoin*
+cd bin
+ls
+
+After issuing “ls” you will see that litecoind and litecoin-cli are in the bin directory.
+
+./litecoind
+You will get a message stating there is no configuration file, and they suggest such and such rpc user/pass. We are getting to that.
+
+Now we need to setup the config file for the litecoind.
+
+I am going to start using WinSCP to edit/add files, yes you can use nano, gedit, vim, or whatever shell based text editor you want instead. However, when a novice starts editing as many files as we are about to edit it will be easier for them if they use graphic interface for all of it. It will also help a novice understand the file structure better.
+
+You can get WinSCP here: http://winscp.net/eng/download.php
+
+I will walk you through WinSCP with this litecoind config file, but after that you should be able to use it easily if I just list out what directory you need to go to. You will see here shortly.
+
+Once you install WinSCP, you should be prompted with a login screen.
+
+Select “New Site”
+“File Protocol” will be SFTP
+“Hostname:” is your VPS IP
+“Port number” is your ssh port that you have been using with putty
+“User name:” will be root
+“Password:” is your root password
+ 
+
+Click login, make sure to accept the host key.
+
+Now that you have logged in, you are in the /root folder. Double click the “..” to back out of it.
+
+ 
+
+The file path is /home/username/.litecoin
+
+Click on the “home” folder.
+Click on the folder that is named after your username.
+Click on “.litecoin” it will be grayed out like
+Right click on the white area in WinSCP and Go to “New” and “File”. Should look
+
+Name the file “litecoin.conf”
+
+A white text editor window should pop up, this is WinSCP’s internal editor and what we will be using to edit files. Now we’ll want to put some basic stuff into the configuration file. You should definitely use a different username and password then that I use in the guide. I am just using the ones that litecoind generated for me already.
+
+rpcuser=litecoinrpc
+rpcpassword= wdYMsDT4E61jCv8xx6zZd6PYF3iZkjD7t3NpuiGpn6X
+rpcallowip=127.0.0.1
+rpcport=3000
+daemon=1
+server=1
+gen=0
+
+The default listen port for litecoin is 9333.
+
+Now that you have updated the litecoin.conf file, go ahead and click on the floppy disk icon in the top left of the WinSCP Editor.
+
+Now that we have setup and saved the config file, let’s get back into ssh (putty) on your user that you created earlier.
+
+cd
+cd litecoin*
+cd bin
+./litecoind
+
+You should get a message that states “Litecoin server starting” if for some reason you can’t get out of that command simply press Ctrl+C in putty and it’ll fix it.
+
+Now let’s make sure it’s updating.
+
+./litecoin-cli getinfo
+The wallet should be fully updated by the time this guide is over, however if you are quick or unsure simply run the getinfo command again and compare the block number to http://explorer.litecoin.net/ if the block number matches what’s on that site then you are good to go.
+
+Now let us set the crontab so that the litecoin daemon (litecoind) will always start on boot.
+
+crontab -e
+Select “2. /bin/nano <—- easiest”
+Use your arrow keys to scroll down to the bottom of the crontab.
+Add this line below the # symbols.
+@reboot ./litecoin/src/litecoind
+
+Press Ctrl + O to save and Ctrl + X to exit
+The Litecoin daemon will now start on boot.
+
+Last thing we need to do is get a new address for our litecoin wallet.
+
+./litecoin-cli getnewaddress
+An address will show up, please keep record of this address. We will be using it later in the guide.
+
+NOMP Stratum Setup
+Next we’ll be setting up NOMP (node open mining portal) to be used as a stratum server. NOMP has it’s own front end, but we are using MPOS as the front end instead. Keep following the guide, you will see.
+
+Get on your user (not root) on ssh (putty).
+
+cd
+The command we just did, “cd” by default put’s your user in it’s home folder (/home/username), where we will be installing a lot of stuff.
+
+Let’s download NOMP and put it in a directory called nomp.
+
+git clone https://github.com/zone117x/node-open-mining-portal nomp
+Let’s go into the nomp directory now.
+
+cd nomp
+Let’s update nomp, it may take awhile depending on your servers internet connection.
+
+npm update
+Now we will create a real config file for nomp.
+
+cp config_example.json config.json
+ 
+
+Alright, now you need to boot up WinSCP again and login. Navigate to the nomp directory, which is /home/username/nomp
+
+If you are still logged into WinSCP from before, you may need to right click and click on refresh in order to see the nomp directory.
+
+You’ll see the config.json, right click on it and edit.
+Scroll down to where you see:
+
+“website”: {
+
+“enabled”: true,
+
+You need to change the “true” to false.  Should look like this when you are done:
+
+Now you can save it and exit out of that config.json a, but we are still using WinSCP so keep it open.
+
+Alright, now NOMP needs even more configuration. We have not pointed it at the database yet, or set the ports, coin daemon details, etc… Let’s get into that.
+
+Open up your ssh terminal again (putty) under your user.
+
+cp /home/username/nomp/pool_configs/litecoin_example.json /home/username/nomp/pool_configs/litecoin.json
+Open up WinSCP, navigate to /home/username/nomp/pool_configs
+
+You’ll see the new litecoin.json file you just copied over with that previous command.
+Right click on it and edit it.
+
+-Change “enabled” to true.
+-“address” is that wallet address you saved earlier before, make sure you copy and paste that in there.
+-You’ll see “paymentProcessing” and “enabled” below that, change that to false.
+-Now you’ll see “ports” scroll down to where you see port “3032”, change it to “3333”.
+-Go down to where you see “daemons”.
+-Port will be 2300 if you copied my litecoin.conf settints from before.
+-“user” is your rpcuser from the litecoin.conf.
+-“password” is your rpcpassword from the litecoin.conf.
+-Scroll down to “p2p” and find the “enabled” below it and change it to false.
+-Scroll down to “mposMode”.
+-Change “enabled” to true.
+-Change “user” to the username you setup on the phpmyadmin step from before
+-Change “password” to the password you setup on the phpmyadmin step
+-Change “database” to the database you setup on the phpmyadmin step (we made it the same as username)
+
+If any of the settings are wrong, your stratum will not work. Please double or triple check!
+
+Make sure everything saved correctly, we will come back to NOMP later on.
+
+MPOS Initial Setup
+ 
+
+Let’s setup MPOS (Mining Portal Open Source), which will be the frontend of your pool website.
+
+Alright, let’s go this going. Login to ssh on your user if you are not already.
+
+cd
+git clone https://github.com/MPOS/php-mpos.git mpos
+cd mpos
+
+Setup permissions.
+
+sudo chown –R www-data templates/compile templates/cache logs
+Let’s copy over the configuration.
+
+sudo cp include/config/global.inc.dist.php include/config/global.inc.php
+ 
+
+Alright, now let’s setup the MPOS global configuration file. Open up WinSCP and navigate to /home/username/mpos/include/config/ and right click on global.inc.php and edit it.
+
+ 
+
+Alright, same as what I did with NOMP before. I will go through the steps of what to edit, and then ill post some screenshots of what I did afterwards.
+
+-Scroll down to “SALT” and “SALTY”, see how it says make it something random? Literally mash on your keyboard and just get at least 20+ characters. This is what they use to scramble passwords.
+-Scroll down to “algorithm”, if you are using litecoin it should remain “scrypt” and you don’t have to change it.
+-Scroll down to “Database Configuration”
+-‘user’ will be the user you setup in phpmyadmin from before
+-‘pass’ is the password you generated on phpmyadmin
+-‘name’ is the name of the database you created with phpmyadmin before, we named it the same as the user if you followed the guide exactly.
+-Move down to “Local wallet RPC”
+-On ‘host’ change 19334 to 2300
+-‘username’ to your rpcuser from the litecoin.conf
+-‘password’ to your rpcpassword from the litecoin.conf
+-Save it!
+
+Now, for Litecoin the global config is all setup now. You can change the minimum and maximum auto-withdrawals, and everything else after you make sure the pool is operational.
+
+ 
+
+Now we need to point the Apache Virtual Server towards the MPOS public directory.
+
+Login to Webmin, https://yourserverip:10000/
+
+-Go to Servers > Apache Webserver.
+-You should see the Virtual Server that says “Handles the name-based server on address *.”, click on that virtual server.
+
+-Go to “Virtual Server Details” on the bottom
+-Find “Document Root” and change “/var/www/html” to “/home/username/mpos/public”,
+
+-Click Save
+
+Now we need to update the Apache configuration a bit.
+
+-Click on “Global Configuration” on the top center left,
+
+-Click on “Edit Config Files”
+-Scroll all the way to the bottom of the config file
+-Add this to the bottom, and update it according to your username obviously.
+
+Quote:<Directory /home/username/mpos/public>
+Options Indexes FollowSymLinks
+AllowOverride None
+Require all granted
+</Directory>
+
+-Click Save
+-Click on “Apply Changes” in the type right of Webmin.
+
+Now let’s see if the MPOS frontend is working, go to http://yourserverip
+
+If you see the MPOS frontpage, then go ahead and skip to the “MPOS Frontend Initial” step.
+
+If you get a blank page, don’t worry it may be a permissions issue.
+Login to root on ssh.
+
+cd /home/username/mpos
+chown -R www-data templates/compile templates/cache logs
+
+ 
+
+Now head back to http://yourserverip and see if MPOS shows up.
+
+MPOS Frontend
+Before we get into the cronjobs, let’s go ahead and get familiar with MPOS.
+
+Click on “Other” and then click “Sign up”
+
+The first account on MPOS is the admin account and does not require email activation. Fill in the info and then click “Register” on the bottom.
+
+he coin address is just your wallet, that you want your mined coins to go to. By default MPOS won’t let you register without one.
+
+Also, if you are getting “token expired” messages don’t worry, it’s just MPOS being finicky. Try again.
+
+You should get a “Please check your mailbox to activate” message, don’t worry you do not need to activate anything as the first account is the admin account.
+
+Go ahead and login.
+
+-Go to Admin Panel > System > Settings
+
+-Click on “System” on that settings page:
+
+-Find “Disable e-mail confirmations” and select yes.
+-Scroll to the bottom and click save.
+
+Now you just set it so users can register without email confirmations, which is important if you don’t have a mail server setup. The other settings you can toy with later on after this guide is over, such as your pool name.
+
+Last thing, go to Admin Panel > System > Monitoring
+This page is not important now, but it will be when we setup the cronjobs. Please keep it open in a tab on your browser for later. I will refer to it as the “Monitoring Page” in the cronjob section of this guide.
+
+Do not worry if there is issues like “we can’t poke your Stratum server”, because the Stratum is not started yet. We will get into that here shortly.
+
+MPOS Cronjob Setup
+MPOS work’s off of 3 different main cronjobs. Payout, statistics, and maintenance. There are others, but this is what we will be setting up. We will run them every minute, it is very important that you run these crons every minute otherwise MPOS likes to break.
+
+Login to Webmin, http://yourserverip:10000/
+
+Go to System > Scheduled Cronjobs
+
+-Select “Create a new scheduled cronjob” on the bottom.
+-“Execute cron job as”, select your user.
+-“Active” will be yes.
+-Command will be “/home/username/mpos/cronjobs/run-statistics.sh”
+-Go down to “Minutes” and click on the “selected” and then highlight all the numbers.
+-Click “Create”
+
+Now you will create 2 more cronjobs using the exact process we just did above, for “/home/username/mpos/cronjobs/run-maintenance.sh” and “/home/username/mpos/cronjobs/run-payout.sh”
+
+I won’t repeat the process, it’s really straight forward and I am sure you can do it if you have gotten this far in the guide.
+
+Alright, remember that “Monitoring Page” I had you leave open? Go back to it, and hit refresh.
+Your monitoring page should get new results pushed to it every minute, if not it’ll turn yellow and eventually red.
+
+Congraulations, your cronjobs are setup.
+
+ 
+
+Turning Stratum On
+
+Remember NOMP? We are going to turn it on now.
+
+Log back onto ssh (putty) as your user.
+
+cd
+cd nomp
+
+Before we set NOMP to stay on “forever” we are going to make sure it works first while we can still interact with it.
+Let’s start the stratum server in shell.
+
+node init.js
+If you have no errors, then you are good your stratum is running. If you have issues, please go back to the NOMP setup part of the guide.
+
+Now fire up your miner, I am not going to go into specifics about setting up cgminer or what have you. If you don’t know how to setup a miner, you probably should of researched that long before you attempted to setup your own pool.
+
+Details for your miner:
+
+stratum+tcp://yourserverip:3333
+-u mposusername.1
+-p x
+
+Now type this to keep init.js running indefinitely (until you restart your server or nomp crashes).
+
+forever start init.js
+Your Stratum is now running, and will stay running even if you close your ssh terminal.
+
+Congratulations You have now your own Mining Pool Ready to Start
+
+If you liked this guide, please donate to me as well!
+BTC: 18xRnsa828YALPgbvjRXQuQ63QqikPbKxq

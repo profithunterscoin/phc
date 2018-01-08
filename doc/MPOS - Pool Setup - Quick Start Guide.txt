@@ -1,0 +1,1190 @@
+Quick Start Guide
+Sebastian Grewe edited this page on Jul 16, 2015 · 101 revisions
+
+https://github.com/MPOS/php-mpos.wiki.git
+
+First things First
+Before you start working with this guide: Do not create issue reports if you fail to get it working! This is most often caused by a setup mistake, over-reading a configuration or system step or simply not being into Linux, Apache and MySQL enough. But don't fret! MPOS has a very active community, so if you are struggling to get things to work, try our IRC Channel FIRST! New issue reports regarding the setup or running of MPOS will always be closed by commenting to join IRC for further assistance: https://webchat.freenode.net/?channels=#mpos
+
+Now, onwards! Make sure to always try fixing things yourself before asking others to hold your hands!
+
+Disclaimer!
+Before following this guide this warning is given as advice and a word of warning. Running a live pool is a job which requires in depth knowledge of pool code as well as the ability to debug and fix the pool. By NO means is this an in depth guide to running a pool and as such should only be used for private/testnet pools! As running a pool is a long and tiresome process where many different things can affect the stability and usability of the pool, it is guaranteed that problems will occur. If help is required it can be obtained in the MPOS channel however a person must be able to show that they have tried to resolve a problem themselves. Otherwise help will not be given as the running of the pool in itself is a difficult process
+
+Description
+This guide will help you get your MPOS interface setup including all dependencies and software required. Please use this as a guide on how get things to work but keep in mind that things change and maybe this Wiki page is outdated and things do not work anymore as expected.
+
+If you intend to follow this quick start guide please ensure you know what you are doing. Basic concepts in Linux like compiling and installing software, configuring Apache and other services should be a no-brainer to you.
+
+This guide is NOT taking care of security or any special setups to make this installation secure. You should consider:
+
+adding a special DB user just for MPOS
+ensures you are not using root which could break things
+create a new virtual host and point the DocumentRoot towards the public folder
+This way the cronjobs folder can be locked down and not be available to the website itself
+run all 3rd party services as non-root
+if one of them has a flaw your root account is not compromised
+Website Footer
+When you decide to use MPOS please be so kind and leave the footer intact. You are not the author of the software and should honor those that have worked on it. I don't mind changing the LTC donation address at the bottom, but keep in mind who really wrote this software and would deserve those ;-).
+
+OS Setup
+My base system used in this guide is Ubuntu Server 12.04 LTS. During setup I kept most defaults and installed the OpenSSH (for easier access) and LAMP Server groups during software selection. Other software and tools required will be mentioned in this guide.
+
+Update your server:
+
+sudo apt-get update
+sudo apt-get dist-upgrade
+Run these two commands till there are no more updates. Remember to run these commands again any time you install dependencies to make sure you have the latest versions.
+
+In order to get started install some basic tools. Other tools will be installed when needed.
+
+sudo apt-get install git
+sudo apt-get install build-essential autoconf libtool libboost-all-dev libcurl4-openssl-dev libdb5.1-dev libdb5.1++-dev mysql-server
+I have organized all the dependencies you will need here at the beginning of the guide, so that they may be put out of the way right away.
+
+For python-stratum
+
+sudo apt-get install python-twisted python-mysqldb python-dev python-setuptools python-memcache python-simplejson python-pylibmc
+sudo easy_install -U distribute
+For MPOS:
+
+sudo apt-get install memcached php5-memcached php5-mysqlnd php5-curl php5-json libapache2-mod-php5
+sudo apache2ctl -k stop; sleep 2; sudo apache2ctl -k start
+Litecoind
+Note: Litecoin is only used as an example, as it should guarantee a working MPOS, please, replace litecoind with the coin of your choice.
+
+Download
+You can grab the latest version from Litecoin @ Github:
+
+cd ~
+git clone git://github.com/litecoin-project/litecoin.git
+Compile
+With the source downloaded and all dependencies installed we can now try to compile litecoind. Ubuntu Trusty 12.04 uses Berkeley DB 5.1 so we may need the --with-incompatible-bdb switch:
+
+# Change to src folder
+cd ~
+./autogen
+./configure --with-incompatible-bdb
+make
+# Strip debug symbols to reduce size
+strip src/litecoin{d,-cli}
+# As root, copy binaries to system path
+cp src/litecoin{d,-cli} /usr/bin
+chmod 700 /usr/bin/litecoin{d,-cli}
+chown litecoin.litecoin /usr/bin/litecoin{d,-cli}
+Test Network
+Again, this is not necessary for a real MPOS pool. Testing MPOS on the testnet of your coin is suggested
+
+Now that we have a working executable we can fetch the testnet for Litecoin from Github:
+
+cd ~
+git clone git://github.com/xrobau/litecoin-testnet-box.git
+cd litecoin-testnet-box
+The included .conf in the /1 folder will not function properly if the username and password remain the same, so you will have to edit the file so that one of them does not match the other.
+
+vi 1/litecoin.conf
+Now you can start your server.
+
+make start
+If everything went well you should now get some information from the RPCs, this data can vary depending on version numbers used and changes to the net since the first access:
+
+root@ubuntu-server:~/litecoin-testnet-box# make getinfo
+litecoind -datadir=1  getinfo
+{
+    "version" : 60300,
+    "protocolversion" : 60001,
+    "walletversion" : 60000,
+    "balance" : 0.00000000,
+    "blocks" : 0,
+    "connections" : 1,
+    "proxy" : "",
+    "difficulty" : 0.00024414,
+    "testnet" : true,
+    "keypoololdest" : 1369211361,
+    "keypoolsize" : 101,
+    "paytxfee" : 0.00000000,
+    "mininput" : 0.00010000,
+    "errors" : ""
+}
+litecoind -datadir=2  getinfo
+{
+    "version" : 60300,
+    "protocolversion" : 60001,
+    "walletversion" : 60000,
+    "balance" : 0.00000000,
+    "blocks" : 0,
+    "connections" : 1,
+    "proxy" : "",
+    "difficulty" : 0.00024414,
+    "testnet" : true,
+    "keypoololdest" : 1369211361,
+    "keypoolsize" : 101,
+    "paytxfee" : 0.00000000,
+    "mininput" : 0.00010000,
+    "errors" : ""
+}
+Success! Litecoin is now setup and working properly running on a test network. No actual blocks are calculated here but this is enough for testing purposes later.
+
+You can fetch your wallet address via litecoind inside your testnet checkout from the testnet folder:
+
+litecoind -datadir=1 getaccountaddress ""
+Remember this address, you'll need it later.
+
+To mine on this server with a remote graphic card on your network you need to determine your machines IP.
+
+ifconfig
+Now point your miner, I will be using cgminer.
+
+cgminer.exe --scrypt -o http://yourip:19334 -u -p
+You should now be mining!
+
+Stratum Mining Server Software
+There exists many stratum mining server software alternatives which you have to choose one from and configure MPOS to work with;
+
+Stratum Mining
+
+Stratum Mining is a software which supports all PoW and PoS coins including Litecoin, Bitcoin, PPcoin and Novacoin.This is rather easy to implement so here a quick start guide if you wish to try it out. MPOS does support stratum, For VARDIFF support MPOS must be set to match the initial pool target in the stratum-mining config file.
+
+NOMP
+
+A new stratum has been created, named NOMP, if you would like to use this instead of stratum-mining, please follow this link. Either one will work. NOMP supports x11, quark, scrypt, sha, and more. NOMP is written in node.js
+
+CoiniumServ
+
+Yet another stratum server alternative called CoiniumServ exists which can run on any platform (Windows, Linux and MacOS) and supports many algorithms. Check project's documentation wiki for setup & configuration guides.
+
+Requirements
+First we need to install some packages required to run stratum-mining:
+
+cd ~
+sudo apt-get install python-twisted python-mysqldb python-dev python-setuptools python-memcache python-simplejson python-pylibmc
+sudo easy_install -U distribute
+Downloading
+We need to fetch stratum-mining and some additional code for a stratum implementation:
+
+git clone https://github.com/Tydus/litecoin_scrypt.git
+git clone https://github.com/ahmedbodi/stratum-mining.git
+git clone https://github.com/ahmedbodi/stratum.git
+That covers the download. Lets go ahead and prepare the software!
+
+Installation
+We need to install litecoin_scrypt and stratum:
+
+cd stratum-mining
+git submodule init
+git submodule update
+
+cd externals/litecoin_scrypt
+sudo python setup.py install
+
+cd ~
+cd stratum-mining/externals/stratum
+sudo python setup.py install
+Configuration
+Now that we have everything installed we can configure stratum-mining to run with our testnet:
+
+cd ~
+cp stratum-mining/conf/config_sample.py stratum-mining/conf/config.py
+vi stratum-mining/conf/config.py
+You will need to adjust some settings for this to work:
+
+CENTRAL_WALLET = 'Your_Valid_Bitcoin_or_Litecoin_Address'
+[...]
+COINDAEMON_TRUSTED_HOST = 'localhost'
+COINDAEMON_TRUSTED_PORT = 19334
+COINDAEMON_TRUSTED_USER = 'testnet'
+COINDAEMON_TRUSTED_PASSWORD = 'testnet'
+COINDAEMON_ALGO = 'scrypt'
+COINDAEMON_Reward = 'POW'
+COINDAEMON_SHA256_TX = 'no
+[...]
+HOSTNAME = 'yourservername'
+[...]
+DATABASE_DRIVER = 'mysql'
+DB_MYSQL_HOST = 'localhost'
+DB_MYSQL_DBNAME = 'mpos'
+DB_MYSQL_USER = 'root'
+DB_MYSQL_PASS = 'root'
+[...]
+POOL_TARGET = 16
+[...]
+SOLUTION_BLOCK_HASH = True
+Starting stratum-mining
+This is the easy part, but don't do it till you set up the database in the next steps. Change to the stratum-mining folder and fire up the service:
+
+cd stratum-mining
+twistd -ny launcher.tac
+If you want to run it in the background you can remove the -ny and replace it with -y:
+
+twistd -y launcher.tac
+Special Notes
+When running stratum-mining I noticed that stratum and pushpoold use different settings. @pooler was nice enough to explain it to me in detail:
+
+pushpoold uses a target bits terminology and stratum a difficulty setting. These are different. When running pushpoold at a target bit of 20 you will match the default setting of 16 in stratum-mining. This will ensure that hashrates on MPOS match up! If you'd think you could set pushpoold to 16 and match it with stratum you will be off.
+
+He devised a formula that can be used to change stratum difficulty and match pushpoold and MPOS to it:
+
+(stratum diff) ~= 2^((target bits in pushpool) - 16)
+
+Add The Result To The Stratum Pool_Target
+
+MPOS
+Requirements
+We need to install some additional software to ensure MPOS will work as expected. This is a sample for Debian based systems:
+
+sudo apt-get install memcached php5-memcached php5-mysqlnd php5-curl php5-json libapache2-mod-php5
+sudo apache2ctl -k stop; sleep 2; sudo apache2ctl -k start
+Also, please download and check out the security warnings and errors triggered by phpsecinfo and fix those before attempting to run MPOS: http://phpsec.org/projects/phpsecinfo/
+
+Just download the ZIP archive, unzip into your pools webroot and run the index.php. Do not continue until everything shows green! The only exception is Maximum post size which needs to be a bit bigger so MPOS can store admin panel settings to the DB when clicking save.
+
+Download
+Fetch the latest version of MPOS:
+
+# We move into the default webroot of Ubuntu
+cd /var/www
+sudo git clone git://github.com/MPOS/php-mpos.git MPOS
+cd MPOS
+sudo git checkout master
+Mailserver Setup
+To allow your site to send messages you need to set up the mail server.
+
+sudo apt-get install postfix
+Accept 'internet server' and keep the defaults. This will set up Postfix.
+
+Database Setup
+During server installation MySQL was installed by using the LAMP Server group. This also setup a password for your root user. Use this password now to create the database and import the structure:
+
+# Create database
+sudo mysql -p -e "create database mpos"
+# Import structure
+sudo mysql -p mpos < sql/000_base_structure.sql
+Configuration
+Folder Permissions
+First, give proper permissions to our compiled templates and caching folder. This example shows the procedure in Ubuntu, other distributions may vary (apache in CentOS, httpd in others). Ensure to give the service user access that will be executing the scripts!
+
+sudo chown -R www-data templates/compile templates/cache logs
+Main Configuration
+We need to configure the project to work on our newly installed server:
+
+sudo cp include/config/global.inc.dist.php include/config/global.inc.php
+Now edit the configuration file and adjust the settings to match your database and litecoin RPC Client:
+
+$config['db']['host'] = 'localhost';
+$config['db']['user'] = 'root';
+$config['db']['pass'] = 'root';
+$config['db']['port'] = 3306;
+$config['db']['name'] = 'mpos';
+[...]
+$config['wallet']['type'] = 'http';
+$config['wallet']['host'] = 'localhost:19334';
+$config['wallet']['username'] = 'testnet';
+$config['wallet']['password'] = 'testnet';
+[...]
+$config['gettingstarted']['stratumurl'] = 'localhost';
+You will also need to setup a proper, random (!) $config['SALT'] and another $config['SALTY'] secret! If you forgot that, you will get an error message after installing MPOS: You absolutely SHOULD NOT leave your SALT or SALTY default changing them will require registering again. SALT and SALTY must be a minimum of 24 characters or you will get an error message: 'SALT or SALTY is too short, they should be more than 24 characters and changing them will require registering again'
+
+One final edit should be to edit: /usr/local/lib/python2.7/dist-packages/stratum-0.2.13-py2.7.egg/stratum/websocket_transport.py
+
+Change:
+
+from autobahn.websocket import WebSocketServerProtocol, WebSocketServerFactory
+To:
+
+from autobahn.twisted.websocket import WebSocketServerProtocol, WebSocketServerFactory
+Now everything is setup and we should be able to test things.
+
+Testing
+MPOS
+Open your browser and head over to MPOS on your server `http:///MPOS/public
+
+You should be greeted with the homepage. Create a new account on the registration page (the first account will have admin rights and does not require a mail confirmation) and add a new worker!
+
+Test the Pool
+Now with everything in place and running you can fire up a miner of your choice and test if shares are committed:
+
+minerd -o stratum+tcp://<yourserverIP>:3333 -O YourAccount.worker:WorkerPassword -t 1
+
+If all went well you should see this:
+
+
+minerd -o stratum+tcp://localhost:3333 -O DummyUser.test:test -t 1
+
+[2013-05-22 11:01:20] 1 miner threads started, using 'scrypt' algorithm.
+
+[...]
+
+[2013-05-22 11:01:21] thread 0: 4104 hashes, 6.38 khash/s
+
+[2013-05-22 11:01:34] thread 0: 137208 hashes, 10.85 khash/s
+
+[2013-05-22 11:01:34] accepted: 1/1 (100.00%), 10.85 khash/s (yay!!!)
+
+[2013-05-22 11:01:34] thread 0: 288 hashes, 10.66 khash/s
+
+Please test the same with cgminer or a similar tool supporting stratum on port 3333, the default port opened by the configuration in stratum-mining.
+
+Now with shares being committed and new blocks being generated in our test network head to the webinterface and your stats should be updated!
+
+Cronjobs
+MPOS comes with a few cronjobs that are part of the backend. Please set the up according to regular cron guides. MPOS comes with a wrapper script that will run all crons for you. It is called run-crons.sh and can be found in the cronjobs folder. Adjust this script to suit your needs, then add it to your cron service.
+
+For testing purposes you can also run them from command line:
+
+cd /var/www/MPOS/cronjobs
+
+./run-crons.sh
+You will not receive any output. Please check in cronjobs/logs for the appropriate logfiles. For more detailed logs you can turn on debugging in the cronjobs/shared.inc.php file.
+
+For a small pool, this will work fine. If you are planning to run a medium sized pool in the future or expect a lot of shares, please read: cronjob advanced setup.
+
+E-Mail
+You are required to have a proper mail setup running on your box. Keep in mind that large pools can have quite excessive e-mails being sent over all. This is by design and increases security while also notifying uses about state changes in the pool. For smaller pools, running via an external provider will suffice. For larger once, you should look into a contract for Mail Relays.
+
+A simple guide to get started with Gmail and Postfix can be found here: https://rtcamp.com/tutorials/linux/ubuntu-postfix-gmail-smtp/
+
+Basic DoS Protection
+You are required to secure your server, Using internal and external means. Pasting the below rules into your SSH console one line at a time from top to bottom would be a good start, But there are other considerations as well.
+
+This assumes you will be using port 53 for DNS and you don't want UDP for anything else, And your webserver is serving on port 80, This doesn't restrict services such as SSH or FTP. You want to limit the rate your clients can connect at the door, and not rely solely on a cache to do it.
+
+
+sudo iptables -A INPUT -p tcp --dport 80 -m state --state NEW -m limit --limit 50/minute --limit-burst 200 -j ACCEPT
+
+sudo iptables -A INPUT -m state --state RELATED,ESTABLISHED -m limit --limit 50/second --limit-burst 50 -j ACCEPT
+
+sudo iptables -A INPUT -i eth0 -p tcp -m tcp --tcp-flags FIN,SYN,RST,PSH,ACK,URG NONE -j DROP
+
+sudo iptables -A INPUT -i eth0 -p tcp -m tcp --tcp-flags FIN,SYN FIN,SYN -j DROP
+
+sudo iptables -A INPUT -i eth0 -p tcp -m tcp --tcp-flags SYN,RST SYN,RST -j DROP
+
+sudo iptables -A INPUT -i eth0 -p tcp -m tcp --tcp-flags FIN,RST FIN,RST -j DROP
+
+sudo iptables -A INPUT -i eth0 -p tcp -m tcp --tcp-flags FIN,ACK FIN -j DROP
+
+sudo iptables -A INPUT -i eth0 -p tcp -m tcp --tcp-flags ACK,URG URG -j DROP
+
+sudo iptables -A PORT_SCANNING -p tcp --tcp-flags SYN,ACK,FIN,RST RST -m limit --limit 1/s -j RETURN
+
+sudo iptables -A PORT-SCANNING j DROP
+
+sudo iptables -A INPUT -p icmp -m limit --limit 2/second --limit-burst 2 -j ACCEPT
+
+sudo iptables -A INPUT -p tcp --tcp-flags ALL FIN,PSH,URG -j DROP
+
+sudo iptables -A INPUT -p udp --sport 53 -j ACCEPT
+
+sudo iptables -A INPUT -p udp --dport 53 -j ACCEPT
+
+sudo iptables -A OUTPUT -p udp --sport 53 -j ACCEPT
+
+sudo iptables -A OUTPUT -p udp --dport 53 -j ACCEPT
+
+sudo iptables -A INPUT -p udp -j DROP                                
+
+sudo iptables -A OUTPUT -p udp -j DROP
+You can find a more detailed explanation of what these do: HERE
+
+Conclusion
+Congratulations! You have now a running instance of MPOS to test with! Please consider donating if you like my work and find this guide helpful!
+
+Quick Start
+Follow these instructions to perform this entire setup, minus the file configurations, in a quick and efficient bundle.
+
+cd ~
+
+sudo apt-get update
+
+sudo apt-get dist-upgrade
+
+sudo apt-get install git
+
+sudo apt-get install build-essential libboost-all-dev libcurl4-openssl-dev libdb5.1-dev libdb5.1++-dev mysql-server
+
+git clone git://github.com/litecoin-project/litecoin.git
+
+cd litecoin/src
+
+make -f makefile.unix USE_UPNP=-
+
+sudo cp litecoind /usr/bin
+
+cd ~
+
+git clone git://github.com/xrobau/litecoin-testnet-box.git
+
+cd litecoin-testnet-box
+
+cd ~
+
+sudo apt-get install python-twisted python-mysqldb python-dev python-setuptools python-memcache python-simplejson
+
+easy_install -U distribute
+
+git clone https://github.com/Tydus/litecoin_scrypt.git
+
+git clone https://github.com/ahmedbodi/stratum-mining.git
+
+git clone https://github.com/ahmedbodi/stratum.git
+
+cd stratum-mining
+
+git submodule init
+
+git submodule update
+
+cd externals/litecoin_scrypt
+
+sudo python setup.py install
+
+cd ~
+
+cd stratum-mining/externals/stratum
+
+sudo python setup.py install
+
+cd ~
+
+cp stratum-mining/conf/config_sample.py stratum-mining/conf/config.py
+
+sudo apt-get install memcached php5-memcached php5-mysqlnd php5-curl
+
+sudo apache2ctl -k stop; sleep 2; sudo apache2ctl -k start
+
+cd ..
+
+cd ..
+
+cd var/www
+
+sudo git clone git://github.com/MPOS/php-mpos.git MPOS
+
+cd MPOS
+
+sudo git checkout master
+
+mysql -u -p -e "create database mpos"
+
+mysql -u -p mpos < sql/000_base_structure.sql
+
+sudo chown -R www-data templates/compile templates/cache
+
+sudo cp include/config/global.inc.dist.php include/config/global.inc.php
+
+
+
+
+
+=========================================
+
+Helpful Hints
+Make sure you allow for 2 Gb of RAM in memory settings, if you leave it at the default 512 Mb some compiling commands won't be able to execute properly.
+
+Or you can create a pagefile if more RAM is not available by using these commands.
+
+sudo dd if=/dev/zero of=/swapfile bs=1024 count=2048k
+
+sudo mkswap /swapfile
+
+sudo chown root:root /swapfile
+
+sudo chmod 0600 /swapfile
+
+sudo swapon /swapfile
+This is temporary unless you add the file to your fstab.
+
+
+sudo vi /etc/fstab
+
+Add the following line to the end of the file
+
+/swapfile swap swap defaults 0 0
+Remember to set VMware to bridge your adapter so that your server will show up on the local network.
+
+The server can be really touchy when trying to get a miner to connect to it. Keep trying, restart, fiddle with the .conf settings, etc, eventually it will begin working properly, though I had to create the server 8 times before it worked.
+
+If easy_install doesn't work then run these additional lines first.
+
+
+
+cd ~
+
+sudo rm /usr/bin/easy_install*
+
+sudo rm /usr/local/bin/easy_install*
+
+curl -O http://python-distribute.org/distribute_setup.py
+
+sudo python distribute_setup.py
+
+sudo rm distribute_setup.py
+
+This will compile and install two libraries that are required to run stratum-mining. If running the git commands does not pull the git subfiles the first time, try deleting the stratum-mining folder and downloading it again.
+
+To remove the slightly annoying "Could not reliably determine server name" warning message when restarting apache, just insert this line of code into the /etc/apache2/httpd.conf file:
+
+ServerName yourservername
+
+
+
+=======================
+
+
+sudo apt-get install php-mbstring php7.0-mbstring php-gettext
+
+apt-get install php-memcached -y
+
+sudo apt install php-curl
+service apache2 restart
+
+
+pip install pycrypto
+pip install Crypto
+
+
+   _build_egg(egg, tarball, to_dir)
+  File "/home/ubuntu/code/stratum/distribute_setup.py", line 116, in _build_egg
+    raise IOError('Could not build the egg.')
+IOError: Could not build the egg.
+
+
+Removing these lines from setup.py worked for me:
+
+#from distribute_setup import use_setuptools
+#use_setuptools()
+
+
+
+
+sudo apt-get install mailutils
+sudo apt-get install sendmail
+sudo apt-get install sasl2-bin
+sudo apt-get install sendmail-bin
+
+http://www.seanbehan.com/using-sendmail-to-send-mail-on-ubuntu-box/
+https://easyengine.io/tutorials/linux/ubuntu-postfix-gmail-smtp/
+https://ubuntuforums.org/showthread.php?t=1782774
+https://github.com/MPOS/php-mpos/issues/899
+https://www.alsacreations.com/tuto/lire/614-Serveur-mail-Postfix.html
+https://www.inmotionhosting.com/support/email/send-email-from-a-page/using-phpmailer-to-send-mail-through-php
+
+============================================
+
+
+Config Setup
+TnTBass edited this page on Sep 12, 2017 · 55 revisions
+ Pages 29
+
+Find a Page…
+Home
+API Reference
+auto_payout
+Basic DoS Protection
+blockupdate
+Config Setup
+Configuration Options
+Cronjobs
+Custom Templates
+Developer Guide
+Developers
+Development Model
+Error Codes
+FAQ
+findblock
+Show 14 more pages…
+Clone this wiki locally
+
+https://github.com/MPOS/php-mpos.wiki.git
+
+The Config File
+The config file is one of the most important files for users in the PHP-MPOS project. It can be found in the /public/include/config directory under the name global.inc.dist.php. In this form the file is inactive and will not affect the site. Until the config file has been activated by changing the name to global.inc.php the PHP-MPOS project will not load. By activating this file a user can gain access to many powerful tools for changing the settings on all pages of the site.
+
+Configuration Options
+Config Version
+This is used in the version check to ensure you run the latest version of the configuration file. Once you upgraded your config, change the version here too.
+
+Config Check
+Unless disabled will perform a simple check on your config and display the results for logged in admins.
+
+Check for valid Wallet Address
+Enables/Disables Registration with Wallet Address
+
+Defines & salts
+Debug is the debug level to run the application at, 0 for disabled - 5 for most verbose.
+
+SALT and SALTY are used to hash passwords, so longer is better!
+
+Default Values:
+
+DEBUG = 0
+SALT  = ''
+SALTY = ''
+The *_PATH defines are now located in bootstrap.php, in the includes folder.
+
+Algorithm
+Underlying coin algorithm that you are mining on. Set this to whatever your coin needs, sha256d, scrypt, scryptn or x11.
+
+Default Values:
+
+algorithm    =    'scrypt'
+algorithm
+
+sha256d: Bitcoin and similar ones.
+scrypt: Litecoin and most of the all-coins.
+scryptn: Vertcoin and similar ones.
+x11: Darkcoin and similar ones.
+Getbalance API Calls
+Some Coins have a bad implementation of getbalance. In Some cases, Coindaemon did not return Balance with unconfirmed Blocks. If your Coindaemone returns the same values when you run ./coindaemon getbalance and ./coindaemon getbalance '', you have to set this to false.
+
+$config['getbalancewithunconfirmed'] = true;
+Database Configuration
+A MySQL database backend is required for MPOS. Creating a database is covered in the [Quick Start Guide] (https://github.com/MPOS/php-mpos/wiki/Quick-Start-Guide#wiki-database-setup). Additionally a base database structure is available in sql/000_base_structure.sql. If a database update is required, MPOS will disable the cronjobs and notify the admins of the website via popup notification. Please run the upgrade/run_upgrades.php script to migrate your database to the latest version.
+
+Default Values:
+
+host = 'localhost'
+port = 3306
+user = 'someuser'
+pass = 'somepass'
+name = 'mpos'
+Explanations
+host
+
+location for the database, generally on the same server as the site port
+port
+
+which port accesses the database if hosted externally
+user
+
+database user name
+pass
+
+database user password
+name
+
+name of the database used for the project, needs to match the name of the database created
+shared
+
+this is a special variable that will allow advanced users to setup a Single Sign On setup for MPOS
+Local Wallet RPC
+MPOS uses the RPC backend to fetch transactions, blocks and various other things. They need to match your coind RPC configuration.
+
+Default Values:
+
+type      =  'http'
+host      =  'localhost:19334'
+username  =  'testnet'
+password  =  'testnet'
+type
+
+RPC connection type
+host
+
+RPC host
+username
+
+RPC username
+password
+
+RPC password
+Swiftmailer
+You can configure how MPOS is sending mail via Swiftmailer here. Please be aware that we recommend running a local MTA as relay to your actual mail provider. Using SMTP will add the connection overhead when sending mail, that may result in very long runtimes when sending a lot of mails out.
+
+SMTP can still be used. Please configure it using the smtp options in this configuration block. For newsletters, we added the option to enable throttle mode, which will only send 100 message per minute! Use an MTA if you have a large volume of users!
+
+Default Values:
+
+type               =  sendmail
+sendmail path      =  /usr/sbin/sendmail
+sendmail options   =  -bs
+smtp host          =  your.mail-relay.com
+smtp port          =  587
+smtp encryption    =  tls
+smtp username      =  ''
+smtp password      =  ''
+smtp throttle      =  100
+Getting Started
+This is displayed on GettingStarted Page to make it more dynamic
+
+Default Values:
+
+coinname    =  'Litecoin'
+coinurl     =  'http://www.litecoin.org'
+stratumurl  =  ''
+stratumport =  '3333'
+coinname
+
+The name of the coin this MPOS install is for
+coinurl
+
+URL for more information about this coin
+stratumurl
+
+URL used in getting started page for stratum
+stratumport
+
+Port used in getting started page for stratum
+Ticker API
+MPOS will try to fetch the current exchange rates from this API URL/target. Currently btc-e and coinchoose are supported in MPOS. If you want to remove the trade header just set currency to an empty string.
+
+Default Values:
+
+btc-e.com
+  url       =  `https://btc-e.com`
+  target    =  `/api/2/ltc_usd/ticker`
+  currency  =  `USD`
+
+coinchoose.com
+  url       =  `http://www.coinchoose.com`
+  target    =  `/api.php`
+  currency  =  `BTC`
+
+cryptsy.com
+  url       =  `http://pubapi.cryptsy.com`
+  currency  =  `BTC`
+  target    =  `/api.php?method=singlemarketdata&marketid={MARKET_ID}`
+
+cryptorush.in
+  url       =  `https://cryptorush.in`
+  currency  =  `BTC`
+  target    =  `/api.php?get=market&m={YOUR_COIN}&b={TARGET_COIN}&key={YOUR_API_KEY}&id={YOUR_ID}`
+
+cryptopia.co.nz
+  url       =  `https://www.cryptopia.co.nz`
+  currenty  =  `BTC`
+  target    =  `/api/GetMarket/{MARKET_ID}`
+
+mintpal.com
+  url       =  `https://api.mintpal.com`
+  currency  =  `BTC`
+  target    =  `/market/stats/LTC/BTC`
+
+bittrex.com
+  url       =  `https://bittrex.com`
+  currency  =  `BTC`
+  target    =  `/api/v1.1/public/getticker?market=BTC-{YOUR_COIN}`
+Automatic Payout Thresholds
+These values define the min and max settings that can be entered by a user.
+
+Default Values:
+
+min  = 1
+max  = 250
+min
+
+Minimum amount a user can request automatic payout at
+max
+
+Maximum amount a user can request automatic payout for
+Minimum Manual Payout Threshold
+These value defines the min manual payout that can be entered by a user.
+
+Default Values:
+
+1
+Maximum Coins per Payout
+These value defines the max payout that can be entered by a user. This should be set to the value, Coin Daemon can handle as max for one Transaction to a single user.
+
+Default Values:
+
+20000
+Donation Thresholds
+You can define a min and max values for you users donation settings here.
+
+Default Values:
+
+min = 1
+min
+
+Cap the minimum donation amount at this
+Account Specific Settings
+Invitations will allow your users to invite new members to join the pool. After sending a mail to the invited user, they can register using the token created. Invitations can be enabled and disabled through the admin panel. Sent invitations are listed on the account invitations page.
+
+Default Values:
+
+count  =  5
+count
+
+Maximum invitations a user is able to send
+Currency
+Shorthand name for currency used by this pool
+
+Default Values:
+
+currency = 'LTC'
+currency
+
+Shorthand name for the currency used
+Coin Target
+Target time for coins to be generated
+
+Fastcoin: 12 seconds Litecoin: 2,5 minutes = 150 seconds Feathercoin: 2,5 minutes = 150 seconds Bitcoin: 10 minutes = 600 seconds
+
+Default Values:
+
+cointarget = 150
+Coin Diff Change
+Amount of Blocks until Difficulty change
+
+Fastcoin: 300 Blocks Litecoin: 2016 Blocks Bitcoin: 2016 Blocks
+
+Default Values:
+
+coindiffchangetarget = 2016
+cointarget
+
+Time in seconds for coins to be generated for this coin
+TX Fees
+The coin daemon applies transaction fees to young coins. Since we are unable to find out what the exact fee was we set a default value here which is applied to both manual and auto payouts. If this is not set, no fee is applied in the transactions history but the user might still see them when the coins arrive. You can set two different transaction fees for manual and auto payouts.
+
+Default Values:
+
+txfee_auto     =  0.1
+txfee_manual   =  0.1
+txfee_auto
+
+Setting for auto payout TX fee
+txfee_manual
+
+Setting for auto payout TX fee
+Block Bonus
+Payout a block bonus to block finders, this bonus is paid by the pool operator, it is not deducted from the block payout! 0 = disabled
+
+Default Values:
+
+block_bonus  =  0  
+block_bonus
+
+This bonus is paid by the pool operator, not from the block!
+Pool Bonus
+Payout a general bonus to all your miners. By default, this is based on their payouts and will pay out an additional percentage to their income. This will be covered from your liquid assets! As a payout time, you can either chose payout or block. Block will payout the same percentage based on the block value to all miners! So setting this to 1% on a 50 block reward pays 5 coins per user from your liquid assets! Payout based bonuses only pay a bonus total to the block values percentage.
+
+Default Values:
+
+pool_bonus       =  0  
+pool_bonus_type  =  payout
+Payout System
+This will modify some templates and activate the appropriate crons. Only ONE payout system at a time is supported!
+
+prop: Proportional payout system
+pps : Pay Per Share payout system
+pplns : Pay Per Last N Shares payout system
+Default Values:
+
+payout_system  =  'prop'
+payout_system
+
+The payout system chosen, prop pps or pplns
+Sendmany Support
+By default we try to detect sendmany in the RPC but disable the use of it. If you are sure that your RPC does support sendmany properly, you can enable it here and speed up your payouts significantly.
+
+sendmany enabled : Enable/Disable sendmany support.
+Default Values:
+
+sendmany enabled  =  false
+Payouts
+We are only running a certain amount of payouts per run to not overload the RPC with transactions per run. You can set a limit for manual and auto-payouts.
+
+You can also enable our own getrealbalance RPC wrapper that will try to get an accurate display of your wallets balance for those coins that require to pay from the default wallet. Symptoms that you may need this includes payout runs bailing with error 500 from the RPC but payments did indeed succeed. Try enabling the getrealbalance option and see if your payouts run smoother. Most coins won't need this.
+
+Default Values:
+
+txlimit_manual = 500
+txlimit_auto   = 500
+getrealbalance = false
+Round Purging
+As soon as a round is finished, shares of that rate are archived (see below) and deleted from the shares table. Due to a large amount of shares in a single round, this can take a very long time. To reduce server load and allow other systems to access the DB during this high-load time, the DELETE calls are being limited to a number of rows. Then the process sleeps and continues to delete shares until all shares have been purged.
+
+You can adjust some purging settings here in order to improve your overall site performance during round ends. Keep in mind that decreasing shares/time will make the cron run longer but at least keeps your site active. Vice versa higher numbers allow for a faster deletion but might affect the live site. This system is also used when purging archived shares.
+
+Default Values:
+
+sleep  = 1
+shares = 25000
+sleep
+
+Time to sleep between delete calls
+shares
+
+How many shares to delete at one time
+Archiving
+By default, we don't need to archive for a long time. PPLNS and Hashrate calculations rely on this archive, but all shares past a certain point can safely be deleted.
+
+To ensure we have enough shares on stack for PPLNS, this is set to the past 10 rounds. Even with lucky ones in between those should fit the PPLNS target. On top of that, even if we have more than 10 rounds, we still keep the last maxage shares to ensure we can calculate hashrates. Both conditions need to be met in order for shares to be purged from archive.
+
+Proportional mode will only keep the past 24 hours. These are required for hashrate calculations to work past a round, hence 24 hours was selected as the default. You may want to increase the time for debugging, then add any integer reflecting minutes of shares to keep.
+
+Default Values:
+
+maxrounds  =  10
+maxage     =  60 * 24   (24h)
+maxrounds
+
+PPLNS, keep shares for maxrounds
+maxage
+
+PROP and PPLNS, delete shares older than maxage minutes
+Pool Fees
+Fees applied to users in percent, disabled = 0
+
+Default Values:
+
+fees = 0
+PPLNS Settings
+PPLNS can run on two different payouts: fixed and blockavg. Each one defines a different PPLNS target.
+
+Fixed means we will be looking at the shares setup in the default setting. There is no automatic adjustments to the PPLNS target, all users will be paid out proportionally to that target.
+
+Blockavg will look at the last blockcount blocks shares and take the average as the PPLNS target. This will be automatically adjusted when difficulty changes and more blocks are available. This keeps the target dynamic but still traceable.
+
+If you use the fixed type it will use $config['pplns']['shares']['default'] for target calculations, if you use blockavg type it will use $config['pplns']['blockavg']['blockcount'] blocks average for target calculations.
+
+default     :  Default target shares for PPLNS
+type        :  Payout type used in PPLNS
+blockcount  :  Amount of blocks to check for avg shares
+
+Available Options:
+default     :  amount of shares, integeger
+type        :  blockavg or fixed
+blockcount  :  amount of blocks, any integer
+Default Values:
+
+default     =  4000000
+type        =  'blockavg'
+blockcount  =  10
+Pool Target Difficulty
+For pushpoold, see the FAQ
+
+Reward Settings
+Proportional + PPLNS Payout System When running a pool on fixed mode, each block will be paid out as defined in reward. If you wish to pass transaction fees inside discovered blocks on to user, set this to block. This is really helpful for altcoins with dynamic block values!
+
+PPS Payout System If set to fixed, all PPS values are based on the reward setting. If you set it to block you will calculate the current round based on the previous block value. The idea is to pass the block of the last round on to the users. If no previous block is found, PPS value will fall back to the fixed value set in reward. Ensure you don't overpay users in the first round!
+
+Default Values:
+
+reward_type  = 'block'
+reward       = 50
+Available Values:
+
+reward_type:
+  fixed       : Fixed value according to `reward` setting
+  block       : Dynamic value based on block amount
+  blockavg    : Dynamic values based on average of last N blocks
+reward:
+  float value : Any value of your choice but should reflect base block values
+blockavg blockcount :
+  integer value : Amount of N blocks to use for block average rewards
+Confirmations
+Confirmations per block required to credit transactions to users, default: 120 Do NOT touch this unless you know what you are doing! Please check your coin for the appropriate value here, but most should work with this.
+
+If you set this wrong, you may confirm a users MPOS transaction for a block before the actual block found with that transaction has confirmed and added to your wallet balance. You may pay out orphaned blocks to users if this is not set properly.
+
+Default Values:
+
+confirmations = 120
+confirmations
+
+Number of confirmations per block required to credit transactions
+Network Confirmations
+Confirmations per block required in network to confirm its block value in your wallet, default: 120 Do NOT touch this unless you know what you are doing! Please check your coin for the appropriate value here, but most should work with this.
+
+Usually, you should keep both confirmations and network_confirmations at the same setting to not cause any payout issues in your pool!
+
+Default Values:
+
+network_confirmations = 120
+network_confirmations
+
+Number of confirmations in network to confirm transactions
+PPS Settings
+Pay per share settings
+
+Default Values:
+
+pps_reward_type  = `fixed` default $config['pps']['reward']['default']
+reward       = 50
+Available Options:
+
+reward_type:
+  fixed       : Fixed value according to `reward` setting
+  blockavg    : Dynamic value based on average of x number of block rewards
+  block       : Dynamic value based on LAST block amount
+reward:
+  float value : Any value of your choice but should reflect base block values
+  blockcount  : amount of blocks to average, any integer
+Memcache
+After disabling memcache, installation of memcache is not required. Please note that a memcache is greatly increasing performance when combined with the statistics.php cronjob. Disabling this is not recommended in a live environment!
+
+Default Values:
+
+enabled               =  true
+host                  =  'localhost'
+port                  =  11211
+keyprefix             =  'mpos_'
+expiration            =  90
+splay                 =  15
+force contrib_shares  = false
+enabled
+
+Disable (false) memcache for debugging or enable (true) it
+host
+
+Host IP or hostname
+port
+
+memcache port
+keyprefix
+
+Must be changed for multiple MPOS instances on one host
+expiration
+
+Default expiration time in seconds of all cached keys. Increase if caches expire too fast.
+splay
+
+Default randomizer for expiration times. This will spread expired keys across splay seconds.
+force.contrib_shares
+
+Enforce using caches will cause Top 15 Contributor Shares to NOT fall back to SQL. Useful on high hashrate pools (>3 GHash).
+Cookies
+You can configure the cookie behaviour to secure your cookies more than the PHP defaults. For multiple installations of MPOS on the same domain you must change the cookie path.
+
+Default Values:
+
+duration = '1440'
+domain   = ''
+path     = '/'
+httponly = true
+secure   = false
+duration the amount of time, in seconds, that a cookie should persist in the users browser. 0 = until closed; 1440 = 24 minutes. Check your php.ini 'session.gc_maxlifetime' value and ensure that it is at least the duration specified here.
+
+domain
+
+the only domain name that may access this cookie in the browser
+path
+
+the highest path on the domain that can access this cookie; i.e. if running two pools from a single domain you might set the path /ltc/ and /ftc/ to separate user session cookies between the two.
+httponly
+
+marks the cookie as accessible only through the HTTP protocol. The cookie can't be accessed by scripting languages, such as JavaScript. This can help to reduce identity theft through XSS attacks in most browsers.
+secure
+
+marks the cookie as accessible only through the HTTPS protocol. If you have a SSL certificate installed on your domain name then this will stop a user accidentally accessing the site over a HTTP connection, without SSL, exposing their session cookie.
+Smarty Cache
+Smarty implements a file based cache for all HTML output generated from dynamic scripts. It can be enabled to cache the HTML data on disk, future request are served from those cache files.
+
+This may or may not work as expected, in general Memcache is used to cache all data so rendering the page should not take too long anyway.
+
+You can test this out and enable (1) this setting but it's not guaranteed to work with MPOS.
+
+Ensure that the folder templates/cache is writeable by the web server!
+
+0 = disabled
+
+Default Values:
+
+cache           =  0
+cache_lifetime  =  30
+cache
+
+Use Smarty Caching
+cache_lifetime
+
+Length in seconds to keep files in cache
+System Load
+This will disable loading of some API calls in case the system loads exceeds the defined max setting. Useful to temporarily suspend live statistics on a server that is too busy to deal with requests.
+
+Default Values:
+
+max    =  10.0
+max
+
+Float, maximum system load
+Security Configuration Options
+By default, we will use the security settings from the dist config
+
+If you want to apply your own settings you should create a new copy of the security dist config without the 'dist,' as it will override the values automatically.
+
+Memcache Rate Limiting
+Because bots/angry users can just fire away at pages or f5 us to death, we can attempt to rate limit requests using Nemcache.
+
+Default Values:
+
+enabled              =   true
+protect_ajax         =   true
+ajax_hits_additive   =   false
+flush_seconds_api    =   60
+rate_limit_api       =   20
+flush_seconds_site   =   60
+rate_limit_site      =   30
+ignore_admins        =   true
+error_push_page      =   array('page' => 'error', 'action' => 'ratelimit');
+enabled
+
+Whether or not we will try to rate limit requests
+protect_ajax
+
+If enabled, we will also watch the ajax calls for rate limiting and kill bad requests
+ajax_hits_additive
+
+If enabled, ajax hits will count towards the site counter as well as the ajax counter
+flush_seconds_api
+
+Number of seconds between each flush of user/ajax counter
+rate_limit_api
+
+Number of api requests allowed per flush_seconds_api
+flush_seconds_site
+
+Number of seconds between each flush of user/site counter
+rate_limit_site
+
+Number of site requests allowed per flush_seconds_site
+ignore_admins
+
+Ignores the rate limit for admins
+error_push_page
+
+Page/action array to push users to a specific page, look in the URL! Empty = 'You are sending too many requests too fast!' on a blank page
+CSRF Protection
+To help protect against CSRF, we can generate a hash that changes every minute and is unique for each user/IP and page or use, and check against that when a form is submitted.
+
+Default Values:
+
+enabled    =    true
+enabled
+
+Whether or not to generate and check for valid CSRF Tokens
+E-mail Confirmations
+To increase security for users, account detail changes can require an e-mail confirmation prior to performing certain actions.
+
+Default Values:
+
+enabled   =  true
+details   =  true
+withdraw  =  true
+changepw  =  true
+enabled
+
+Whether or not to require e-mail confirmations
+details
+
+Require confirmation to change account details
+withdraw
+
+Require confirmation to manually withdraw/payout
+changepw
+
+Require confirmation to change password
+Lock accounts after failed logins
+To avoid accounts being hacked by brute force attacks, set a maximum amount of failed login or pin entry attempts before locking the account. They will need to contact site support to re-enable the account.
+
+login  =  3
+pin    =  3
+login
+
+Number of attempts invalid login attempts before locking
+pin
+
+Number of invalid pin attempts before locking
+
