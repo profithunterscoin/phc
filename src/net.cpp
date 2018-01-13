@@ -1273,11 +1273,159 @@ int CNetMessage::readData(const char *pch, unsigned int nBytes)
 
 
 
+int LastRefreshstamp = 0;
+int RefreshesDone = 0;
+bool FirstCycle = true;
+
+void RefreshRecentConnections(int RefreshMinutes)
+{
+
+if (vNodes.size() >= 8) { return; }
+
+time_t timer;
+int SecondsPassed = 0;
+int MinutesPassed = 0;
+int CurrentTimestamp = time(&timer);
 
 
+if (LastRefreshstamp > 0){
 
+    SecondsPassed = CurrentTimestamp - LastRefreshstamp;
+    MinutesPassed = SecondsPassed / 60;
 
+    if (MinutesPassed > RefreshMinutes - 2) 
+    {
+        FirstCycle = false;
+    }
 
+}
+else
+{
+    LastRefreshstamp = CurrentTimestamp;
+return;
+}
+
+if (FirstCycle == false)
+{
+    if (MinutesPassed < RefreshMinutes) 
+    {
+return;
+    }
+    else
+    {
+
+        RefreshesDone = RefreshesDone + 1;
+
+        //cout<<"         Last refresh: "<<LastRefreshstamp<<endl;
+        //cout<<"         Minutes ago: "<<MinutesPassed<<endl;
+        //cout<<"         Peer/node refresh cycles: "<<RefreshesDone<<endl;
+
+        LastRefreshstamp = CurrentTimestamp;
+
+        // Load addresses for peers.dat
+        int64_t nStart = GetTimeMillis();
+        {
+            CAddrDB adb;
+            if (!adb.Read(addrman))
+                LogPrintf("Invalid or missing peers.dat; recreating\n");
+        }
+            
+        LogPrintf("Loaded %i addresses from peers.dat  %dms\n",
+        addrman.size(), GetTimeMillis() - nStart);
+
+        const vector<CDNSSeedData> &vSeeds = Params().DNSSeeds();
+        int found = 0;
+            LogPrintf("Loading addresses from DNS seeds (could take a while)\n");
+
+            BOOST_FOREACH(const CDNSSeedData &seed, vSeeds) {
+                if (HaveNameProxy()) {
+                    AddOneShot(seed.host);
+                } else {
+                    vector<CNetAddr> vIPs;
+                    vector<CAddress> vAdd;
+                    if (LookupHost(seed.host.c_str(), vIPs))
+                    {
+                        BOOST_FOREACH(CNetAddr& ip, vIPs)
+                        {
+                            if (found < 16){
+                            int nOneDay = 24*3600;
+                            CAddress addr = CAddress(CService(ip, Params().GetDefaultPort()));
+                            addr.nTime = GetTime() - 3*nOneDay - GetRand(4*nOneDay); // use a random age between 3 and 7 days old
+                            vAdd.push_back(addr);
+                            found++;
+                            }
+                        }
+                    }
+                    addrman.Add(vAdd, CNetAddr(seed.name, true));
+                }
+            }
+
+            LogPrintf("%d addresses found from DNS seeds\n", found);
+
+            //DumpAddresses();
+
+            CSemaphoreGrant grant(*semOutbound);
+            boost::this_thread::interruption_point();
+
+            // Choose an address to connect to based on most recently seen
+            //
+            CAddress addrConnect;
+
+            // Only connect out to one peer per network group (/16 for IPv4).
+            // Do this here so we don't have to critsect vNodes inside mapAddresses critsect.
+            int nOutbound = 0;
+            set<vector<unsigned char> > setConnected;
+            {
+                LOCK(cs_vNodes);
+                BOOST_FOREACH(CNode* pnode, vNodes) {
+                    if (!pnode->fInbound) {
+                        setConnected.insert(pnode->addr.GetGroup());
+                        nOutbound++;
+                    }
+
+                }
+            }
+
+            int64_t nANow = GetAdjustedTime();
+
+            int nTries = 0;
+            while (true)
+            {
+                CAddress addr = addrman.Select();
+
+                // if we selected an invalid address, restart
+                if (!addr.IsValid() || setConnected.count(addr.GetGroup()) || IsLocal(addr))
+                    break;
+
+                // If we didn't find an appropriate destination after trying 100 addresses fetched from addrman,
+                // stop this loop, and let the outer loop run again (which sleeps, adds seed nodes, recalculates
+                // already-connected network ranges, ...) before trying new addrman addresses.
+                nTries++;
+                if (nTries > 100)
+                    break;
+
+                if (IsLimited(addr))
+                    continue;
+
+                // only consider very recently tried nodes after 30 failed attempts
+                if (nANow - addr.nLastTry < 600 && nTries < 30)
+                    continue;
+
+                // do not allow non-default ports, unless after 50 invalid addresses selected already
+                if (addr.GetPort() != Params().GetDefaultPort() && nTries < 50)
+                    continue;
+
+                addrConnect = addr;
+                break;
+                }
+
+                if (addrConnect.IsValid()){
+                    OpenNetworkConnection(addrConnect, &grant);
+                }
+            }
+
+    }
+}
 
 // requires LOCK(cs_vSend)
 void SocketSendData(CNode *pnode)
@@ -1303,7 +1451,21 @@ void SocketSendData(CNode *pnode)
             } else {
                 // could not send full message; stop sending more
                 LogPrintf("socket send error: interruption\n");
-                pnode->CloseSocketDisconnect();
+
+
+                    // Disconnect node/peer if send/recv data becomes idle
+                    if (GetTime() - pnode->nTimeConnected > 60)
+                    {
+                        if (GetTime() - pnode->nLastRecv > 60)
+                        {
+                            if (GetTime() - pnode->nLastSend < 60)
+                            {
+                                LogPrintf("Error: Unexpected idle interruption %s\n", pnode->addrName);
+                                pnode->CloseSocketDisconnect();
+                            }
+                        }
+                    }
+
 
                 break;
             }
@@ -1314,12 +1476,37 @@ void SocketSendData(CNode *pnode)
                 if (nErr != WSAEWOULDBLOCK && nErr != WSAEMSGSIZE && nErr != WSAEINTR && nErr != WSAEINPROGRESS)
                 {
                     LogPrintf("socket send error %d\n", nErr);
-                    pnode->CloseSocketDisconnect();
+
+                    // Disconnect node/peer if send/recv data becomes idle
+                    if (GetTime() - pnode->nTimeConnected > 90)
+                    {
+                        if (GetTime() - pnode->nLastRecv > 60)
+                        {
+                            if (GetTime() - pnode->nLastSend < 30)
+                            {
+                                LogPrintf("Error: Unexpected idle interruption %s\n", pnode->addrName);
+                                pnode->CloseSocketDisconnect();
+                            }
+                        }
+                    }
+
                 }
             }
             // couldn't send anything at all
             LogPrintf("socket send error: data failure\n");
-            pnode->CloseSocketDisconnect();
+
+                // Disconnect node/peer if send/recv data becomes idle
+                    if (GetTime() - pnode->nTimeConnected > 90)
+                    {
+                        if (GetTime() - pnode->nLastRecv > 60)
+                        {
+                            if (GetTime() - pnode->nLastSend < 30)
+                            {
+                                LogPrintf("Error: Unexpected idle interruption %s\n", pnode->addrName);
+                                pnode->CloseSocketDisconnect();
+                            }
+                        }
+                    }
 
             break;
         }
@@ -1655,14 +1842,11 @@ void ThreadSocketHandler()
                 pnode->Release();
         }
     }
+
+    // Refresh nodes/peers every X minutes
+    RefreshRecentConnections(2);
+
 }
-
-
-
-
-
-
-
 
 
 #ifdef USE_UPNP
@@ -1827,14 +2011,6 @@ void ThreadDNSAddressSeed()
 
     LogPrintf("%d addresses found from DNS seeds\n", found);
 }
-
-
-
-
-
-
-
-
 
 void DumpAddresses()
 {
@@ -2160,11 +2336,11 @@ void ThreadMessageHandler()
                     }
 
                     // Disconnect node/peer if send/recv data becomes idle
-                    if (GetTime() - pnode->nTimeConnected > 60)
+                    if (GetTime() - pnode->nTimeConnected > 90)
                     {
                         if (GetTime() - pnode->nLastRecv > 60)
                         {
-                            if (GetTime() - pnode->nLastSend < 60)
+                            if (GetTime() - pnode->nLastSend < 30)
                             {
                                 LogPrintf("Error: Unexpected idle interruption %s\n", pnode->addrName);
                                 pnode->CloseSocketDisconnect();

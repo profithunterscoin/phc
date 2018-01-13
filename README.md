@@ -1,20 +1,32 @@
+PHC uses Dynamic Block Reward 2.0 (C) 2017 Crypostle
 
-Profit Hunters Coin development tree
+Adjustments based on network hasrate, previous block difficulty simulating real bullion mining: If the difficulty rate is low; using excessive work to produce low value blocks does not yield large return rates. When the ratio of difficulty adjusts and the network hashrate remains constant or declines: The reward per block will reach the maximum level, thus mining becomes very profitable.
 
-PHC is a Pow/PoS/Masternode-based cryptocurrency to be used for affiliate opportunities and online marketing.
+This algorithm is intended to discourage >51% attacks, or malicous miners. It will also act as an automatic inflation adjustment based on network conditions.
 
-PHC includes an Address Index feature, based on the address index API (searchrawtransactions RPC command) implemented in Bitcoin Core but modified implementation to work with the PHC codebase (PoS coins maintain a txindex by default for instance).
+Minimum PoW Reward: 1 PHC
 
-Initialize the Address Index By Running with -reindexaddr Command Line Argument.  It may take 10-15 minutes to build the initial index.
+(Block #1 Up to 50000) [Max PoW: 100 PHC] [PoS: 1000% APR] 
+(Block #50001 Up to 100000) Max PoW: 50 PHC [PoS: 500% APR]
+(Block #100001 Up to 150000) Max PoW: 25 PHC [PoS: 250% APR]
+(Block #150000 Up to 200000) Max PoW: 12.5 PHC [PoS: 125% APR]
+(Block #200001 Up to 250000) Max PoW: 6.25 PHC [PoS: 62% APR]
+(Block #250001+) Max PoW: 3.125 PHC [PoS: 31% APR]
 
 - POW Reward: Dynamic (1-100 PHC per Block)
-- POS Reward: 3% - 100% Coinage Subsidy
+- POS Reward: Dynamic (31% to 1000% Annual Percentage Rate)
 - Block Spacing: 60 Seconds (1 minutes)
 - Diff Retarget: 2 Blocks
 - Maturity: 101 Blocks
 - Stake Minimum Age: 1 Hour
 - Masternode Collateral: 10000 PHC
 - 40 MegaByte Maximum Block Size (40X Bitcoin Core)
+
+Misc Features:
+
+PHC includes an Address Index feature, based on the address index API (searchrawtransactions RPC command) implemented in Bitcoin Core but modified implementation to work with the PHC codebase (PoS coins maintain a txindex by default for instance).
+
+Initialize the Address Index By Running with -reindexaddr Command Line Argument. It may take 10-15 minutes to build the initial index.
 
 Main Network Information:
 
@@ -31,6 +43,7 @@ Test Network Information:
 Social Network:
 
 - Github: https://github.com/JustinPercy/phc
+- Forum: http://profithuntersclub.com/index.php?t=msg&th=85&start=0&
 - Slack: https://join.slack.com/t/profithunterscoin/shared_invite/enQtMjk1NTU0NjI4NjMxLWE5NmM1MWYyN2Y4NTY4ZjE0ZTgxYzJiNGYyNDYwODhiNGQwODQ1OTFkYTY4OTZkODFjN2Y0NDA4MWEwY2FiNWU
 - Telegram: https://t.me/profithunterscoin
 - Discord: https://discord.gg/Abwhbw2

@@ -1,0 +1,11 @@
+PHC Upgrade notes - Compiling
+
+cd phc
+make clean
+git pull
+cd src
+make -f makefile.unix
+sudo cp phcd /usr/bin
+cd ..
+qmake && make
+sudo cp phc-qt /usr/bin
