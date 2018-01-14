@@ -1,0 +1,107 @@
+(Solo-CPU) PHC Mining Setup guide (Linux)
+v. 1.0 - (C) Profit Hunters Coin
+
+This works on debian (Ubuntu, Mint) based Linux systems.
+Assuming you already have the depends installed listed in build-unix.txt
+
+Beginner Tip: Copy and paste each command line individually into Terminal and press (ENTER) to execute.
+
+Step 1: 
+
+Open Terminal or log into your VPS
+
+CTRL + ALT + T
+
+Step 2:
+
+Download Source Code:
+
+git clone https://github.com/pooler/cpuminer.git
+git clone https://github.com/JustinPercy/phc.git
+
+Step 3:
+
+Compile CPU Miner:
+
+cd cpuminer
+./autogen.sh
+./configure CFLAGS="-O3"
+make
+sudo cp minerd /usr/bin
+cd ..
+
+Step 4:
+
+Compile PHC Daemon:
+
+cd phc
+cd src
+make -f makefile.unix
+sudo cp phcd /usr/bin
+cd ../../
+
+Step 5:
+
+Create Wallet Configuration File:
+
+mkdir /home/replace_your_username_here/.PHC
+nano /home/replace_your_username_here/.PHC/phc.conf
+
+Step 6: 
+
+SOMETHINGRANDOM should be unique to YOUR configuration.
+
+Copy and paste this into Nano (phc.conf)
+Press CTRL + X  (save + exit)
+
+rpcuser=phc_solo
+rpcpassword=SOMETHINGRANDOM
+rpcport=20061
+daemon=1
+listen=1
+server=1
+rpcallowip=127.0.0.1
+block_nTime=1317972665
+block_nNonce=2084524493
+
+Step 7:
+
+Create Miner-Init File:
+
+cd cpuminer
+nano phc-solo.miner
+
+Step 8:
+
+Copy and Paste this into the Miner-Init File
+
+minerd -o 127.0.0.1:20061 -u phc_solo -p SOMETHINGRANDOM -a scrypt -t 1
+
+Replace SOMETHINGRANDOM from Step 6 and edit -t to # of cores your CPU has
+
+CTRL + X (Save + exit)
+
+Step 9:
+
+Start your PHC wallet and Sync 100%
+
+phcd
+
+Step 9:
+
+Verifiy Synced with Block Explorer: http://54.37.233.45/
+
+phcd getinfo
+
+Step 10:
+
+Start Your Miner:
+
+bash phc-solo.miner
+
+or:
+
+bash cpuminer/phc-solo.miner
+
+
+

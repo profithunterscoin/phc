@@ -569,7 +569,7 @@ void Examination(CNode *pnode, string FromFunction)
 
 bool FireWall(CNode *pnode, string FromFunction)
 {
-    int i;
+    //int i;
 
     if (ENABLE_FIREWALL == false)
     {
