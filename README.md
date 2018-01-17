@@ -41,7 +41,7 @@ Test Network Information:
 
 Social Network:
 
-- Github: https://github.com/JustinPercy/phc
+- Github: https://github.com/BiznatchEnterprises/phc
 - Forum: http://profithuntersclub.com/index.php?t=msg&th=85&start=0&
 - Slack: https://join.slack.com/t/profithunterscoin/shared_invite/enQtMjk1NTU0NjI4NjMxLWE5NmM1MWYyN2Y4NTY4ZjE0ZTgxYzJiNGYyNDYwODhiNGQwODQ1OTFkYTY4OTZkODFjN2Y0NDA4MWEwY2FiNWU
 - Telegram: https://t.me/profithunterscoin
