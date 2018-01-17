@@ -1,26 +1,25 @@
-PHC uses Dynamic Block Reward 2.0 (C) 2017 Crypostle
+Profit Hunters Coin (PHC) is a free open source decentralized project derived from Bitcoin,
+with the goal of providing a long-term energy-efficient scrypt-based crypto-currency.
+Built on the foundations of PPCoin, NovaCoin, CraveProject & Dash Masternodes to
+help further advance the field of crypto-currency.
 
 Adjustments based on network hasrate, previous block difficulty simulating real bullion mining: If the difficulty rate is low; using excessive work to produce low value blocks does not yield large return rates. When the ratio of difficulty adjusts and the network hashrate remains constant or declines: The reward per block will reach the maximum level, thus mining becomes very profitable.
 
 This algorithm is intended to discourage >51% attacks, or malicous miners. It will also act as an automatic inflation adjustment based on network conditions.
 
-Minimum PoW Reward: 1 PHC
-
-(Block #1 Up to 50000) [Max PoW: 100 PHC] [PoS: 1000% APR] 
-(Block #50001 Up to 100000) Max PoW: 50 PHC [PoS: 500% APR]
-(Block #100001 Up to 150000) Max PoW: 25 PHC [PoS: 250% APR]
-(Block #150000 Up to 200000) Max PoW: 12.5 PHC [PoS: 125% APR]
-(Block #200001 Up to 250000) Max PoW: 6.25 PHC [PoS: 62% APR]
-(Block #250001+) Max PoW: 3.125 PHC [PoS: 31% APR]
-
-- POW Reward: Dynamic (1-100 PHC per Block)
-- POS Reward: Dynamic (31% to 1000% Annual Percentage Rate)
+- Dynamic Block Reward 3.0 (C) 2017 Crypostle
+- Block #1 Up to 50000 [Max PoW: 100 PHC] [PoS: 1000% APR] 
+- Block #50001 Up to 100000 [Max PoW: 50 PHC] [PoS: 500% APR]
+- Block #100001 Up to 150000 [Max PoW: 25 PHC] [PoS: 250% APR]
+- Block #150000 Up to 200000 [Max PoW: 12.5 PHC] [PoS: 125% APR]
+- Block #200001 Up to 250000 [Max PoW: 6.25 PHC] [PoS: 62% APR]
+- Block #250001+ [Max PoW: 3.125 PHC] [PoS: 31% APR]
 - Block Spacing: 60 Seconds (1 minutes)
 - Diff Retarget: 2 Blocks
 - Maturity: 101 Blocks
 - Stake Minimum Age: 1 Hour
 - Masternode Collateral: 10000 PHC
-- 40 MegaByte Maximum Block Size (40X Bitcoin Core)
+- 30 MegaByte Maximum Block Size (30X Bitcoin Core)
 
 Misc Features:
 
