@@ -134,8 +134,6 @@ To Build (phcd) Headless daemon
 --------
 
 cd src/
-git clone https://github.com/bitcoin/secp256k1
-mkdir obj/crypto
 make -f makefile.unix
 
 See readme-qt.rst for instructions on building PHC QT,
