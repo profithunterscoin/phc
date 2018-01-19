@@ -1,0 +1,16 @@
+Rebooting your PHC Masternode:
+
+- Log in to your VPS
+- phcd stop
+- rm .PHC/mncache.dat
+- Exit/close your controller wallet (phc-qt)
+- remove .mncache.dat from .PHC datadir
+- On your VPS restart PHC daemon  phcd
+- Reopen phc-qt
+- goto Masternodes -> My Masternodes
+- Click Update button
+- Click MN
+- Click Start Button
+- Goto PHC Network Tab
+- Wait for your node to show 1 under Active
+- Done! 
