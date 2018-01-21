@@ -337,7 +337,7 @@ void BitcoinGUI::createActions()
 	showBackupsAction = new QAction(QIcon(":/icons/browse"), tr("Show Auto&Backups"), this);
 	showBackupsAction->setStatusTip(tr("S"));
 
-	connect(TradingAction, SIGNAL(triggered()), this, SLOT(gotoTradingPage()));
+	//connect(TradingAction, SIGNAL(triggered()), this, SLOT(gotoTradingPage()));
 	connect(blockAction, SIGNAL(triggered()), this, SLOT(gotoBlockBrowser()));
 	connect(overviewAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
 	connect(overviewAction, SIGNAL(triggered()), this, SLOT(gotoOverviewPage()));
@@ -986,15 +986,15 @@ void BitcoinGUI::gotoAddressBookPage()
 	connect(exportAction, SIGNAL(triggered()), addressBookPage, SLOT(exportClicked()));
 }
 
-void BitcoinGUI::gotoTradingPage()
-{
+//void BitcoinGUI::gotoTradingPage()
+//{
 
 	//TradingAction->setChecked(true);
 	//centralStackedWidget->setCurrentWidget(tradingDialogPage);
 
 	//  exportAction->setEnabled(false);
 	//  disconnect(exportAction, SIGNAL(triggered()), 0, 0);
-}
+//}
 
 void BitcoinGUI::gotoReceiveCoinsPage()
 {
