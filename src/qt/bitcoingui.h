@@ -20,7 +20,7 @@ class MasternodeManager;
 class MessagePage;
 class MessageModel;
 class BlockBrowser;
-class tradingDialog;
+//class tradingDialog;
 
 QT_BEGIN_NAMESPACE
 class QLabel;
@@ -81,7 +81,7 @@ private:
     MessagePage *messagePage;
     QLabel* netLabel;
     BlockBrowser *blockBrowser;
-    tradingDialog   *tradingDialogPage;
+    //tradingDialog   *tradingDialogPage;
     QLabel *labelEncryptionIcon;
     QLabel *labelStakingIcon;
     QLabel *labelConnectionsIcon;
@@ -113,7 +113,7 @@ private:
     QAction *masternodeManagerAction;
     QAction *messageAction;
     QAction *blockAction;
-    QAction *TradingAction;
+    //QAction *TradingAction;
     QAction *showBackupsAction;
 
     QSystemTrayIcon *trayIcon;
@@ -182,7 +182,7 @@ private slots:
     /** Switch to send coins page */
     void gotoSendCoinsPage();
    /** Switch to trading page */
-    void gotoTradingPage();
+    //void gotoTradingPage();
     /** Switch to block explorer*/
     void gotoBlockBrowser();
     /** Switch to masternode manager page*/
