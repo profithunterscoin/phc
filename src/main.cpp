@@ -2847,9 +2847,9 @@ bool CBlock::AcceptBlock()
             }
 
             // Push Inventory Height to CNode Data Cache
-            if (pnode->GetInventoryKnown(CInv(MSG_BLOCK, hash)) > 0)
+            if (nHeight > 0)
             {
-                pnode->nSyncHeight = pnode->GetInventoryKnown(CInv(MSG_BLOCK, hash));
+                pnode->nSyncHeight = nHeight;
             }
         }
     }

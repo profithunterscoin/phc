@@ -1,0 +1,173 @@
+How to setup a PHC / Crave Masternode (Crave Masternodes)
+SEPTEMBER 29, 2017 - https://masternodeguides.com/setup-crave-masternode-crave-masternodes/
+Guide / Tutorial on how to setup a Crave Masternode on a Linux VPS.
+
+
+Prerequisites:
+
+Ubuntu VPS from VULTR (cheapest VPS is enough)
+Crave Wallet on local Computer
+Definitions:
+Controllers Wallet = Wallet on local Computer
+Masternode Wallet = Wallet on remote VPS Server
+
+Ubuntu VPS Setup
+If you don’t have a VPS already, get the 1GB Ram VPS from Vultr:  Rent VPS
+
+Install Ubuntu OS onto it. (Ubuntu 16.04 x64 for example)
+
+Connect to your Ubuntu VPS via SSH and update & upgrade the server first.
+
+apt-get update
+apt-get upgrade
+Now add a user and add him in the sudoers group so he has root access.
+
+adduser crave
+adduser crave sudo
+Now change to user “crave” and setup SSH keys for enhanced Security.
+
+su crave
+
+ssh-keygen -b 4096
+cd .ssh
+cat id_rsa.pub >> authorized_keys
+Now save the private key “id_rsa” to your clients computer so you can authenticate to the server with the SSH Certificate. (You must convert id_rsa to a “.ppk file in order to use the privatekey with Putty)
+
+Restart the SSH Server and test if the authentication with the private key works.
+
+sudo service ssh restart
+If it works, edit the SSH config file to disable password authentication & root login.
+
+sudo nano /etc/ssh/sshd_config
+Change following Values in the file.
+
+PasswordAuthentication no
+UsePAM no
+PermitRootLogin no
+Crave Masternode Setup
+First we must setup swap space, so we can run the Crave Masternode even with low ram. If we don’t setup swap space and have low ram, the compiling process will probably fail.
+
+sudo dd if=/dev/zero of=/var/swap.img bs=1024k count=1000
+sudo mkswap /var/swap.img
+sudo swapon /var/swap.img
+Now we download the compiled crave wallet Software from
+Github: https://github.com/CooleRRSA/crave/releases 
+For Version “Crave v2.1.0.3” the download command is following
+
+sudo wget https://github.com/CooleRRSA/crave/archive/v2.1.0.3.tar.gz
+Now we extract the “archive”
+
+sudo tar xzvf crave-2.1.0.3.tar.gz
+sudo rm -r crave-2.1.0.3.tar.gz
+The crave folder will be created with everything in. The file “craved” is located in /crave/src :
+
+cd /crave/src
+To start the wallet, you need to enter the src folder and simply type following
+
+./craved -daemon
+You should now get “Crave server starting”. When you start the wallet for the first time a new folder is created with the chain, the conf file and so in. This folder is located in the same repositery as the crave one.
+For example if your crave folder path is /home/crave , then the new folder path is /home/.crave (sometimes its located in the /root folder).
+
+Now you need to configure your wallet, first we need to close the wallet and edit the conf file
+
+./craved stop
+cd ..
+cd .crave
+sudo nano crave.conf
+The “crave.conf” file should look something like that
+
+rpcuser=XXXXXXXXXXXXX
+rpcpassword=XXXXXXXXXXXXXXXXXXXXXXXXXXXX
+rpcallowip=127.0.0.1
+#----
+listen=1
+server=1
+daemon=1
+staking=0
+#--------------------
+Now we restart the wallet and we wait it the get fully synced
+
+cd ..
+cd crave/src
+./craved
+It should take some time to sync so be patient again.
+To check the last block synced you can run
+
+./craved getmininginfo
+Crave Controllers Wallet Setup
+Back on the local Computer, open your Windows wallet, go into the debug console and type
+
+masternode genkey
+Copy this string in a txt file, its your masternode priv key.
+
+Now we create a new address to receive your 500 cravecoins, type in the console
+
+getaccountaddress mn01
+Copy the address printed in the txt file also.
+
+Now send exactly 500 cravecoins to the address you just received and wait for 10 confirmations. You have to close the wallet now, we will reopen it later. Dont forget to backup your wallet.
+
+Go to “%appdata%/crave/crave.conf” and add these 2 lines with your values. (rpcuser & rpcpassword from the vps)
+
+rpcuser=SomeRandomString
+rpcpassword=EvenLongerRandomString
+rpcallowip=127.0.0.1
+listen=1
+server=1
+daemon=1
+staking=0
+logtimestamps=1
+Now we are going to edit your VPS conf file again but before the VPS wallet must be closed
+
+./craved stop
+Now open the “crave.conf” file again
+
+cd .crave 
+sudo nano crave.conf
+Content of crave.conf needs to be changed to this
+
+rpcuser=SomeRandomString
+rpcpassword=EvenLongerRandomString
+rpcallowip=127.0.0.1
+listen=1
+server=1
+daemon=1
+staking=0
+logtimestamps=1
+
+port=20060
+masternode=1
+masternodeaddr=XXX.XXX.XXX.XXX:20060
+masternodeprivkey=XXXXXXXXXXXXXXXXXXXXXXXXXX
+This one must be exactly the same as the Windows one but we added 4 more lines.
+Port : select an open port, I recommend you to use 20060
+masternodeaddr : you have to put your VPS ip and the port.
+masternodeprivkey : its the string you got from the “masternode genkey” command before.
+
+Now start the crave masternode again
+
+./craved start
+Open you Windows wallet again, you should have your 10 confirmations now.
+Go into the debug console and type 
+
+masternode outputs
+A string will be printed, something like that : “aa7c6c173f7b691e5a070a37aeazd23557636ad1b4b43680ace39d522e1d4493” “1” . The first part is your transaction hash, the “1” is the index.
+Save them in your txt file.
+
+Connect to Crave Masternode
+Now we gonna create the masternode.conf file.
+In your wallet, click on the “Masternode” tab, you will see the list of active masternodes.
+Click on My masternodes and on Create.
+
+A box appears :
+Alias : its name of your masternode, type mn01
+Address : its the IP and the port you used in your VPS conf file, use the same.
+Privkey : its your masternode privkey from the “masternode genkey” command.
+TxHash : its the first part of the “masternode outputs” command, in my example its aa7c6c173f7b691e5a070a37aeazd23557636ad1b4b43680ace39d522e1d4493
+OutputIndex : its the last number, in my case its 1
+
+Click Ok and wait few seconds. A new entry is created, its your masternode. It should say that your masternode is not on the list.
+
+To start it, unlock the wallet, and press start and you are done !
+
+Sharing is caring!
