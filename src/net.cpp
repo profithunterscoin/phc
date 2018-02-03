@@ -89,14 +89,14 @@ CNodeSignals& GetNodeSignals() { return g_signals; }
 
 
 // ---------------------------------------------------------------------------------
-// [Bitcoin Firewall 1.2.2
+// [Bitcoin Firewall 1.2.2.1
 // Oct 14, 2017 - Biznatch Enterprises & Bata Development
 // http://bata.io & https://github.com/BiznatchEnterprises/BitcoinFirewall
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 
-string ModuleName = "[Bitcoin Firewall 1.2.2]";
+string ModuleName = "[Bitcoin Firewall 1.2.2.1]";
 //boost::filesystem::path pathFirewallLog = GetDataDir()  / "firewall.log";
 
 // * FireWall Controls *
@@ -107,7 +107,7 @@ bool BLACKLIST_INVALID_WALLET = true;
 bool BAN_INVALID_WALLET = true;
 bool DETECT_BANDWIDTH_ABUSE =  true;
 bool BLACKLIST_BANDWIDTH_ABUSE = true;
-bool BAN_BANDWIDTH_ABUSE = true;
+bool BAN_BANDWIDTH_ABUSE = false;
 bool FALSE_POSITIVE_PROTECTION =  true;
 bool FIREWALL_CLEAR_BANS = false;
 
@@ -132,7 +132,7 @@ bool BAN_ATTACK = false; //global temp variables
 int BlackListCounter = 0;
 
 // WHITELIST (ignore)
-int SeedNodeCounter = 2;
+int SeedNodeCounter = 0;
 string IgnoreSeedNode[2] = { 
     "54.37.233.45:20060", 
     "142.44.246.195:20060" 
@@ -140,7 +140,7 @@ string IgnoreSeedNode[2] = {
 
 // * Attack Detection Settings *
 int AverageTolerance = 2;    // Reduce for minimal fluctuation 2 Blocks tolerance
-int AverageRange = 500;   // + or - Starting Height Range
+int AverageRange = 100;   // + or - Starting Height Range
 
 /// Bandwidth monitoring ranges
 double TrafficTolerance = 0.0001; // Reduce for minimal fluctuation
@@ -157,8 +157,7 @@ bool ForceDisconnectNode(CNode *pnode, string FromFunction)
         if (lockSend){
             // release outbound grant (if any)
             pnode->CloseSocketDisconnect();
-            //LogPrintStr(ModuleName + " - (" + FromFunction + ") Panic Disconnect: " + pnode->addrName.c_str() + "\n");
-            //LogPrintf("Firewall", " - (" + FromFunction + ") Panic Disconnect: " + pnode->addrName + "\n");
+            LogPrint(ModuleName.c_str(),  "(%s) Panic Disconnect: %s\n", FromFunction,  pnode->addrName.c_str());
 
 return true;  
         }
@@ -207,7 +206,7 @@ bool AddToBlackList(CNode *pnode)
             BLACKLIST[BlackListCounter] = pnode->addrName;
 
             // Append Blacklist to debug.log
-            //LogPrintf("Firewall", " - Blacklisted: " + pnode->addrName + "\n");
+            LogPrint("Firewall", "Blacklisted: %s\n", pnode->addrName.c_str());
 
 return true;
 
@@ -227,7 +226,7 @@ bool CheckAttack(CNode *pnode)
     string AttackType = "";
 
     int NodeHeight;
-    if (pnode->nSyncHeight < pnode->nStartingHeight)
+    if (pnode->nSyncHeight == 0)
     {
         NodeHeight = pnode->nStartingHeight;
     }
@@ -235,7 +234,12 @@ bool CheckAttack(CNode *pnode)
     {
         NodeHeight = pnode->nSyncHeight;
     }
-    
+
+    if (pnode->nSyncHeight < pnode->nStartingHeight)
+    {
+        NodeHeight = pnode->nStartingHeight;
+    }
+   
 
     // ---Filter 1 -------------
     if (DETECT_BANDWIDTH_ABUSE == true)
@@ -252,16 +256,16 @@ bool CheckAttack(CNode *pnode)
             {
                 if (pnode->nTrafficAverage < CurrentAverageTraffic_Min)
                 {
-                        // too low bandiwidth ratio limits
-                        DETECTED = true;
-                        AttackType = "2-LowBW-HighHeight";
+                    // too low bandiwidth ratio limits
+                    DETECTED = true;
+                    AttackType = "2-LowBW-HighHeight";
                 }
 
                 if (pnode->nTrafficAverage > CurrentAverageTraffic_Max)
                 {
-                        // too high bandiwidth ratio limits
-                        DETECTED = true;
-                        AttackType = "2-HighBW-HighHeight";
+                    // too high bandiwidth ratio limits
+                    DETECTED = true;
+                    AttackType = "2-HighBW-HighHeight";
                 }
             }
 
@@ -271,9 +275,9 @@ bool CheckAttack(CNode *pnode)
             {  
                 if (pnode->nTrafficAverage < CurrentAverageTraffic_Min)
                 {
-                        // too low bandiwidth ratio limits
-                        DETECTED = true;
-                        AttackType = "3-LowBW-LowHeight";
+                    // too low bandiwidth ratio limits
+                    DETECTED = true;
+                    AttackType = "3-LowBW-LowHeight";
                 }
 
                 if (pnode->nTrafficAverage > CurrentAverageTraffic_Max)
@@ -446,15 +450,7 @@ bool CheckAttack(CNode *pnode)
     if (DETECTED == true)
     {
 
-        //std::string NodeTrafficRatioStr = boost::lexical_cast<std::string>(pnode->nTrafficRatio);
-        //std::string NodeTrafficAverageStr = boost::lexical_cast<std::string>(pnode->nTrafficAverage);
-        //std::string CurrentAverageTrafficStr = boost::lexical_cast<std::string>(CurrentAverageTraffic);
-        //std::string SendBytesStr = boost::lexical_cast<std::string>(pnode->nSendBytes);
-        //std::string RecvBytesStr = boost::lexical_cast<std::string>(pnode->nRecvBytes);
-        //std::string NodeProtocol = boost::lexical_cast<std::string>(pnode->nRecvVersion);
-        //std::string NodeSyncHeight = boost::lexical_cast<std::string>(pnode->nSyncHeight);
-
-        //LogPrintf("Firewall", " - [Attack Type: " +  AttackType + "] [Detected from: " + pnode->addrName.c_str() + "] [Node Traffic: " + NodeTrafficRatioStr +  "] [Node Traffic Avrg: " + NodeTrafficAverageStr + "] [Traffic Avrg: " + CurrentAverageTrafficStr + "] [Sent Bytes: " + SendBytesStr + "] [Recv Bytes: " + RecvBytesStr + "] [Sync Height: " + NodeSyncHeight + "] [Protocol: " + NodeProtocol + "\n");
+        LogPrint(ModuleName.c_str(), "[Attack Type: %s] [Detected from: %s] [Node Traffic: %d] [Node Traffic Avrg: %d] [Traffic Avrg: %d] [Sent Bytes: %d] [Recv Bytes: %d] [Sync Height: %i] [Protocol: %i\n", AttackType.c_str(), pnode->addrName.c_str(), pnode->nTrafficRatio, pnode->nTrafficAverage, CurrentAverageTraffic, pnode->nSendBytes, pnode->nRecvBytes, pnode->nSyncHeight, pnode->nRecvVersion);
 
         // Blacklist IP on Attack detection
         // * add node/peer IP to blacklist
@@ -557,7 +553,7 @@ void Examination(CNode *pnode, string FromFunction)
             if (LIVE_DEBUG_OUTPUT == true){
             cout<<ModuleName<<" [BlackListed Nodes/Peers: "<<BlackListCounter<<"]"<<endl;
             cout<<"[Traffic: "<<CurrentAverageTraffic<<"] [Traffic Min: "<<CurrentAverageTraffic_Min<<"] [Traffic Max: "<<CurrentAverageTraffic_Max<<"]"<<" [Safe Height: "<<CurrentAverageHeight<<"] [Height Min: "<<CurrentAverageHeight_Min<<"] [Height Max: "<<CurrentAverageHeight_Max<<"] [Send Avrg: "<<CurrentAverageSend<<"] [Rec Avrg: "<<CurrentAverageRecv<<"]"<<endl;
-            cout<<"[Check Node IP: "<<pnode->addrName.c_str()<<"] [Traffic: "<<pnode->nTrafficRatio<<"] [Traffic Average: "<<pnode->nTrafficAverage<<"] [Starting Height: "<<pnode->nStartingHeight<<"] [Sync Height: "<<pnode->nSyncHeight<<"] [Node Sent: "<<pnode->nSendBytes<<"] [Node Recv: "<<pnode->nRecvBytes<<"] [Protocol: "<<pnode->nRecvVersion<<"]"<<endl;
+            cout<<"[Check Node IP: "<<pnode->addrName.c_str()<<"] [Traffic: "<<pnode->nTrafficRatio<<"] [Traffic Average: "<<pnode->nTrafficAverage<<"] [Starting Height: "<<pnode->nStartingHeight<<"] [Sync Height: "<<NodeHeight<<"] [Node Sent: "<<pnode->nSendBytes<<"] [Node Recv: "<<pnode->nRecvBytes<<"] [Protocol: "<<pnode->nRecvVersion<<"]"<<endl;
             }
 
         }
@@ -599,7 +595,7 @@ bool FireWall(CNode *pnode, string FromFunction)
     }
 
     // Check for 0 peer count (auto-unban)
-    if (vNodes.size() == 0){
+    if (vNodes.size() < 2){
         pnode->ClearBanned();
     }
 

@@ -16,6 +16,12 @@ from Bitcoin, with the goal of providing a long-term energy-efficient scrypt-bas
 crypto-currency. Built on the foundations of PPCoin, NovaCoin, CraveProject & Dash
 Masternodes to help further advance the field of crypto-currency.
 
+v1.0.0.3
+--------
+* Updated Seednodes from current Masternodes
+* Updated Checkpoints
+* Fixed Core 8 Cnode::nSyncHeight
+* Added Firewall logging to debug.log
 
 v1.0.0.2
 --------

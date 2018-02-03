@@ -1,0 +1,150 @@
+#
+PHC Coin Windows-Qt Build Guide - by Revnec
+-------------------------------------------
+What you Need
+-------------
+Msys                                            : http://www.mingw.org/
+MINGW i686-4.8.2-release-posix-dwarf-rt_v3-rev2 : http://superb-dca2.dl.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/4.8.2/threads-posix/dwarf/i686-4.8.2-release-posix-dwarf-rt_v3-rev2.7z
+Active Pearl (latest version)                   : http://www.perl.org/get.html
+openssl-1.0.1b.tar.gz                           : https://www.openssl.org/source/old/1.0.1/openssl-1.0.1b.tar.gz
+berkeleey-db 4.8.30.NC                          : http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz
+Boost 1_57_0                                    : https://ayera.dl.sourceforge.net/project/boost/boost/1.57.0/boost_1_57_0.zip
+Miniupnpc 1.6x                                  : http://miniupnp.free.fr/files/miniupnpc-1.6.20120509.tar.gz
+Libpng1.6.9                                    : http://prdownloads.sourceforge.net/libpng/libpng-1.6.9.tar.gz
+Qrencode3.4.4                                   : https://fukuchi.org/works/qrencode/qrencode-3.4.4.tar.bz2
+Secp256k1_Win                                   : http://cfhcable.dl.sourceforge.net/project/gocoin/secp256k1_win.zip
+QT 5.7.0                                        : http://qt.mirror.constant.com/archive/qt/5.7/5.7.0/single/qt-everywhere-opensource-src-5.7.0.zip
+
+optional: 7zip                                  : http://www.7-zip.org/download.html
+
+Notes
+-----
+-paths for simplicity:
+mingw32: c:\mingw .. downloads and dependencies: c:\deps
+-Setting paths when running new instances of CMD prompt or Msys:
+DOS  :  set path=%path%;C:\mingw\bin;C:\deps\qt570\qtbase\bin
+MSYS :  export PATH=${PATH}:/c/mingw/bin 
+- you can safely and more easily unzip most linux tars with 7zip.. http://www.7-zip.org/download.html
+
+Guide
+-----
+1: Msys - Easy way : Install Mingw from mingw.org and install msys-base from basic setup.
+   You can keep the msys folder and delete (or move) the base c:\Mingw32 stuff somewhere else.
+   You'll need the msys directory to run the linux console (\msys\1.0\msys.bat)
+
+2: Mingw32 - prebuilt i686-4.8.2-release-posix-dwarf-rt_v3-rev2 (sourceforge)
+   Easy way: unzip and move to c:/mingw
+
+3: create a deps folder: c:/deps : easy to place msys, all dependencies, and downloads in this folder.
+
+4: Install Active Pearl for Windows : www.perl.org/get.html
+
+5: Openssl 1.0.1b - download from https://www.openssl.org/source/old/1.0.1/openssl-1.0.1b.tar.gz
+ ~ 7zip extract to C:\deps
+ ~ Open MSYS..
+	cd /c/deps/openssl-1.0.1b
+	./config
+	make
+
+6: Berkeley DB 4.8.0.NC - download from http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz
+ ~ 7zip extract to C:\deps
+ ~ Open MSYS..
+	
+	cd /c/deps/db-4.8.30.NC/build_unix
+	../dist/configure --disable-replication --enable-mingw --enable-cxx --prefix=/usr/local
+	make
+	
+ ~ *build leveldb in coin/src/leveldb*
+ ~ in MSYS, cd /pathToCoin/src/leveldb
+	
+	TARGET_OS=OS_WINDOWS_CROSSCOMPILE make libleveldb.a libmemenv.a
+
+7. Boost 1_57_0 - download from https://ayera.dl.sourceforge.net/project/boost/boost/1.57.0/boost_1_57_0.zip
+ ~ 7zip extract to C:\deps
+ ~ in CMD PROMPT...
+	
+	cd c:\deps\boost_1_57_0
+	bootstrap.bat
+	b2.exe --toolset=gcc --build-type=complete stage --link=static --with-chrono --with-filesystem --with-program_options --with-system --with-thread
+
+8. Miniupnpc 1.6 - download from http://miniupnp.free.fr/files/miniupnpc-1.6.20120509.tar.gz
+ ~ 7zip extract to C:\deps .. can rename to miniupnpc-1.6 for simplicity
+ ~ CMD PROMPT...
+	
+	cd C:\deps\miniupnpc-1.6
+	mingw32-make -f Makefile.mingw init upnpc-static
+
+10. Libpng 1.6.9 (required for qrencode) - download from Download http://prdownloads.sourceforge.net/libpng/libpng-1.6.9.tar.gz
+ ~ 7zip extract to c:\deps
+ ~ MSYS...
+ 
+	cd /c/deps/libpng-1.6.9
+	configure
+	make
+
+11. Qrencode3.4.4 - download from https://fukuchi.org/works/qrencode/qrencode-3.4.4.tar.bz2
+ ~ 7zip extract to C:\deps
+ ~ MSYS...
+	
+	cd /c/deps/qrencode-3.4.4
+	LIBS="../libpng-1.6.9/.libs/libpng16.a ../libpng-1.6.9/.libs/libz.a" \
+	png_CFLAGS="-I../libpng-1.6.9" \
+	png_LIBS="-L../libpng-1.6.9/.libs" \
+	configure --enable-static --disable-shared
+	
+	make
+	
+	
+12. SECP256K1_WIN download from http://cfhcable.dl.sourceforge.net/project/gocoin/secp256k1_win.zip
+ ~ extract to c:\deps .. already built.
+
+13. QT 5.7.0 - download fromhttp://qt.mirror.constant.com/archive/qt/5.7/5.7.0/single/qt-everywhere-opensource-src-5.7.0.zip
+ ~ extract to c:\deps  can rename to qt570 for simplicity
+ ~ this must be built -static if you want a single file for the qt (qt builds takes a while -j4 recommended)
+ ~ Some of this configure arguments may need to be modified..
+ ~ CMD PROMPT... 
+	
+	cd c:\deps\qt570
+	configure.bat -release -opensource -confirm-license -static -make libs -no-sql-sqlite -no-opengl -system-libpng -no-angle -no-vcproj -openssl -no-qml-debug
+    mingw32-make 
+	
+14. (OPTIONAL) QT 5.7.0 Build qtbase for lrelease.exe .. if it wasn't built during in step 13.
+ ~ CMD PROMPT...
+ 
+	cd c:\deps\qt570\qtbase
+    configure.bat
+	mingw32-make
+ 
+15.	modify .pro file for build
+
+For PHC-qt.pro
+--------------
+
+- replace the win32: depends paths code lines.. with..
+
+win32:BOOST_LIB_SUFFIX=-mgw48-mt-s-1_57
+win32:BOOST_INCLUDE_PATH=C:/deps/boost_1_57_0
+win32:BOOST_LIB_PATH=C:/deps/boost_1_57_0/stage/lib
+win32:BDB_INCLUDE_PATH=C:/deps/db-4.8.30.NC/build_unix
+win32:BDB_LIB_PATH=C:/deps/db-4.8.30.NC/build_unix
+win32:OPENSSL_INCLUDE_PATH=C:/deps/openssl-1.0.1b/include
+win32:OPENSSL_LIB_PATH=C:/deps/openssl-1.0.1b
+win32:MINIUPNPC_INCLUDE_PATH=C:/deps/miniupnpc-1.6
+win32:MINIUPNPC_LIB_PATH=C:/deps/miniupnpc-1.6
+win32:QRENCODE_INCLUDE_PATH=C:/deps/qrencode-3.4.4
+win32:QRENCODE_LIB_PATH=C:/deps/qrencode-3.4.4/.libs
+#addthis
+win32:SECP256K1_LIB_PATH=C:/deps/secp256k1_win/lib32
+win32:SECP256K1_INCLUDE_PATH=C:/deps/secp256k1_win/include
+
+
+16. build release.. 
+	~ CMD PROMPT... (set path=%path%;C:\mingw\bin;C:\deps\qt570\qtbase\bin)
+	
+	cd c:/theCoinPath/
+	qmake theCoin.pro
+	
+	mingw32-make -f Makefile.Release
+	
+#
+	
