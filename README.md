@@ -1,5 +1,6 @@
-Profit Hunters Coin (PHC) is a free open source decentralized project derived from Bitcoin,
-with the goal of providing a long-term energy-efficient scrypt-based crypto-currency.
+Profit Hunters Coin (PHC) is a free open source decentralized project derived from Bitcoin.
+It's an experimental project with the goal of providing a long-term energy-efficient scrypt-based crypto-currency.
+You're using this software with no guarantees or warranty of any kind. Use it at your own risk!
 Built on the foundations of Bitcoin, Litecoin, PeerCoin, NovaCoin, CraveProject, Dash Masternodes
 XUVCoin and Crypostle to help further advance the field of crypto-currency.
 
