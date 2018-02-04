@@ -15,8 +15,10 @@ Here are some things you can do with PHC Wallet Buddy:
 
 Installing PHC Wallet Buddy 1.0:
 Step 1 - Unzip the archive or download from http://github.com/biznatchenterprises/phc/contrib/wallettools/phc-walletbuddy/windows/
-Step 2 - Copy curl.exe, this file, and phc-walletbuddy.bat in the same directory (folder) as phc-qt.exe
-
+Step 2 - this file, curl.exe and phc-walletbuddy.bat into the same directory (folder) as phc-qt.exe
+If curl.exe is not included in this package:
+Step 3 - Download https://curl.haxx.se/download/curl-7.58.0.zip
+Step 4 - Unzip curl-7.58.0.zip and copy curl.exe into the same directory (folder) as phc-qt.exe
 
 Wallet chain-forked (stuck on blocks?)
 
