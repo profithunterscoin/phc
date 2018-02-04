@@ -2,7 +2,7 @@ Profit Hunters Coin (PHC) is a free open source decentralized project derived fr
 It's an experimental project with the goal of providing a long-term energy-efficient scrypt-based crypto-currency.
 You're using this software with no guarantees or warranty of any kind. Use it at your own risk!
 Built on the foundations of Bitcoin, Litecoin, PeerCoin, NovaCoin, CraveProject, Dash Masternodes
-XUVCoin and Crypostle to help further advance the field of crypto-currency.
+XUVCoin, BATA, and Crypostle to help further advance the field of crypto-currency.
 
 Adjustments based on network hasrate, previous block difficulty simulating real bullion mining: If the difficulty rate is low; using excessive work to produce low value blocks does not yield large return rates. When the ratio of difficulty adjusts and the network hashrate remains constant or declines: The reward per block will reach the maximum level, thus mining becomes very profitable.
 
