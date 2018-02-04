@@ -1636,7 +1636,7 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins, bool fOnlyConfirmed, const
             if (nDepth <= 0) // PHCNOTE: coincontrol fix / ignore 0 confirm
                 continue;
 
-            // do not use IX for inputs that have less then 6 blockchain confirmations
+            // do not use IX for inputs that have less then 100 blockchain confirmations
             if (useIX && nDepth < 100)
                 continue;
 
