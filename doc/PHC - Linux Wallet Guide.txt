@@ -1,0 +1,209 @@
+Profit Hunters Coin (PHC) - Linux Wallet Guide 1.0
+www.ProfitHuntersCoin.com (C) 2018
+--------------------------------------------------
+
+Required Platform:
+----------------------------
+- Debian Kernel (Ubuntu 16.04+, Mint 17.3+)
+
+
+Installing Required Dependencies:
+----------------------------
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get install build-essential
+sudo apt-get install libssl-dev
+sudo apt-get install libboost-all-dev
+sudo apt-get install libqrencode-dev
+sudo apt-get install libgmp3-dev
+sudo apt-get install miniupnpc
+sudo apt-get install libminiupnpc-dev
+sudo apt-get install libcurl4-openssl-dev
+sudo apt-get install dh-autoreconf
+sudo apt-get install autoconf
+sudo apt-get install automake
+sudo apt-get install git nano
+sudo apt-get install pkg-config
+sudo apt-get install build-essential
+sudo apt-get install libtool
+sudo apt-get install libtool-bin
+sudo apt-get install libgmp-dev
+sudo apt-get install software-properties-common
+sudo apt-get install git
+sudo apt-get install nano
+
+
+Installing DB4 Dependencies:
+----------------------------
+
+sudo add-apt-repository ppa:bitcoin/bitcoin
+sudo apt-get update
+sudo apt-get install libdb4.8-dev libdb4.8++-dev
+
+
+Installing QT Dependencies:
+----------------------------
+
+sudo apt-get install qt5-base
+sudo apt-get install qt5-default
+sudo apt-get install qt5-qmake
+sudo apt-get install qtbase5-dev-tools
+sudo apt-get install qttools5-dev-tools
+sudo apt-get install build-essential
+sudo apt-get install libboost-dev
+sudo apt-get install libboost-system-dev
+sudo apt-get install libboost-filesystem-dev
+sudo apt-get install libboost-program-options-dev
+sudo apt-get install libboost-thread-dev
+sudo apt-get install libssl-dev
+sudo apt-get install libminiupnpc-dev
+sudo apt-get install libjson-c-dev
+
+
+Grabbing the source code:
+----------------------------
+
+git clone http://github.com/biznatchenterprises/phc
+cd phc
+
+
+Creating a swap space (optional):
+----------------------------
+
+fallocate -l 3G /swapfile
+sudo sudo dd if=/dev/zero of=swapfile bs=1M count=3072
+mkswap /swapfile
+chmod 600 /swapfile
+swapon /swapfile
+echo -e "/swapfile none swap sw 0 0 \n" >> /etc/fstab
+cat /proc/meminfo
+
+
+Compiling Daemon:
+----------------------------
+
+cd src
+make -f makefile.unix
+cd ..
+
+
+Installing Daemon:
+
+cd src
+sudo cp phcd /usr/bin
+cd ..
+
+
+Compiling QT (GUI):
+----------------------------
+
+qmake && make
+
+
+Installing QT (GUI):
+----------------------------
+
+cd phc
+sudo cp phc-qt /usr/bin
+cd ..
+
+
+Updating Daemon:
+----------------------------
+
+Backup your wallet.dat file!
+
+phcd stop
+cd phc
+git pull
+See Compiling Daemon & Installing Daemon
+
+
+Updating QT:
+----------------------------
+
+Backup your wallet.dat file!
+
+exit phc-qt
+cd phc
+git pull
+qmake && make
+See
+
+Boostraping Daemon:
+----------------------------
+
+Backup your wallet.dat file!
+
+phcd stop
+cd .PHC
+rm -R database
+wget http://profithunterscoin.com/bootstraps/bootstrap.dat
+phcd
+Starting PHC wallet...
+phcd repairwallet
+phcd getinfo
+
+
+Boostraping QT:
+----------------------------
+
+exit phc-qt
+cd .PHC
+rm -R database
+rm -R txleveldb
+rm blk0001.dat
+wget http://profithunterscoin.com/bootstraps/bootstrap.dat
+phc-qt
+
+Troubleshooting:
+----------------------------
+
+Problem:
+../share/genbuild.sh: 33: ../share/genbuild.sh: cannot create obj/build.h: Directory nonexistent
+
+Solution:
+mkdir obj
+
+Problem:
+Makefile:18: build_config.mk: No such file or directory
+make[1]: *** No rule to make target `build_config.mk'.  Stop.
+
+Solution: cd /path/to/leveldb, and 
+chmod +x build_detect_platform
+
+Notes:
+----------------------------
+
+QT Build configuration options
+
+UPNnP port forwarding
+
+To use UPnP for port forwarding behind a NAT router (recommended, as more connections overall allow for a faster and more stable PHC experience), pass the following argument to qmake:
+
+qmake "USE_UPNP=1"
+(in Qt Creator, you can find the setting for additional qmake arguments under "Projects" -> "Build Settings" -> "Build Steps", then click "Details" next to qmake)
+
+This requires miniupnpc for UPnP port mapping. It can be downloaded from http://miniupnp.tuxfamily.org/files/. UPnP support is not compiled in by default.
+
+Set USE_UPNP to a different value to control this:
+
+USE_UPNP=-	no UPnP support, miniupnpc not required;
+USE_UPNP=0	(the default) built with UPnP, support turned off by default at runtime;
+USE_UPNP=1	build with UPnP support turned on by default at runtime.
+
+
+Notification support for recent (k)ubuntu versions
+
+To see desktop notifications on (k)ubuntu versions starting from 10.04, enable usage of the FreeDesktop notification interface through DBUS using the following qmake option:
+
+qmake "USE_DBUS=1"
+
+
+Generation of QR codes
+
+libqrencode may be used to generate QRCode images for payment requests. It can be downloaded from http://fukuchi.org/works/qrencode/index.html.en, or installed via your package manager. Pass the USE_QRCODE flag to qmake to control this:
+
+USE_QRCODE=0	(the default) No QRCode support - libarcode not required
+USE_QRCODE=1	QRCode support enabled
+

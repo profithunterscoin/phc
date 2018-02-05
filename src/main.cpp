@@ -1421,7 +1421,9 @@ double GetDynamicBlockReward3(int nHeight)
         }
 
         return nSubsidyBase;
+
 }
+
 
 // miner's coin base reward
 int64_t GetProofOfWorkReward(int nHeight, int64_t nFees)
