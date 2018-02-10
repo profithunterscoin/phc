@@ -39,6 +39,49 @@ namespace boost {
 }
 
 
+// *** Firewall Controls (General) ***
+extern bool FIREWALL_ENABLED;
+extern bool FIREWALL_LIVE_DEBUG;
+extern bool FIREWALL_CLEAR_BLACKLIST;
+extern bool FIREWALL_CLEAR_BANS;
+// *** Firewall Controls (General) ***
+extern bool FIREWALL_LIVEDEBUG_EXAM;
+extern bool FIREWALL_LIVEDEBUG_BANS;
+extern bool FIREWALL_LIVEDEBUG_BLACKLIST;
+extern bool FIREWALL_LIVEDEBUG_DISCONNECT;
+extern bool FIREWALL_LIVEDEBUG_BANDWIDTHABUSE;
+extern bool FIREWALL_LIVEDEBUG_NOFALSEPOSITIVE;
+extern bool FIREWALL_LIVEDEBUG_INVALIDWALLET;
+extern bool FIREWALL_LIVEDEBUG_FORKEDWALLET;
+extern bool FIREWALL_LIVEDEBUG_FLOODINGWALLET;
+// *** Firewall Controls (Bandwidth Abuse) ***
+extern bool FIREWALL_DETECT_BANDWIDTHABUSE;
+extern bool FIREWALL_BLACKLIST_BANDWIDTHABUSE;
+extern bool FIREWALL_BAN_BANDWIDTHABUSE;
+extern bool FIREWALL_NOFALSEPOSITIVE_BANDWIDTHABUSE;
+extern int FIREWALL_BANTIME_BANDWIDTHABUSE;
+// *** Firewall Controls (Invalid Peer Wallets) ***
+extern bool FIREWALL_DETECT_INVALIDWALLET;
+extern bool FIREWALL_BLACKLIST_INVALIDWALLET;
+extern bool FIREWALL_BAN_INVALIDWALLET;
+extern int FIREWALL_BANTIME_INVALIDWALLET;
+// *** Firewall Controls (Forked Peer Wallets) ***
+extern bool FIREWALL_DETECT_FORKEDWALLET;
+extern bool FIREWALL_BLACKLIST_FORKEDWALLET;
+extern bool FIREWALL_BAN_FORKEDWALLET;
+extern int FIREWALL_BANTIME_FORKEDWALLET;
+// *** Firewall Controls (Flooding Peer Wallets) ***
+extern bool FIREWALL_DETECT_FLOODINGWALLET;
+extern bool FIREWALL_BLACKLIST_FLOODINGWALLET;
+extern bool FIREWALL_BAN_FLOODINGWALLET;
+extern int FIREWALL_BANTIME_FLOODINGWALLET;
+// *** Firewall Controls (High Banscore Peer Wallets) ***
+//extern bool FIREWALL_DETECT_HIGHBANSCORE;
+//extern bool FIREWALL_BLACKLIST_HIGHBANSCORE;
+//extern bool FIREWALL_BAN_HIGHBANSCORE;
+//extern int FIREWALL_BANTIME_HIGHBANSCORE;
+
+
 /** Time between pings automatically sent out for latency probing and keepalive (in seconds). */
 static const int PING_INTERVAL = 1 * 60;
 /** Time after which to disconnect, after waiting for a ping response (or inactivity). */
@@ -229,7 +272,12 @@ typedef enum BanReason
 {
     BanReasonUnknown          = 0,
     BanReasonNodeMisbehaving  = 1,
-    BanReasonManuallyAdded    = 2
+    BanReasonManuallyAdded    = 2,
+    BanReasonBandwidthAbuse   = 3,
+    BanReasonInvalidWallet    = 4,
+    BanReasonForkedWallet     = 5,
+    BanReasonFloodingWallet   = 6
+
 } BanReason;
 
 class CBanEntry
@@ -276,6 +324,14 @@ public:
             return "node misbehaving";
         case BanReasonManuallyAdded:
             return "manually added";
+        case BanReasonBandwidthAbuse:
+            return "bandwidth abuse";
+        case BanReasonInvalidWallet:
+            return "invalid wallet";
+        case BanReasonForkedWallet:
+            return "forked wallet";
+        case BanReasonFloodingWallet:
+            return "flooding wallet";
         default:
             return "unknown";
         }

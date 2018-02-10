@@ -165,12 +165,27 @@ Problem:
 Solution:
 mkdir obj
 
+
 Problem:
 Makefile:18: build_config.mk: No such file or directory
 make[1]: *** No rule to make target `build_config.mk'.  Stop.
 
 Solution: cd /path/to/leveldb, and 
 chmod +x build_detect_platform
+
+
+Problem:
+If you ever encounter the error
+src/leveldb/libleveldb.a: No such file or directory
+/src/leveldb/libmemenv.a: No such file or directory
+
+Solution:
+cd leveldb
+chmod 755 *
+cd ..
+make -f makefile.unix
+
+
 
 Notes:
 ----------------------------

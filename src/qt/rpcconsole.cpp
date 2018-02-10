@@ -411,9 +411,9 @@ void RPCConsole::clear()
                 "table { }"
                 "td.time { color: #808080; padding-top: 3px; } "
                 "td.message { font-family: Monospace; font-size: 12px; } "
-                "td.cmd-request { color: #00C0C0; } "
+                "td.cmd-request { color: #A4D300; } "
                 "td.cmd-error { color: red; } "
-                "b { color: #00C0C0; } "
+                "b { color: #A4D300; } "
                 );
 
     message(CMD_REPLY, (tr("Welcome to the PHC RPC console.") + "<br>" +

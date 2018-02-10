@@ -1,0 +1,104 @@
+------------------------------------------------------
+Profit Hunters Coin (PHC) - www.ProfitHuntersCoin.com
+------------------------------------------------------
+
+Bitcoin Firewall 1.2.2.2 - RPC Reference
+(USE AT YOUR OWN RISK!)
+
+How to use:
+    phcd RPC_COMMAND arguments
+    phc-qt (Help -> Debug -> Console)
+
+Change the status of Bitcoin Firewall
+    firewallenabled true|false
+
+Bitcoin Firewall Live Debug Output
+    firewalldebug true|false
+
+Bitcoin Firewall Live Debug Output - Exam
+    firewalldebugexam true|false
+
+Bitcoin Firewall Live Debug Output - Bans
+    firewalldebugbans true|false
+
+Bitcoin Firewall Live Debug Output - Blacklist
+    firewalldebugblacklist true|false
+
+Bitcoin Firewall Live Debug Output - Disconnect
+    firewalldebugdisconnect true|false
+
+Bitcoin Firewall Live Debug Output - Bandwidth Abuse
+    firewalldebugbandwidthabuse true|false
+
+Bitcoin Firewall Live Debug Output - No False Positive (Bandwidth Abuse)
+    firewalldebugnofalsepositivebandwidthabuse true|false
+
+Bitcoin Firewall Live Debug Output - Invalid Wallet
+    firewalldebuginvalidwallet true|false
+
+Bitcoin Firewall Live Debug Output - Forked Wallet
+    firewalldebugforkedwallet true|false
+
+Bitcoin Firewall Clear Blacklist (session)
+    firewallclearblacklist true|false
+
+Bitcoin Firewall Clear Ban List (permenant)
+    firewallclearbanlist true|false
+
+Bitcoin Firewall Detect Bandwidth Abuse Rule #1
+    firewalldetectbandwidthabuse true|false
+
+Bitcoin Firewall Blacklist Bandwidth Abuse Rule #1 (session)
+    firewallblacklistbandwidthabuse true|false
+
+Bitcoin Firewall Ban Bandwidth Abuse Rule #1 (permenant)
+    firewallbanbandwidthabuse true|false
+
+Bitcoin Firewall False Positive Protection Rule #1
+    firewallnofalsepositivebandwidthabuse true|false
+
+Bitcoin Firewall Detect Invalid Wallet Rule #2
+    firewalldetectinvalidwallet true|false
+
+Bitcoin Firewall Blacklist Invalid Wallet Rule #2 (session)
+    firewallblacklistinvalidwallet true|false
+
+Bitcoin Firewall Ban Invalid Wallet Rule #2 (permenant)
+    firewallbaninvalidwallet true|false
+
+Bitcoin Firewall Ban Time Invalid Wallet Rule #2
+    firewallbantimeinvalidwallet seconds
+
+Bitcoin Firewall Detect Forked Wallet Rule #3
+    firewalldetectforkedwallet true|false
+
+Bitcoin Firewall Blacklist Forked Wallet Rule #3 (session)
+    firewallblacklistforkedwallet true|false
+
+Bitcoin Firewall Ban Forked Wallet Rule #3 (permenant)
+    firewallbanforkedwallet true|false
+
+Bitcoin Firewall Ban Time Forked Wallet Rule #3
+    firewallbantimeforkedwallet seconds
+
+Bitcoin Firewall Detect Flooding Wallet Rule #4
+    firewalldetectfloodingwallet true|false
+
+Bitcoin Firewall Detect Flooding Wallet Rule #4
+    firewalldetectfloodingwallet true|false
+
+Bitcoin Firewall Blacklist Flooding Wallet Rule #4 (session)
+    firewallblacklistfloodingwallet true|false
+
+Bitcoin Firewall Ban Flooding Wallet Rule #4 (permenant)
+    firewallbanfloodingwallet true|false
+
+Bitcoin Firewall Ban Time Flooding Wallet Rule #4
+firewallbantimefloodingwallet seconds
+
+
+
+
+
+
+
