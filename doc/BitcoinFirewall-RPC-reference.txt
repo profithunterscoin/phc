@@ -9,6 +9,9 @@ How to use:
     phcd RPC_COMMAND arguments
     phc-qt (Help -> Debug -> Console)
 
+Status of Bitcoin Firewall
+    firewallstatus
+
 Change the status of Bitcoin Firewall
     firewallenabled true|false
 
