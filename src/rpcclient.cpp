@@ -167,7 +167,31 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "searchrawtransactions", 1 },
     { "searchrawtransactions", 2 },
     { "searchrawtransactions", 3 },
+    { "firewallenabled", 1 },
+    { "firewalldebug", 1 },
+    { "firewallclearblacklist", 1 },
+    { "firewallclearbanlist", 1 },
+    { "firewalldetectbandwidthabuse", 1 },
+    { "firewallblacklistbandwidthabuse", 1 },
+    { "firewallbanbandwidthabuse", 1 },
+    { "firewallnofalsepositivebandwidthabuse", 1 },
+    { "firewallbantimebandwidthabuse", 1 },
+    { "firewalldetectinvalidwallet", 1 },
+    { "firewallblacklistinvalidwallet", 1 },
+    { "firewallbaninvalidwallet", 1 },
+    { "firewallbantimeinvalidwallet", 1 },
+    { "firewalldetectforkedwallet", 1 },
+    { "firewallblacklistforkedwallet", 1 },
+    { "firewallbanforkedwallet", 1 },
+    { "firewallbantimeforkedwallet", 1 },
+    { "firewalldetectfloodingwallet", 1 },
+    { "firewallblacklistfloodingwallet", 1 },
+    { "firewallbanfloodingwallet", 1 },
+    { "firewallbantimefloodingwallet", 1 },
 };
+
+
+
 
 class CRPCConvertTable
 {
