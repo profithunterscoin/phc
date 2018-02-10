@@ -688,7 +688,7 @@ bool CheckAttack(CNode *pnode, string FromFunction)
         }
     
         // IF WARNINGS is matches pattern for ATTACK = TRUE
-        if (WARNINGS == "2356")
+        if (WARNINGS == "235")
         {
             DETECTED_ATTACK = true;
             ATTACK_TYPE = ATTACK_CHECK_NAME;
