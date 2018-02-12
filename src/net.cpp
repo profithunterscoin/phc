@@ -136,11 +136,11 @@ int FIREWALL_BANDWIDTHABUSE_MINATTACK = 17.1;
 int FIREWALL_BANDWIDTHABUSE_MAXATTACK = 17.2;
 
 // *** Firewall Controls (Invalid Peer Wallets) ***
-bool FIREWALL_DETECT_INVALIDWALLET = true;
+bool FIREWALL_DETECT_INVALIDWALLET = false;
 bool FIREWALL_BLACKLIST_INVALIDWALLET = true;
 bool FIREWALL_BAN_INVALIDWALLET = true;
 int FIREWALL_BANTIME_INVALIDWALLET = 2600000; // 30 days
-int FIREWALL_INVALIDWALLET_MAXCHECK = 3; // minutes
+int FIREWALL_INVALIDWALLET_MAXCHECK = 60; // seconds
 
 // *** Firewall Controls (Forked Peer Wallets) ***
 bool FIREWALL_DETECT_FORKEDWALLET = true;
@@ -149,7 +149,7 @@ bool FIREWALL_BAN_FORKEDWALLET = true;
 int FIREWALL_BANTIME_FORKEDWALLET = 2600000; // 30 days
 
 // *** Firewall Controls (Flooding Peer Wallets) ***
-bool FIREWALL_DETECT_FLOODINGWALLET = false;
+bool FIREWALL_DETECT_FLOODINGWALLET = true;
 bool FIREWALL_BLACKLIST_FLOODINGWALLET = true;
 bool FIREWALL_BAN_FLOODINGWALLET = true;
 int FIREWALL_BANTIME_FLOODINGWALLET = 2600000; // 30 days
@@ -337,7 +337,7 @@ return true;
 bool CheckAttack(CNode *pnode, string FromFunction)
 {
     bool DETECTED_ATTACK = false;
-
+    
     bool BLACKLIST_ATTACK = false;
 
     int BAN_TIME = 0; // Default 24 hours
@@ -510,7 +510,7 @@ bool CheckAttack(CNode *pnode, string FromFunction)
         // ### Attack Detection ###
         // Start Height = -1
         // Check for more than FIREWALL_CHECK_MAX minutes connection length
-        if (nTimeConnected > FIREWALL_INVALIDWALLET_MAXCHECK * 60)
+        if (nTimeConnected > FIREWALL_INVALIDWALLET_MAXCHECK)
         {
             // Check for -1 blockheight
             if (pnode->nStartingHeight == -1)
@@ -522,7 +522,7 @@ bool CheckAttack(CNode *pnode, string FromFunction)
         }
 
         // Check for -1 blockheight
-        if (nTimeConnected > FIREWALL_INVALIDWALLET_MAXCHECK * 60)
+        if (nTimeConnected > FIREWALL_INVALIDWALLET_MAXCHECK)
         {
             // Check for -1 blockheight
             if (pnode->nStartingHeight < 0)
@@ -535,7 +535,7 @@ bool CheckAttack(CNode *pnode, string FromFunction)
         
         // (Protocol: 0
         // Check for more than FIREWALL_CHECK_MAX minutes connection length
-        if (nTimeConnected > FIREWALL_INVALIDWALLET_MAXCHECK * 60)
+        if (nTimeConnected > FIREWALL_INVALIDWALLET_MAXCHECK)
         {
             // Check for 0 protocol
             if (pnode->nRecvVersion == 0)
@@ -548,7 +548,7 @@ bool CheckAttack(CNode *pnode, string FromFunction)
 
         // (Protocol: 0
         // Check for more than FIREWALL_CHECK_MAX minutes connection length
-        if (nTimeConnected > FIREWALL_INVALIDWALLET_MAXCHECK * 60)
+        if (nTimeConnected > FIREWALL_INVALIDWALLET_MAXCHECK)
         {
             // Check for 
             if (pnode->nRecvVersion < 1)
