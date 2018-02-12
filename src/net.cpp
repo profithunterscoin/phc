@@ -107,7 +107,7 @@ inline const char * const BoolToString(bool b)
 string ModuleName = "[Bitcoin Firewall 1.2.2.2]";
 
 // *** Firewall Controls (General) ***
-bool FIREWALL_ENABLED = true;
+bool FIREWALL_ENABLED = false;
 bool FIREWALL_CLEAR_BLACKLIST = false;
 bool FIREWALL_CLEAR_BANS = false;
 
@@ -126,7 +126,7 @@ bool FIREWALL_LIVEDEBUG_FLOODINGWALLET = true;
 
 
 // *** Firewall Controls (Bandwidth Abuse) ***
-bool FIREWALL_DETECT_BANDWIDTHABUSE = true;
+bool FIREWALL_DETECT_BANDWIDTHABUSE = false;
 bool FIREWALL_BLACKLIST_BANDWIDTHABUSE = true;
 bool FIREWALL_BAN_BANDWIDTHABUSE = true;
 bool FIREWALL_NOFALSEPOSITIVE_BANDWIDTHABUSE = true;
@@ -143,13 +143,13 @@ int FIREWALL_BANTIME_INVALIDWALLET = 2600000; // 30 days
 int FIREWALL_INVALIDWALLET_MAXCHECK = 60; // seconds
 
 // *** Firewall Controls (Forked Peer Wallets) ***
-bool FIREWALL_DETECT_FORKEDWALLET = true;
+bool FIREWALL_DETECT_FORKEDWALLET = false;
 bool FIREWALL_BLACKLIST_FORKEDWALLET = true;
 bool FIREWALL_BAN_FORKEDWALLET = true;
 int FIREWALL_BANTIME_FORKEDWALLET = 2600000; // 30 days
 
 // *** Firewall Controls (Flooding Peer Wallets) ***
-bool FIREWALL_DETECT_FLOODINGWALLET = true;
+bool FIREWALL_DETECT_FLOODINGWALLET = false;
 bool FIREWALL_BLACKLIST_FLOODINGWALLET = true;
 bool FIREWALL_BAN_FLOODINGWALLET = true;
 int FIREWALL_BANTIME_FLOODINGWALLET = 2600000; // 30 days
