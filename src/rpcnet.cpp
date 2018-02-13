@@ -596,7 +596,6 @@ return result;
 
 Value firewalldebug(const Array& params, bool fHelp)
 {
-
     string strCommand = "true";
     if (fHelp || params.size() == 0)
         throw runtime_error(
@@ -632,7 +631,6 @@ return result;
 
 Value firewalldebugexam(const Array& params, bool fHelp)
 {
-
     string strCommand = "true";
     if (fHelp || params.size() == 0)
         throw runtime_error(
@@ -669,7 +667,6 @@ return result;
 
 Value firewalldebugbans(const Array& params, bool fHelp)
 {
-
     string strCommand = "true";
     if (fHelp || params.size() == 0)
         throw runtime_error(
@@ -705,7 +702,6 @@ return result;
 
 Value firewalldebugblacklist(const Array& params, bool fHelp)
 {
-
     string strCommand = "true";
     if (fHelp || params.size() == 0)
         throw runtime_error(
@@ -742,7 +738,6 @@ return result;
 
 Value firewalldebugdisconnect(const Array& params, bool fHelp)
 {
-
     string strCommand = "true";
     if (fHelp || params.size() == 0)
         throw runtime_error(
@@ -779,7 +774,6 @@ return result;
 
 Value firewalldebugbandwidthabuse(const Array& params, bool fHelp)
 {
-
     string strCommand = "true";
     if (fHelp || params.size() == 0)
         throw runtime_error(
@@ -816,7 +810,6 @@ return result;
 
 Value firewalldebugnofalsepositivebandwidthabuse(const Array& params, bool fHelp)
 {
-
     string strCommand = "true";
     if (fHelp || params.size() == 0)
         throw runtime_error(
@@ -853,7 +846,6 @@ return result;
 
 Value firewalldebuginvalidwallet(const Array& params, bool fHelp)
 {
-
     string strCommand = "true";
     if (fHelp || params.size() == 0)
         throw runtime_error(
@@ -890,7 +882,6 @@ return result;
 
 Value firewalldebugforkedwallet(const Array& params, bool fHelp)
 {
-
     string strCommand = "true";
     if (fHelp || params.size() == 0)
         throw runtime_error(
@@ -927,7 +918,6 @@ return result;
 
 Value firewalldebugfloodingwallet(const Array& params, bool fHelp)
 {
-
     string strCommand = "true";
     if (fHelp || params.size() == 0)
         throw runtime_error(
@@ -957,6 +947,56 @@ Value firewalldebugfloodingwallet(const Array& params, bool fHelp)
 
     Object result;
     result.push_back(Pair("live-debug-floodingwallet", strCommand));
+
+return result;
+}
+
+
+Value firewalltraffictolerance(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+        throw runtime_error(
+                            "firewalltraffictolerance \"tolerance\"\n"
+                            "\nBitcoin Firewall Exam Setting (Traffic Tolerance)\n"
+                            "\nArguments:\n"
+                            "Value: \"tolerance\" (integer, required)\n"
+                            "\nExamples:\n"
+                            + HelpExampleCli("firewalltraffictolerance", "1")
+                            + HelpExampleCli("firewalltraffictolerance", "2")
+                            );
+
+    if (params.size() == 1)
+    {
+        FIREWALL_AVERAGE_TOLERANCE = params[0].get_int();
+    }
+
+    Object result;
+    result.push_back(Pair("exam-traffic-tolerance", FIREWALL_AVERAGE_TOLERANCE));
+
+return result;
+}
+
+
+Value firewalltrafficzone(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+        throw runtime_error(
+                            "firewalltrafficzone \"zone\"\n"
+                            "\nBitcoin Firewall Exam Setting (Traffic Zone)\n"
+                            "\nArguments:\n"
+                            "Value: \"zone\" (integer), required)\n"
+                            "\nExamples:\n"
+                            + HelpExampleCli("firewalltrafficzone", "10")
+                            + HelpExampleCli("firewalltrafficzone", "50")
+                            );
+
+    if (params.size() == 1)
+    {
+        FIREWALL_AVERAGE_RANGE = params[0].get_int();
+    }
+
+    Object result;
+    result.push_back(Pair("exam-traffic-zone", FIREWALL_AVERAGE_RANGE));
 
 return result;
 }
@@ -1110,7 +1150,7 @@ Value firewallbantimebandwidthabuse(const Array& params, bool fHelp)
                             "firewallbantimebandwidthabuse \"seconds\"\n"
                             "\nBitcoin Firewall Ban Time Bandwidth Abuse Rule #1\n"
                             "\nArguments:\n"
-                            "Seconds: \"0|10000\" (integer, required)\n"
+                            "Value: \"0|10000\" (integer, required)\n"
                             "\nExamples:\n"
                             "\n0 = default - 24h\n"
                             + HelpExampleCli("firewallbantimebandwidthabuse", "0")
@@ -1125,6 +1165,85 @@ Value firewallbantimebandwidthabuse(const Array& params, bool fHelp)
 
     Object result;
     result.push_back(Pair("bantime-bandwidthabuse", FIREWALL_BANTIME_BANDWIDTHABUSE));
+
+return result;
+}
+
+
+Value firewallbandwidthabusemaxcheck(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+        throw runtime_error(
+                            "firewallbandwidthabusemaxcheck \"seconds\"\n"
+                            "\nBitcoin Firewall Max Check Bandwidth Abuse Rule #1\n"
+                            "\nArguments:\n"
+                            "Seconds: \"0|10000\" (integer, required)\n"
+                            "\nExamples:\n"
+                            "\n0 = default\n"
+                            + HelpExampleCli("firewallbandwidthabusemaxcheck", "0")
+                            + HelpExampleCli("firewallbandwidthabusemaxcheck", "10000000")
+                            );
+
+    if (params.size() == 1)
+    {
+        FIREWALL_BANDWIDTHABUSE_MAXCHECK = params[0].get_int();
+    }
+
+
+    Object result;
+    result.push_back(Pair("maxcheck-bandwidthabuse", FIREWALL_BANDWIDTHABUSE_MAXCHECK));
+
+return result;
+}
+
+Value firewallbandwidthabuseminattack(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+        throw runtime_error(
+                            "firewallbandwidthabuseminattack \"value\"\n"
+                            "\nBitcoin Firewall Min Attack Bandwidth Abuse Rule #1\n"
+                            "\nArguments:\n"
+                            "Value: \"0|10000\" (integer, required)\n"
+                            "\nExamples:\n"
+                            "\n0 = default - \n"
+                            + HelpExampleCli("firewallbandwidthabuseminattack", "0")
+                            + HelpExampleCli("firewallbandwidthabuseminattack", "10000000")
+                            );
+
+    if (params.size() == 1)
+    {
+        FIREWALL_BANDWIDTHABUSE_MINATTACK = params[0].get_int();
+    }
+
+
+    Object result;
+    result.push_back(Pair("minattack-bandwidthabuse", FIREWALL_BANDWIDTHABUSE_MINATTACK));
+
+return result;
+}
+
+Value firewallbandwidthabusemaxattack(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+        throw runtime_error(
+                            "firewallbandwidthabusemaxattack \"ratio\"\n"
+                            "\nBitcoin Firewall Max Attack Bandwidth Abuse Rule #1\n"
+                            "\nArguments:\n"
+                            "Value: \"0|10000\" (integer, required)\n"
+                            "\nExamples:\n"
+                            "\n0 = default - \n"
+                            + HelpExampleCli("firewallbandwidthabusemaxattack", "0")
+                            + HelpExampleCli("firewallbandwidthabusemaxattack", "10000000")
+                            );
+
+    if (params.size() == 1)
+    {
+        FIREWALL_BANDWIDTHABUSE_MAXATTACK = params[0].get_int();
+    }
+
+
+    Object result;
+    result.push_back(Pair("maxattack-bandwidthabuse", FIREWALL_BANDWIDTHABUSE_MAXATTACK));
 
 return result;
 }
@@ -1240,13 +1359,12 @@ return result;
 
 Value firewallbantimeinvalidwallet(const Array& params, bool fHelp)
 {
-    string strCommand = "true";
     if (fHelp || params.size() == 0)
         throw runtime_error(
                             "firewallbantimeinvalidwallet \"seconds\"\n"
                             "\nBitcoin Firewall Ban Time Invalid Wallet Rule #2\n"
                             "\nArguments:\n"
-                            "Seconds: \"0|100000\" (integer, required)\n"
+                            "Value: \"0|100000\" (integer, required)\n"
                             "\nExamples:\n"
                             "\n0 = default - 24h\n"
                             + HelpExampleCli("firewallbantimeinvalidwallet", "0")
@@ -1260,6 +1378,58 @@ Value firewallbantimeinvalidwallet(const Array& params, bool fHelp)
 
     Object result;
     result.push_back(Pair("bantime-invalidwallet", FIREWALL_BANTIME_INVALIDWALLET));
+
+return result;
+}
+
+
+Value firewallinvalidwalletminprotocol(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+        throw runtime_error(
+                            "firewallinvalidwalletminprotocol \"protocol\"\n"
+                            "\nBitcoin Firewall Min Protocol Invalid Wallet Rule #2\n"
+                            "\nArguments:\n"
+                            "Value: \"0|100000\" (integer, required)\n"
+                            "\nExamples:\n"
+                            "\n0 = default - \n"
+                            + HelpExampleCli("firewallinvalidwalletminprotocol", "0")
+                            + HelpExampleCli("firewallinvalidwalletminprotocol", "10000000")
+                            );
+
+    if (params.size() == 1)
+    {
+        FIREWALL_MINIMUM_PROTOCOL = params[0].get_int();
+    }
+
+    Object result;
+    result.push_back(Pair("minprotocol-invalidwallet", FIREWALL_MINIMUM_PROTOCOL));
+
+return result;
+}
+
+
+Value firewallinvalidwalletmaxcheck(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+        throw runtime_error(
+                            "firewallinvalidwalletmaxcheck \"seconds\"\n"
+                            "\nBitcoin Firewall Max Check Invalid Wallet Rule #2\n"
+                            "\nArguments:\n"
+                            "Value: \"0|100000\" (integer, required)\n"
+                            "\nExamples:\n"
+                            "\n0 = default - \n"
+                            + HelpExampleCli("firewallinvalidwalletmaxcheck", "0")
+                            + HelpExampleCli("firewallinvalidwalletmaxcheck", "10000000")
+                            );
+
+    if (params.size() == 1)
+    {
+        FIREWALL_INVALIDWALLET_MAXCHECK = params[0].get_int();
+    }
+
+    Object result;
+    result.push_back(Pair("maxcheck-invalidwallet", FIREWALL_INVALIDWALLET_MAXCHECK));
 
 return result;
 }
@@ -1375,13 +1545,12 @@ return result;
 
 Value firewallbantimeforkedwallet(const Array& params, bool fHelp)
 {
-    string strCommand = "true";
     if (fHelp || params.size() == 0)
         throw runtime_error(
                             "firewallbantimeforkedwallet \"seconds\"\n"
                             "\nBitcoin Firewall Ban Time Forked Wallet Rule #3\n"
                             "\nArguments:\n"
-                            "time: \"seconds\" (integer, required)\n"
+                            "Value: \"seconds\" (integer, required)\n"
                             "\nExamples:\n"
                             "\n0 = default - 24h\n"
                             + HelpExampleCli("firewallbantimeinvalidwallet", "0")
@@ -1394,7 +1563,7 @@ Value firewallbantimeforkedwallet(const Array& params, bool fHelp)
     }
 
     Object result;
-    result.push_back(Pair("ban-forkedwallet", FIREWALL_BANTIME_FORKEDWALLET));
+    result.push_back(Pair("bantime-forkedwallet", FIREWALL_BANTIME_FORKEDWALLET));
 
 return result;
 }
@@ -1510,13 +1679,12 @@ return result;
 
 Value firewallbantimefloodingwallet(const Array& params, bool fHelp)
 {
-    string strCommand = "true";
     if (fHelp || params.size() == 0)
         throw runtime_error(
                             "firewallbantimefloodingwallet \"seconds\"\n"
                             "\nBitcoin Firewall Ban Time Flooding Wallet Rule #4\n"
                             "\nArguments:\n"
-                            "time: \"seconds\" (integer, required)\n"
+                            "Value: \"seconds\" (integer, required)\n"
                             "\nExamples:\n"
                             "\n0 = default - 24h\n"
                             + HelpExampleCli("firewallbantimefloodingwallet", "0")
@@ -1529,8 +1697,190 @@ Value firewallbantimefloodingwallet(const Array& params, bool fHelp)
     }
 
     Object result;
-    result.push_back(Pair("bantime-floodingwallet", strCommand));
+    result.push_back(Pair("bantime-floodingwallet", FIREWALL_BANTIME_FLOODINGWALLET));
 
 return result;
 }
 
+
+Value firewallfloodingwalletminbytes(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+        throw runtime_error(
+                            "firewallfloodingwalletminbytes \"bytes\"\n"
+                            "\nBitcoin Firewall Min Bytes Flooding Wallet Rule #4\n"
+                            "\nArguments:\n"
+                            "Value: \"Bytes\" (integer, required)\n"
+                            "\nExamples:\n"
+                            "\n0 = default - h\n"
+                            + HelpExampleCli("firewallfloodingwalletminbytes", "0")
+                            + HelpExampleCli("firewallfloodingwalletminbytes", "10000000")
+                            );
+
+    if (params.size() == 1)
+    {
+        FIREWALL_FLOODINGWALLET_MINBYTES = params[0].get_int();
+    }
+
+    Object result;
+    result.push_back(Pair("minbytes-floodingwallet", FIREWALL_FLOODINGWALLET_MINBYTES));
+
+return result;
+}
+
+
+Value firewallfloodingwalletmaxbytes(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+        throw runtime_error(
+                            "firewallfloodingwalletmaxbytes \"bytes\"\n"
+                            "\nBitcoin Firewall Max Bytes Flooding Wallet Rule #4\n"
+                            "\nArguments:\n"
+                            "Value: \"bytes\" (integer, required)\n"
+                            "\nExamples:\n"
+                            "\n0 = default - \n"
+                            + HelpExampleCli("firewallfloodingwalletmaxbytes", "0")
+                            + HelpExampleCli("firewallfloodingwalletmaxbytes", "10000000")
+                            );
+
+    if (params.size() == 1)
+    {
+        FIREWALL_FLOODINGWALLET_MAXBYTES = params[0].get_int();
+    }
+
+    Object result;
+    result.push_back(Pair("bantime-floodingwallet", FIREWALL_FLOODINGWALLET_MAXBYTES));
+
+return result;
+}
+
+
+Value firewallfloodingwalletattackpattern(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+        throw runtime_error(
+                            "firewallfloodingwalletattackpattern \"warnings\"\n"
+                            "\nBitcoin Firewall Attack Pattern Flooding Wallet Rule #4\n"
+                            "\nArguments:\n"
+                            "Value: \"warnings\" (integer, required)\n"
+                            "\nExamples:\n"
+                            "\n0 = default - \n"
+                            + HelpExampleCli("firewallfloodingwalletattackpattern", "0")
+                            + HelpExampleCli("firewallfloodingwalletattackpattern", "10000000")
+                            );
+
+    if (params.size() == 1)
+    {
+        FIREWALL_FLOODINGWALLET_ATTACKPATTERN = params[0].get_int();
+    }
+
+    Object result;
+    result.push_back(Pair("attackpattern-floodingwallet", FIREWALL_FLOODINGWALLET_ATTACKPATTERN));
+
+return result;
+}
+
+
+
+Value firewallfloodingwalletmintrafficavg(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+        throw runtime_error(
+                            "firewallfloodingwalletmintrafficavg \"ratio\"\n"
+                            "\nBitcoin Firewall Min Traffic Average Flooding Wallet Rule #4\n"
+                            "\nArguments:\n"
+                            "Value: \"ratio\" (integer, required)\n"
+                            "\nExamples:\n"
+                            "\n0 = default - \n"
+                            + HelpExampleCli("firewallfloodingwalletmintrafficav", "0")
+                            + HelpExampleCli("firewallfloodingwalletmintrafficav", "10000000")
+                            );
+
+    if (params.size() == 1)
+    {
+        FIREWALL_FLOODINGWALLET_MINTRAFFICAVERAGE = params[0].get_int();
+    }
+
+    Object result;
+    result.push_back(Pair("mintrafficavg-floodingwallet", FIREWALL_FLOODINGWALLET_MINTRAFFICAVERAGE));
+
+return result;
+}
+
+
+Value firewallfloodingwalletmaxtrafficavg(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+        throw runtime_error(
+                            "firewallbantimefloodingwallet \"ratio\"\n"
+                            "\nBitcoin Firewall Max Traffic Average Flooding Wallet Rule #4\n"
+                            "\nArguments:\n"
+                            "Value: \"ratio\" (integer, required)\n"
+                            "\nExamples:\n"
+                            "\n0 = default - \n"
+                            + HelpExampleCli("firewallfloodingwalletmaxtrafficavg", "0")
+                            + HelpExampleCli("ffirewallfloodingwalletmaxtrafficavg", "10000000")
+                            );
+
+    if (params.size() == 1)
+    {
+        FIREWALL_FLOODINGWALLET_MAXTRAFFICAVERAGE = params[0].get_int();
+    }
+
+    Object result;
+    result.push_back(Pair("trafficavg-floodingwallet", FIREWALL_FLOODINGWALLET_MAXTRAFFICAVERAGE));
+
+return result;
+}
+
+
+Value firewallfloodingwalletmincheck(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+        throw runtime_error(
+                            "firewallfloodingwalletmincheck \"seconds\"\n"
+                            "\nBitcoin Firewall Ban Time Flooding Wallet Rule #4\n"
+                            "\nArguments:\n"
+                            "Value: \"seconds\" (integer, required)\n"
+                            "\nExamples:\n"
+                            "\n0 = default - \n"
+                            + HelpExampleCli("firewallfloodingwalletmincheck", "0")
+                            + HelpExampleCli("firewallfloodingwalletmincheck", "10000000")
+                            );
+
+    if (params.size() == 1)
+    {
+        FIREWALL_FLOODINGWALLET_MINCHECK = params[0].get_int();
+    }
+
+    Object result;
+    result.push_back(Pair("mincheck-floodingwallet", FIREWALL_FLOODINGWALLET_MINCHECK));
+
+return result;
+}
+
+
+Value firewallfloodingwalletmaxcheck(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+        throw runtime_error(
+                            "firewallfloodingwalletmaxcheck \"seconds\"\n"
+                            "\nBitcoin Firewall Max Check Flooding Wallet Rule #4\n"
+                            "\nArguments:\n"
+                            "Value: \"seconds\" (integer, required)\n"
+                            "\nExamples:\n"
+                            "\n0 = default - \n"
+                            + HelpExampleCli("firewallfloodingwalletmaxcheck", "0")
+                            + HelpExampleCli("firewallfloodingwalletmaxcheck", "10000000")
+                            );
+
+    if (params.size() == 1)
+    {
+        FIREWALL_FLOODINGWALLET_MAXCHECK = params[0].get_int();
+    }
+
+    Object result;
+    result.push_back(Pair("maxcheck-floodingwallet", FIREWALL_FLOODINGWALLET_MAXCHECK));
+
+return result;
+}

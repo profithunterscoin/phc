@@ -256,6 +256,9 @@ static const CRPCCommand vRPCCommands[] =
     { "firewallenabled",                               &firewallenabled,                             false,      false,    false },
     { "firewallclearblacklist",                        &firewallclearblacklist,                      false,      false,    false },
     { "firewallclearbanlist",                          &firewallclearbanlist,                        false,      false,    false },
+    { "firewalltraffictolerance",                      &firewalltraffictolerance,                    false,      false,    false },
+    { "firewalltrafficzone",                           &firewalltrafficzone,                         false,      false,    false },
+
     /* Firewall Firewall Debug (Live Output) */
     { "firewalldebug",                                 &firewalldebug,                               false,      false,    false },
     { "firewalldebugexam",                             &firewalldebugexam,                           false,      false,    false },
@@ -267,27 +270,43 @@ static const CRPCCommand vRPCCommands[] =
     { "firewalldebuginvalidwallet",                    &firewalldebuginvalidwallet,                  false,      false,    false },
     { "firewalldebugforkedwallet",                     &firewalldebugforkedwallet,                   false,      false,    false },
     { "firewalldebugfloodingwallet",                   &firewalldebugfloodingwallet,                 false,      false,    false },
+
     /* Firewall BandwidthAbuse Session Settings */
     { "firewalldetectbandwidthabuse",                  &firewalldetectbandwidthabuse,                false,      false,    false },
     { "firewallblacklistbandwidthabuse",               &firewallblacklistbandwidthabuse,             false,      false,    false },
     { "firewallbanbandwidthabuse",                     &firewallbanbandwidthabuse,                   false,      false,    false },
     { "firewallnofalsepositivebandwidthabuse",         &firewallnofalsepositivebandwidthabuse,       false,      false,    false },
     { "firewallbantimebandwidthabuse",                 &firewallbantimebandwidthabuse,               false,      false,    false },
+    { "firewallbandwidthabusemaxcheck",                &firewallbandwidthabusemaxcheck,              false,      false,    false },
+    { "firewallbandwidthabuseminattack",               &firewallbandwidthabuseminattack,             false,      false,    false },
+    { "firewallbandwidthabuseminattack",               &firewallbandwidthabuseminattack,             false,      false,    false },
+
     /* Firewall Invalid Wallet Session Settings */
     { "firewalldetectinvalidwallet",                   &firewalldetectinvalidwallet,                 false,      false,    false },
     { "firewallblacklistinvalidwallet",                &firewallblacklistinvalidwallet,              false,      false,    false },
     { "firewallbaninvalidwallet",                      &firewallbaninvalidwallet,                    false,      false,    false },
     { "firewallbantimeinvalidwallet",                  &firewallbantimeinvalidwallet,                false,      false,    false },
+    { "firewallinvalidwalletminprotocol",              &firewallinvalidwalletminprotocol,            false,      false,    false },
+    { "firewallinvalidwalletmaxcheck",                 &firewallinvalidwalletmaxcheck,               false,      false,    false },
+
     /* Firewall Forked Wallet Session Settings */
     { "firewalldetectforkedwallet",                    &firewalldetectforkedwallet,                  false,      false,    false },
     { "firewallblacklistforkedwallet",                 &firewallblacklistforkedwallet,               false,      false,    false },
     { "firewallbanforkedwallet",                       &firewallbanforkedwallet,                     false,      false,    false },
     { "firewallbantimeforkedwallet",                   &firewallbantimeforkedwallet,                 false,      false,    false },
+
     /* Firewall Flooding Wallet Session Settings */
     { "firewalldetectfloodingwallet",                  &firewalldetectfloodingwallet,                false,      false,    false },
     { "firewallblacklistfloodingwallet",               &firewallblacklistfloodingwallet,             false,      false,    false },
     { "firewallbanfloodingwallet",                     &firewallbanfloodingwallet,                   false,      false,    false },
     { "firewallbantimefloodingwallet",                 &firewallbantimefloodingwallet,               false,      false,    false },
+    { "firewallfloodingwalletminbytes",                &firewallfloodingwalletminbytes,              false,      false,    false },
+    { "firewallfloodingwalletmaxbytes",                &firewallfloodingwalletmaxbytes,              false,      false,    false },
+    { "firewallfloodingwalletattackpattern",           &firewallfloodingwalletattackpattern,         false,      false,    false },
+    { "firewallfloodingwalletmintrafficavg",           &firewallfloodingwalletmintrafficavg,         false,      false,    false },
+    { "firewallfloodingwalletmaxtrafficavg",           &firewallfloodingwalletmaxtrafficavg,         false,      false,    false },
+    { "firewallfloodingwalletmincheck",                &firewallfloodingwalletmincheck,              false,      false,    false },
+    { "firewallfloodingwalletmaxcheck",                &firewallfloodingwalletmaxcheck,              false,      false,    false },
 
 /* Dark features */
     { "spork",                  &spork,                  true,      false,      false },
