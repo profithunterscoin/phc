@@ -7,152 +7,139 @@ PHC 1.0.0.4
 Bitcoin Firewall 1.2.2.2 - RPC Reference
 (USE AT YOUR OWN RISK!)
 
-How to use (wjile running):
-    phcd
-    "Starting..."
-    phcd RPC_COMMAND value/arguments
-
-    phc-qt (Help -> Debug -> Console)
-
-How to use (On Startup):
-    phcd -RPC_COMMAND=value  (0 = false | 1 = true)
-    phc-qt -RPC_COMMAND=value  (0 = false | 1 = true)
-
-Status of Bitcoin Firewall
-    firewallstatus
-
-Change the status of Bitcoin Firewall
-    firewallenabled true|false
-
-Bitcoin Firewall Clear Blacklist (session)
-    firewallclearblacklist true|false
-
-Bitcoin Firewall Clear Ban List (permenant)
-    firewallclearbanlist true|false
-
-Bitcoin Firewall General Settings (Exam)
-    firewalltraffictolerance tolerance
-
-Bitcoin Firewall General Settings (Traffic Zone)
-    firewalltrafficzone range
+How to use:
+    Modify phc.conf
 
 Bitcoin Firewall Live Debug Output
-    firewalldebug true|false
+    firewallenabled=    1 = true | 0 = false
+
+Bitcoin Firewall Clear Blacklist (session)
+    firewallclearblacklist=    1 = true | 0 = false
+
+Bitcoin Firewall Clear Ban List (permenant)
+    firewallclearbanlist=    1 = true | 0 = false
+
+Bitcoin Firewall General Settings (Exam)
+    firewalltraffictolerance=tolerance
+
+Bitcoin Firewall General Settings (Traffic Zone)
+    firewalltrafficzone=zone
+
+Bitcoin Firewall Live Debug Output
+    firewalldebug=    1 = true | 0 = false
 
 Bitcoin Firewall Live Debug Output - Exam
-    firewalldebugexam true|false
+    firewalldebugexam=    1 = true | 0 = false
 
 Bitcoin Firewall Live Debug Output - Bans
-    firewalldebugbans true|false
+    firewalldebugbans=    1 = true | 0 = false
 
 Bitcoin Firewall Live Debug Output - Blacklist
-    firewalldebugblacklist true|false
+    firewalldebugblacklist=    1 = true | 0 = false
 
 Bitcoin Firewall Live Debug Output - Disconnect
-    firewalldebugdisconnect true|false
+    firewalldebugdisconnect=    1 = true | 0 = false
 
 Bitcoin Firewall Live Debug Output - Bandwidth Abuse
-    firewalldebugbandwidthabuse true|false
+    firewalldebugbandwidthabuse=    1 = true | 0 = false
 
 Bitcoin Firewall Live Debug Output - No False Positive (Bandwidth Abuse)
-    firewalldebugnofalsepositivebandwidthabuse true|false
+    firewalldebugnofalsepositivebandwidthabuse=    1 = true | 0 = false
 
 Bitcoin Firewall Live Debug Output - Invalid Wallet
-    firewalldebuginvalidwallet true|false
+    firewalldebuginvalidwallet=    1 = true | 0 = false
 
 Bitcoin Firewall Live Debug Output - Forked Wallet
-    firewalldebugforkedwallet true|false
+    firewalldebugforkedwallet=    1 = true | 0 = false
 
 Bitcoin Firewall Live Debug Output - Forked Wallet
-    firewalldebugfloodingwallet true|false
+    firewalldebugfloodingwallet=    1 = true | 0 = false
 
 Bitcoin Firewall Detect Bandwidth Abuse Rule #1
-    firewalldetectbandwidthabuse true|false
+    firewalldetectbandwidthabuse=    1 = true | 0 = false
 
 Bitcoin Firewall Blacklist Bandwidth Abuse Rule #1 (session)
-    firewallblacklistbandwidthabuse true|false
+    firewallblacklistbandwidthabuse=    1 = true | 0 = false
 
 Bitcoin Firewall Ban Bandwidth Abuse Rule #1 (permenant)
-    firewallbanbandwidthabuse true|false
+    firewallbanbandwidthabuse=    1 = true | 0 = false
 
 Bitcoin Firewall False Positive Protection Rule #1
-    firewallnofalsepositivebandwidthabuse true|false
+    firewallnofalsepositivebandwidthabuse=    1 = true | 0 = false
 
 Bitcoin Firewall Ban Time Bandwidth Abuse Rule #1
-firewallbantimebandwidthabuse  true|false
+    firewallbantimebandwidthabuse=    1 = true | 0 = false
 
 Bitcoin Firewall Max Check Bandwidth Abuse Rule #1
-firewallbandwidthabusemaxcheck seconds
+    firewallbandwidthabusemaxcheck=seconds
 
 Bitcoin Firewall Min Attack Bandwidth Abuse Rule #1
-firewallbandwidthabuseminattack ratio
+    firewallbandwidthabuseminattack=ratio
 
 Bitcoin Firewall Max Attack Bandwidth Abuse Rule #1
-firewallbandwidthabusemaxattack ratio
+    firewallbandwidthabusemaxattack=ratio
 
 Bitcoin Firewall Detect Invalid Wallet Rule #2
-    firewalldetectinvalidwallet true|false
+    firewalldetectinvalidwallet=    1 = true | 0 = false
 
 Bitcoin Firewall Blacklist Invalid Wallet Rule #2 (session)
-    firewallblacklistinvalidwallet true|false
+    firewallblacklistinvalidwallet=    1 = true | 0 = false
 
 Bitcoin Firewall Ban Invalid Wallet Rule #2 (permenant)
-    firewallbaninvalidwallet true|false
+    firewallbaninvalidwallet=    1 = true | 0 = false
 
 Bitcoin Firewall Ban Time Invalid Wallet Rule #2
-    firewallbantimeinvalidwallet seconds
+    firewallbantimeinvalidwallet=seconds
 
 Bitcoin Firewall Ban Time Invalid Wallet Rule #2
-    firewallinvalidwalletminprotocol protocol
+    firewallinvalidwalletminprotocol=protocol
 
 Bitcoin Firewall Max Check Invalid Wallet Rule #2
-    firewallinvalidwalletmaxcheck seconds
+    firewallinvalidwalletmaxcheck=seconds
 
 Bitcoin Firewall Detect Forked Wallet Rule #3
-    firewalldetectforkedwallet true|false
+    firewalldetectforkedwallet=    1 = true | 0 = false
 
 Bitcoin Firewall Blacklist Forked Wallet Rule #3 (session)
-    firewallblacklistforkedwallet true|false
+    firewallblacklistforkedwallet=    1 = true | 0 = false
 
 Bitcoin Firewall Ban Forked Wallet Rule #3 (permenant)
-    firewallbanforkedwallet true|false
+    firewallbanforkedwallet=    1 = true | 0 = false
 
 Bitcoin Firewall Ban Time Forked Wallet Rule #3
-    firewallbantimeforkedwallet seconds
+    firewallbantimeforkedwallet=seconds
 
 Bitcoin Firewall Detect Flooding Wallet Rule #4
-    firewalldetectfloodingwallet true|false
+    firewalldetectfloodingwallet=    1 = true | 0 = false
 
 Bitcoin Firewall Blacklist Flooding Wallet Rule #4 (session)
-    firewallblacklistfloodingwallet true|false
+    firewallblacklistfloodingwallet=    1 = true | 0 = false
 
 Bitcoin Firewall Ban Flooding Wallet Rule #4 (permenant)
-    firewallbanfloodingwallet true|false
+    firewallbanfloodingwallet=    1 = true | 0 = false
 
 Bitcoin Firewall Ban Time Flooding Wallet Rule #4
-    firewallbantimefloodingwallet seconds
+    firewallbantimefloodingwallet=seconds
 
 Bitcoin Firewall Min Bytes Flooding Wallet Rule #4
-    firewallfloodingwalletminbytes minbytes
+    firewallfloodingwalletminbytes=minbytes
 
 Bitcoin Firewall Max Bytes Flooding Wallet Rule #4
-    firewallfloodingwalletmaxbytes maxbytes
+    firewallfloodingwalletmaxbytes=maxbytes
 
 Bitcoin Firewall Attack Pattern Flooding Wallet Rule #4
-    firewallfloodingwalletattackpattern warnings
+    firewallfloodingwalletattackpattern=warnings
 
 Bitcoin Firewall Min Traffic Average Flooding Wallet Rule #4
-    firewallfloodingwalletmintrafficavg ratio
+    firewallfloodingwalletmintrafficavg=ratio
 
 Bitcoin Firewall Max Traffic Average Flooding Wallet Rule #4
-    firewallfloodingwalletmaxtrafficavg ratio
+    firewallfloodingwalletmaxtrafficavg=ratio
 
 Bitcoin Firewall Min Check Flooding Wallet Rule #4
-    firewallfloodingwalletmincheck seconds
+    firewallfloodingwalletmincheck=seconds
 
 Bitcoin Firewall Max Check Flooding Wallet Rule #4
-    firewallfloodingwalletmaxcheck seconds
-
-
+    firewallfloodingwalletmaxcheck=seconds
 
 
