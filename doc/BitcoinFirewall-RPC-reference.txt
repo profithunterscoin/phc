@@ -79,16 +79,16 @@ Bitcoin Firewall False Positive Protection Rule #1
     firewallnofalsepositivebandwidthabuse true|false
 
 Bitcoin Firewall Ban Time Bandwidth Abuse Rule #1
-firewallbantimebandwidthabuse  true|false
+    firewallbantimebandwidthabuse  true|false
 
 Bitcoin Firewall Max Check Bandwidth Abuse Rule #1
-firewallbandwidthabusemaxcheck seconds
+    firewallbandwidthabusemaxcheck seconds
 
 Bitcoin Firewall Min Attack Bandwidth Abuse Rule #1
-firewallbandwidthabuseminattack ratio
+    firewallbandwidthabuseminattack ratio
 
 Bitcoin Firewall Max Attack Bandwidth Abuse Rule #1
-firewallbandwidthabusemaxattack ratio
+    firewallbandwidthabusemaxattack ratio
 
 Bitcoin Firewall Detect Invalid Wallet Rule #2
     firewalldetectinvalidwallet true|false

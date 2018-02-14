@@ -1,7 +1,12 @@
-PHC 1.0.0.3 BETA
+PHC 1.0.0.4 BETA
 
-Copyright (c) 2013 NovaCoin Developers
-Copyright (c) 2011-2012 PPCoin Developers
+Copyright © 2018 Profit Hunters Coin Developers
+Copyright © 2017 The XUV developers
+Copyright © 2014 The Crave developers
+Copyright © 2012-2014 The NovaCoin developers
+Copyright © 2011-2015 The Peercoin developers
+Copyright © 2009-2014 The Bitcoin developers
+
 Distributed under the MIT/X11 software license, see the accompanying
 file license.txt or http://www.opensource.org/licenses/mit-license.php.
 This product includes software developed by the OpenSSL Project for use in
@@ -11,10 +16,16 @@ cryptographic software written by Eric Young (eay@cryptsoft.com).
 
 Intro
 -----
-Profit Hunters Coin (PHC) is a free open source decentralized project derived
+Profit Hunters Coin (PHC) is a free open source decentralized experimental project derived
 from Bitcoin, with the goal of providing a long-term energy-efficient scrypt-based
-crypto-currency. Built on the foundations of PPCoin, NovaCoin, CraveProject & Dash
-Masternodes to help further advance the field of crypto-currency.
+crypto-currency. Built on the foundations of PPCoin, NovaCoin, CraveProject & Dash, BATA and Crypostle
+to help further advance the field of crypto-currency.
+
+v1.0.0.4
+--------
+* Updated Checkpoints
+* Reformatted Bitcoin Firewall 1.2.2.2 source code
+* RPC & phc.conf support added to Bitcoin Firewall
 
 v1.0.0.3
 --------
