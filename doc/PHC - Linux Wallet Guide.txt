@@ -221,4 +221,3 @@ libqrencode may be used to generate QRCode images for payment requests. It can b
 
 USE_QRCODE=0	(the default) No QRCode support - libarcode not required
 USE_QRCODE=1	QRCode support enabled
-

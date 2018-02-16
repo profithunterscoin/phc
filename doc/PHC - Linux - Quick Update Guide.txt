@@ -1,0 +1,33 @@
+Profit Hunters Coin (PHC) - Linux Wallet Guide 1.0
+www.ProfitHuntersCoin.com (C) 2018
+--------------------------------------------------
+
+Stop your wallet
+
+phcd stop
+
+phc-qt (close GUI)
+
+Locate your phc source code folder (cd Software/phc)
+
+cd phc
+
+git pull
+
+cd src
+
+make -f makefile.unix
+
+sudo cp phcd /usr/bin
+
+cd ..
+
+qmake && make
+
+sudo cp phc-qt /usr/bin
+
+
+
+Start your wallet!
+
+
