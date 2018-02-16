@@ -62,6 +62,11 @@ void CActiveMasternode::ManageStatus()
             return;
         }
 
+        if (status != MASTERNODE_REMOTELY_ENABLED)
+        {
+
+
+
         // Set defaults
         status = MASTERNODE_NOT_CAPABLE;
         notCapableReason = "Unknown. Check debug.log for more information.\n";
@@ -108,16 +113,13 @@ void CActiveMasternode::ManageStatus()
             return;
         } else {
 
-            if (status != MASTERNODE_REMOTELY_ENABLED)
-            {
-                notCapableReason = "Could not find suitable coins!";
-        	    LogPrintf("CActiveMasternode::ManageStatus() - Could not find suitable coins!\n");
-            }
-            else
-            {
-                notCapableReason = "";
-            }
+            notCapableReason = "Could not find suitable coins!";
+        	LogPrintf("CActiveMasternode::ManageStatus() - Could not find suitable coins!\n");
+
         }
+
+        }
+
     }
 
     //send to all peers
