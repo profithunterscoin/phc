@@ -30,11 +30,17 @@ Bitcoin Firewall Clear Blacklist (session)
 Bitcoin Firewall Clear Ban List (permenant)
     firewallclearbanlist true|false
 
-Bitcoin Firewall General Settings (Exam)
-    firewalltraffictolerance tolerance
+Bitcoin Firewall Exam Settings (Average Tolerance)
+    firewallaveragetolerance tolerance    (Integer: 10)
 
-Bitcoin Firewall General Settings (Traffic Zone)
-    firewalltrafficzone range
+Bitcoin Firewall Exam Settings (Average Range)
+    firewallaveragerange=range    (Integer: 10)
+
+Bitcoin Firewall Exam Settings (Traffic Tolerance)
+    firewalltraffictolerance tolerance    (Double: 10.4)
+
+Bitcoin Firewall Exam Settings (Traffic Zone)
+    firewalltrafficzone zone    (Double  11.4)
 
 Bitcoin Firewall Live Debug Output
     firewalldebug true|false
@@ -79,16 +85,16 @@ Bitcoin Firewall False Positive Protection Rule #1
     firewallnofalsepositivebandwidthabuse true|false
 
 Bitcoin Firewall Ban Time Bandwidth Abuse Rule #1
-firewallbantimebandwidthabuse  true|false
+    firewallbantimebandwidthabuse  true|false
 
 Bitcoin Firewall Max Check Bandwidth Abuse Rule #1
-firewallbandwidthabusemaxcheck seconds
+    firewallbandwidthabusemaxcheck seconds
 
 Bitcoin Firewall Min Attack Bandwidth Abuse Rule #1
-firewallbandwidthabuseminattack ratio
+    firewallbandwidthabuseminattack ratio    (Double: 17.1)
 
 Bitcoin Firewall Max Attack Bandwidth Abuse Rule #1
-firewallbandwidthabusemaxattack ratio
+    firewallbandwidthabusemaxattack ratio    (Double 17.2)
 
 Bitcoin Firewall Detect Invalid Wallet Rule #2
     firewalldetectinvalidwallet true|false
