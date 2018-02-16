@@ -77,21 +77,17 @@ extern bool FIREWALL_DETECT_FLOODINGWALLET;
 extern bool FIREWALL_BLACKLIST_FLOODINGWALLET;
 extern bool FIREWALL_BAN_FLOODINGWALLET;
 
-// *** Firewall Controls (High Banscore Peer Wallets) ***
-//extern bool FIREWALL_DETECT_HIGHBANSCORE;
-//extern bool FIREWALL_BLACKLIST_HIGHBANSCORE;
-//extern bool FIREWALL_BAN_HIGHBANSCORE;
-//extern int FIREWALL_BANTIME_HIGHBANSCORE;
-
 // * Firewall Settings (Exam) *
 extern int FIREWALL_AVERAGE_TOLERANCE;
 extern int FIREWALL_AVERAGE_RANGE;
+extern double FIREWALL_TRAFFIC_TOLERANCE;
+extern double FIREWALL_TRAFFIC_ZONE;
 
 // * Firewall Settings (Bandwidth Abuse) *
 extern int FIREWALL_BANTIME_BANDWIDTHABUSE;
 extern int FIREWALL_BANDWIDTHABUSE_MAXCHECK;
-extern int FIREWALL_BANDWIDTHABUSE_MINATTACK;
-extern int FIREWALL_BANDWIDTHABUSE_MAXATTACK;
+extern double FIREWALL_BANDWIDTHABUSE_MINATTACK;
+extern double FIREWALL_BANDWIDTHABUSE_MAXATTACK;
 extern int FIREWALL_BANTIME_BANDWIDTHABUSE;
 
 // * Firewall Settings (Invalid Wallet)
@@ -101,7 +97,6 @@ extern int FIREWALL_INVALIDWALLET_MAXCHECK;
 extern int FIREWALL_BANTIME_INVALIDWALLET;
 
 // * Firewall Settings (Forked Wallet)
-extern int FIREWALL_BANTIME_FORKEDWALLET;
 extern int FIREWALL_BANTIME_FORKEDWALLET;
 
 // * Firewall Settings (Flooding Wallet)

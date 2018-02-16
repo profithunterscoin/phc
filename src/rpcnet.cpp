@@ -495,6 +495,7 @@ Value firewallenabled(const Array& params, bool fHelp)
                             "\nArguments:\n"
                             "Status: \"true|false\" (bool, required)\n"
                             "\nExamples:\n"
+                            "\n0 = default - true\n"
                             + HelpExampleCli("firewallenabled", "true")
                             + HelpExampleCli("firewallenabled", "false")
                             );
@@ -532,6 +533,7 @@ Value firewallclearblacklist(const Array& params, bool fHelp)
                             "\nArguments:\n"
                             "Status: \"true|false\" (bool, required)\n"
                             "\nExamples:\n"
+                            "\n0 = default - false\n"
                             + HelpExampleCli("firewallclearblacklist", "true")
                             + HelpExampleCli("firewallclearblacklist", "false")
                             );
@@ -568,6 +570,7 @@ Value firewallclearbanlist(const Array& params, bool fHelp)
                             "\nArguments:\n"
                             "Status: \"true|false\" (bool, required)\n"
                             "\nExamples:\n"
+                            "\n0 = default - false\n"
                             + HelpExampleCli("firewallclearbanlist", "true")
                             + HelpExampleCli("firewallclearbanlist", "false")
                             );
@@ -604,6 +607,7 @@ Value firewalldebug(const Array& params, bool fHelp)
                             "\nArguments:\n"
                             "Status: \"true|false\" (bool, required)\n"
                             "\nExamples:\n"
+                            "\n0 = default - false\n"
                             + HelpExampleCli("firewalldebug", "true")
                             + HelpExampleCli("firewalldebug", "false")
                             );
@@ -639,6 +643,7 @@ Value firewalldebugexam(const Array& params, bool fHelp)
                             "\nArguments:\n"
                             "Status: \"true|false\" (bool, required)\n"
                             "\nExamples:\n"
+                            "\n0 = default - true\n"
                             + HelpExampleCli("firewalldebugexam", "true")
                             + HelpExampleCli("firewalldebugexam", "false")
                             );
@@ -675,6 +680,7 @@ Value firewalldebugbans(const Array& params, bool fHelp)
                             "\nArguments:\n"
                             "Status: \"true|false\" (bool, required)\n"
                             "\nExamples:\n"
+                            "\n0 = default - true\n"
                             + HelpExampleCli("firewalldebugbans", "true")
                             + HelpExampleCli("firewalldebugbans", "false")
                             );
@@ -710,6 +716,7 @@ Value firewalldebugblacklist(const Array& params, bool fHelp)
                             "\nArguments:\n"
                             "Status: \"true|false\" (bool, required)\n"
                             "\nExamples:\n"
+                            "\n0 = default - true\n"
                             + HelpExampleCli("firewalldebugblacklist", "true")
                             + HelpExampleCli("firewalldebugblacklist", "false")
                             );
@@ -746,6 +753,7 @@ Value firewalldebugdisconnect(const Array& params, bool fHelp)
                             "\nArguments:\n"
                             "Status: \"true|false\" (bool, required)\n"
                             "\nExamples:\n"
+                            "\n0 = default - true\n"
                             + HelpExampleCli("firewalldebugdisconnect", "true")
                             + HelpExampleCli("firewalldebugdisconnect", "false")
                             );
@@ -782,6 +790,7 @@ Value firewalldebugbandwidthabuse(const Array& params, bool fHelp)
                             "\nArguments:\n"
                             "Status: \"true|false\" (bool, required)\n"
                             "\nExamples:\n"
+                            "\n0 = default - true\n"
                             + HelpExampleCli("firewalldebugbandwidthabuse", "true")
                             + HelpExampleCli("firewalldebugbandwidthabuse", "false")
                             );
@@ -818,6 +827,7 @@ Value firewalldebugnofalsepositivebandwidthabuse(const Array& params, bool fHelp
                             "\nArguments:\n"
                             "Status: \"true|false\" (bool, required)\n"
                             "\nExamples:\n"
+                            "\n0 = default - true\n"
                             + HelpExampleCli("firewalldebugnofalsepositivebandwidthabuse", "true")
                             + HelpExampleCli("firewalldebugnofalsepositivebandwidthabuse", "false")
                             );
@@ -854,6 +864,7 @@ Value firewalldebuginvalidwallet(const Array& params, bool fHelp)
                             "\nArguments:\n"
                             "Status: \"true|false\" (bool, required)\n"
                             "\nExamples:\n"
+                            "\n0 = default - true\n"
                             + HelpExampleCli("firewalldebuginvalidwallet", "true")
                             + HelpExampleCli("firewalldebuginvalidwallet", "false")
                             );
@@ -890,6 +901,7 @@ Value firewalldebugforkedwallet(const Array& params, bool fHelp)
                             "\nArguments:\n"
                             "Status: \"true|false\" (bool, required)\n"
                             "\nExamples:\n"
+                            "\n0 = default - true\n"
                             + HelpExampleCli("firewalldebugforkedwallet", "true")
                             + HelpExampleCli("firewalldebugforkedwallet", "false")
                             );
@@ -952,17 +964,17 @@ return result;
 }
 
 
-Value firewalltraffictolerance(const Array& params, bool fHelp)
+Value firewallaveragetolerance(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() == 0)
         throw runtime_error(
-                            "firewalltraffictolerance \"tolerance\"\n"
-                            "\nBitcoin Firewall Exam Setting (Traffic Tolerance)\n"
+                            "firewallaveragetolerance \"tolerance\"\n"
+                            "\nBitcoin Firewall Exam Setting (Average Block Tolerance)\n"
                             "\nArguments:\n"
                             "Value: \"tolerance\" (integer, required)\n"
                             "\nExamples:\n"
-                            + HelpExampleCli("firewalltraffictolerance", "1")
-                            + HelpExampleCli("firewalltraffictolerance", "2")
+                            + HelpExampleCli("firewallaveragetolerance", "0.0001")
+                            + HelpExampleCli("firewallaveragetolerance", "0.1")
                             );
 
     if (params.size() == 1)
@@ -971,7 +983,57 @@ Value firewalltraffictolerance(const Array& params, bool fHelp)
     }
 
     Object result;
-    result.push_back(Pair("exam-traffic-tolerance", FIREWALL_AVERAGE_TOLERANCE));
+    result.push_back(Pair("exam-average-tolerance", FIREWALL_AVERAGE_TOLERANCE));
+
+return result;
+}
+
+
+Value firewallaveragerange(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+        throw runtime_error(
+                            "firewallaveragerange \"zone\"\n"
+                            "\nBitcoin Firewall Exam Setting (Average Block Range)\n"
+                            "\nArguments:\n"
+                            "Value: \"zone\" (integer), required)\n"
+                            "\nExamples:\n"
+                            + HelpExampleCli("firewallaveragerange", "10")
+                            + HelpExampleCli("firewallaveragerange", "50")
+                            );
+
+    if (params.size() == 1)
+    {
+        FIREWALL_AVERAGE_RANGE = params[0].get_int();
+    }
+
+    Object result;
+    result.push_back(Pair("exam-average-range", FIREWALL_AVERAGE_RANGE));
+
+return result;
+}
+
+
+Value firewalltraffictolerance(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+        throw runtime_error(
+                            "firewalltraffictolerance \"tolerance\"\n"
+                            "\nBitcoin Firewall Exam Setting (Traffic Tolerance)\n"
+                            "\nArguments:\n"
+                            "Value: \"tolerance\" (double, required)\n"
+                            "\nExamples:\n"
+                            + HelpExampleCli("firewalltraffictolerance", "0.0001")
+                            + HelpExampleCli("firewalltraffictolerance", "0.1")
+                            );
+
+    if (params.size() == 1)
+    {
+        FIREWALL_TRAFFIC_TOLERANCE = strtod(params[0].get_str().c_str(), NULL);
+    }
+
+    Object result;
+    result.push_back(Pair("exam-traffic-tolerance", FIREWALL_TRAFFIC_TOLERANCE));
 
 return result;
 }
@@ -984,22 +1046,23 @@ Value firewalltrafficzone(const Array& params, bool fHelp)
                             "firewalltrafficzone \"zone\"\n"
                             "\nBitcoin Firewall Exam Setting (Traffic Zone)\n"
                             "\nArguments:\n"
-                            "Value: \"zone\" (integer), required)\n"
+                            "Value: \"zone\" (double), required)\n"
                             "\nExamples:\n"
-                            + HelpExampleCli("firewalltrafficzone", "10")
-                            + HelpExampleCli("firewalltrafficzone", "50")
+                            + HelpExampleCli("firewalltrafficzone", "10.10")
+                            + HelpExampleCli("firewalltrafficzone", "50.50")
                             );
 
     if (params.size() == 1)
     {
-        FIREWALL_AVERAGE_RANGE = params[0].get_int();
+        FIREWALL_TRAFFIC_ZONE = strtod(params[0].get_str().c_str(), NULL);
     }
 
     Object result;
-    result.push_back(Pair("exam-traffic-zone", FIREWALL_AVERAGE_RANGE));
+    result.push_back(Pair("exam-traffic-zone", FIREWALL_TRAFFIC_ZONE));
 
 return result;
 }
+
 
 
 Value firewalldetectbandwidthabuse(const Array& params, bool fHelp)
@@ -1203,16 +1266,16 @@ Value firewallbandwidthabuseminattack(const Array& params, bool fHelp)
                             "firewallbandwidthabuseminattack \"value\"\n"
                             "\nBitcoin Firewall Min Attack Bandwidth Abuse Rule #1\n"
                             "\nArguments:\n"
-                            "Value: \"0|10000\" (integer, required)\n"
+                            "Value: \"17.1\" (double, required)\n"
                             "\nExamples:\n"
-                            "\n0 = default - \n"
-                            + HelpExampleCli("firewallbandwidthabuseminattack", "0")
-                            + HelpExampleCli("firewallbandwidthabuseminattack", "10000000")
+                            "\n0 = default - 17.1\n"
+                            + HelpExampleCli("firewallbandwidthabuseminattack", "17.1")
+                            + HelpExampleCli("firewallbandwidthabuseminattack", "17.005")
                             );
 
     if (params.size() == 1)
     {
-        FIREWALL_BANDWIDTHABUSE_MINATTACK = params[0].get_int();
+        FIREWALL_BANDWIDTHABUSE_MINATTACK = strtod(params[0].get_str().c_str(), NULL);
     }
 
 
@@ -1229,16 +1292,16 @@ Value firewallbandwidthabusemaxattack(const Array& params, bool fHelp)
                             "firewallbandwidthabusemaxattack \"ratio\"\n"
                             "\nBitcoin Firewall Max Attack Bandwidth Abuse Rule #1\n"
                             "\nArguments:\n"
-                            "Value: \"0|10000\" (integer, required)\n"
+                            "Value: \"17.2\" (integer, required)\n"
                             "\nExamples:\n"
-                            "\n0 = default - \n"
-                            + HelpExampleCli("firewallbandwidthabusemaxattack", "0")
-                            + HelpExampleCli("firewallbandwidthabusemaxattack", "10000000")
+                            "\n0 = default - 17.2\n"
+                            + HelpExampleCli("firewallbandwidthabusemaxattack", "17.2")
+                            + HelpExampleCli("firewallbandwidthabusemaxattack", "18.004")
                             );
 
     if (params.size() == 1)
     {
-        FIREWALL_BANDWIDTHABUSE_MAXATTACK = params[0].get_int();
+        FIREWALL_BANDWIDTHABUSE_MAXATTACK = strtod(params[0].get_str().c_str(), NULL);
     }
 
 
@@ -1789,16 +1852,16 @@ Value firewallfloodingwalletmintrafficavg(const Array& params, bool fHelp)
                             "firewallfloodingwalletmintrafficavg \"ratio\"\n"
                             "\nBitcoin Firewall Min Traffic Average Flooding Wallet Rule #4\n"
                             "\nArguments:\n"
-                            "Value: \"ratio\" (integer, required)\n"
+                            "Value: \"ratio\" (double, required)\n"
                             "\nExamples:\n"
-                            "\n0 = default - \n"
-                            + HelpExampleCli("firewallfloodingwalletmintrafficav", "0")
-                            + HelpExampleCli("firewallfloodingwalletmintrafficav", "10000000")
+                            "\n0 = default - 2000\n"
+                            + HelpExampleCli("firewallfloodingwalletmintrafficav", "20000")
+                            + HelpExampleCli("firewallfloodingwalletmintrafficav", "12000.014")
                             );
 
     if (params.size() == 1)
     {
-        FIREWALL_FLOODINGWALLET_MINTRAFFICAVERAGE = params[0].get_int();
+        FIREWALL_FLOODINGWALLET_MINTRAFFICAVERAGE = strtod(params[0].get_str().c_str(), NULL);
     }
 
     Object result;
@@ -1815,16 +1878,16 @@ Value firewallfloodingwalletmaxtrafficavg(const Array& params, bool fHelp)
                             "firewallbantimefloodingwallet \"ratio\"\n"
                             "\nBitcoin Firewall Max Traffic Average Flooding Wallet Rule #4\n"
                             "\nArguments:\n"
-                            "Value: \"ratio\" (integer, required)\n"
+                            "Value: \"ratio\" (double, required)\n"
                             "\nExamples:\n"
                             "\n0 = default - \n"
-                            + HelpExampleCli("firewallfloodingwalletmaxtrafficavg", "0")
-                            + HelpExampleCli("ffirewallfloodingwalletmaxtrafficavg", "10000000")
+                            + HelpExampleCli("firewallfloodingwalletmaxtrafficavg", "100.10")
+                            + HelpExampleCli("ffirewallfloodingwalletmaxtrafficavg", "10.8")
                             );
 
     if (params.size() == 1)
     {
-        FIREWALL_FLOODINGWALLET_MAXTRAFFICAVERAGE = params[0].get_int();
+        FIREWALL_FLOODINGWALLET_MAXTRAFFICAVERAGE = strtod(params[0].get_str().c_str(), NULL);;
     }
 
     Object result;

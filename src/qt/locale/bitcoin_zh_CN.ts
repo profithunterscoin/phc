@@ -20,7 +20,7 @@ Copyright © 2014 The Crave developers
 Copyright © 2017 The XUV developers
 Copyright © 2017 The PHC developers</source>
         <translation>版权所有 © 2009-2014 比特币Bitcoin开发组
-        版权所有 © 2011-2015 新星币Novacoin开发组
+版权所有 © 2011-2015 新星币Novacoin开发组
 版权所有 © 2012-2014 新星币Novacoin开发组
 版权所有 © 2014 黑币Crave开发组
 版权所有 © 2017 黑币PHC开发组</translation>

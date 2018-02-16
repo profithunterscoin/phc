@@ -245,6 +245,7 @@ void MasternodeManager::on_startButton_clicked()
     msg.setText(QString::fromStdString(statusObj));
 
     msg.exec();
+    MasternodeManager::on_UpdateButton_clicked();
 }
 
 void MasternodeManager::on_startAllButton_clicked()
@@ -286,6 +287,9 @@ void MasternodeManager::on_startAllButton_clicked()
     QMessageBox msg;
     msg.setText(QString::fromStdString(returnObj));
     msg.exec();
+
+
+    MasternodeManager::on_UpdateButton_clicked();
 }
 
 void MasternodeManager::on_UpdateButton_clicked()

@@ -145,12 +145,6 @@ bool FIREWALL_DETECT_FLOODINGWALLET = true;
 bool FIREWALL_BLACKLIST_FLOODINGWALLET = true;
 bool FIREWALL_BAN_FLOODINGWALLET = true;
 
-// *** Firewall Controls (High Banscore Peer Wallets) ***
-//extern bool FIREWALL_DETECT_HIGHBANSCORE = true;
-//extern bool FIREWALL_BLACKLIST_HIGHBANSCORE = true;
-//extern bool FIREWALL_BAN_HIGHBANSCORE = true;
-//extern int FIREWALL_BANTIME_HIGHBANSCORE = 2600000; // 30 days
-
 // * Firewall Settings (General) *
 //int FIREWALL_CHECK_MAX = 3;  // minutes interval for some detection settings
 
@@ -161,8 +155,8 @@ int FIREWALL_AVERAGE_RANGE = 100;   // + or - Starting Height Range
 // *** Firewall Settings (Bandwidth Abuse) ***
 int FIREWALL_BANTIME_BANDWIDTHABUSE = 0; // 24 hours
 int FIREWALL_BANDWIDTHABUSE_MAXCHECK = 10;
-int FIREWALL_BANDWIDTHABUSE_MINATTACK = 17.1;
-int FIREWALL_BANDWIDTHABUSE_MAXATTACK = 17.2;
+double FIREWALL_BANDWIDTHABUSE_MINATTACK = 17.1;
+double FIREWALL_BANDWIDTHABUSE_MAXATTACK = 17.2;
 
 // * Firewall Settings (Invalid Wallet)
 int FIREWALL_MINIMUM_PROTOCOL = MIN_PEER_PROTO_VERSION;

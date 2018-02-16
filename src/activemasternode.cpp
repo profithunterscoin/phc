@@ -107,8 +107,12 @@ void CActiveMasternode::ManageStatus()
 
             return;
         } else {
-            notCapableReason = "Could not find suitable coins!";
-        	LogPrintf("CActiveMasternode::ManageStatus() - Could not find suitable coins!\n");
+
+            if (status != MASTERNODE_REMOTELY_ENABLED)
+            {
+                notCapableReason = "Could not find suitable coins!";
+        	    LogPrintf("CActiveMasternode::ManageStatus() - Could not find suitable coins!\n");
+            }
         }
     }
 
