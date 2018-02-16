@@ -113,6 +113,10 @@ void CActiveMasternode::ManageStatus()
                 notCapableReason = "Could not find suitable coins!";
         	    LogPrintf("CActiveMasternode::ManageStatus() - Could not find suitable coins!\n");
             }
+            else
+            {
+                notCapableReason = "";
+            }
         }
     }
 
