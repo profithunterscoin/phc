@@ -1516,7 +1516,7 @@ int64_t GetProofOfStakeReward(const CBlockIndex* pindexPrev, int64_t nCoinAge, i
         nSubsidy = nSubsidy * 0.5;  // 500%
     }
     /* ------ Initial Mining Phase: Block #100001 Up to 150000 (~month #5-7) ------ */
-    if (pindexPrev->nHeight > 100000)
+    if (pindexPrev->nHeight > 120000)
     {
         nSubsidy = nSubsidy * 0.25;  // 250%
     }
