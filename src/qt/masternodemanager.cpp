@@ -43,6 +43,8 @@ MasternodeManager::MasternodeManager(QWidget *parent) :
     ui->editButton->setEnabled(false);
     ui->startButton->setEnabled(false);
 
+    MasternodeManager::on_UpdateButton_clicked();
+
     int columnAddressWidth = 200;
     int columnProtocolWidth = 60;
     int columnStatusWidth = 80;
@@ -74,6 +76,7 @@ MasternodeManager::MasternodeManager(QWidget *parent) :
         timer->start(30000);
 
     updateNodeList();
+
 }
 
 MasternodeManager::~MasternodeManager()
@@ -294,12 +297,24 @@ void MasternodeManager::on_startAllButton_clicked()
 
 void MasternodeManager::on_UpdateButton_clicked()
 {
+    std::string errorMessage;
+    static int64_t nTimeListUpdated = GetTime();
+    int64_t nSecondsSinceUpdate = nTimeListUpdated - GetTime();
+
     BOOST_FOREACH(CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries()) {
-        std::string errorMessage;
         std::string strRewardAddress = mne.getRewardAddress();
         std::string strRewardPercentage = mne.getRewardPercentage();
 
         std::vector<CMasternode> vMasternodes = mnodeman.GetFullMasternodeVector();
+
+        if (nSecondsSinceUpdate < 120)
+        {
+            if (ui->tableWidgetMasternodes->rowCount() < 40)
+            {
+                errorMessage = "Masternode list downloading...";
+            }
+        }
+
         if (errorMessage == ""){
             updateAdrenalineNode(QString::fromStdString(mne.getAlias()), QString::fromStdString(mne.getIp()), QString::fromStdString(mne.getPrivKey()), QString::fromStdString(mne.getTxHash()),
                 QString::fromStdString(mne.getOutputIndex()), QString::fromStdString(strRewardAddress), QString::fromStdString(strRewardPercentage), QString::fromStdString("Not in the masternode list."));

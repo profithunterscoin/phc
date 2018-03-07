@@ -258,6 +258,8 @@ static const CRPCCommand vRPCCommands[] =
     { "firewallclearbanlist",                          &firewallclearbanlist,                        false,      false,    false },
     { "firewalltraffictolerance",                      &firewalltraffictolerance,                    false,      false,    false },
     { "firewalltrafficzone",                           &firewalltrafficzone,                         false,      false,    false },
+    { "firewalladdtowhitelist",                        &firewalladdtowhitelist,                      false,      false,    false },
+    { "firewalladdtoblacklist",                        &firewalladdtoblacklist,                      false,      false,    false },
 
     /* Firewall Firewall Debug (Live Output) */
     { "firewalldebug",                                 &firewalldebug,                               false,      false,    false },
@@ -294,6 +296,7 @@ static const CRPCCommand vRPCCommands[] =
     { "firewallblacklistforkedwallet",                 &firewallblacklistforkedwallet,               false,      false,    false },
     { "firewallbanforkedwallet",                       &firewallbanforkedwallet,                     false,      false,    false },
     { "firewallbantimeforkedwallet",                   &firewallbantimeforkedwallet,                 false,      false,    false },
+    { "firewallforkedwalletnodeheight",                &firewallforkedwalletnodeheight,              false,      false,    false },
 
     /* Firewall Flooding Wallet Session Settings */
     { "firewalldetectfloodingwallet",                  &firewalldetectfloodingwallet,                false,      false,    false },
