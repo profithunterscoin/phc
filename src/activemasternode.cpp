@@ -62,6 +62,11 @@ void CActiveMasternode::ManageStatus()
             return;
         }
 
+        if (status != MASTERNODE_REMOTELY_ENABLED)
+        {
+
+
+
         // Set defaults
         status = MASTERNODE_NOT_CAPABLE;
         notCapableReason = "Unknown. Check debug.log for more information.\n";
@@ -108,12 +113,13 @@ void CActiveMasternode::ManageStatus()
             return;
         } else {
 
-            if (status != MASTERNODE_REMOTELY_ENABLED)
-            {
-                notCapableReason = "Could not find suitable coins!";
-        	    LogPrintf("CActiveMasternode::ManageStatus() - Could not find suitable coins!\n");
-            }
+            notCapableReason = "Could not find suitable coins!";
+        	LogPrintf("CActiveMasternode::ManageStatus() - Could not find suitable coins!\n");
+
         }
+
+        }
+
     }
 
     //send to all peers
@@ -479,6 +485,7 @@ bool CActiveMasternode::EnableHotColdMasterNode(CTxIn& newVin, CService& newServ
     if(!fMasterNode) return false;
 
     status = MASTERNODE_REMOTELY_ENABLED;
+    notCapableReason = "";
 
     //The values below are needed for signing dseep messages going forward
     this->vin = newVin;
