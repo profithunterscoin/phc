@@ -1516,22 +1516,22 @@ int64_t GetProofOfStakeReward(const CBlockIndex* pindexPrev, int64_t nCoinAge, i
         nSubsidy = nSubsidy * 0.5;  // 500%
     }
     /* ------ Initial Mining Phase: Block #100001 Up to 150000 (~month #5-7) ------ */
-    else if (pindexPrev->nHeight > 100000)
+    if (pindexPrev->nHeight > 100000)
     {
         nSubsidy = nSubsidy * 0.25;  // 250%
     }
     /* ------ Regular Mining Phase: Block #150001 Up to max (~month #7-10) ------ */
-    else if (pindexPrev->nHeight > 150000)
+    if (pindexPrev->nHeight > 150000)
     {
         nSubsidy = nSubsidy * 0.125;  // 125%
     }
     /* ------ Regular Mining Phase: Block #200001 Up to max (~month #10-12) ------ */
-    else if (pindexPrev->nHeight > 200000)
+    if (pindexPrev->nHeight > 200000)
     {
         nSubsidy = nSubsidy * 0.0625;  // 62.5%
     }
     /* ------ Regular Mining Phase: Block #250001 Up to max (~month #12+) ------ */
-    else if (pindexPrev->nHeight > 250000)
+    if (pindexPrev->nHeight > 250000)
     {
         nSubsidy = nSubsidy * 0.03125;  // 31.25%
     }
