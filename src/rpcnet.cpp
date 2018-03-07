@@ -21,6 +21,9 @@
 using namespace json_spirit;
 using namespace std;
 
+extern int CountStringArray(string *ArrayName);
+extern int CountIntArray(int *ArrayName);
+
 inline const char * const BoolToString(bool b)
 {
   return b ? "true" : "false";
@@ -1064,6 +1067,77 @@ return result;
 }
 
 
+Value firewalladdtowhitelist(const Array& params, bool fHelp)
+{
+    string MSG;
+
+    if (fHelp || params.size() == 0)
+        throw runtime_error(
+                            "firewalladdtowhitelist \"address\"\n"
+                            "\nBitcoin Firewall Adds IP Address to General Rule\n"
+                            "\nArguments:\n"
+                            "Value: \"address\" (string, required)\n"
+                            "\nExamples:\n"
+                            "\n0 = default - \n"
+                            + HelpExampleCli("firewalladdtowhitelist", "IP")
+                            + HelpExampleCli("firewalladdtowhitelist", "127.0.0.1")
+                            );
+
+    if (params.size() == 1)
+    {
+        if (CountStringArray(FIREWALL_WHITELIST) < 256)
+        {
+            FIREWALL_WHITELIST[CountStringArray(FIREWALL_WHITELIST)] = params[0].get_str();
+            MSG = CountStringArray(FIREWALL_WHITELIST);
+        }
+        else
+        {
+            MSG = "Over 256 Max!";
+        }
+    }
+
+    Object result;
+    result.push_back(Pair("exam-whitelist-add", MSG));
+
+return result;
+}
+
+
+Value firewalladdtoblacklist(const Array& params, bool fHelp)
+{
+    string MSG;
+
+    if (fHelp || params.size() == 0)
+        throw runtime_error(
+                            "firewalladdtoblacklist \"address\"\n"
+                            "\nBitcoin Firewall Adds IP Address to General Rule\n"
+                            "\nArguments:\n"
+                            "Value: \"address\" (string, required)\n"
+                            "\nExamples:\n"
+                            "\n0 = default - \n"
+                            + HelpExampleCli("firewalladdtoblacklist", "IP")
+                            + HelpExampleCli("firewalladdtoblacklist", "127.0.0.1")
+                            );
+
+    if (params.size() == 1)
+    {
+        if (CountStringArray(FIREWALL_BLACKLIST) < 256)
+        {
+            FIREWALL_BLACKLIST[CountStringArray(FIREWALL_BLACKLIST)] = params[0].get_str();
+            MSG = CountStringArray(FIREWALL_BLACKLIST);
+        }
+        else
+        {
+            MSG = "Over 256 Max!";
+        }
+    }
+
+    Object result;
+    result.push_back(Pair("exam-blacklist-add", MSG));
+
+return result;
+}
+
 
 Value firewalldetectbandwidthabuse(const Array& params, bool fHelp)
 {
@@ -1632,6 +1706,42 @@ return result;
 }
 
 
+Value firewallforkedwalletnodeheight(const Array& params, bool fHelp)
+{
+    string MSG;
+
+    if (fHelp || params.size() == 0)
+        throw runtime_error(
+                            "firewallforkedwalletnodeheight \"blockheight\"\n"
+                            "\nBitcoin Firewall Adds Forked NodeHeight Flooding Wallet Rule #3\n"
+                            "\nArguments:\n"
+                            "Value: \"blockheight\" (int, required)\n"
+                            "\nExamples:\n"
+                            "\n0 = default - \n"
+                            + HelpExampleCli("firewallforkedwalletnodeheight", "0")
+                            + HelpExampleCli("firewallforkedwalletnodeheight", "10000000")
+                            );
+
+    if (params.size() == 1)
+    {
+        if (CountIntArray(FIREWALL_FORKED_NODEHEIGHT) < 256)
+        {
+            FIREWALL_FORKED_NODEHEIGHT[CountIntArray(FIREWALL_FORKED_NODEHEIGHT)] = params[0].get_int();
+            MSG = CountIntArray(FIREWALL_FORKED_NODEHEIGHT);
+        }
+        else
+        {
+            MSG = "Over 256 Max!";
+        }
+    }
+
+    Object result;
+    result.push_back(Pair("attackpattern-forkedwallet-nodeheight-add", MSG));
+
+return result;
+}
+
+
 Value firewalldetectfloodingwallet(const Array& params, bool fHelp)
 {
     string strCommand = "true";
@@ -1820,12 +1930,14 @@ return result;
 
 Value firewallfloodingwalletattackpattern(const Array& params, bool fHelp)
 {
+    string MSG;
+
     if (fHelp || params.size() == 0)
         throw runtime_error(
                             "firewallfloodingwalletattackpattern \"warnings\"\n"
-                            "\nBitcoin Firewall Attack Pattern Flooding Wallet Rule #4\n"
+                            "\nBitcoin Firewall Adds Attack Pattern Flooding Wallet Rule #4\n"
                             "\nArguments:\n"
-                            "Value: \"warnings\" (integer, required)\n"
+                            "Value: \"warnings\" (string, required)\n"
                             "\nExamples:\n"
                             "\n0 = default - \n"
                             + HelpExampleCli("firewallfloodingwalletattackpattern", "0")
@@ -1834,11 +1946,19 @@ Value firewallfloodingwalletattackpattern(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        FIREWALL_FLOODINGWALLET_ATTACKPATTERN = params[0].get_int();
+        if (CountStringArray(FIREWALL_FLOODPATTERNS) < 256)
+        {
+            FIREWALL_FLOODPATTERNS[CountStringArray(FIREWALL_FLOODPATTERNS)] = params[0].get_str();
+            MSG = CountStringArray(FIREWALL_FLOODPATTERNS);
+        }
+        else
+        {
+            MSG = "Over 256 Max!";
+        }
     }
 
     Object result;
-    result.push_back(Pair("attackpattern-floodingwallet", FIREWALL_FLOODINGWALLET_ATTACKPATTERN));
+    result.push_back(Pair("attackpattern-floodingwallet-attackpattern-add", MSG));
 
 return result;
 }

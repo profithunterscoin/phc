@@ -38,7 +38,6 @@ namespace boost {
     class thread_group;
 }
 
-
 // *** Firewall Controls (General) ***
 extern bool FIREWALL_ENABLED;
 extern bool FIREWALL_LIVE_DEBUG;
@@ -82,6 +81,8 @@ extern int FIREWALL_AVERAGE_TOLERANCE;
 extern int FIREWALL_AVERAGE_RANGE;
 extern double FIREWALL_TRAFFIC_TOLERANCE;
 extern double FIREWALL_TRAFFIC_ZONE;
+extern string FIREWALL_WHITELIST[];
+extern string FIREWALL_BLACKLIST[];
 
 // * Firewall Settings (Bandwidth Abuse) *
 extern int FIREWALL_BANTIME_BANDWIDTHABUSE;
@@ -98,12 +99,13 @@ extern int FIREWALL_BANTIME_INVALIDWALLET;
 
 // * Firewall Settings (Forked Wallet)
 extern int FIREWALL_BANTIME_FORKEDWALLET;
+extern int FIREWALL_FORKED_NODEHEIGHT[];
 
 // * Firewall Settings (Flooding Wallet)
 extern int FIREWALL_BANTIME_FLOODINGWALLET;
 extern int FIREWALL_FLOODINGWALLET_MINBYTES;
 extern int FIREWALL_FLOODINGWALLET_MAXBYTES;
-extern string FIREWALL_FLOODINGWALLET_ATTACKPATTERN;
+extern string FIREWALL_FLOODPATTERNS[];
 extern double FIREWALL_FLOODINGWALLET_MINTRAFFICAVERAGE;
 extern double FIREWALL_FLOODINGWALLET_MAXTRAFFICAVERAGE;
 extern int FIREWALL_FLOODINGWALLET_MINCHECK;

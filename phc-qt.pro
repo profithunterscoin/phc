@@ -1,6 +1,6 @@
 TEMPLATE = app
 TARGET = phc-qt
-VERSION = 1.0.0.4
+VERSION = 1.0.0.5
 INCLUDEPATH += src src/json src/qt src/qt/plugins/mrichtexteditor
 QT += network printsupport core gui
 DEFINES += ENABLE_WALLET

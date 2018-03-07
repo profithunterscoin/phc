@@ -1358,9 +1358,6 @@ double GetDynamicBlockReward3(int nHeight)
         /* 
         Dynamic Block Reward 3.0 - (C) 2017 Crypostle
             https://github.com/JustinPercy/crypostle
-            Minimum 1 PHC
-            Maximum 100 PHC
-            Stable release
         */
 
         double nDifficulty = GetDifficulty();
@@ -1369,39 +1366,40 @@ double GetDynamicBlockReward3(int nHeight)
         int nSubsidyMax = 1;
         double nSubsidyBase = nSubsidyMin;
         int nSubsidyMod = 0;
+        int TightForkHeight = 120000;
 
         /* ------ Pre-Mining Phase: Block #0 (Start) ------ */
         if (nHeight == 0)
         {
             nSubsidyMax = 1;
         }
-        /* ------ Initial Mining Phase: Block #1 Up to 50000 (~month #1-3) ------ */
-        else
+        /* ------ Initial Mining Phase: Block #1 Up to 50000 ------ */
+        if (nHeight > 0)
         {
             nSubsidyMax = 100;
         }
-        /* ------ Initial Mining Phase: Block #50001 Up to 10000 (~month #3-5) ------ */
+        /* ------ Initial Mining Phase: Block #50001 Up to 12000 ------ */
         if (nHeight > 50000)
         {
             nSubsidyMax = 50;
         }
-        /* ------ Initial Mining Phase: Block #100001 Up to 15000 (~month #5-7) ------ */
-        else if (nHeight > 100000)
+        /* ------ Tight-Fork Mining Phase: Block #120001 Up to 15000 ------ */
+        if (nHeight > TightForkHeight)
         {
             nSubsidyMax = 25;
         }
-        /* ------ Regular Mining Phase: Block #15001 Up to max (~month #7-10) ------ */
-        else if (nHeight > 150000)
+        /* ------ Regular Mining Phase: Block #15001 Up to 200000 ------ */
+        if (nHeight > 150000)
         {
             nSubsidyMax = 12.5;
         }
-        /* ------ Regular Mining Phase: Block #20001 Up to max (~month #10-12) ------ */
-        else if (nHeight > 200000)
+        /* ------ Regular Mining Phase: Block #20001 Up to 200000 ------ */
+        if (nHeight > 200000)
         {
             nSubsidyMax = 6.25;
         }
-        /* ------ Regular Mining Phase: Block #25001 Up to max (~month #12+) ------ */
-        else if (nHeight > 250000)
+        /* ------ Regular Mining Phase: Block #25001 Up to 250000 ------ */
+        if (nHeight > 250000)
         {
             nSubsidyMax = 3.125;
         }
@@ -1409,21 +1407,36 @@ double GetDynamicBlockReward3(int nHeight)
         nSubsidyMod = nNetworkHashPS / nDifficulty;
         nSubsidyBase = nSubsidyMax - nSubsidyMod;
 
-        /* ------ Don't let nSubsidyBase be higher than Max ------ */
+        /* Default Range Control for initial mining phases (Mitigates mining-centralization with 100% reward loss) */
+        /* ------ Max (Loose) ------ */
         if (nSubsidyMod > nSubsidyMax)
         {
             nSubsidyBase = nSubsidyMax;
         }
-        /* ------ Don't let nSubsidyBase be lower than Min ------ */
-        else if (nSubsidyMod < nSubsidyMin)
+        /* ------ Min (Loose) ------ */
+        if (nSubsidyMod < nSubsidyMin)
         {
             nSubsidyBase = nSubsidyMin;
+        }
+
+        //* Activate strict Range controls after fork height (Mitigates mining-centralization without 100% reward loss) */
+        if (nHeight > TightForkHeight)
+        {
+            /* ------ Max (Tight) ------ */
+            if (nSubsidyBase > nSubsidyMax)
+            {
+                nSubsidyBase = nSubsidyMax;
+            }
+            /* ------ Min  (Tight) ------ */
+            if (nSubsidyBase < nSubsidyMin)
+            {
+                nSubsidyBase = nSubsidyMin;
+            }
         }
 
         return nSubsidyBase;
 
 }
-
 
 // miner's coin base reward
 int64_t GetProofOfWorkReward(int nHeight, int64_t nFees)

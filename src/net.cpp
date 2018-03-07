@@ -94,16 +94,48 @@ inline const char * const BoolToString(bool b)
   return b ? "true" : "false";
 }
 
+
+// * Function: CountArray *
+int CountStringArray(string *ArrayName)
+{
+    int tmp_cnt;
+    tmp_cnt = 0;
+
+    while(ArrayName[tmp_cnt] != "")
+    {
+        tmp_cnt++;
+    }
+
+
+return tmp_cnt;
+}
+
+
+// * Function: CountArray *
+int CountIntArray(int *ArrayName)
+{
+    int tmp_cnt;
+    tmp_cnt = 0;
+
+    while(ArrayName[tmp_cnt] > 0)
+    {
+        tmp_cnt++;
+    }
+
+return tmp_cnt;
+}
+
+
 // ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 // 
-// [Bitcoin Firewall 1.2.2.2
+// [Bitcoin Firewall 1.2.2.3
 // Feb, 2018 - Biznatch Enterprises & Profit Hunters Coin (PHC)
 // http://bata.io & https://github.com/BiznatchEnterprises/BitcoinFirewall
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 
-string ModuleName = "[Bitcoin Firewall 1.2.2.2]";
+string ModuleName = "[Bitcoin Firewall 1.2.2.3]";
 
 // *** Firewall Controls (General) ***
 bool FIREWALL_ENABLED = true;
@@ -165,29 +197,41 @@ int FIREWALL_INVALIDWALLET_MAXCHECK = 60; // seconds
 
 // * Firewall Settings (Forked Wallet)
 int FIREWALL_BANTIME_FORKEDWALLET = 2600000; // 30 days
+// FORKLIST (ignore)
+int FIREWALL_FORKED_NODEHEIGHT[256] =
+{
+    10000,
+    39486,
+    48405
+};
 
 // * Firewall Settings (Flooding Wallet)
 int FIREWALL_BANTIME_FLOODINGWALLET = 2600000; // 30 days
 int FIREWALL_FLOODINGWALLET_MINBYTES = 1000000;
 int FIREWALL_FLOODINGWALLET_MAXBYTES = 1000000;
-string FIREWALL_FLOODINGWALLET_ATTACKPATTERN = "2346811131517202223";
+// Flooding Patterns (WARNINGS)
+string FIREWALL_FLOODPATTERNS[256] =
+{
+    "56810121416192123", 
+    "57910121517202223",
+    "57910121416202223"
+};
 double FIREWALL_FLOODINGWALLET_MINTRAFFICAVERAGE = 2000; // Ratio Up/Down
 double FIREWALL_FLOODINGWALLET_MAXTRAFFICAVERAGE = 2000; // Ratio Up/Down
 int FIREWALL_FLOODINGWALLET_MINCHECK = 30; // seconds
 int FIREWALL_FLOODINGWALLET_MAXCHECK = 90; // seconds
 
 // Firewall Whitelist (ignore)
-string FIREWALL_WHITELIST[] = {    };
+string FIREWALL_WHITELIST[256] =
+{
+
+};
 
 // * Firewall BlackList Settings *
-string FIREWALL_BLACKLIST[256];
+string FIREWALL_BLACKLIST[256] =
+{
 
-// FORKLIST (ignore)
-int FIREWALL_FORKED_NODEHEIGHT[] = {
-    10000,
-    39486,
-    48405
-    };
+};
 
 // * Global Firewall Variables *
 bool Firewall_FirstRun = false;
@@ -200,53 +244,6 @@ double Firewall_AverageTraffic_Max = 0;
 int Firewall_AverageSend = 0;
 int Firewall_AverageRecv = 0;
 int ALL_CHECK_TIMER = GetTime();
-
-
-// * Function: CountArray *
-int CountStringArray(string *ArrayName)
-{
-    int tmp_cnt;
-    tmp_cnt = 0;
-    std::size_t tmp_n;
-    
-    if (sizeof(ArrayName)/sizeof(ArrayName[0]) > 0)
-    {
-        for (tmp_n = 0; tmp_n < sizeof(ArrayName)/sizeof(ArrayName[0]) - 1; tmp_n++)
-        { 
-            if (ArrayName[tmp_n] != "")
-            {
-                tmp_cnt = tmp_cnt + 1;
-            }
-        }
-
-    }
-
-return tmp_cnt;
-}
-
-
-// * Function: CountArray *
-int CountIntArray(int *ArrayName)
-{
-    int tmp_cnt;
-    tmp_cnt = 0;
-    std::size_t tmp_n;
-
-    if (sizeof(ArrayName[0]) > 0)
-    {
-    for (tmp_n = 0; tmp_n < sizeof(ArrayName)/sizeof(ArrayName[0]) - 1; tmp_n++)
-    { 
-        if (ArrayName[tmp_n] > 0)
-        {
-            tmp_cnt = tmp_cnt + 1;
-        }
-    }
-    }
-
-
-return tmp_cnt;
-}
-
 
 // * Function: LoadFirewallSettings (phc.conf)*
 void LoadFirewallSettings()
@@ -311,7 +308,12 @@ void LoadFirewallSettings()
     FIREWALL_BANTIME_FLOODINGWALLET = GetArg("-firewallbantimefloodingwallet", FIREWALL_BANTIME_FLOODINGWALLET);
     FIREWALL_FLOODINGWALLET_MINBYTES = GetArg("-firewallfloodingwalletminbytes", FIREWALL_FLOODINGWALLET_MINBYTES);
     FIREWALL_FLOODINGWALLET_MAXBYTES = GetArg("-firewallfloodingwalletmaxbytes", FIREWALL_FLOODINGWALLET_MAXBYTES);
-    FIREWALL_FLOODINGWALLET_ATTACKPATTERN = GetArg("-firewallfloodingwalletattackpattern", FIREWALL_FLOODINGWALLET_ATTACKPATTERN);
+
+    if (GetArg("-firewallfloodingwalletattackpattern", "-") != "-")
+    {
+        FIREWALL_FLOODPATTERNS[CountStringArray(FIREWALL_FLOODPATTERNS)] = GetArg("-firewallfloodingwalletattackpattern", "");
+    }
+
     FIREWALL_FLOODINGWALLET_MINTRAFFICAVERAGE = GetArg("-firewallfloodingwalletmintrafficavg", FIREWALL_FLOODINGWALLET_MINTRAFFICAVERAGE);
     FIREWALL_FLOODINGWALLET_MAXTRAFFICAVERAGE = GetArg("-firewallfloodingwalletmaxtrafficavg", FIREWALL_FLOODINGWALLET_MAXTRAFFICAVERAGE);
     FIREWALL_FLOODINGWALLET_MINCHECK = GetArg("-firewallfloodingwalletmincheck", FIREWALL_FLOODINGWALLET_MINCHECK);
@@ -725,8 +727,8 @@ bool CheckAttack(CNode *pnode, string FromFunction)
 
         int i;
         int TmpNodeHeightCount;
-        TmpNodeHeightCount = CountIntArray(FIREWALL_FORKED_NODEHEIGHT);
-
+        TmpNodeHeightCount = CountIntArray(FIREWALL_FORKED_NODEHEIGHT) - 2;
+        
         if (TmpNodeHeightCount > 0)
         {
             for (i = 0; i < TmpNodeHeightCount; i++)
@@ -945,10 +947,23 @@ bool CheckAttack(CNode *pnode, string FromFunction)
         }      
     
         // IF WARNINGS is matches pattern for ATTACK = TRUE
-        if (WARNINGS == FIREWALL_FLOODINGWALLET_ATTACKPATTERN)
+        int i;
+        int TmpFloodPatternsCount;
+
+        TmpFloodPatternsCount = CountStringArray(FIREWALL_FLOODPATTERNS);
+
+        if (TmpFloodPatternsCount > 0)
         {
-            DETECTED_ATTACK = true;
-            ATTACK_TYPE = ATTACK_CHECK_NAME;
+            for (i = 0; i < TmpFloodPatternsCount; i++)
+            {  
+                // Check for Static Whitelisted Seed Node
+                if (WARNINGS == FIREWALL_FLOODPATTERNS[i])
+                {
+                    DETECTED_ATTACK = true;
+                    ATTACK_TYPE = ATTACK_CHECK_NAME;
+                }
+
+            }
         }
 
         // ### LIVE DEBUG OUTPUT ####
@@ -2827,14 +2842,31 @@ bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant *grantOu
 
     if (!pnode)
         return false;
-    if (grantOutbound)
-        FireWall(pnode, "OpenNetConnection");
-        grantOutbound->MoveTo(pnode->grantOutbound);
-    pnode->fNetworkNode = true;
-    if (fOneShot)
-        pnode->fOneShot = true;
 
-    return true;
+    if (FireWall(pnode, "OpenNetConnection"))
+    {
+
+        if (grantOutbound)
+        {
+            grantOutbound->MoveTo(pnode->grantOutbound);
+        }
+
+        pnode->fNetworkNode = true;
+
+        if (fOneShot)
+        {
+            pnode->fOneShot = true;
+        }
+
+        return true;
+
+    }
+    else
+    {
+        return false;
+    }
+
+
 }
 
 
