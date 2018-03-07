@@ -111,6 +111,9 @@ extern json_spirit::Value firewallstatus(const json_spirit::Array& params, bool 
 extern json_spirit::Value firewallenabled(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallclearblacklist(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallclearbanlist(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value firewalladdtowhitelist(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value firewalladdtoblacklist(const json_spirit::Array& params, bool fHelp);
+
 // *** Firewall Debug (Live Output) ***
 extern json_spirit::Value firewalldebug(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewalldebugexam(const json_spirit::Array& params, bool fHelp);
@@ -122,9 +125,11 @@ extern json_spirit::Value firewalldebugnofalsepositivebandwidthabuse(const json_
 extern json_spirit::Value firewalldebuginvalidwallet(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewalldebugforkedwallet(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewalldebugfloodingwallet(const json_spirit::Array& params, bool fHelp);
+
 // * Firewall Settings (Exam) *
 extern json_spirit::Value firewalltraffictolerance(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewalltrafficzone(const json_spirit::Array& params, bool fHelp);
+
 /* Firewall BandwidthAbuse Session Settings */
 extern json_spirit::Value firewalldetectbandwidthabuse(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallblacklistbandwidthabuse(const json_spirit::Array& params, bool fHelp);
@@ -134,6 +139,7 @@ extern json_spirit::Value firewallbantimebandwidthabuse(const json_spirit::Array
 extern json_spirit::Value firewallbandwidthabusemaxcheck(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallbandwidthabuseminattack(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallbandwidthabusemaxattack(const json_spirit::Array& params, bool fHelp);
+
 /* Firewall Invalid Wallet Session Settings */
 extern json_spirit::Value firewalldetectinvalidwallet(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallblacklistinvalidwallet(const json_spirit::Array& params, bool fHelp);
@@ -141,11 +147,14 @@ extern json_spirit::Value firewallbaninvalidwallet(const json_spirit::Array& par
 extern json_spirit::Value firewallbantimeinvalidwallet(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallinvalidwalletminprotocol(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallinvalidwalletmaxcheck(const json_spirit::Array& params, bool fHelp);
+
 /* Firewall Forked Wallet Session Settings */
 extern json_spirit::Value firewalldetectforkedwallet(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallblacklistforkedwallet(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallbanforkedwallet(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallbantimeforkedwallet(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value firewallforkedwalletnodeheight(const json_spirit::Array& params, bool fHelp);
+
 /* Firewall Flooding Wallet Session Settings */
 extern json_spirit::Value firewalldetectfloodingwallet(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallblacklistfloodingwallet(const json_spirit::Array& params, bool fHelp);

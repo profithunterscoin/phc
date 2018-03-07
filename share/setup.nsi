@@ -5,9 +5,9 @@ SetCompressor /SOLID lzma
 
 # General Symbol Definitions
 !define REGKEY "SOFTWARE\$(^Name)"
-!define VERSION 1.0.0.2
+!define VERSION 1.0.0.5
 !define COMPANY "Profit Hunters Coin"
-!define URL http://www.profithuntersclub.com/
+!define URL http://www.profithunterscoin.com/
 
 # MUI Symbol Definitions
 !define MUI_ICON "../share/pixmaps/phc.ico"
@@ -45,13 +45,13 @@ Var StartMenuGroup
 !insertmacro MUI_LANGUAGE English
 
 # Installer attributes
-OutFile phc-1.0.0.2-win32-setup.exe
+OutFile phc-1.0.0.5-win32-setup.exe
 InstallDir $PROGRAMFILES\ProfitHuntersCoin
 CRCCheck on
 XPStyle on
 BrandingText " "
 ShowInstDetails show
-VIProductVersion 1.0.0.2
+VIProductVersion 1.0.0.5
 VIAddVersionKey ProductName ProfitHuntersCoin
 VIAddVersionKey ProductVersion "${VERSION}"
 VIAddVersionKey CompanyName "${COMPANY}"

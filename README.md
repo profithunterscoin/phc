@@ -10,8 +10,8 @@ This algorithm is intended to discourage >51% attacks, or malicous miners. It wi
 
 - Dynamic Block Reward 3.0 (C) 2017 Crypostle
 - Block #1 Up to 50000 [Max PoW: 100 PHC] [PoS: 1000% APR] 
-- Block #50001 Up to 100000 [Max PoW: 50 PHC] [PoS: 500% APR]
-- Block #100001 Up to 150000 [Max PoW: 25 PHC] [PoS: 250% APR]
+- Block #50001 Up to 120000 [Max PoW: 50 PHC] [PoS: 500% APR]
+- Block #120001 Up to 150000 [Max PoW: 25 PHC] [PoS: 250% APR]
 - Block #150000 Up to 200000 [Max PoW: 12.5 PHC] [PoS: 125% APR]
 - Block #200001 Up to 250000 [Max PoW: 6.25 PHC] [PoS: 62% APR]
 - Block #250001+ [Max PoW: 3.125 PHC] [PoS: 31% APR]
