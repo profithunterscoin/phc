@@ -1,7 +1,7 @@
 @echo off
 CLS
 echo -------------------------------------------------------------------
-echo PHC - Wallet Buddy 1.0 - Windows - (C) 2018 Profit Hunters Coin
+echo PHC - Wallet Buddy 1.1 - Windows - (C) 2018 Profit Hunters Coin
 echo -------------------------------------------------------------------
 echo USE THIS TOOL AT YOUR OWN RISK!
 echo BACKUP wallet.dat file to an external drive before you continue!
@@ -54,6 +54,11 @@ rem ------------------------------------------
 
 echo Cleaning Wallet Datadir
 cd %userprofile%\AppData\Roaming\PHC\
+del database-bkp
+del txleveldb-bkp
+del blk0001.dat-bkp
+del db.log-bkp
+del debug.log-bkp
 rename database database-bkp
 rename txleveldb txleveldb-bkp
 rename blk0001.dat blk0001.dat-bkp
