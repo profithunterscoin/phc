@@ -31,6 +31,12 @@ Bitcoin Firewall Exam Settings (Traffic Tolerance)
 Bitcoin Firewall Exam Settings (Traffic Zone)
     firewalltrafficzone=zone    (Double  11.4)
 
+Bitcoin Firewall Add to Whitelist
+	firewalladdtowhitelist=IPAddress
+
+Bitcoin Firewall Add to Blacklist
+	firewalladdtoblacklist=IPAddress
+
 Bitcoin Firewall Live Debug Output
     firewalldebug=    1 = true | 0 = false
 
@@ -115,6 +121,9 @@ Bitcoin Firewall Ban Forked Wallet Rule #3 (permenant)
 Bitcoin Firewall Ban Time Forked Wallet Rule #3
     firewallbantimeforkedwallet=seconds
 
+Bitcoin Firewall Add Height Forked Wallet Rule #3
+	firewallforkedwalletnodeheight=block#
+
 Bitcoin Firewall Detect Flooding Wallet Rule #4
     firewalldetectfloodingwallet=    1 = true | 0 = false
 
@@ -133,7 +142,7 @@ Bitcoin Firewall Min Bytes Flooding Wallet Rule #4
 Bitcoin Firewall Max Bytes Flooding Wallet Rule #4
     firewallfloodingwalletmaxbytes=maxbytes
 
-Bitcoin Firewall Attack Pattern Flooding Wallet Rule #4
+Bitcoin Firewall Attack Add Pattern Flooding Wallet Rule #4
     firewallfloodingwalletattackpattern=warnings
 
 Bitcoin Firewall Min Traffic Average Flooding Wallet Rule #4

@@ -24,13 +24,10 @@ sudo apt-get install autoconf
 sudo apt-get install automake
 sudo apt-get install git nano
 sudo apt-get install pkg-config
-sudo apt-get install build-essential
 sudo apt-get install libtool
 sudo apt-get install libtool-bin
 sudo apt-get install libgmp-dev
 sudo apt-get install software-properties-common
-sudo apt-get install git
-sudo apt-get install nano
 
 
 Installing DB4 Dependencies:
@@ -63,7 +60,7 @@ sudo apt-get install libjson-c-dev
 Grabbing the source code:
 ----------------------------
 
-git clone http://github.com/biznatchenterprises/phc
+git clone http://github.com/profithunterscoin/phc
 cd phc
 
 
