@@ -1,7 +1,7 @@
 ---
 name: "PHC"
 suites:
-- "lucid"
+- "trusty"
 architectures:
 - "i386"
 packages: 
