@@ -303,6 +303,24 @@ void openDebugLogfile()
         QDesktopServices::openUrl(QUrl::fromLocalFile(boostPathToQString(pathDebug)));
 }
 
+void openPHCConfigfile()
+{
+    boost::filesystem::path pathDebug = GetDataDir() / "phc.conf";
+
+    /* Open phc.conf with the associated application */
+    if (boost::filesystem::exists(pathDebug))
+        QDesktopServices::openUrl(QUrl::fromLocalFile(boostPathToQString(pathDebug)));
+}
+
+void openMNConfigfile()
+{
+    boost::filesystem::path pathDebug = GetDataDir() / "masternode.conf";
+
+    /* Open masternode.conf with the associated application */
+    if (boost::filesystem::exists(pathDebug))
+        QDesktopServices::openUrl(QUrl::fromLocalFile(boostPathToQString(pathDebug)));
+}
+
 void showBackups()
 {
     boost::filesystem::path pathBackups = GetDataDir() / "backups";

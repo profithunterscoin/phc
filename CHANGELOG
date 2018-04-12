@@ -27,9 +27,11 @@ v1.0.0.6
 * Bitcoin Firewall 1.2.2.4
 * Masternode manager GUI - Cleanup
 * Stake Halving Bug Fixed
-* Tesnet Established
+* Testnet Established
 * Dark Theme Installed
 * Darksend Amounts lowered
+* About -> Information -> Open PHC.conf button
+* About -> Information -> Open Masternode.conf button
 
 v1.0.0.5
 --------

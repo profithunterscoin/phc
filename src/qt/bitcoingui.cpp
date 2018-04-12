@@ -147,7 +147,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 			"QCheckBox:checked { border: none; color: #A4D300; }"
 			"QHeaderView::section { color: #000000; }"
 			"QWidget { alternate-background-color: #000000;}"
-
+			"QRadioButton { border: none; color: #A4D300; }"
 			);
 
 		frameBlocks->setStyleSheet("QWidget { background: none; margin-bottom: 5px; color: #A4D300; }");
@@ -541,7 +541,15 @@ void BitcoinGUI::createToolBars()
 
 	QWidget *spacer = makeToolBarSpacer();
 	netLabel->setObjectName("netLabel");
-	netLabel->setStyleSheet("#netLabel { color: #efefef; }");
+	if (!fUseBlackTheme)
+	{
+		netLabel->setStyleSheet("#netLabel { color: #000000; }");
+	}
+	else
+	{
+		netLabel->setStyleSheet("#netLabel { color: #A4D300; }");
+	}
+
 	toolbar->addWidget(spacer);
 	toolbar->setOrientation(Qt::Vertical);
 	toolbar->setMovable(false);
