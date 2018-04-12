@@ -97,12 +97,75 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 {
 	resize(1250, 520);
 	setWindowTitle(tr("PHC") + " - " + tr("Wallet"));
-	qApp->setStyleSheet("QMainWindow { background-image:url(:images/bkg);border:none;font-family:'Open Sans,sans-serif'; }"
-		"QPushButton    { color:#ecf0f1; border-radius:5px; border:solid 1px #E5D738; background:#757575;  padding:3px 30px; -webkit-transition: all 0.1s; -moz-transition: all 0.1s; transition: all 0.1s; -webkit-box-shadow: 0px 6px 0px #d35400; -moz-box-shadow: 0px 6px 0px #d35400; box-shadow: 0px 6px 0px #E5D738;}"
-		"QPushButton:hover { background-color: rgb(102, 102, 102); }"
-		"QPushButton:focus { border:none; outline:none; }"
-		"QPushButton:pressed { background-color: rgb(80, 80, 80); }"
-		);
+
+	QWidget *frameBlocks = new QWidget();
+
+	if (!fUseBlackTheme)
+	{
+		// NORMAL THEME
+
+		qApp->setStyleSheet("QMainWindow { background-image:url(:images/bkg);border:none;font-family:'Open Sans,sans-serif'; }"
+			"QPushButton    { color:#ecf0f1; border-radius:5px; border:solid 1px #E5D738; background:#757575;  padding:3px 30px; -webkit-transition: all 0.1s; -moz-transition: all 0.1s; transition: all 0.1s; -webkit-box-shadow: 0px 6px 0px #d35400; -moz-box-shadow: 0px 6px 0px #d35400; box-shadow: 0px 6px 0px #E5D738;}"
+			"QPushButton:hover { background-color: rgb(102, 102, 102); }"
+			"QPushButton:focus { border:none; outline:none; }"
+			"QPushButton:pressed { background-color: rgb(80, 80, 80); }"
+			);
+
+		frameBlocks->setStyleSheet("QWidget { background: none; margin-bottom: 5px; }");
+
+		// Override style sheet for progress bar for styles that have a segmented progress bar,
+		// as they make the text unreadable (workaround for issue #1071)
+		// See https://qt-project.org/doc/qt-4.8/gallery.html
+		QString curStyle = qApp->style()->metaObject()->className();
+		if (curStyle == "QWindowsStyle" || curStyle == "QWindowsXPStyle")
+		{
+			progressBar->setStyleSheet("QProgressBar { color: #ffffff;background-color: #e8e8e8; border: 1px solid grey; border-radius: 7px; padding: 1px; text-align: center; } QProgressBar::chunk { background: QLinearGradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 #FF8000, stop: 1 yellow); border-radius: 7px; margin: 0px; }");
+		}
+
+		statusBar()->setStyleSheet("#statusBar { color: #000000; background-color: qradialgradient(cx: -0.8, cy: 0, fx: -0.8, fy: 0, radius: 0.6, stop: 0 #101010, stop: 1 #A4D300);  }");
+
+	}
+	else
+	{
+		// DARK THEME
+
+		qApp->setStyleSheet("QMainWindow { background-image:url(:images/bkg-dark);border:none;font-family:'Open Sans,sans-serif'; color: #E5D738;}"
+			"QPushButton    { color:#000000; border-radius:5px; border:solid 1px #E5D738; background:#E5D738;  padding:3px 30px; -webkit-transition: all 0.1s; -moz-transition: all 0.1s; transition: all 0.1s; -webkit-box-shadow: 0px 6px 0px #E5D738; -moz-box-shadow: 0px 6px 0px #E5D738; box-shadow: 0px 6px 0px #E5D738;}"
+			"QPushButton:hover { background-color: #E5D738; color: #000000; }"
+			"QPushButton:focus { border:none; outline:none; }"
+			"QPushButton:pressed { background-color: #E5D738; color: #000000; }"
+			"QFrame { color: #A4D300; background-color: #000000;}"
+			"QDialog { color: #A4D300; background-color: #000000;}"
+			"QGridLayout { color: #A4D300; background-color: #000000;}"
+			"QTableWidget { color: #A4D300; background-color: #000000; alternate-background-color: #000000;}"
+			"QTableWidget:section { color: #A4D300; background-color: #000000;}"
+			"QTabWidget { color: #A4D300; background-color: #000000;}"
+			"QList { color: #A4D300; background-color: #000000; alternate-background-color: #000000;}"
+			"QLabel { color: #A4D300; }"
+			"QCheckBox { border: none; color: #A4D300; }"
+			"QCheckBox:unchecked { border: none; color: #A4D300; }"
+			"QCheckBox:checked { border: none; color: #A4D300; }"
+			"QHeaderView::section { color: #000000; }"
+			"QWidget { alternate-background-color: #000000;}"
+
+			);
+
+		frameBlocks->setStyleSheet("QWidget { background: none; margin-bottom: 5px; color: #A4D300; }");
+
+		// Override style sheet for progress bar for styles that have a segmented progress bar,
+		// as they make the text unreadable (workaround for issue #1071)
+		// See https://qt-project.org/doc/qt-4.8/gallery.html
+		QString curStyle = qApp->style()->metaObject()->className();
+		if (curStyle == "QWindowsStyle" || curStyle == "QWindowsXPStyle")
+		{
+			progressBar->setStyleSheet("QProgressBar { color: #A4D300;background-color: #000000; border: 1px solid #A4D300; border-radius: 7px; padding: 1px; text-align: center; } QProgressBar::chunk { background: QLinearGradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 #FF8000, stop: 1 yellow); border-radius: 7px; margin: 0px; }");
+		}
+
+		statusBar()->setStyleSheet("#statusBar { color: #A4D300; background-color: qradialgradient(cx: -0.8, cy: 0, fx: -0.8, fy: 0, radius: 0.6, stop: 0 #A4D300, stop: 1 #000000);  }");
+
+	}
+
+
 #ifndef Q_OS_MAC
 	qApp->setWindowIcon(QIcon(":icons/bitcoin"));
 	setWindowIcon(QIcon(":icons/bitcoin"));
@@ -179,10 +242,10 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 	statusBar()->setSizeGripEnabled(false);
 
 	// Status bar notification icons
-	QWidget *frameBlocks = new QWidget();
+
 	frameBlocks->setContentsMargins(0, 0, 0, 0);
 	frameBlocks->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-	frameBlocks->setStyleSheet("QWidget { background: none; margin-bottom: 5px; }");
+	
 	QHBoxLayout *frameBlocksLayout = new QHBoxLayout(frameBlocks);
 	frameBlocksLayout->setContentsMargins(3, 0, 3, 0);
 	frameBlocksLayout->setSpacing(3);
@@ -222,21 +285,17 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 
 	if (!fUseBlackTheme)
 	{
-		// Override style sheet for progress bar for styles that have a segmented progress bar,
-		// as they make the text unreadable (workaround for issue #1071)
-		// See https://qt-project.org/doc/qt-4.8/gallery.html
-		QString curStyle = qApp->style()->metaObject()->className();
-		if (curStyle == "QWindowsStyle" || curStyle == "QWindowsXPStyle")
-		{
-			progressBar->setStyleSheet("QProgressBar { color: #ffffff;background-color: #e8e8e8; border: 1px solid grey; border-radius: 7px; padding: 1px; text-align: center; } QProgressBar::chunk { background: QLinearGradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 #FF8000, stop: 1 yellow); border-radius: 7px; margin: 0px; }");
-		}
+		progressBarLabel->setStyleSheet("QLabel { color: #000000; }");
+	}
+	else
+	{
+		progressBarLabel->setStyleSheet("QLabel { color: #A4D300; }");
 	}
 
 	statusBar()->addWidget(progressBarLabel);
 	statusBar()->addWidget(progressBar);
 	statusBar()->addPermanentWidget(frameBlocks);
 	statusBar()->setObjectName("statusBar");
-	statusBar()->setStyleSheet("#statusBar { color: #ffffff; background-color: qradialgradient(cx: -0.8, cy: 0, fx: -0.8, fy: 0, radius: 0.6, stop: 0 #101010, stop: 1 #A4D300);  }");
 
 	syncIconMovie = new QMovie(fUseBlackTheme ? ":/movies/update_spinner_black" : ":/movies/update_spinner", "mng", this);
 
@@ -449,11 +508,11 @@ void BitcoinGUI::createToolBars()
 	toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 	toolbar->setContextMenuPolicy(Qt::PreventContextMenu);
 	toolbar->setObjectName("tabs");
-	toolbar->setStyleSheet("QToolButton { color: #000000; font-size: 13px; font-weight: 400; padding:5px; font-family: 'Verdana'; border: none; }"
-		"QToolButton:hover { background-color: #A4D300; color: #ffffff; border: none; padding-top: 5px; padding-bottom: 5px; }"
-		"QToolButton:checked { background-color: #A4D300; color: #ffffff; border: none; padding-top: 5px; padding-bottom: 5px; }"
-		"QToolButton:pressed { background-color: #A4D300; color: #ffffff; border: none; padding-top: 5px; padding-bottom: 5px; }"
-		"#tabs { color: #000000; background-color: #9c9c9c;  border: none; padding-top: 0px; padding-bottom: 0px; }");
+	toolbar->setStyleSheet("QToolButton { color: #A4D300; font-size: 13px; font-weight: 400; padding:5px; font-family: 'Verdana'; border: none; }"
+		"QToolButton:hover { background-color: #A4D300; color: #000000; border: none; padding-top: 5px; padding-bottom: 5px; }"
+		"QToolButton:checked { background-color: #A4D300; color: #000000; border: none; padding-top: 5px; padding-bottom: 5px; }"
+		"QToolButton:pressed { background-color: #A4D300; color: #000000; border: none; padding-top: 5px; padding-bottom: 5px; }"
+		"#tabs { color: #A4D300; background-color: #000000;  border: none; padding-top: 0px; padding-bottom: 0px; }");
 
 //	QLabel* header = new QLabel();
 //	header->setMinimumSize(152, 152);
@@ -728,7 +787,7 @@ void BitcoinGUI::setNumBlocks(int count)
 
 		progressBarLabel->setText(tr(clientModel->isImporting() ? "Importing blocks..." : "Synchronizing with network..."));
 		progressBarLabel->setVisible(true);
-		progressBarLabel->setStyleSheet("QLabel { color: #ffffff; }");
+
 		progressBar->setFormat(tr("%1 behind").arg(timeBehindText));
 		progressBar->setMaximum(totalSecs);
 		progressBar->setValue(totalSecs - secs);

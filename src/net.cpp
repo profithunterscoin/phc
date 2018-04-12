@@ -128,19 +128,20 @@ return tmp_cnt;
 
 // ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 // 
-// [Bitcoin Firewall 1.2.2.3
-// Feb, 2018 - Biznatch Enterprises & Profit Hunters Coin (PHC)
+// [Bitcoin Firewall 1.2.2.4
+// March, 2018 - Biznatch Enterprises & BATA Development & Profit Hunters Coin (PHC)
 // http://bata.io & https://github.com/BiznatchEnterprises/BitcoinFirewall
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 
-string ModuleName = "[Bitcoin Firewall 1.2.2.3]";
+string ModuleName = "[Bitcoin Firewall 1.2.2.4]";
 
 // *** Firewall Controls (General) ***
 bool FIREWALL_ENABLED = true;
 bool FIREWALL_CLEAR_BLACKLIST = false;
-bool FIREWALL_CLEAR_BANS = false;
+bool FIREWALL_CLEAR_BANS = true;
+int FIREWALL_CLEARBANS_MINNODES = 10;
 double FIREWALL_TRAFFIC_TOLERANCE = 0.0001; // Reduce for minimal fluctuation
 double FIREWALL_TRAFFIC_ZONE = 4; // + or - Traffic Range 
 
@@ -1169,25 +1170,17 @@ bool FireWall(CNode *pnode, string FromFunction)
         }
     }
 
-    // Check for Node Whitelisted status
-    //if (pnode->fWhitelisted == true)
-    //{
-    //    return false;
-    //}
-
-    //cout<<"Firewall called: "<<FromFunction<<endl;
-
     if (FIREWALL_CLEAR_BANS == true)
     {
-        pnode->ClearBanned();
-        LogPrint("net", "%s Cleared ban: %s\n", ModuleName.c_str(), pnode->addrName.c_str());
+        if (FIREWALL_CLEARBANS_MINNODES <= vNodes.size())
+        {
+            pnode->ClearBanned();
+            int TmpBlackListCount;
+            TmpBlackListCount = CountStringArray(FIREWALL_BLACKLIST);
+            std::fill_n(FIREWALL_BLACKLIST, TmpBlackListCount, 0);
+            LogPrint("net", "%s Cleared ban: %s\n", ModuleName.c_str(), pnode->addrName.c_str());
+        }
     }
-
-    // Check for 0 peer count (auto-unban)
-    //if (vNodes.size() < 2){
-    //    pnode->ClearBanned();
-    //}
-
 
     if (CheckBlackList(pnode) == true)
     {
