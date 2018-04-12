@@ -90,6 +90,12 @@ namespace GUIUtil
 
     // Open debug.log
     void openDebugLogfile();
+
+    // Open phc.conf
+    void openPHCConfigfile();
+
+    // Open masternode.conf
+    void openMNConfigfile();
     
     // Browse backup folder
     void showBackups();

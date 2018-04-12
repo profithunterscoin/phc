@@ -3,9 +3,10 @@
     <file alias="bitcoin">res/icons/phc-80.png</file>
     <file alias="bitcoin1">res/icons/phc.png</file>
     <file alias="address-book">res/icons/address-book.png</file>
-	<file alias="address-book-black">res/icons/address-black.png</file>
+    <file alias="address-book-black">res/icons/address-black.png</file>
     <file alias="quit">res/icons/quit.png</file>
     <file alias="send">res/icons/send.png</file>
+    <file alias="send-black">res/icons/send-black.png</file>
     <file alias="toolbar">res/icons/phc-16.png</file>
     <file alias="connect_0">res/icons/connect0_16.png</file>
     <file alias="connect_1">res/icons/connect1_16.png</file>

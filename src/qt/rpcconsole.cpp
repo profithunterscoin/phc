@@ -210,6 +210,8 @@ RPCConsole::RPCConsole(QWidget *parent) :
 
 #ifndef Q_OS_MAC
     ui->openDebugLogfileButton->setIcon(QIcon(":/icons/export"));
+    ui->openPHCConfigfileButton->setIcon(QIcon(":/icons/export"));
+    ui->openMNConfigfileButton->setIcon(QIcon(":/icons/export"));
     ui->showCLOptionsButton->setIcon(QIcon(":/icons/options"));
 #endif
 
@@ -534,6 +536,16 @@ void RPCConsole::on_tabWidget_currentChanged(int index)
 void RPCConsole::on_openDebugLogfileButton_clicked()
 {
     GUIUtil::openDebugLogfile();
+}
+
+void RPCConsole::on_openPHCConfigfileButton_clicked()
+{
+    GUIUtil::openPHCConfigfile();
+}
+
+void RPCConsole::on_openMNConfigfileButton_clicked()
+{
+    GUIUtil::openMNConfigfile();
 }
 
 void RPCConsole::scrollToEnd()
