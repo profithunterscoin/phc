@@ -442,6 +442,7 @@ Value clearbanned(const Array& params, bool fHelp)
     return Value::null;
 }
 
+
 Value firewallstatus(const Array& params, bool fHelp)
 {
     string strCommand = "true";
@@ -974,7 +975,7 @@ Value firewallaveragetolerance(const Array& params, bool fHelp)
                             "firewallaveragetolerance \"tolerance\"\n"
                             "\nBitcoin Firewall Exam Setting (Average Block Tolerance)\n"
                             "\nArguments:\n"
-                            "Value: \"tolerance\" (integer, required)\n"
+                            "Value: \"tolerance\" (double, required)\n"
                             "\nExamples:\n"
                             + HelpExampleCli("firewallaveragetolerance", "0.0001")
                             + HelpExampleCli("firewallaveragetolerance", "0.1")
@@ -982,7 +983,7 @@ Value firewallaveragetolerance(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        FIREWALL_AVERAGE_TOLERANCE = params[0].get_int();
+        FIREWALL_AVERAGE_TOLERANCE = strtod(params[0].get_str().c_str(), NULL);
     }
 
     Object result;
@@ -1007,7 +1008,7 @@ Value firewallaveragerange(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        FIREWALL_AVERAGE_RANGE = params[0].get_int();
+        FIREWALL_AVERAGE_RANGE = (int)strtod(params[0].get_str().c_str(), NULL);
     }
 
     Object result;
@@ -1296,7 +1297,7 @@ Value firewallbantimebandwidthabuse(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        FIREWALL_BANTIME_BANDWIDTHABUSE = params[0].get_int();
+        FIREWALL_BANTIME_BANDWIDTHABUSE = (int)strtod(params[0].get_str().c_str(), NULL);
     }
 
 
@@ -1323,7 +1324,7 @@ Value firewallbandwidthabusemaxcheck(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        FIREWALL_BANDWIDTHABUSE_MAXCHECK = params[0].get_int();
+        FIREWALL_BANDWIDTHABUSE_MAXCHECK = (int)strtod(params[0].get_str().c_str(), NULL);
     }
 
 
@@ -1366,7 +1367,7 @@ Value firewallbandwidthabusemaxattack(const Array& params, bool fHelp)
                             "firewallbandwidthabusemaxattack \"ratio\"\n"
                             "\nBitcoin Firewall Max Attack Bandwidth Abuse Rule #1\n"
                             "\nArguments:\n"
-                            "Value: \"17.2\" (integer, required)\n"
+                            "Value: \"17.2\" (double, required)\n"
                             "\nExamples:\n"
                             "\n0 = default - 17.2\n"
                             + HelpExampleCli("firewallbandwidthabusemaxattack", "17.2")
@@ -1510,7 +1511,7 @@ Value firewallbantimeinvalidwallet(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        FIREWALL_BANTIME_INVALIDWALLET = params[0].get_int();
+        FIREWALL_BANTIME_INVALIDWALLET = (int)strtod(params[0].get_str().c_str(), NULL);
     }
 
     Object result;
@@ -1536,7 +1537,7 @@ Value firewallinvalidwalletminprotocol(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        FIREWALL_MINIMUM_PROTOCOL = params[0].get_int();
+        FIREWALL_MINIMUM_PROTOCOL = (int)strtod(params[0].get_str().c_str(), NULL);
     }
 
     Object result;
@@ -1562,7 +1563,7 @@ Value firewallinvalidwalletmaxcheck(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        FIREWALL_INVALIDWALLET_MAXCHECK = params[0].get_int();
+        FIREWALL_INVALIDWALLET_MAXCHECK = (int)strtod(params[0].get_str().c_str(), NULL);
     }
 
     Object result;
@@ -1696,7 +1697,7 @@ Value firewallbantimeforkedwallet(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-         FIREWALL_BANTIME_FORKEDWALLET = params[0].get_int();
+         FIREWALL_BANTIME_FORKEDWALLET = (int)strtod(params[0].get_str().c_str(), NULL);
     }
 
     Object result;
@@ -1726,7 +1727,7 @@ Value firewallforkedwalletnodeheight(const Array& params, bool fHelp)
     {
         if (CountIntArray(FIREWALL_FORKED_NODEHEIGHT) < 256)
         {
-            FIREWALL_FORKED_NODEHEIGHT[CountIntArray(FIREWALL_FORKED_NODEHEIGHT)] = params[0].get_int();
+            FIREWALL_FORKED_NODEHEIGHT[CountIntArray(FIREWALL_FORKED_NODEHEIGHT)] = (int)strtod(params[0].get_str().c_str(), NULL);
             MSG = CountIntArray(FIREWALL_FORKED_NODEHEIGHT);
         }
         else
@@ -1866,7 +1867,7 @@ Value firewallbantimefloodingwallet(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        FIREWALL_BANTIME_FLOODINGWALLET = params[0].get_int();
+        FIREWALL_BANTIME_FLOODINGWALLET = (int)strtod(params[0].get_str().c_str(), NULL);
     }
 
     Object result;
@@ -1892,7 +1893,7 @@ Value firewallfloodingwalletminbytes(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        FIREWALL_FLOODINGWALLET_MINBYTES = params[0].get_int();
+        FIREWALL_FLOODINGWALLET_MINBYTES = (int)strtod(params[0].get_str().c_str(), NULL);
     }
 
     Object result;
@@ -1918,7 +1919,7 @@ Value firewallfloodingwalletmaxbytes(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        FIREWALL_FLOODINGWALLET_MAXBYTES = params[0].get_int();
+        FIREWALL_FLOODINGWALLET_MAXBYTES = (int)strtod(params[0].get_str().c_str(), NULL);
     }
 
     Object result;
@@ -1928,27 +1929,27 @@ return result;
 }
 
 
-Value firewallfloodingwalletattackpattern(const Array& params, bool fHelp)
+Value firewallfloodingwalletattackpatternadd(const Array& params, bool fHelp)
 {
     string MSG;
 
     if (fHelp || params.size() == 0)
         throw runtime_error(
-                            "firewallfloodingwalletattackpattern \"warnings\"\n"
+                            "firewallfloodingwalletattackpatternadd \"warnings\"\n"
                             "\nBitcoin Firewall Adds Attack Pattern Flooding Wallet Rule #4\n"
                             "\nArguments:\n"
                             "Value: \"warnings\" (string, required)\n"
                             "\nExamples:\n"
                             "\n0 = default - \n"
-                            + HelpExampleCli("firewallfloodingwalletattackpattern", "0")
-                            + HelpExampleCli("firewallfloodingwalletattackpattern", "10000000")
+                            + HelpExampleCli("firewallfloodingwalletattackpatternadd", "0")
+                            + HelpExampleCli("firewallfloodingwalletattackpatternadd", "10000000")
                             );
 
     if (params.size() == 1)
     {
         if (CountStringArray(FIREWALL_FLOODPATTERNS) < 256)
         {
-            FIREWALL_FLOODPATTERNS[CountStringArray(FIREWALL_FLOODPATTERNS)] = params[0].get_str();
+            FIREWALL_FLOODPATTERNS[CountStringArray(FIREWALL_FLOODPATTERNS)] = params[0].get_str().c_str();
             MSG = CountStringArray(FIREWALL_FLOODPATTERNS);
         }
         else
@@ -1964,6 +1965,50 @@ return result;
 }
 
 
+Value firewallfloodingwalletattackpatternremove(const Array& params, bool fHelp)
+{
+    string MSG;
+    int i;
+
+    if (fHelp || params.size() == 0)
+        throw runtime_error(
+                            "firewallfloodingwalletattackpatternremove \"warnings\"\n"
+                            "\nBitcoin Firewall Remove Attack Pattern Flooding Wallet Rule #4\n"
+                            "\nArguments:\n"
+                            "Value: \"warnings\" (string, required)\n"
+                            "\nExamples:\n"
+                            "\n0 = default - \n"
+                            + HelpExampleCli("firewallfloodingwalletattackpatternremove", "0")
+                            + HelpExampleCli("firewallfloodingwalletattackpatternremove", "10000000")
+                            );
+
+    if (params.size() == 1)
+    {
+        string WARNING;
+        int TmpFloodPatternsCount;
+        WARNING = params[0].get_str().c_str();
+        TmpFloodPatternsCount = CountStringArray(FIREWALL_FLOODPATTERNS);
+
+        MSG = "Not Found";
+
+        for (i = 0; i < TmpFloodPatternsCount; i++)
+        {  
+            if (WARNING == FIREWALL_FLOODPATTERNS[i])
+            {
+                MSG = FIREWALL_FLOODPATTERNS[i];
+                FIREWALL_FLOODPATTERNS[i] = "";
+            }
+
+        }
+    }
+
+
+    Object result;
+    result.push_back(Pair("attackpattern-floodingwallet-attackpattern-remove", MSG));
+
+return result;
+}
+
 
 Value firewallfloodingwalletmintrafficavg(const Array& params, bool fHelp)
 {
@@ -1975,7 +2020,7 @@ Value firewallfloodingwalletmintrafficavg(const Array& params, bool fHelp)
                             "Value: \"ratio\" (double, required)\n"
                             "\nExamples:\n"
                             "\n0 = default - 2000\n"
-                            + HelpExampleCli("firewallfloodingwalletmintrafficav", "20000")
+                            + HelpExampleCli("firewallfloodingwalletmintrafficav", "20000.01")
                             + HelpExampleCli("firewallfloodingwalletmintrafficav", "12000.014")
                             );
 
@@ -2033,7 +2078,7 @@ Value firewallfloodingwalletmincheck(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        FIREWALL_FLOODINGWALLET_MINCHECK = params[0].get_int();
+        FIREWALL_FLOODINGWALLET_MINCHECK = (int)strtod(params[0].get_str().c_str(), NULL);
     }
 
     Object result;
@@ -2059,7 +2104,7 @@ Value firewallfloodingwalletmaxcheck(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        FIREWALL_FLOODINGWALLET_MAXCHECK = params[0].get_int();
+        FIREWALL_FLOODINGWALLET_MAXCHECK = (int)strtod(params[0].get_str().c_str(), NULL);
     }
 
     Object result;

@@ -100,7 +100,6 @@ qmake && make
 Installing QT (GUI):
 ----------------------------
 
-cd phc
 sudo cp phc-qt /usr/bin
 cd ..
 
