@@ -52,7 +52,7 @@ void AddEditAdrenalineNode::on_okButton_clicked()
     else if(ui->addressLineEdit->text() == "")
     {
         QMessageBox msg;
-        msg.setText("Please enter an ip address and port. (123.45.67.89:9999)");
+        msg.setText("Please enter an ip address and port. (123.45.67.89:20060)");
         msg.exec();
         return;
     }
@@ -66,7 +66,7 @@ void AddEditAdrenalineNode::on_okButton_clicked()
     else if(ui->txhashLineEdit->text() == "")
     {
         QMessageBox msg;
-        msg.setText("Please enter the transaction hash for the transaction that has 500 coins");
+        msg.setText("Please enter the transaction hash for the transaction that has 10000 coins");
         msg.exec();
         return;
     }
@@ -92,11 +92,13 @@ void AddEditAdrenalineNode::on_okButton_clicked()
         if (stream.is_open())
         {
             stream << sAlias << " " << sAddress << " " << sMasternodePrivKey << " " << sTxHash << " " << sOutputIndex;
+            
             if (sRewardAddress != "" && sRewardPercentage != ""){
                 stream << " " << sRewardAddress << ":" << sRewardPercentage << std::endl;
             } else {
                 stream << std::endl;
             }
+            
             stream.close();
         }
         masternodeConfig.add(sAlias, sAddress, sMasternodePrivKey, sTxHash, sOutputIndex, sRewardAddress, sRewardPercentage);

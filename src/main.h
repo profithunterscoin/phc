@@ -20,10 +20,10 @@ class CValidationState;
 #define START_MASTERNODE_PAYMENTS_TESTNET 1513486992 //GMT: Sunday, December 17, 2017 5:03:12 AM
 #define START_MASTERNODE_PAYMENTS 1516001840 //GMT: Monday, January 15, 2018 7:37:20 AM
 
-static const int64_t DARKSEND_COLLATERAL = (1000*COIN);
-static const int64_t DARKSEND_POOL_MAX = (4999.99*COIN);
+static const int64_t DARKSEND_COLLATERAL = (10*COIN);
+static const int64_t DARKSEND_POOL_MAX = (49.99*COIN);
 
-static const int64_t STATIC_POS_REWARD = 1000 * COIN; //Constant reward of 10 PHC per COIN i.e. 8%
+//static const int64_t STATIC_POS_REWARD = 1000 * COIN; //Constant reward of 10 PHC per COIN i.e. 8%
 static const int64_t TARGET_SPACING = 60; //60 sec
 
 

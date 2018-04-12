@@ -1496,44 +1496,40 @@ int64_t GetProofOfWorkReward(int nHeight, int64_t nFees)
 // miner's coin stake reward
 int64_t GetProofOfStakeReward(const CBlockIndex* pindexPrev, int64_t nCoinAge, int64_t nFees)
 {
-   int64_t nSubsidy = nCoinAge * COIN_YEAR_REWARD * 33 / (365 * 33 + 8);
 
-    /* Dynamic Percentage Staking (C) 2017 - Profit Hunters Coin */
+    int64_t nSubsidy = nCoinAge * COIN_YEAR_REWARD * 33 / (365 * 33 + 8);
+    int64_t nSubsidyBase = nCoinAge * COIN_YEAR_REWARD / (365 + 8 / 33);
 
     /* ------ Pre-Mining Phase: Block #0 (Start) ------ */
     if (pindexPrev->nHeight == 0)
     {
         nSubsidy = 0.03125;
     }
-    /* ------ Initial Mining Phase: Block #1 Up to 500000 (~month #1-3) ------ */
+    /* ------ Initial Mining Phase: Block #1 Up to 500000 ------ */
     else
     {
         nSubsidy = nSubsidy * 1;  // 1000%
     }
-    /* ------ Initial Mining Phase: Block #50001 Up to 100000 (~month #3-5) ------ */
+    /* ------ Initial Mining Phase: Block #50001 Up to 100000 ------ */
     if (pindexPrev->nHeight > 50000)
     {
         nSubsidy = nSubsidy * 0.5;  // 500%
     }
-    /* ------ Initial Mining Phase: Block #100001 Up to 150000 (~month #5-7) ------ */
+    /* ------ Initial Mining Phase: Block #100001 Up to 150000 ------ */
     if (pindexPrev->nHeight > 120000)
     {
         nSubsidy = nSubsidy * 0.25;  // 250%
     }
-    /* ------ Regular Mining Phase: Block #150001 Up to max (~month #7-10) ------ */
+    /* ------ Regular Mining Phase: Block #150001 Up to 200000 ------ */
     if (pindexPrev->nHeight > 150000)
     {
         nSubsidy = nSubsidy * 0.125;  // 125%
     }
-    /* ------ Regular Mining Phase: Block #200001 Up to max (~month #10-12) ------ */
+
+    /* ------ Regular Mining Phase: Block #200001+ ------ */
     if (pindexPrev->nHeight > 200000)
     {
-        nSubsidy = nSubsidy * 0.0625;  // 62.5%
-    }
-    /* ------ Regular Mining Phase: Block #250001 Up to max (~month #12+) ------ */
-    if (pindexPrev->nHeight > 250000)
-    {
-        nSubsidy = nSubsidy * 0.03125;  // 31.25%
+        nSubsidy = nSubsidyBase * 0.25;  // 250%
     }
 
     LogPrint("creation", "GetProofOfStakeReward(): create=%s nCoinAge=%d\n", FormatMoney(nSubsidy), nCoinAge);
