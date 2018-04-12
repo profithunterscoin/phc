@@ -25,7 +25,11 @@ v1.0.0.6
 --------
 * Updated Checkpoints
 * Modified Flooding Wallet Patterns
-* Masternode manager GUI - Start button fixed
+* Masternode manager GUI - Cleanup
+* Stake Halving Bug Fixed
+* Tesnet Established
+* Dark Theme Installed
+* Darksend Amounts lowered
 
 v1.0.0.5
 --------
