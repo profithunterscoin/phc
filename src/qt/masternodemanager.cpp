@@ -242,7 +242,8 @@ void MasternodeManager::on_startButton_clicked()
     
     statusObj += "<center>Alias: " + sAlias;
 
-    BOOST_FOREACH(CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries()) {
+    BOOST_FOREACH(CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries())
+    {
         if(mne.getAlias() == sAlias)
         {
 
