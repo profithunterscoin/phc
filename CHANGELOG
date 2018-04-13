@@ -24,6 +24,7 @@ to help further advance the field of crypto-currency.
 v1.0.0.6
 --------
 * Updated Checkpoints
+* Updated Fixed Seednodes with active masternodes list
 * Bitcoin Firewall 1.2.2.4
 * Masternode manager GUI - Cleanup
 * Stake Halving Bug Fixed
@@ -32,6 +33,7 @@ v1.0.0.6
 * Darksend Amounts lowered
 * About -> Information -> Open PHC.conf button
 * About -> Information -> Open Masternode.conf button
+* Masternodes -> My Masternodes -> Open Masternode.conf button
 
 v1.0.0.5
 --------
