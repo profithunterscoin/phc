@@ -3,6 +3,7 @@
 
 #include "util.h"
 #include "sync.h"
+#include "guiutil.h"
 
 #include <QMenu>
 #include <QWidget>
@@ -43,6 +44,8 @@ public slots:
     void on_UpdateButton_clicked();
     void copyAddress();
     void copyPubkey();
+    /** open the masternode.conf from the current datadir */
+    void on_openMNConfigfileButton_clicked();
 
 signals:
 
@@ -59,5 +62,6 @@ private slots:
     void on_startButton_clicked();
     void on_startAllButton_clicked();
     void on_tableWidget_2_itemSelectionChanged();
+    void on_tabWidget_currentChanged(int index);
 };
 #endif // MASTERNODEMANAGER_H

@@ -43,8 +43,6 @@ MasternodeManager::MasternodeManager(QWidget *parent) :
     //ui->editButton->setEnabled(false);
     ui->startButton->setEnabled(false);
 
-    MasternodeManager::on_UpdateButton_clicked();
-
     int columnAddressWidth = 200;
     int columnProtocolWidth = 60;
     int columnStatusWidth = 80;
@@ -75,8 +73,16 @@ MasternodeManager::MasternodeManager(QWidget *parent) :
     if(!GetBoolArg("-reindexaddr", false))
         timer->start(30000);
 
-    updateNodeList();
+    updateNodeList();  
 
+}
+
+void MasternodeManager::on_tabWidget_currentChanged(int index)
+{
+    if (index == 1)
+    {
+        on_UpdateButton_clicked();
+    }
 }
 
 MasternodeManager::~MasternodeManager()
@@ -398,4 +404,9 @@ void MasternodeManager::copyPubkey()
     }
     
     QApplication::clipboard()->setText(QString::fromStdString(sData));
+}
+
+void MasternodeManager::on_openMNConfigfileButton_clicked()
+{
+    GUIUtil::openMNConfigfile();
 }
