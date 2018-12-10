@@ -1,3 +1,10 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2018 Profit Hunters Coin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #include "bitcoinamountfield.h"
 
 #include "qvaluecombobox.h"
@@ -10,8 +17,7 @@
 #include <QApplication>
 #include <qmath.h> // for qPow()
 
-BitcoinAmountField::BitcoinAmountField(QWidget *parent):
-        QWidget(parent), amount(0), currentUnit(-1)
+BitcoinAmountField::BitcoinAmountField(QWidget *parent): QWidget(parent), amount(0), currentUnit(-1)
 {
     amount = new QDoubleSpinBox(this);
     amount->setLocale(QLocale::c());
@@ -21,9 +27,11 @@ BitcoinAmountField::BitcoinAmountField(QWidget *parent):
     amount->setSingleStep(0.001);
 
     QHBoxLayout *layout = new QHBoxLayout(this);
+    
     layout->addWidget(amount);
     unit = new QValueComboBox(this);
     unit->setModel(new BitcoinUnits(this));
+    
     layout->addWidget(unit);
     layout->addStretch(1);
     layout->setContentsMargins(0,0,0,0);
@@ -41,48 +49,75 @@ BitcoinAmountField::BitcoinAmountField(QWidget *parent):
     unitChanged(unit->currentIndex());
 }
 
+
 void BitcoinAmountField::setText(const QString &text)
 {
     if (text.isEmpty())
+    {
         amount->clear();
+    }
     else
+    {
         amount->setValue(text.toDouble());
+    }
 }
+
 
 void BitcoinAmountField::clear()
 {
     amount->clear();
+    
     unit->setCurrentIndex(0);
 }
+
 
 bool BitcoinAmountField::validate()
 {
     bool valid = true;
+
     if (amount->value() == 0.0)
+    {
         valid = false;
+    }
+    
     if (valid && !BitcoinUnits::parse(currentUnit, text(), 0))
+    {
         valid = false;
+    }
 
     setValid(valid);
 
     return valid;
 }
 
+
 void BitcoinAmountField::setValid(bool valid)
 {
     if (valid)
+    {
         amount->setStyleSheet("");
+    }
     else
+    {
         amount->setStyleSheet(STYLE_INVALID);
+    }
+
 }
+
 
 QString BitcoinAmountField::text() const
 {
     if (amount->text().isEmpty())
+    {
         return QString();
+    }
     else
+    {
         return amount->text();
+    }
+
 }
+
 
 bool BitcoinAmountField::eventFilter(QObject *object, QEvent *event)
 {
@@ -94,38 +129,49 @@ bool BitcoinAmountField::eventFilter(QObject *object, QEvent *event)
     else if (event->type() == QEvent::KeyPress || event->type() == QEvent::KeyRelease)
     {
         QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+        
         if (keyEvent->key() == Qt::Key_Comma)
         {
             // Translate a comma into a period
             QKeyEvent periodKeyEvent(event->type(), Qt::Key_Period, keyEvent->modifiers(), ".", keyEvent->isAutoRepeat(), keyEvent->count());
             qApp->sendEvent(object, &periodKeyEvent);
+            
             return true;
         }
     }
+
     return QWidget::eventFilter(object, event);
 }
+
 
 QWidget *BitcoinAmountField::setupTabChain(QWidget *prev)
 {
     QWidget::setTabOrder(prev, amount);
+    
     return amount;
 }
+
 
 CAmount BitcoinAmountField::value(bool *valid_out) const
 {
     CAmount val_out = 0;
+    
     bool valid = BitcoinUnits::parse(currentUnit, text(), &val_out);
+    
     if(valid_out)
     {
         *valid_out = valid;
     }
+
     return val_out;
 }
+
 
 void BitcoinAmountField::setValue(const CAmount& value)
 {
     setText(BitcoinUnits::format(currentUnit, value));
 }
+
 
 void BitcoinAmountField::unitChanged(int idx)
 {
@@ -137,6 +183,7 @@ void BitcoinAmountField::unitChanged(int idx)
 
     // Parse current value and convert to new unit
     bool valid = false;
+
     CAmount currentValue = value(&valid);
 
     currentUnit = newUnit;
@@ -155,8 +202,10 @@ void BitcoinAmountField::unitChanged(int idx)
         // If current value is invalid, just clear field
         setText("");
     }
+
     setValid(true);
 }
+
 
 void BitcoinAmountField::setDisplayUnit(int newUnit)
 {

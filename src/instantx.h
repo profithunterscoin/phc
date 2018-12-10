@@ -1,7 +1,12 @@
-
-// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2014-2015 The Darkcoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2018 Profit Hunters Coin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #ifndef INSTANTX_H
 #define INSTANTX_H
 
@@ -52,43 +57,49 @@ int64_t GetAverageVoteTime();
 
 class CConsensusVote
 {
-public:
-    CTxIn vinMasternode;
-    uint256 txHash;
-    int nBlockHeight;
-    std::vector<unsigned char> vchMasterNodeSignature;
+    public:
 
-    uint256 GetHash() const;
+        CTxIn vinMasternode;
+        uint256 txHash;
 
-    bool SignatureValid();
-    bool Sign();
+        int nBlockHeight;
 
-    IMPLEMENT_SERIALIZE
-    (
-        READWRITE(txHash);
-        READWRITE(vinMasternode);
-        READWRITE(vchMasterNodeSignature);
-        READWRITE(nBlockHeight);
-    )
+        std::vector<unsigned char> vchMasterNodeSignature;
+
+        uint256 GetHash() const;
+
+        bool SignatureValid();
+        bool Sign();
+
+        IMPLEMENT_SERIALIZE
+        (
+            READWRITE(txHash);
+            READWRITE(vinMasternode);
+            READWRITE(vchMasterNodeSignature);
+            READWRITE(nBlockHeight);
+        )
 };
 
 class CTransactionLock
 {
-public:
-    int nBlockHeight;
-    uint256 txHash;
-    std::vector<CConsensusVote> vecConsensusVotes;
-    int nExpiration;
-    int nTimeout;
+    public:
 
-    bool SignaturesValid();
-    int CountSignatures();
-    void AddSignature(CConsensusVote& cv);
+        int nBlockHeight;
 
-    uint256 GetHash()
-    {
-        return txHash;
-    }
+        uint256 txHash;
+        std::vector<CConsensusVote> vecConsensusVotes;
+        
+        int nExpiration;
+        int nTimeout;
+
+        bool SignaturesValid();
+        int CountSignatures();
+        void AddSignature(CConsensusVote& cv);
+
+        uint256 GetHash()
+        {
+            return txHash;
+        }
 };
 
 

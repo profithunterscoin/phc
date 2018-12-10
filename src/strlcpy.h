@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
+ * Edited by: Profit Hunters Coin (2018)
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -13,11 +14,14 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+
+
 #ifndef BITCOIN_STRLCPY_H
 #define BITCOIN_STRLCPY_H
 
 #include <stdlib.h>
 #include <string.h>
+
 
 /*
  * Copy src to string dst of size siz.  At most siz-1 characters
@@ -44,13 +48,19 @@ inline size_t strlcpy(char *dst, const char *src, size_t siz)
     if (n == 0)
     {
         if (siz != 0)
+        {
             *d = '\0';  /* NUL-terminate dst */
+        }
+
         while (*s++)
-            ;
+        {
+            // do nothing
+        }
     }
 
     return(s - src - 1); /* count does not include NUL */
 }
+
 
 /*
  * Appends src to string dst of size siz (unlike strncat, siz is the
@@ -63,17 +73,24 @@ inline size_t strlcat(char *dst, const char *src, size_t siz)
 {
     char *d = dst;
     const char *s = src;
+    
     size_t n = siz;
     size_t dlen;
 
     /* Find the end of dst and adjust bytes left but don't go past end */
     while (n-- != 0 && *d != '\0')
+    {
         d++;
+    }
+
     dlen = d - dst;
     n = siz - dlen;
 
     if (n == 0)
+    {
         return(dlen + strlen(s));
+    }
+    
     while (*s != '\0')
     {
         if (n != 1)
@@ -81,8 +98,10 @@ inline size_t strlcat(char *dst, const char *src, size_t siz)
             *d++ = *s;
             n--;
         }
+
         s++;
     }
+
     *d = '\0';
 
     return(dlen + (s - src)); /* count does not include NUL */

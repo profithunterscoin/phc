@@ -1,9 +1,19 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2018 Profit Hunters Coin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #ifndef TRANSACTIONDESCDIALOG_H
 #define TRANSACTIONDESCDIALOG_H
 
 #include <QDialog>
 
-namespace Ui {
+namespace Ui
+{
     class TransactionDescDialog;
 }
 
@@ -16,12 +26,14 @@ class TransactionDescDialog : public QDialog
 {
     Q_OBJECT
 
-public:
-    explicit TransactionDescDialog(const QModelIndex &idx, QWidget *parent = 0);
-    ~TransactionDescDialog();
+    public:
 
-private:
-    Ui::TransactionDescDialog *ui;
+        explicit TransactionDescDialog(const QModelIndex &idx, QWidget *parent = 0);
+        ~TransactionDescDialog();
+
+    private:
+    
+        Ui::TransactionDescDialog *ui;
 };
 
 #endif // TRANSACTIONDESCDIALOG_H

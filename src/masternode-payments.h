@@ -1,8 +1,8 @@
-
-
 // Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2018 Profit Hunters Coin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #ifndef MASTERNODE_PAYMENTS_H
 #define MASTERNODE_PAYMENTS_H
 
@@ -28,35 +28,39 @@ void ProcessMessageMasternodePayments(CNode* pfrom, std::string& strCommand, CDa
 // for storing the winning payments
 class CMasternodePaymentWinner
 {
-public:
-    int nBlockHeight;
-    CTxIn vin;
-    CScript payee;
-    std::vector<unsigned char> vchSig;
-    uint64_t score;
+    public:
 
-    CMasternodePaymentWinner() {
-        nBlockHeight = 0;
-        score = 0;
-        vin = CTxIn();
-        payee = CScript();
-    }
+        int nBlockHeight;
+        CTxIn vin;
+        CScript payee;
+        std::vector<unsigned char> vchSig;
+        uint64_t score;
 
-    uint256 GetHash(){
-        uint256 n2 = Hash(BEGIN(nBlockHeight), END(nBlockHeight));
-        uint256 n3 = vin.prevout.hash > n2 ? (vin.prevout.hash - n2) : (n2 - vin.prevout.hash);
+        CMasternodePaymentWinner()
+        {
+            nBlockHeight = 0;
+            score = 0;
+            vin = CTxIn();
+            payee = CScript();
+        }
 
-        return n3;
-    }
+        uint256 GetHash()
+        {
+            uint256 n2 = Hash(BEGIN(nBlockHeight), END(nBlockHeight));
+            uint256 n3 = vin.prevout.hash > n2 ? (vin.prevout.hash - n2) : (n2 - vin.prevout.hash);
 
-    IMPLEMENT_SERIALIZE(
-        READWRITE(nBlockHeight);
-        READWRITE(payee);
-        READWRITE(vin);
-        READWRITE(score);
-        READWRITE(vchSig);
-    )
+            return n3;
+        }
+
+        IMPLEMENT_SERIALIZE(
+            READWRITE(nBlockHeight);
+            READWRITE(payee);
+            READWRITE(vin);
+            READWRITE(score);
+            READWRITE(vchSig);
+        )
 };
+
 
 //
 // Masternode Payments Class
@@ -65,41 +69,54 @@ public:
 
 class CMasternodePayments
 {
-private:
-    std::vector<CMasternodePaymentWinner> vWinning;
-    int nSyncedFromPeer;
-    std::string strMasterPrivKey;
-    std::string strMainPubKey;
-    bool enabled;
-    int nLastBlockHeight;
+    private:
 
-public:
+        std::vector<CMasternodePaymentWinner> vWinning;
 
-    CMasternodePayments() {
-        strMainPubKey = "045ae8e09a456a2ae88f9a2fdb99122612cd26f9da329731b1b8335f650978c9d21df0a0543ba1179d05a081c3c1ec389ce2bb55e36565b50ab40dde6b19d136e1";
-        enabled = false;
-    }
+        int nSyncedFromPeer;
 
-    bool SetPrivKey(std::string strPrivKey);
-    bool CheckSignature(CMasternodePaymentWinner& winner);
-    bool Sign(CMasternodePaymentWinner& winner);
+        std::string strMasterPrivKey;
 
-    // Deterministically calculate a given "score" for a masternode depending on how close it's hash is
-    // to the blockHeight. The further away they are the better, the furthest will win the election
-    // and get paid this block
-    //
+        std::string strMainPubKey;
 
-    uint64_t CalculateScore(uint256 blockHash, CTxIn& vin);
-    bool GetWinningMasternode(int nBlockHeight, CTxIn& vinOut);
-    bool AddWinningMasternode(CMasternodePaymentWinner& winner);
-    bool ProcessBlock(int nBlockHeight);
-    void Relay(CMasternodePaymentWinner& winner);
-    void Sync(CNode* node);
-    void CleanPaymentList();
-    int LastPayment(CMasternode& mn);
-    int GetMinMasternodePaymentsProto();
+        bool enabled;
 
-    bool GetBlockPayee(int nBlockHeight, CScript& payee, CTxIn& vin);
+        int nLastBlockHeight;
+
+    public:
+
+        CMasternodePayments()
+        {
+            strMainPubKey = "045ae8e09a456a2ae88f9a2fdb99122612cd26f9da329731b1b8335f650978c9d21df0a0543ba1179d05a081c3c1ec389ce2bb55e36565b50ab40dde6b19d136e1";
+            enabled = false;
+        }
+
+        bool SetPrivKey(std::string strPrivKey);
+        bool CheckSignature(CMasternodePaymentWinner& winner);
+        bool Sign(CMasternodePaymentWinner& winner);
+
+        // Deterministically calculate a given "score" for a masternode depending on how close it's hash is
+        // to the blockHeight. The further away they are the better, the furthest will win the election
+        // and get paid this block
+        //
+
+        uint64_t CalculateScore(uint256 blockHash, CTxIn& vin);
+
+        bool GetWinningMasternode(int nBlockHeight, CTxIn& vinOut);
+        bool AddWinningMasternode(CMasternodePaymentWinner& winner);
+
+        bool ProcessBlock(int nBlockHeight);
+
+        void Relay(CMasternodePaymentWinner& winner);
+
+        void Sync(CNode* node);
+
+        void CleanPaymentList();
+
+        int LastPayment(CMasternode& mn);
+        int GetMinMasternodePaymentsProto();
+
+        bool GetBlockPayee(int nBlockHeight, CScript& payee, CTxIn& vin);
 };
 
 

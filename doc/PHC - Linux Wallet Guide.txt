@@ -1,4 +1,4 @@
-Profit Hunters Coin (PHC) - Linux Wallet Guide 1.0
+Profit Hunters Coin (PHC) - Linux Wallet Guide 1.1
 www.ProfitHuntersCoin.com (C) 2018
 --------------------------------------------------
 
@@ -9,13 +9,25 @@ Required Platform:
 
 Installing Required Dependencies:
 ----------------------------
+
+Quick Command:
+
+Get Root permissions:
+
+su
+
+Install depends:
+
+apt-get update && apt-get upgrade && apt-get install build-essential libssl-dev libboost-all-dev libqrencode-dev miniupnpc libminiupnpc-dev libcurl4-openssl-dev dh-autoreconf autoconf automake git nano pkg-config libtool libtool-bin libgmp-dev software-properties-common
+
+Manually:
+
 sudo apt-get update
 sudo apt-get upgrade
 sudo apt-get install build-essential
 sudo apt-get install libssl-dev
 sudo apt-get install libboost-all-dev
 sudo apt-get install libqrencode-dev
-sudo apt-get install libgmp3-dev
 sudo apt-get install miniupnpc
 sudo apt-get install libminiupnpc-dev
 sudo apt-get install libcurl4-openssl-dev
@@ -30,6 +42,9 @@ sudo apt-get install libgmp-dev
 sudo apt-get install software-properties-common
 
 
+If libgmp3-dev fails try:libgmp3-dev
+
+
 Installing DB4 Dependencies:
 ----------------------------
 
@@ -41,20 +56,32 @@ sudo apt-get install libdb4.8-dev libdb4.8++-dev
 Installing QT Dependencies:
 ----------------------------
 
-sudo apt-get install qt5-base
-sudo apt-get install qt5-default
-sudo apt-get install qt5-qmake
-sudo apt-get install qtbase5-dev-tools
-sudo apt-get install qttools5-dev-tools
-sudo apt-get install build-essential
-sudo apt-get install libboost-dev
-sudo apt-get install libboost-system-dev
-sudo apt-get install libboost-filesystem-dev
-sudo apt-get install libboost-program-options-dev
-sudo apt-get install libboost-thread-dev
-sudo apt-get install libssl-dev
-sudo apt-get install libminiupnpc-dev
-sudo apt-get install libjson-c-dev
+Quick Commands:
+
+Get Root permissions:
+
+su
+
+Install depends:
+
+apt-get install qt5-base qt5-default qt5-qmake qtbase5-dev-tools qttools5-dev-tools build-essential libboost-dev libboost-system-dev libboost-system-dev libboost-filesystem-dev libboost-program-options-dev libboost-thread-dev libssl-dev libminiupnpc-dev libjson-c-dev
+
+Manually:
+
+apt-get install qt5-base
+apt-get install qt5-default
+apt-get install qt5-qmake
+apt-get install qtbase5-dev-tools
+apt-get install qttools5-dev-tools
+apt-get install build-essential
+apt-get install libboost-dev
+apt-get install libboost-system-dev
+apt-get install libboost-filesystem-dev
+apt-get install libboost-program-options-dev
+apt-get install libboost-thread-dev
+apt-get install libssl-dev
+apt-get install libminiupnpc-dev
+apt-get install libjson-c-dev
 
 
 Grabbing the source code:

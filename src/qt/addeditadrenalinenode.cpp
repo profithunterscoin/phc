@@ -1,3 +1,10 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2018 Profit Hunters Coin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #include "addeditadrenalinenode.h"
 #include "ui_addeditadrenalinenode.h"
 #include "masternodeconfig.h"
@@ -15,20 +22,15 @@
 #include <QMessageBox>
 #include <QClipboard>
 
-AddEditAdrenalineNode::AddEditAdrenalineNode(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::AddEditAdrenalineNode)
+AddEditAdrenalineNode::AddEditAdrenalineNode(QWidget *parent) : QDialog(parent), ui(new Ui::AddEditAdrenalineNode)
 {
     ui->setupUi(this);
-
-
-
 
     //Labels
     ui->aliasLineEdit->setPlaceholderText("Enter your Masternode alias");
     ui->addressLineEdit->setPlaceholderText("Enter your IP & port");
     ui->privkeyLineEdit->setPlaceholderText("Enter your Masternode private key");
-    ui->txhashLineEdit->setPlaceholderText("Enter your 10000	 PHC TXID");
+    ui->txhashLineEdit->setPlaceholderText("Enter your 10,000 PHC TXID");
     ui->outputindexLineEdit->setPlaceholderText("Enter your transaction output index");
     ui->rewardaddressLineEdit->setPlaceholderText("Enter a reward recive address");
     ui->rewardpercentageLineEdit->setPlaceholderText("Input the % for the reward");
@@ -45,36 +47,46 @@ void AddEditAdrenalineNode::on_okButton_clicked()
     if(ui->aliasLineEdit->text() == "")
     {
         QMessageBox msg;
+
         msg.setText("Please enter an alias.");
         msg.exec();
+
         return;
     }
     else if(ui->addressLineEdit->text() == "")
     {
         QMessageBox msg;
+
         msg.setText("Please enter an ip address and port. (123.45.67.89:20060)");
         msg.exec();
+
         return;
     }
     else if(ui->privkeyLineEdit->text() == "")
     {
         QMessageBox msg;
+
         msg.setText("Please enter a masternode private key. This can be found using the \"masternode genkey\" command in the console.");
         msg.exec();
+
         return;
     }
     else if(ui->txhashLineEdit->text() == "")
     {
         QMessageBox msg;
+
         msg.setText("Please enter the transaction hash for the transaction that has 10000 coins");
         msg.exec();
+
         return;
     }
     else if(ui->outputindexLineEdit->text() == "")
     {
         QMessageBox msg;
+
         msg.setText("Please enter a transaction output index. This can be found using the \"masternode outputs\" command in the console.");
         msg.exec();
+
         return;
     }
     else
@@ -89,18 +101,23 @@ void AddEditAdrenalineNode::on_okButton_clicked()
 
         boost::filesystem::path pathConfigFile = GetDataDir() / "masternode.conf";
         boost::filesystem::ofstream stream (pathConfigFile.string(), ios::out | ios::app);
+        
         if (stream.is_open())
         {
             stream << sAlias << " " << sAddress << " " << sMasternodePrivKey << " " << sTxHash << " " << sOutputIndex;
             
-            if (sRewardAddress != "" && sRewardPercentage != ""){
+            if (sRewardAddress != "" && sRewardPercentage != "")
+            {
                 stream << " " << sRewardAddress << ":" << sRewardPercentage << std::endl;
-            } else {
+            }
+            else
+            {
                 stream << std::endl;
             }
             
             stream.close();
         }
+
         masternodeConfig.add(sAlias, sAddress, sMasternodePrivKey, sTxHash, sOutputIndex, sRewardAddress, sRewardPercentage);
         accept();
     }

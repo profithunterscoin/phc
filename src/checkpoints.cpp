@@ -1,6 +1,9 @@
-// Copyright (c) 2009-2012 The Bitcoin developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2018 Profit Hunters Coin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 
 #include <boost/assign/list_of.hpp> // for 'map_list_of()'
 #include <boost/foreach.hpp>
@@ -44,7 +47,12 @@ namespace Checkpoints
         MapCheckpoints& checkpoints = (TestNet() ? mapCheckpointsTestnet : mapCheckpoints);
 
         MapCheckpoints::const_iterator i = checkpoints.find(nHeight);
-        if (i == checkpoints.end()) return true;
+
+        if (i == checkpoints.end())
+        {
+            return true;
+        }
+
         return hash == i->second;
     }
 
@@ -53,7 +61,10 @@ namespace Checkpoints
         MapCheckpoints& checkpoints = (TestNet() ? mapCheckpointsTestnet : mapCheckpoints);
 
         if (checkpoints.empty())
+        {
             return 0;
+        }
+
         return checkpoints.rbegin()->first;
     }
 
@@ -64,10 +75,15 @@ namespace Checkpoints
         BOOST_REVERSE_FOREACH(const MapCheckpoints::value_type& i, checkpoints)
         {
             const uint256& hash = i.second;
+
             std::map<uint256, CBlockIndex*>::const_iterator t = mapBlockIndex.find(hash);
+
             if (t != mapBlockIndex.end())
+            {
                 return t->second;
+            }
         }
+
         return NULL;
     }
 
@@ -75,9 +91,13 @@ namespace Checkpoints
     const CBlockIndex* AutoSelectSyncCheckpoint()
     {
         const CBlockIndex *pindex = pindexBest;
+
         // Search backward for a block within max span and maturity window
         while (pindex->pprev && pindex->nHeight + nCheckpointSpan > pindexBest->nHeight)
+        {
             pindex = pindex->pprev;
+        }
+        
         return pindex;
     }
 
@@ -85,9 +105,12 @@ namespace Checkpoints
     bool CheckSync(int nHeight)
     {
         const CBlockIndex* pindexSync = AutoSelectSyncCheckpoint();
-        if (nHeight <= pindexSync->nHeight){
+
+        if (nHeight <= pindexSync->nHeight)
+        {
             return false;
         }
+
         return true;
     }
 }

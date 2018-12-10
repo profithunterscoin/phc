@@ -1,5 +1,8 @@
-
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
 // Copyright (c) 2014-2015 The Darkcoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2018 Profit Hunters Coin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -14,35 +17,40 @@
 
 class CDarkSendRelay
 {
-public:
-    CTxIn vinMasternode;
-    vector<unsigned char> vchSig;
-    vector<unsigned char> vchSig2;
-    int nBlockHeight;
-    int nRelayType;
-    CTxIn in;
-    CTxOut out;
 
-    CDarkSendRelay();
-    CDarkSendRelay(CTxIn& vinMasternodeIn, vector<unsigned char>& vchSigIn, int nBlockHeightIn, int nRelayTypeIn, CTxIn& in2, CTxOut& out2);
-    
-    IMPLEMENT_SERIALIZE
-    (
-    	READWRITE(vinMasternode);
-        READWRITE(vchSig);
-        READWRITE(vchSig2);
-        READWRITE(nBlockHeight);
-        READWRITE(nRelayType);
-        READWRITE(in);
-        READWRITE(out);
-    )
+    public:
 
-    std::string ToString();
+        CTxIn vinMasternode;
+        vector<unsigned char> vchSig;
+        vector<unsigned char> vchSig2;
 
-    bool Sign(std::string strSharedKey);
-    bool VerifyMessage(std::string strSharedKey);
-    void Relay();
-    void RelayThroughNode(int nRank);
+        int nBlockHeight;
+        int nRelayType;
+
+        CTxIn in;
+        CTxOut out;
+
+        CDarkSendRelay();
+        CDarkSendRelay(CTxIn& vinMasternodeIn, vector<unsigned char>& vchSigIn, int nBlockHeightIn, int nRelayTypeIn, CTxIn& in2, CTxOut& out2);
+        
+        IMPLEMENT_SERIALIZE
+        (
+            READWRITE(vinMasternode);
+            READWRITE(vchSig);
+            READWRITE(vchSig2);
+            READWRITE(nBlockHeight);
+            READWRITE(nRelayType);
+            READWRITE(in);
+            READWRITE(out);
+        )
+
+        std::string ToString();
+
+        bool Sign(std::string strSharedKey);
+        bool VerifyMessage(std::string strSharedKey);
+        
+        void Relay();
+        void RelayThroughNode(int nRank);
 };
 
 

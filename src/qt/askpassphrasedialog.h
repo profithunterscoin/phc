@@ -1,11 +1,20 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2018 Profit Hunters Coin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #ifndef ASKPASSPHRASEDIALOG_H
 #define ASKPASSPHRASEDIALOG_H
 
 #include <QDialog>
 
-namespace Ui {
+namespace Ui
+{
     class AskPassphraseDialog;
 }
+
 class WalletModel;
 
 /** Multifunctional dialog to ask for passphrases. Used for encryption, unlocking, and changing the passphrase.
@@ -14,35 +23,44 @@ class AskPassphraseDialog : public QDialog
 {
     Q_OBJECT
 
-public:
-    enum Mode {
-        Encrypt,       /**< Ask passphrase twice and encrypt */
-        UnlockStaking, /**< Ask passphrase and unlock */
-        Unlock,        /**< Ask passphrase and unlock */
-        ChangePass,    /**< Ask old passphrase + new passphrase twice */
-        Decrypt        /**< Ask passphrase and decrypt wallet */
-    };
+    public:
 
-    explicit AskPassphraseDialog(Mode mode, QWidget *parent = 0);
-    ~AskPassphraseDialog();
+        enum Mode
+        {
+            Encrypt,       /**< Ask passphrase twice and encrypt */
+            UnlockStaking, /**< Ask passphrase and unlock */
+            Unlock,        /**< Ask passphrase and unlock */
+            ChangePass,    /**< Ask old passphrase + new passphrase twice */
+            Decrypt        /**< Ask passphrase and decrypt wallet */
+        };
 
-    void accept();
+        explicit AskPassphraseDialog(Mode mode, QWidget *parent = 0);
+        ~AskPassphraseDialog();
 
-    void setModel(WalletModel *model);
+        void accept();
 
-private:
-    Ui::AskPassphraseDialog *ui;
-    Mode mode;
-    WalletModel *model;
-    bool fCapsLock;
+        void setModel(WalletModel *model);
 
-private slots:
-    void textChanged();
+    private:
 
-protected:
-    bool event(QEvent *event);
-    bool eventFilter(QObject *, QEvent *event);
-    void secureClearPassFields();
+        Ui::AskPassphraseDialog *ui;
+        
+        Mode mode;
+        
+        WalletModel *model;
+       
+        bool fCapsLock;
+
+    private slots:
+
+        void textChanged();
+
+    protected:
+
+        bool event(QEvent *event);
+        bool eventFilter(QObject *, QEvent *event);
+        
+        void secureClearPassFields();
 };
 
 #endif // ASKPASSPHRASEDIALOG_H

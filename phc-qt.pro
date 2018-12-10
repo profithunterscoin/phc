@@ -1,20 +1,15 @@
 TEMPLATE = app
 TARGET = phc-qt
-VERSION = 1.0.0.6
+VERSION = 1.0.0.7
 INCLUDEPATH += src src/json src/qt src/qt/plugins/mrichtexteditor
-QT += network printsupport core gui
+QT += network printsupport core gui widgets
 DEFINES += ENABLE_WALLET
-DEFINES += BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE
+DEFINES += BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE QT_DISABLE_DEPRECATED_BEFORE=0
 CONFIG += no_include_pwd
 CONFIG += thread
 CONFIG += static
 #CONFIG += openssl-linked
 CONFIG += openssl
-
-greaterThan(QT_MAJOR_VERSION, 4) {
-    QT += widgets
-    DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0
-}
 
 # for boost 1.37, add -mt to the boost libraries
 # use: qmake BOOST_LIB_SUFFIX=-mt

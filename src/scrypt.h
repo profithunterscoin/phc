@@ -1,3 +1,6 @@
+// Copyright 2009 Colin Percival, 2011 ArtForz, 2011 pooler, 2013 Balthazar
+// All rights reserved.
+
 #ifndef SCRYPT_MINE_H
 #define SCRYPT_MINE_H
 

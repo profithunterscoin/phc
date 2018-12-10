@@ -1,3 +1,12 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2018 Profit Hunters Coin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #include "masternodemanager.h"
 #include "ui_masternodemanager.h"
 #include "addeditadrenalinenode.h"
@@ -16,8 +25,6 @@
 #include "rpcserver.h"
 #include <boost/lexical_cast.hpp>
 #include <fstream>
-using namespace json_spirit;
-using namespace std;
 
 #include <QAbstractItemDelegate>
 #include <QClipboard>
@@ -32,11 +39,11 @@ using namespace std;
 #include <QMessageBox>
 #include <QItemSelectionModel>
 
-MasternodeManager::MasternodeManager(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::MasternodeManager),
-    clientModel(0),
-    walletModel(0)
+using namespace json_spirit;
+using namespace std;
+
+
+MasternodeManager::MasternodeManager(QWidget *parent) : QWidget(parent), ui(new Ui::MasternodeManager), clientModel(0), walletModel(0)
 {
     ui->setupUi(this);
 
@@ -56,11 +63,14 @@ MasternodeManager::MasternodeManager(QWidget *parent) :
     ui->tableWidgetMasternodes->setColumnWidth(4, columnLastSeenWidth);
     
     ui->tableWidgetMasternodes->setContextMenuPolicy(Qt::CustomContextMenu);
+    
     QAction *copyAddressAction = new QAction(tr("Copy Address"), this);
     QAction *copyPubkeyAction = new QAction(tr("Copy Pubkey"), this);
+    
     contextMenu = new QMenu();
     contextMenu->addAction(copyAddressAction);
     contextMenu->addAction(copyPubkeyAction);
+    
     connect(ui->tableWidgetMasternodes, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(showContextMenu(const QPoint&)));
     connect(copyAddressAction, SIGNAL(triggered()), this, SLOT(copyAddress()));
     connect(copyPubkeyAction, SIGNAL(triggered()), this, SLOT(copyPubkey()));
@@ -69,13 +79,18 @@ MasternodeManager::MasternodeManager(QWidget *parent) :
     ui->tableWidget_2->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
     timer = new QTimer(this);
+    
     connect(timer, SIGNAL(timeout()), this, SLOT(updateNodeList()));
+    
     if(!GetBoolArg("-reindexaddr", false))
+    {
         timer->start(30000);
+    }
 
     updateNodeList();  
 
 }
+
 
 void MasternodeManager::on_tabWidget_currentChanged(int index)
 {
@@ -85,10 +100,12 @@ void MasternodeManager::on_tabWidget_currentChanged(int index)
     }
 }
 
+
 MasternodeManager::~MasternodeManager()
 {
     delete ui;
 }
+
 
 void MasternodeManager::on_tableWidget_2_itemSelectionChanged()
 {
@@ -99,23 +116,29 @@ void MasternodeManager::on_tableWidget_2_itemSelectionChanged()
     }
 }
 
+
 void MasternodeManager::updateAdrenalineNode(QString alias, QString addr, QString privkey, QString txHash, QString txIndex, QString rewardAddress, QString rewardPercentage, QString status)
 {
     LOCK(cs_adrenaline);
+
     bool bFound = false;
     int nodeRow = 0;
+
     for(int i=0; i < ui->tableWidget_2->rowCount(); i++)
     {
         if(ui->tableWidget_2->item(i, 0)->text() == alias)
         {
             bFound = true;
             nodeRow = i;
+
             break;
         }
     }
 
     if(nodeRow == 0 && !bFound)
+    {
         ui->tableWidget_2->insertRow(0);
+    }
 
     QTableWidgetItem *aliasItem = new QTableWidgetItem(alias);
     QTableWidgetItem *addrItem = new QTableWidgetItem(addr);
@@ -130,30 +153,51 @@ void MasternodeManager::updateAdrenalineNode(QString alias, QString addr, QStrin
     ui->tableWidget_2->setItem(nodeRow, 4, statusItem);
 }
 
+
 static QString seconds_to_DHMS(quint32 duration)
 {
   QString res;
+  
   int seconds = (int) (duration % 60);
+  
   duration /= 60;
   int minutes = (int) (duration % 60);
+  
   duration /= 60;
   int hours = (int) (duration % 24);
+  
   int days = (int) (duration / 24);
+
   if((hours == 0)&&(days == 0))
+  {
       return res.sprintf("%02dm:%02ds", minutes, seconds);
+  }
+
   if (days == 0)
+  {
       return res.sprintf("%02dh:%02dm:%02ds", hours, minutes, seconds);
+  }
+
   return res.sprintf("%dd %02dh:%02dm:%02ds", days, hours, minutes, seconds);
 }
+
 
 void MasternodeManager::updateNodeList()
 {
     static int64_t nTimeListUpdated = GetTime();
     int64_t nSecondsToWait = nTimeListUpdated - GetTime() + 30;
-    if (nSecondsToWait > 0) return;
+
+    if (nSecondsToWait > 0)
+    {
+        return;
+    }
     
     TRY_LOCK(cs_masternodes, lockMasternodes);
-    if(!lockMasternodes) return;
+    
+    if(!lockMasternodes)
+    {
+        return;
+    }
 
     ui->countLabel->setText("Updating...");
     ui->tableWidgetMasternodes->setSortingEnabled(false);
@@ -201,14 +245,15 @@ void MasternodeManager::setClientModel(ClientModel *model)
     }
 }
 
+
 void MasternodeManager::setWalletModel(WalletModel *model)
 {
     this->walletModel = model;
     if(model && model->getOptionsModel())
     {
     }
-
 }
+
 
 void MasternodeManager::on_createButton_clicked()
 {
@@ -216,12 +261,14 @@ void MasternodeManager::on_createButton_clicked()
     aenode->exec();
 }
 
+
 void MasternodeManager::on_startButton_clicked()
 {
     std::string statusObj;
 
     // start the node
     QItemSelectionModel* selectionModel = ui->tableWidget_2->selectionModel();
+    
     QModelIndexList selected = selectionModel->selectedRows();
     if(selected.count() == 0)
     {
@@ -229,6 +276,7 @@ void MasternodeManager::on_startButton_clicked()
         QMessageBox msg;
         msg.setText(QString::fromStdString(statusObj));
         msg.exec();
+        
         return;
     }
 
@@ -236,33 +284,40 @@ void MasternodeManager::on_startButton_clicked()
     int r = index.row();
     std::string sAlias = ui->tableWidget_2->item(r, 0)->text().toStdString();
 
-    if(pwalletMain->IsLocked()) {
+    if(pwalletMain->IsLocked())
+    {
 
         statusObj += "<br>Please unlock your wallet to start Masternode" ;
         QMessageBox msg;
         msg.setText(QString::fromStdString(statusObj));
         msg.exec();
+        
         return;
     }
 
     
     statusObj += "<center>Alias: " + sAlias;
 
-    BOOST_FOREACH(CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries()) {
+    BOOST_FOREACH(CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries())
+    {
         if(mne.getAlias() == sAlias)
         {
 
-        std::string errorMessage;
-        std::string strRewardAddress = mne.getRewardAddress();
-        std::string strRewardPercentage = mne.getRewardPercentage();
+            std::string errorMessage;
+            std::string strRewardAddress = mne.getRewardAddress();
+            std::string strRewardPercentage = mne.getRewardPercentage();
 
-        bool result = activeMasternode.Register(mne.getIp(), mne.getPrivKey(), mne.getTxHash(), mne.getOutputIndex(), strRewardAddress, strRewardPercentage, errorMessage);
+            bool result = activeMasternode.Register(mne.getIp(), mne.getPrivKey(), mne.getTxHash(), mne.getOutputIndex(), strRewardAddress, strRewardPercentage, errorMessage);
 
-            if(result) {
+            if(result)
+            {
                 statusObj += "<br>Successfully started masternode." ;
-            } else {
+            }
+            else
+            {
                 statusObj += "<br>Failed to start masternode.<br>Error: " + errorMessage;
             }
+
             break;
         }
     }
@@ -276,9 +331,12 @@ void MasternodeManager::on_startButton_clicked()
     MasternodeManager::on_UpdateButton_clicked();
 }
 
+
 void MasternodeManager::on_startAllButton_clicked()
 {
-    if(pwalletMain->IsLocked()) {
+    if(pwalletMain->IsLocked())
+    {
+        // do nothing
     }
 
     std::vector<CMasternodeConfig::CMasternodeEntry> mnEntries;
@@ -286,9 +344,11 @@ void MasternodeManager::on_startAllButton_clicked()
     int total = 0;
     int successful = 0;
     int fail = 0;
+    
     std::string statusObj;
 
-    BOOST_FOREACH(CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries()) {
+    BOOST_FOREACH(CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries())
+    {
         total++;
 
         std::string errorMessage;
@@ -297,20 +357,28 @@ void MasternodeManager::on_startAllButton_clicked()
 
         bool result = activeMasternode.Register(mne.getIp(), mne.getPrivKey(), mne.getTxHash(), mne.getOutputIndex(), strRewardAddress, strRewardPercentage, errorMessage);
 
-        if(result) {
+        if(result)
+        {
             successful++;
-        } else {
+        }
+        else
+        {
             fail++;
+
             statusObj += "\nFailed to start " + mne.getAlias() + ". Error: " + errorMessage;
         }
     }
+
     pwalletMain->Lock();
 
     std::string returnObj;
     returnObj = "Successfully started " + boost::lexical_cast<std::string>(successful) + " masternodes, failed to start " +
             boost::lexical_cast<std::string>(fail) + ", total " + boost::lexical_cast<std::string>(total);
+    
     if (fail > 0)
+    {
         returnObj += statusObj;
+    }
 
     QMessageBox msg;
     msg.setText(QString::fromStdString(returnObj));
@@ -320,13 +388,17 @@ void MasternodeManager::on_startAllButton_clicked()
     MasternodeManager::on_UpdateButton_clicked();
 }
 
+
 void MasternodeManager::on_UpdateButton_clicked()
 {
     std::string errorMessage;
+
     static int64_t nTimeListUpdated = GetTime();
+
     int64_t nSecondsSinceUpdate = nTimeListUpdated - GetTime();
 
-    BOOST_FOREACH(CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries()) {
+    BOOST_FOREACH(CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries())
+    {
         std::string strRewardAddress = mne.getRewardAddress();
         std::string strRewardPercentage = mne.getRewardPercentage();
 
@@ -340,17 +412,21 @@ void MasternodeManager::on_UpdateButton_clicked()
             }
         }
 
-        if (errorMessage == ""){
+        if (errorMessage == "")
+        {
             updateAdrenalineNode(QString::fromStdString(mne.getAlias()), QString::fromStdString(mne.getIp()), QString::fromStdString(mne.getPrivKey()), QString::fromStdString(mne.getTxHash()),
                 QString::fromStdString(mne.getOutputIndex()), QString::fromStdString(strRewardAddress), QString::fromStdString(strRewardPercentage), QString::fromStdString("Not in the masternode list."));
         }
-        else {
+        else
+        {
             updateAdrenalineNode(QString::fromStdString(mne.getAlias()), QString::fromStdString(mne.getIp()), QString::fromStdString(mne.getPrivKey()), QString::fromStdString(mne.getTxHash()),
                 QString::fromStdString(mne.getOutputIndex()), QString::fromStdString(strRewardAddress), QString::fromStdString(strRewardPercentage), QString::fromStdString(errorMessage));
         }
 
-        BOOST_FOREACH(CMasternode& mn, vMasternodes) {
-            if (mn.addr.ToString().c_str() == mne.getIp()){
+        BOOST_FOREACH(CMasternode& mn, vMasternodes)
+        {
+            if (mn.addr.ToString().c_str() == mne.getIp())
+            {
                 updateAdrenalineNode(QString::fromStdString(mne.getAlias()), QString::fromStdString(mne.getIp()), QString::fromStdString(mne.getPrivKey()), QString::fromStdString(mne.getTxHash()),
                 QString::fromStdString(mne.getOutputIndex()), QString::fromStdString(strRewardAddress), QString::fromStdString(strRewardPercentage), QString::fromStdString("Masternode is Running."));
             }
@@ -358,53 +434,78 @@ void MasternodeManager::on_UpdateButton_clicked()
     }
 }
 
+
 void MasternodeManager::showContextMenu(const QPoint& point)
 {
     QTableWidgetItem* item = ui->tableWidgetMasternodes->itemAt(point);
-    if (item) contextMenu->exec(QCursor::pos());
+    
+    if (item)
+    {
+        contextMenu->exec(QCursor::pos());
+    }
 }
+
 
 void MasternodeManager::copyAddress()
 {
     std::string sData;
     int row;
+    
     QItemSelectionModel* selectionModel = ui->tableWidgetMasternodes->selectionModel();
     QModelIndexList selectedRows = selectionModel->selectedRows();
+    
     if(selectedRows.count() == 0)
+    {
         return;
+    }
     
     for (int i = 0; i < selectedRows.count(); i++)
     {
         QModelIndex index = selectedRows.at(i);
         row = index.row();
+        
         sData += ui->tableWidgetMasternodes->item(row, 0)->text().toStdString();
+        
         if (i < selectedRows.count()-1)
+        {
             sData += "\n";
+        }
     }
     
     QApplication::clipboard()->setText(QString::fromStdString(sData));
 }
 
+
 void MasternodeManager::copyPubkey()
 {
     std::string sData;
+    
     int row;
+    
     QItemSelectionModel* selectionModel = ui->tableWidgetMasternodes->selectionModel();
     QModelIndexList selectedRows = selectionModel->selectedRows();
+
     if(selectedRows.count() == 0)
+    {
         return;
+    }
     
     for (int i = 0; i < selectedRows.count(); i++)
     {
         QModelIndex index = selectedRows.at(i);
         row = index.row();
+        
         sData += ui->tableWidgetMasternodes->item(row, 5)->text().toStdString();
+        
         if (i < selectedRows.count()-1)
+        {
             sData += "\n";
+        }
     }
     
     QApplication::clipboard()->setText(QString::fromStdString(sData));
 }
+
 
 void MasternodeManager::on_openMNConfigfileButton_clicked()
 {

@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Edited By: Profit Hunters Coin
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the examples of the Qt Toolkit.
@@ -45,33 +46,50 @@
 #include <QRect>
 #include <QWidgetItem>
 //! [0]
+
 class FlowLayout : public QLayout
 {
-public:
-    FlowLayout(QWidget *parent, int margin = -1, int hSpacing = -1, int vSpacing = -1);
-    FlowLayout(int margin = -1, int hSpacing = -1, int vSpacing = -1);
-    ~FlowLayout();
+    public:
 
-    void addItem(QLayoutItem *item);
-    int horizontalSpacing() const;
-    int verticalSpacing() const;
-    Qt::Orientations expandingDirections() const;
-    bool hasHeightForWidth() const;
-    int heightForWidth(int) const;
-    int count() const;
-    QLayoutItem *itemAt(int index) const;
-    QSize minimumSize() const;
-    void setGeometry(const QRect &rect);
-    QSize sizeHint() const;
-    QLayoutItem *takeAt(int index);
+        FlowLayout(QWidget *parent, int margin = -1, int hSpacing = -1, int vSpacing = -1);
+        FlowLayout(int margin = -1, int hSpacing = -1, int vSpacing = -1);
+        ~FlowLayout();
 
-private:
-    int doLayout(const QRect &rect, bool testOnly) const;
-    int smartSpacing(QStyle::PixelMetric pm) const;
+        void addItem(QLayoutItem *item);
 
-    QList<QLayoutItem *> itemList;
-    int m_hSpace;
-    int m_vSpace;
+        int horizontalSpacing() const;
+
+        int verticalSpacing() const;
+
+        Qt::Orientations expandingDirections() const;
+
+        bool hasHeightForWidth() const;
+
+        int heightForWidth(int) const;
+
+        int count() const;
+
+        QLayoutItem *itemAt(int index) const;
+
+        QSize minimumSize() const;
+
+        void setGeometry(const QRect &rect);
+
+        QSize sizeHint() const;
+
+        QLayoutItem *takeAt(int index);
+
+    private:
+
+        int doLayout(const QRect &rect, bool testOnly) const;
+
+        int smartSpacing(QStyle::PixelMetric pm) const;
+
+        QList<QLayoutItem *> itemList;
+
+        int m_hSpace;
+        
+        int m_vSpace;
 };
 //! [0]
 

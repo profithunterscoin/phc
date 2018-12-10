@@ -1,6 +1,8 @@
 // Copyright (c) 2011-2013 The Bitcoin developers
+// Copyright (c) 2018 Profit Hunters Coin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 
 #ifndef OPTIONSMODEL_H
 #define OPTIONSMODEL_H
@@ -23,68 +25,105 @@ class OptionsModel : public QAbstractListModel
 {
     Q_OBJECT
 
-public:
-    explicit OptionsModel(QObject *parent = 0);
+    public:
 
-    enum OptionID {
-        StartAtStartup,         // bool
-        MinimizeToTray,         // bool
-        MapPortUPnP,            // bool
-        MinimizeOnClose,        // bool
-        ProxyUse,               // bool
-        ProxyIP,                // QString
-        ProxyPort,              // int
-        ProxySocksVersion,      // int
-        Fee,                    // qint64
-        ReserveBalance,         // qint64
-        DisplayUnit,            // BitcoinUnits::Unit
-        Language,               // QString
-        CoinControlFeatures,    // bool
-        UseBlackTheme,     // bool
-        DarksendRounds,    // int
-        AnonymizePHCAmount, //int
-        OptionIDRowCount,
-    };
+        explicit OptionsModel(QObject *parent = 0);
 
-    void Init();
-    void Reset();
+        enum OptionID
+        {
+            StartAtStartup,         // bool
+            MinimizeToTray,         // bool
+            MapPortUPnP,            // bool
+            MinimizeOnClose,        // bool
+            ProxyUse,               // bool
+            ProxyIP,                // QString
+            ProxyPort,              // int
+            ProxySocksVersion,      // int
+            Fee,                    // qint64
+            ReserveBalance,         // qint64
+            DisplayUnit,            // BitcoinUnits::Unit
+            Language,               // QString
+            CoinControlFeatures,    // bool
+            UseBlackTheme,     // bool
+            DarksendRounds,    // int
+            AnonymizePHCAmount, //int
+            OptionIDRowCount,
+        };
 
-    int rowCount(const QModelIndex & parent = QModelIndex()) const;
-    QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
-    bool setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole);
+        void Init();
+        void Reset();
 
-    /* Explicit getters */
-    qint64 getReserveBalance();
-    bool getMinimizeToTray() { return fMinimizeToTray; }
-    bool getMinimizeOnClose() { return fMinimizeOnClose; }
-    int getDisplayUnit() { return nDisplayUnit; }
-    bool getProxySettings(QNetworkProxy& proxy) const;
-    bool getCoinControlFeatures() { return fCoinControlFeatures; }
-    const QString& getOverriddenByCommandLine() { return strOverriddenByCommandLine; }
+        int rowCount(const QModelIndex & parent = QModelIndex()) const;
+        
+        QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
+        
+        bool setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole);
 
-    /* Restart flag helper */
-    void setRestartRequired(bool fRequired);
-    bool isRestartRequired();
-private:
-    /* Qt-only settings */
-    bool fMinimizeToTray;
-    bool fMinimizeOnClose;
-    QString language;
-    int nDisplayUnit;
-    bool fCoinControlFeatures;
-    /* settings that were overriden by command-line */
-    QString strOverriddenByCommandLine;
+        /* Explicit getters */
+        qint64 getReserveBalance();
+        
+        bool getMinimizeToTray()
+        {
+            return fMinimizeToTray;
+        }
+        
+        bool getMinimizeOnClose()
+        {
+            return fMinimizeOnClose;
+        }
+        
+        int getDisplayUnit()
+        {
+            return nDisplayUnit;
+        }
+        
+        bool getProxySettings(QNetworkProxy& proxy) const;
 
-    /// Add option to list of GUI options overridden through command line/config file
-    void addOverriddenOption(const std::string &option);
+        bool getCoinControlFeatures()
+        {
+            return fCoinControlFeatures;
+        }
+        
+        const QString& getOverriddenByCommandLine()
+        {
+            return strOverriddenByCommandLine;
+        }
 
-signals:
-    void displayUnitChanged(int unit);
-    void transactionFeeChanged(qint64);
-    void reserveBalanceChanged(qint64);
-    void coinControlFeaturesChanged(bool);
-    void darksendRoundsChanged(int);
-    void AnonymizePHCAmountChanged(int);
+        /* Restart flag helper */
+        void setRestartRequired(bool fRequired);
+        bool isRestartRequired();
+
+    private:
+        
+        /* Qt-only settings */
+        bool fMinimizeToTray;
+        bool fMinimizeOnClose;
+        
+        QString language;
+        
+        int nDisplayUnit;
+        
+        bool fCoinControlFeatures;
+        
+        /* settings that were overriden by command-line */
+        QString strOverriddenByCommandLine;
+
+        /// Add option to list of GUI options overridden through command line/config file
+        void addOverriddenOption(const std::string &option);
+
+    signals:
+
+        void displayUnitChanged(int unit);
+
+        void transactionFeeChanged(qint64);
+
+        void reserveBalanceChanged(qint64);
+
+        void coinControlFeaturesChanged(bool);
+
+        void darksendRoundsChanged(int);
+        
+        void AnonymizePHCAmountChanged(int);
 };
 
 #endif // OPTIONSMODEL_H
