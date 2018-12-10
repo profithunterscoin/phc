@@ -905,9 +905,13 @@ void ThreadSecureMsgPow()
     
     uint8_t chKey[18];
 
+    LogPrintf("smessage", "*** RGP >>> ThreadSecureMsgPow start... Debug 001\n");
+
     while (fSecMsgEnabled)
     {
         // -- sleep at end, then fSecMsgEnabled is tested on wake
+
+        LogPrint("smessage", "*** RGP >>> ThreadSecureMsgPow main loop Debug 002\n" );
 
         SecMsgDB dbOutbox;
         leveldb::Iterator* it;
@@ -918,6 +922,10 @@ void ThreadSecureMsgPow()
 
             if (!dbOutbox.Open("cr+"))
             {
+                LogPrint("smessage", "*** RGP >>> ThreadSecureMsgPow dbOutbox.Open Debug 003\n" );
+                
+                MilliSleep(500); // RGP added
+                
                 continue;
             }
 
@@ -927,6 +935,8 @@ void ThreadSecureMsgPow()
         // Global Namespace End
         // -- break up lock, SecureMsgSetHash will take long
 
+        LogPrint("smessage", "*** RGP >>> ThreadSecureMsgPow main loop Debug 004\n");
+
         for (;;)
         {
             // Global Namespace Start
@@ -934,7 +944,11 @@ void ThreadSecureMsgPow()
                 LOCK(cs_smsgDB);
                 
                 if (!dbOutbox.NextSmesg(it, sPrefix, chKey, smsgStored))
-                {
+                {         
+                    LogPrint("smessage", "*** RGP*** ThreadSecureMsgPow No Next Messagee... Debug 001a\n");
+                    
+                    MilliSleep(500); // RGP added
+                    
                     break;
                 }
             }
@@ -955,6 +969,8 @@ void ThreadSecureMsgPow()
             // -- message is removed here, no matter what
             // Global Namespace Start
             {
+                LogPrint("smessage", "*** RGP*** ThreadSecureMsgPow Erase Message... Debug 002\n");
+
                 LOCK(cs_smsgDB);
                 
                 dbOutbox.EraseSmesg(chKey);
@@ -964,6 +980,7 @@ void ThreadSecureMsgPow()
             if (rv != 0)
             {
                 LogPrint("smessage", "SecMsgPow: Could not get proof of work hash, message removed.\n");
+                
                 continue;
             }
 
@@ -974,7 +991,7 @@ void ThreadSecureMsgPow()
                 
                 if (SecureMsgStore(pHeader, pPayload, psmsg->nPayload, true) != 0)
                 {
-                    LogPrint("smessage", "SecMsgPow: Could not place message in buckets, message removed.\n");
+                    LogPrint("smessage", "*** RGP*** ThreadSecureMsgPow SecureMsgScanMessage error... Debug 003\n");
                     
                     continue;
                 }
@@ -986,6 +1003,11 @@ void ThreadSecureMsgPow()
             {
                 // message recipient is not this node (or failed)
             }
+
+            LogPrint("smessage", "*** RGP*** ThreadSecureMsgPow start... Debug 002\n");
+            
+            /* RGP, Added as smsg-po was using 100% cpu time? */
+            MilliSleep(500); // Added
         }
 
         delete it;

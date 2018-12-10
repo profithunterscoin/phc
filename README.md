@@ -1,12 +1,11 @@
-Profit Hunters Coin (PHC) is a free open source decentralized project derived from Bitcoin.
-It's an experimental project with the goal of providing a long-term energy-efficient scrypt-based crypto-currency.
-You're using this software with no guarantees or warranty of any kind. Use it at your own risk!
-Built on the foundations of Bitcoin, Litecoin, PeerCoin, NovaCoin, CraveProject, Dash Masternodes
-XUVCoin, BATA, and Crypostle to help further advance the field of crypto-currency.
+PHC is a Pow/PoS/Masternode-based cryptocurrency to be used for affiliate
+opportunities and online marketing. Assisting new crypto-currency users get
+started with peer to peer profits from trading coins on our decentralized exchange.
 
 Adjustments based on network hashrate, previous block difficulty simulating real bullion mining: If the difficulty rate is low; using excessive work to produce low value blocks does not yield large return rates. When the ratio of difficulty adjusts and the network hashrate remains constant or declines: The reward per block will reach the maximum level, thus mining becomes very profitable.
 
-This algorithm is intended to discourage >51% attacks, or malicous miners. It will also act as an automatic inflation adjustment based on network conditions.
+Dynamic Block Rewards & Firewall implementation is intended to discourage >51% attacks, or malicous miners.
+It will also serve as an automatic inflation adjustment based on network conditions.
 
 - Dynamic Block Reward 3.0 (C) 2017 Crypostle
 - Block #1 Up to 50000 [Max PoW: 100 PHC] [PoS: 1000% APR] 
@@ -44,6 +43,30 @@ Social Network:
 
 - Github: https://github.com/BiznatchEnterprises/phc
 - Forum: http://profithuntersclub.com/index.php?t=msg&th=85&start=0&
-- Slack: https://join.slack.com/t/profithunterscoin/shared_invite/enQtMjk1NTU0NjI4NjMxLWE5NmM1MWYyN2Y4NTY4ZjE0ZTgxYzJiNGYyNDYwODhiNGQwODQ1OTFkYTY4OTZkODFjN2Y0NDA4MWEwY2FiNWU
+- Slack: http://slack.profithunterscoin.com
 - Telegram: https://t.me/profithunterscoin
 - Discord: https://discord.gg/Abwhbw2
+
+
+---------------------------------------------------------------
+
+Profit Hunters Coin (PHC) is a free open source decentralized project derived from Bitcoin.
+It's an experimental project with the goal of providing a long-term energy-efficient scrypt-based crypto-currency.
+You're using this software with no guarantees or warranty of any kind. Use it at your own risk!
+Built on the foundations of Bitcoin, Litecoin, PeerCoin, NovaCoin, CraveProject, Dash Masternodes
+XUVCoin, BATA, and Crypostle to help further advance the field of crypto-currency.
+
+Copyright © 2018 Crypostle developers
+Copyright © 2017 The XUV developers
+Copyright © 2014-2015 The ShadowCoin developers
+Copyright © 2014-2015 The Dash developers
+Copyright © 2014 The Crave developers
+Copyright © 2009-2012 The Darkcoin developers
+Copyright © 2012-2014 The NovaCoin developers
+Copyright © 2011-2015 The Peercoin developers
+Copyright © 2009-2014 The Bitcoin developers
+
+This product includes software developed by the OpenSSL Project for use in
+the OpenSSL Toolkit (http://www.openssl.org/).
+
+This product includes cryptographic software written by Eric Young (eay@cryptsoft.com).
