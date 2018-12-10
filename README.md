@@ -1,3 +1,5 @@
+# Profit Hunters Coin 1.0.0.7
+
 PHC is a Pow/PoS/Masternode-based cryptocurrency to be used for affiliate
 opportunities and online marketing. Assisting new crypto-currency users get
 started with peer to peer profits from trading coins on our decentralized exchange.
@@ -21,25 +23,25 @@ It will also serve as an automatic inflation adjustment based on network conditi
 - Masternode Collateral: 10000 PHC
 - 30 MegaByte Maximum Block Size (30X Bitcoin Core)
 
-Misc Features:
+## Misc Features:
 
 PHC includes an Address Index feature, based on the address index API (searchrawtransactions RPC command) implemented in Bitcoin Core but modified implementation to work with the PHC codebase (PoS coins maintain a txindex by default for instance).
 
 Initialize the Address Index By Running with -reindexaddr Command Line Argument. It may take 10-15 minutes to build the initial index.
 
-Main Network Information:
+## Main Network Information:
 
 - Port: 20060
 - RPC Port: 20061
 - Magic Bytes: 0x1a 0x33 0x25 0x88
 
-Test Network Information:
+## Test Network Information:
 
 - Port: 20062
 - RPC Port: 20063
 - Magic Bytes: 0x6b 0x33 0x25 0x75
 
-Social Network:
+## Social Network:
 
 - Github: https://github.com/BiznatchEnterprises/phc
 - Forum: http://profithuntersclub.com/index.php?t=msg&th=85&start=0&
@@ -57,13 +59,21 @@ Built on the foundations of Bitcoin, Litecoin, PeerCoin, NovaCoin, CraveProject,
 XUVCoin, BATA, and Crypostle to help further advance the field of crypto-currency.
 
 Copyright © 2018 Crypostle developers
+
 Copyright © 2017 The XUV developers
+
 Copyright © 2014-2015 The ShadowCoin developers
+
 Copyright © 2014-2015 The Dash developers
+
 Copyright © 2014 The Crave developers
+
 Copyright © 2009-2012 The Darkcoin developers
+
 Copyright © 2012-2014 The NovaCoin developers
+
 Copyright © 2011-2015 The Peercoin developers
+
 Copyright © 2009-2014 The Bitcoin developers
 
 This product includes software developed by the OpenSSL Project for use in
