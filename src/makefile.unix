@@ -6,6 +6,10 @@ USE_UPNP:=0
 USE_WALLET:=1
 USE_LOWMEM:=0
 
+CC = gcc
+CXX = g++ -std=c++11 -Wno-deprecated-declarations
+CFLAGS = -O2 -fomit-frame-pointer
+
 LINK:=$(CXX)
 ARCH:=$(system lscpu | head -n 1 | awk '{print $2}')
 
@@ -105,7 +109,7 @@ xCXXFLAGS=-O2 $(EXT_OPTIONS) -pthread -Wall -Wextra -Wno-ignored-qualifiers -Wfo
 
 # LDFLAGS can be specified on the make command line, so we use xLDFLAGS that only
 # adds some defaults in front. Unfortunately, LDFLAGS=... $(LDFLAGS) does not work.
-xLDFLAGS=$(LDHARDENING) $(LDFLAGS)
+xLDFLAGS=$(LDHARDENING) $(LDFLAGS) -std=c++11 -Wno-deprecated-declarations
 
 OBJS= \
     obj/alert.o \
