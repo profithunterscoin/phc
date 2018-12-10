@@ -1,3 +1,12 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2018 Profit Hunters Coin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #include "masternode.h"
 #include "masternodeman.h"
 #include "darksend.h"
@@ -11,30 +20,38 @@
 
 CCriticalSection cs_masternodes;
 // keep track of the scanning errors I've seen
+
 map<uint256, int> mapSeenMasternodeScanningErrors;
+
 // cache block hashes as we calculate them
 std::map<int64_t, uint256> mapCacheBlockHashes;
 
-
 struct CompareValueOnly
 {
-    bool operator()(const pair<int64_t, CTxIn>& t1,
-                    const pair<int64_t, CTxIn>& t2) const
+    bool operator()(const pair<int64_t, CTxIn>& t1, const pair<int64_t, CTxIn>& t2) const
     {
         return t1.first < t2.first;
     }
 };
 
+
 //Get the last hash that matches the modulus given. Processed in reverse order
 bool GetBlockHash(uint256& hash, int nBlockHeight)
 {
-    if (pindexBest == NULL) return false;
+    if (pindexBest == NULL)
+    {
+        return false;
+    }
 
     if(nBlockHeight == 0)
+    {
         nBlockHeight = pindexBest->nHeight;
+    }
 
-    if(mapCacheBlockHashes.count(nBlockHeight)){
+    if(mapCacheBlockHashes.count(nBlockHeight))
+    {
         hash = mapCacheBlockHashes[nBlockHeight];
+
         return true;
     }
 
@@ -44,28 +61,46 @@ bool GetBlockHash(uint256& hash, int nBlockHeight)
     if (BlockLastSolved == NULL || BlockLastSolved->nHeight == 0 || pindexBest->nHeight+1 < nBlockHeight) return false;
 
     int nBlocksAgo = 0;
-    if(nBlockHeight > 0) nBlocksAgo = (pindexBest->nHeight+1)-nBlockHeight;
+
+    if(nBlockHeight > 0)
+    {
+        nBlocksAgo = (pindexBest->nHeight+1)-nBlockHeight;
+    }
+
     assert(nBlocksAgo >= 0);
 
     int n = 0;
-    for (unsigned int i = 1; BlockReading && BlockReading->nHeight > 0; i++) {
-        if(n >= nBlocksAgo){
+
+    for (unsigned int i = 1; BlockReading && BlockReading->nHeight > 0; i++)
+    {
+        if(n >= nBlocksAgo)
+        {
             hash = BlockReading->GetBlockHash();
             mapCacheBlockHashes[nBlockHeight] = hash;
+        
             return true;
         }
+
         n++;
 
-        if (BlockReading->pprev == NULL) { assert(BlockReading); break; }
+        if (BlockReading->pprev == NULL)
+        {
+            assert(BlockReading);
+            
+            break;
+        }
+        
         BlockReading = BlockReading->pprev;
     }
 
     return false;
 }
 
+
 CMasternode::CMasternode()
 {
     LOCK(cs);
+
     vin = CTxIn();
     addr = CService();
     pubkey = CPubKey();
@@ -93,9 +128,11 @@ CMasternode::CMasternode()
     isOldNode = true;
 }
 
+
 CMasternode::CMasternode(const CMasternode& other)
 {
     LOCK(cs);
+
     vin = other.vin;
     addr = other.addr;
     pubkey = other.pubkey;
@@ -123,9 +160,11 @@ CMasternode::CMasternode(const CMasternode& other)
     isOldNode = other.isOldNode;
 }
 
+
 CMasternode::CMasternode(CService newAddr, CTxIn newVin, CPubKey newPubkey, std::vector<unsigned char> newSig, int64_t newSigTime, CPubKey newPubkey2, int protocolVersionIn, CScript newRewardAddress, int newRewardPercentage)
 {
     LOCK(cs);
+
     vin = newVin;
     addr = newAddr;
     pubkey = newPubkey;
@@ -151,6 +190,7 @@ CMasternode::CMasternode(CService newAddr, CTxIn newVin, CPubKey newPubkey, std:
     isOldNode = true;
 }
 
+
 //
 // Deterministically calculate a given "score" for a masternode depending on how close it's hash is to
 // the proof of work for that block. The further away they are the better, the furthest will win the election
@@ -158,12 +198,18 @@ CMasternode::CMasternode(CService newAddr, CTxIn newVin, CPubKey newPubkey, std:
 //
 uint256 CMasternode::CalculateScore(int mod, int64_t nBlockHeight)
 {
-    if(pindexBest == NULL) return 0;
+    if(pindexBest == NULL)
+    {
+        return 0;
+    }
 
     uint256 hash = 0;
     uint256 aux = vin.prevout.hash + vin.prevout.n;
 
-    if(!GetBlockHash(hash, nBlockHeight)) return 0;
+    if(!GetBlockHash(hash, nBlockHeight))
+    {
+        return 0;
+    }
 
     uint256 hash2 = Hash(BEGIN(hash), END(hash));
     uint256 hash3 = Hash(BEGIN(hash), END(hash), BEGIN(aux), END(aux));
@@ -173,37 +219,56 @@ uint256 CMasternode::CalculateScore(int mod, int64_t nBlockHeight)
     return r;
 }
 
+
 void CMasternode::Check()
 {
-    if(ShutdownRequested()) return;
+    if(ShutdownRequested())
+    {
+        return;
+    }
 
     //TODO: Random segfault with this line removed
     TRY_LOCK(cs_main, lockRecv);
-    if(!lockRecv) return;
+
+    if(!lockRecv)
+    {
+        return;
+    }
 
     //once spent, stop doing the checks
-    if(activeState == MASTERNODE_VIN_SPENT) return;
+    if(activeState == MASTERNODE_VIN_SPENT)
+    {
+        return;
+    }
 
-
-    if(!UpdatedWithin(MASTERNODE_REMOVAL_SECONDS)){
+    if(!UpdatedWithin(MASTERNODE_REMOVAL_SECONDS))
+    {
         activeState = MASTERNODE_REMOVE;
+
         return;
     }
 
-    if(!UpdatedWithin(MASTERNODE_EXPIRATION_SECONDS)){
+    if(!UpdatedWithin(MASTERNODE_EXPIRATION_SECONDS))
+    {
         activeState = MASTERNODE_EXPIRED;
+
         return;
     }
 
-    if(!unitTest){
+    if(!unitTest)
+    {
         CValidationState state;
+        
         CTransaction tx = CTransaction();
         CTxOut vout = CTxOut((GetMNCollateral(pindexBest->nHeight)-1)*COIN, darkSendPool.collateralPubKey);
+        
         tx.vin.push_back(vin);
         tx.vout.push_back(vout);
 
-	if(!AcceptableInputs(mempool, tx, false, NULL)){
+	    if(!AcceptableInputs(mempool, tx, false, NULL))
+        {
             activeState = MASTERNODE_VIN_SPENT;
+        
             return;
         }
     }

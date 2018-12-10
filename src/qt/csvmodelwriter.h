@@ -1,3 +1,10 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2018 Profit Hunters Coin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #ifndef CSVMODELWRITER_H
 #define CSVMODELWRITER_H
 
@@ -8,6 +15,7 @@ QT_BEGIN_NAMESPACE
 class QAbstractItemModel;
 QT_END_NAMESPACE
 
+
 /** Export a Qt table model to a CSV file. This is useful for analyzing or post-processing the data in
     a spreadsheet.
  */
@@ -15,28 +23,33 @@ class CSVModelWriter : public QObject
 {
     Q_OBJECT
 
-public:
-    explicit CSVModelWriter(const QString &filename, QObject *parent = 0);
+    public:
 
-    void setModel(const QAbstractItemModel *model);
-    void addColumn(const QString &title, int column, int role=Qt::EditRole);
+        explicit CSVModelWriter(const QString &filename, QObject *parent = 0);
 
-    /** Perform export of the model to CSV.
-        @returns true on success, false otherwise
-    */
-    bool write();
+        void setModel(const QAbstractItemModel *model);
 
-private:
-    QString filename;
-    const QAbstractItemModel *model;
+        void addColumn(const QString &title, int column, int role=Qt::EditRole);
 
-    struct Column
-    {
-        QString title;
-        int column;
-        int role;
-    };
-    QList<Column> columns;
+        /** Perform export of the model to CSV.
+            @returns true on success, false otherwise
+        */
+        bool write();
+
+    private:
+
+        QString filename;
+
+        const QAbstractItemModel *model;
+
+        struct Column
+        {
+            QString title;
+            int column;
+            int role;
+        };
+
+        QList<Column> columns;
 };
 
 #endif // CSVMODELWRITER_H

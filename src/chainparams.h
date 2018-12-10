@@ -1,5 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2013 The Bitcoin developers
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2018 Profit Hunters Coin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -20,10 +21,14 @@ typedef unsigned char MessageStartChars[MESSAGE_START_SIZE];
 class CAddress;
 class CBlock;
 
-struct CDNSSeedData {
+struct CDNSSeedData
+{
     string name, host;
-    CDNSSeedData(const string &strName, const string &strHost) : name(strName), host(strHost) {}
+
+    CDNSSeedData(const string &strName, const string &strHost) : name(strName), host(strHost)
+    {}
 };
+
 
 /**
  * CChainParams defines various tweakable parameters of a given instance of the
@@ -34,67 +39,143 @@ struct CDNSSeedData {
  */
 class CChainParams
 {
-public:
-    enum Network {
-        MAIN,
-        TESTNET,
-        REGTEST,
+    public:
 
-        MAX_NETWORK_TYPES
-    };
+        enum Network
+        {
+            MAIN,
+            TESTNET,
+            REGTEST,
 
-    enum Base58Type {
-        PUBKEY_ADDRESS,
-        SCRIPT_ADDRESS,
-        SECRET_KEY,
-        STEALTH_ADDRESS,
-        EXT_PUBLIC_KEY,
-        EXT_SECRET_KEY,
+            MAX_NETWORK_TYPES
+        };
 
-        MAX_BASE58_TYPES
-    };
+        enum Base58Type
+        {
+            PUBKEY_ADDRESS,
+            SCRIPT_ADDRESS,
+            SECRET_KEY,
+            STEALTH_ADDRESS,
+            EXT_PUBLIC_KEY,
+            EXT_SECRET_KEY,
 
-    const uint256& HashGenesisBlock() const { return hashGenesisBlock; }
-    const MessageStartChars& MessageStart() const { return pchMessageStart; }
-    const vector<unsigned char>& AlertKey() const { return vAlertPubKey; }
-    int GetDefaultPort() const { return nDefaultPort; }
-    const CBigNum& ProofOfWorkLimit() const { return bnProofOfWorkLimit; }
-    int SubsidyHalvingInterval() const { return nSubsidyHalvingInterval; }
-    virtual const CBlock& GenesisBlock() const = 0;
-    virtual bool RequireRPCPassword() const { return true; }
-    const string& DataDir() const { return strDataDir; }
-    virtual Network NetworkID() const = 0;
-    const vector<CDNSSeedData>& DNSSeeds() const { return vSeeds; }
-    const std::vector<unsigned char> &Base58Prefix(Base58Type type) const { return base58Prefixes[type]; }
-    virtual const vector<CAddress>& FixedSeeds() const = 0;
-    int RPCPort() const { return nRPCPort; }
-    int LastPOWBlock() const { return nLastPOWBlock; }
-    int POSStartBlock() const { return nPOSStartBlock; }
-    int PoolMaxTransactions() const { return nPoolMaxTransactions; }
-    std::string DarksendPoolDummyAddress() const { return strDarksendPoolDummyAddress; }
-    //std::string SporkKey() const { return strSporkKey; }
-    //std::string MasternodePaymentPubKey() const { return strMasternodePaymentsPubKey; }
-protected:
-    CChainParams() {};
+            MAX_BASE58_TYPES
+        };
 
-    uint256 hashGenesisBlock;
-    MessageStartChars pchMessageStart;
-    // Raw pub key bytes for the broadcast alert signing key.
-    vector<unsigned char> vAlertPubKey;
-    int nDefaultPort;
-    int nRPCPort;
-    CBigNum bnProofOfWorkLimit;
-    int nSubsidyHalvingInterval;
-    string strDataDir;
-    vector<CDNSSeedData> vSeeds;
-    std::vector<unsigned char> base58Prefixes[MAX_BASE58_TYPES];
-    int nLastPOWBlock;
-    int nPOSStartBlock;
-    int nPoolMaxTransactions;
-    std::string strDarksendPoolDummyAddress;
-    //std::string strSporkKey;
-    //std::string strMasternodePaymentsPubKey;
+        const uint256& HashGenesisBlock() const
+        {
+            return hashGenesisBlock;
+        }
+        
+        const MessageStartChars& MessageStart() const
+        {
+            return pchMessageStart;
+        }
+        
+        const vector<unsigned char>& AlertKey() const
+        {
+            return vAlertPubKey;
+        }
+
+        const CBigNum& ProofOfWorkLimit() const
+        {
+            return bnProofOfWorkLimit;
+        }
+
+        const vector<CDNSSeedData>& DNSSeeds() const
+        {
+            return vSeeds;
+        }
+        
+        const std::vector<unsigned char> &Base58Prefix(Base58Type type) const
+        {
+            return base58Prefixes[type];
+        }
+
+        virtual const vector<CAddress>& FixedSeeds() const = 0;
+
+        virtual const CBlock& GenesisBlock() const = 0;
+
+        virtual bool RequireRPCPassword() const
+        {
+            return true;
+        }
+        
+        const string& DataDir() const 
+        {
+            return strDataDir;
+        }
+        
+        virtual Network NetworkID() const = 0;
+
+        int RPCPort() const
+        {
+            return nRPCPort;
+        }
+        
+        int LastPOWBlock() const
+        {
+            return nLastPOWBlock;
+        }
+        
+        int POSStartBlock() const
+        { 
+            return nPOSStartBlock;
+        }
+        
+        int PoolMaxTransactions() const
+        {
+            return nPoolMaxTransactions; 
+        }
+        
+        int SubsidyHalvingInterval() const
+        {
+            return nSubsidyHalvingInterval;
+        }
+        
+        int GetDefaultPort() const
+        {
+            return nDefaultPort;
+        }
+
+        std::string DarksendPoolDummyAddress() const
+        {
+            return strDarksendPoolDummyAddress;
+        }
+
+        //std::string SporkKey() const { return strSporkKey; }
+        //std::string MasternodePaymentPubKey() const { return strMasternodePaymentsPubKey; }
+
+    protected:
+
+        CChainParams() {};
+
+        uint256 hashGenesisBlock;
+        MessageStartChars pchMessageStart;
+
+        // Raw pub key bytes for the broadcast alert signing key.
+        vector<unsigned char> vAlertPubKey;
+
+        int nDefaultPort;
+        int nRPCPort;
+        
+        CBigNum bnProofOfWorkLimit;
+
+        int nSubsidyHalvingInterval;
+
+        string strDataDir;
+        vector<CDNSSeedData> vSeeds;
+        std::vector<unsigned char> base58Prefixes[MAX_BASE58_TYPES];
+
+        int nLastPOWBlock;
+        int nPOSStartBlock;
+        int nPoolMaxTransactions;
+
+        std::string strDarksendPoolDummyAddress;
+        //std::string strSporkKey;
+        //std::string strMasternodePaymentsPubKey;
 };
+
 
 /**
  * Return the currently selected parameters. This won't change after app startup
@@ -102,8 +183,10 @@ protected:
  */
 const CChainParams &Params();
 
+
 /** Sets the params returned by Params() to those for the given network. */
 void SelectParams(CChainParams::Network network);
+
 
 /**
  * Looks for -regtest or -testnet and then calls SelectParams as appropriate.
@@ -111,7 +194,9 @@ void SelectParams(CChainParams::Network network);
  */
 bool SelectParamsFromCommandLine();
 
-inline bool TestNet() {
+
+inline bool TestNet()
+{
     // Note: it's deliberate that this returns "false" for regression test mode.
     return Params().NetworkID() == CChainParams::TESTNET;
 }

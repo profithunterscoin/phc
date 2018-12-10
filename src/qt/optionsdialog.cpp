@@ -1,3 +1,12 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2018 Profit Hunters Coin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #include "optionsdialog.h"
 #include "ui_optionsdialog.h"
 
@@ -11,14 +20,8 @@
 #include <QLocale>
 #include <QMessageBox>
 
-OptionsDialog::OptionsDialog(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::OptionsDialog),
-    model(0),
-    mapper(0),
-    fRestartWarningDisplayed_Proxy(false),
-    fRestartWarningDisplayed_Lang(false),
-    fProxyIpValid(true)
+
+OptionsDialog::OptionsDialog(QWidget *parent) : QDialog(parent), ui(new Ui::OptionsDialog), model(0), mapper(0), fRestartWarningDisplayed_Proxy(false), fRestartWarningDisplayed_Lang(false), fProxyIpValid(true)
 {
     ui->setupUi(this);
 
@@ -44,7 +47,9 @@ OptionsDialog::OptionsDialog(QWidget *parent) :
 
     /* Display elements init */
     QDir translations(":translations");
+    
     ui->lang->addItem(QString("(") + tr("default") + QString(")"), QVariant(""));
+    
     foreach(const QString &langStr, translations.entryList())
     {
         QLocale locale(langStr);
@@ -81,16 +86,20 @@ OptionsDialog::OptionsDialog(QWidget *parent) :
 
     /* enable apply button when data modified */
     connect(mapper, SIGNAL(viewModified()), this, SLOT(enableApplyButton()));
+    
     /* disable apply button when new data loaded */
     connect(mapper, SIGNAL(currentIndexChanged(int)), this, SLOT(disableApplyButton()));
+    
     /* setup/change UI elements when proxy IP is invalid/valid */
     connect(this, SIGNAL(proxyIpValid(QValidatedLineEdit *, bool)), this, SLOT(handleProxyIpValid(QValidatedLineEdit *, bool)));
 }
+
 
 OptionsDialog::~OptionsDialog()
 {
     delete ui;
 }
+
 
 void OptionsDialog::setModel(OptionsModel *model)
 {
@@ -101,7 +110,9 @@ void OptionsDialog::setModel(OptionsModel *model)
         connect(model, SIGNAL(displayUnitChanged(int)), this, SLOT(updateDisplayUnit()));
 
         mapper->setModel(model);
+        
         setMapper();
+        
         mapper->toFirst();
     }
 
@@ -114,6 +125,7 @@ void OptionsDialog::setModel(OptionsModel *model)
     /* disable apply button after settings are loaded as there is nothing to save */
     disableApplyButton();
 }
+
 
 void OptionsDialog::setMapper()
 {
@@ -146,27 +158,34 @@ void OptionsDialog::setMapper()
     mapper->addMapping(ui->anonymizePHC, OptionsModel::AnonymizePHCAmount);
 }
 
+
 void OptionsDialog::enableApplyButton()
 {
     ui->applyButton->setEnabled(true);
 }
+
 
 void OptionsDialog::disableApplyButton()
 {
     ui->applyButton->setEnabled(false);
 }
 
+
 void OptionsDialog::enableSaveButtons()
 {
     /* prevent enabling of the save buttons when data modified, if there is an invalid proxy address present */
     if(fProxyIpValid)
+    {
         setSaveButtonState(true);
+    }
 }
+
 
 void OptionsDialog::disableSaveButtons()
 {
     setSaveButtonState(false);
 }
+
 
 void OptionsDialog::setSaveButtonState(bool fState)
 {
@@ -174,40 +193,50 @@ void OptionsDialog::setSaveButtonState(bool fState)
     ui->okButton->setEnabled(fState);
 }
 
+
 void OptionsDialog::on_okButton_clicked()
 {
     mapper->submit();
+
     accept();
 }
+
 
 void OptionsDialog::on_cancelButton_clicked()
 {
     reject();
 }
 
+
 void OptionsDialog::on_applyButton_clicked()
 {
     mapper->submit();
+
     disableApplyButton();
 }
+
 
 void OptionsDialog::showRestartWarning_Proxy()
 {
     if(!fRestartWarningDisplayed_Proxy)
     {
         QMessageBox::warning(this, tr("Warning"), tr("This setting will take effect after restarting PHC."), QMessageBox::Ok);
+
         fRestartWarningDisplayed_Proxy = true;
     }
 }
+
 
 void OptionsDialog::showRestartWarning_Lang()
 {
     if(!fRestartWarningDisplayed_Lang)
     {
         QMessageBox::warning(this, tr("Warning"), tr("This setting will take effect after restarting PHC."), QMessageBox::Ok);
+
         fRestartWarningDisplayed_Lang = true;
     }
 }
+
 
 void OptionsDialog::updateDisplayUnit()
 {
@@ -218,6 +247,7 @@ void OptionsDialog::updateDisplayUnit()
     }
 }
 
+
 void OptionsDialog::handleProxyIpValid(QValidatedLineEdit *object, bool fState)
 {
     // this is used in a check before re-enabling the save buttons
@@ -226,16 +256,20 @@ void OptionsDialog::handleProxyIpValid(QValidatedLineEdit *object, bool fState)
     if(fProxyIpValid)
     {
         enableSaveButtons();
+
         ui->statusLabel->clear();
     }
     else
     {
         disableSaveButtons();
+
         object->setValid(fProxyIpValid);
+
         ui->statusLabel->setStyleSheet("QLabel { color: red; }");
         ui->statusLabel->setText(tr("The supplied proxy address is invalid."));
     }
 }
+
 
 bool OptionsDialog::eventFilter(QObject *object, QEvent *event)
 {
@@ -244,9 +278,11 @@ bool OptionsDialog::eventFilter(QObject *object, QEvent *event)
         if(object == ui->proxyIp)
         {
             CService addr;
+
             /* Check proxyIp for a valid IPv4/IPv6 address and emit the proxyIpValid signal */
             emit proxyIpValid(ui->proxyIp, LookupNumeric(ui->proxyIp->text().toStdString().c_str(), addr));
         }
     }
+
     return QDialog::eventFilter(object, event);
 }

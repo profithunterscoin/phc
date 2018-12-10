@@ -1,3 +1,12 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2018 Profit Hunters Coin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #include "qrcodedialog.h"
 #include "ui_qrcodedialog.h"
 
@@ -11,11 +20,8 @@
 
 #include <qrencode.h>
 
-QRCodeDialog::QRCodeDialog(const QString &addr, const QString &label, bool enableReq, QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::QRCodeDialog),
-    model(0),
-    address(addr)
+
+QRCodeDialog::QRCodeDialog(const QString &addr, const QString &label, bool enableReq, QWidget *parent) : QDialog(parent), ui(new Ui::QRCodeDialog), model(0), address(addr)
 {
     ui->setupUi(this);
 
@@ -42,7 +48,9 @@ void QRCodeDialog::setModel(OptionsModel *model)
     this->model = model;
 
     if (model)
+    {
         connect(model, SIGNAL(displayUnitChanged(int)), this, SLOT(updateDisplayUnit()));
+    }
 
     // update the display unit, to not use the default ("BTC")
     updateDisplayUnit();
@@ -57,22 +65,29 @@ void QRCodeDialog::genCode()
         ui->lblQRCode->setText("");
 
         QRcode *code = QRcode_encodeString(uri.toUtf8().constData(), 0, QR_ECLEVEL_L, QR_MODE_8, 1);
+        
         if (!code)
         {
             ui->lblQRCode->setText(tr("Error encoding URI into QR Code."));
+            
             return;
         }
+
         myImage = QImage(code->width + 8, code->width + 8, QImage::Format_RGB32);
         myImage.fill(0xffffff);
+        
         unsigned char *p = code->data;
+        
         for (int y = 0; y < code->width; y++)
         {
             for (int x = 0; x < code->width; x++)
             {
                 myImage.setPixel(x + 4, y + 4, ((*p & 1) ? 0x0 : 0xffffff));
+                
                 p++;
             }
         }
+
         QRcode_free(code);
 
         ui->lblQRCode->setPixmap(QPixmap::fromImage(myImage).scaled(300, 300));
@@ -81,9 +96,11 @@ void QRCodeDialog::genCode()
     }
 }
 
+
 QString QRCodeDialog::getURI()
 {
     QString ret = QString("PHC:%1").arg(address);
+    
     int paramCount = 0;
 
     ui->outUri->clear();
@@ -94,12 +111,14 @@ QString QRCodeDialog::getURI()
         {
             // even if we allow a non BTC unit input in lnReqAmount, we generate the URI with BTC as unit (as defined in BIP21)
             ret += QString("?amount=%1").arg(BitcoinUnits::format(BitcoinUnits::BTC, ui->lnReqAmount->value()));
+            
             paramCount++;
         }
         else
         {
             ui->btnSaveAs->setEnabled(false);
             ui->lblQRCode->setText(tr("The entered amount is invalid, please check."));
+            
             return QString("");
         }
     }
@@ -108,6 +127,7 @@ QString QRCodeDialog::getURI()
     {
         QString lbl(QUrl::toPercentEncoding(ui->lnLabel->text()));
         ret += QString("%1label=%2").arg(paramCount == 0 ? "?" : "&").arg(lbl);
+        
         paramCount++;
     }
 
@@ -115,6 +135,7 @@ QString QRCodeDialog::getURI()
     {
         QString msg(QUrl::toPercentEncoding(ui->lnMessage->text()));
         ret += QString("%1message=%2").arg(paramCount == 0 ? "?" : "&").arg(msg);
+        
         paramCount++;
     }
 
@@ -123,43 +144,56 @@ QString QRCodeDialog::getURI()
     {
         ui->btnSaveAs->setEnabled(false);
         ui->lblQRCode->setText(tr("Resulting URI too long, try to reduce the text for label / message."));
+        
         return QString("");
     }
 
     ui->btnSaveAs->setEnabled(true);
+    
     return ret;
 }
+
 
 void QRCodeDialog::on_lnReqAmount_textChanged()
 {
     genCode();
 }
 
+
 void QRCodeDialog::on_lnLabel_textChanged()
 {
     genCode();
 }
+
 
 void QRCodeDialog::on_lnMessage_textChanged()
 {
     genCode();
 }
 
+
 void QRCodeDialog::on_btnSaveAs_clicked()
 {
     QString fn = GUIUtil::getSaveFileName(this, tr("Save QR Code"), QString(), tr("PNG Images (*.png)"));
+    
     if (!fn.isEmpty())
+    {
         myImage.scaled(EXPORT_IMAGE_SIZE, EXPORT_IMAGE_SIZE).save(fn);
+    }
 }
+
 
 void QRCodeDialog::on_chkReqPayment_toggled(bool fChecked)
 {
     if (!fChecked)
+    {
         // if chkReqPayment is not active, don't display lnReqAmount as invalid
         ui->lnReqAmount->setValid(true);
+    }
 
     genCode();
 }
+
 
 void QRCodeDialog::updateDisplayUnit()
 {

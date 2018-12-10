@@ -1,3 +1,10 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2018 Profit Hunters Coin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #ifndef BITCOINAMOUNTFIELD_H
 #define BITCOINAMOUNTFIELD_H
 
@@ -19,45 +26,54 @@ class BitcoinAmountField: public QWidget
     // discussion: https://github.com/bitcoin/bitcoin/pull/5117
     Q_PROPERTY(qint64 value READ value WRITE setValue NOTIFY textChanged USER true)
 
-public:
-    explicit BitcoinAmountField(QWidget *parent = 0);
+    public:
 
-    CAmount value(bool *valid=0) const;
-    void setValue(const CAmount& value);
+        explicit BitcoinAmountField(QWidget *parent = 0);
 
-    /** Mark current value as invalid in UI. */
-    void setValid(bool valid);
-    /** Perform input validation, mark field as invalid if entered value is not valid. */
-    bool validate();
+        CAmount value(bool *valid=0) const;
+        void setValue(const CAmount& value);
 
-    /** Change unit used to display amount. */
-    void setDisplayUnit(int unit);
+        /** Mark current value as invalid in UI. */
+        void setValid(bool valid);
+        
+        /** Perform input validation, mark field as invalid if entered value is not valid. */
+        bool validate();
 
-    /** Make field empty and ready for new input. */
-    void clear();
+        /** Change unit used to display amount. */
+        void setDisplayUnit(int unit);
 
-    /** Qt messes up the tab chain by default in some cases (issue https://bugreports.qt-project.org/browse/QTBUG-10907),
-        in these cases we have to set it up manually.
-    */
-    QWidget *setupTabChain(QWidget *prev);
+        /** Make field empty and ready for new input. */
+        void clear();
 
-signals:
-    void textChanged();
+        /** Qt messes up the tab chain by default in some cases (issue https://bugreports.qt-project.org/browse/QTBUG-10907),
+            in these cases we have to set it up manually.
+        */
+        QWidget *setupTabChain(QWidget *prev);
 
-protected:
-    /** Intercept focus-in event and ',' key presses */
-    bool eventFilter(QObject *object, QEvent *event);
+    signals:
 
-private:
-    QDoubleSpinBox *amount;
-    QValueComboBox *unit;
-    int currentUnit;
+        void textChanged();
 
-    void setText(const QString &text);
-    QString text() const;
+    protected:
 
-private slots:
-    void unitChanged(int idx);
+        /** Intercept focus-in event and ',' key presses */
+        bool eventFilter(QObject *object, QEvent *event);
+
+    private:
+
+        QDoubleSpinBox *amount;
+        
+        QValueComboBox *unit;
+        
+        int currentUnit;
+
+        void setText(const QString &text);
+        
+        QString text() const;
+
+    private slots:
+
+        void unitChanged(int idx);
 
 };
 

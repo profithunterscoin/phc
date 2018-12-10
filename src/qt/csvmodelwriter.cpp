@@ -1,19 +1,27 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2018 Profit Hunters Coin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #include "csvmodelwriter.h"
 
 #include <QAbstractItemModel>
 #include <QFile>
 #include <QTextStream>
 
-CSVModelWriter::CSVModelWriter(const QString &filename, QObject *parent) :
-    QObject(parent),
-    filename(filename), model(0)
+
+CSVModelWriter::CSVModelWriter(const QString &filename, QObject *parent) : QObject(parent), filename(filename), model(0)
 {
 }
+
 
 void CSVModelWriter::setModel(const QAbstractItemModel *model)
 {
     this->model = model;
 }
+
 
 void CSVModelWriter::addColumn(const QString &title, int column, int role)
 {
@@ -25,6 +33,7 @@ void CSVModelWriter::addColumn(const QString &title, int column, int role)
     columns.append(col);
 }
 
+
 static void writeValue(QTextStream &f, const QString &value)
 {
     QString escaped = value;
@@ -32,24 +41,32 @@ static void writeValue(QTextStream &f, const QString &value)
     f << "\"" << escaped << "\"";
 }
 
+
 static void writeSep(QTextStream &f)
 {
     f << ",";
 }
+
 
 static void writeNewline(QTextStream &f)
 {
     f << "\n";
 }
 
+
 bool CSVModelWriter::write()
 {
     QFile file(filename);
+
     if(!file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
         return false;
+    }
+
     QTextStream out(&file);
 
     int numRows = 0;
+
     if(model)
     {
         numRows = model->rowCount();
@@ -62,8 +79,10 @@ bool CSVModelWriter::write()
         {
             writeSep(out);
         }
+
         writeValue(out, columns[i].title);
     }
+
     writeNewline(out);
 
     // Data rows
@@ -75,9 +94,11 @@ bool CSVModelWriter::write()
             {
                 writeSep(out);
             }
+            
             QVariant data = model->index(j, columns[i].column).data(columns[i].role);
             writeValue(out, data.toString());
         }
+
         writeNewline(out);
     }
 

@@ -1,3 +1,12 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2018 Profit Hunters Coin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #include "messagepage.h"
 #include "ui_messagepage.h"
 
@@ -24,10 +33,13 @@
 
 class MessageViewDelegate : public QStyledItemDelegate
 {
-protected:
-    void paint ( QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index ) const;
-    QSize sizeHint ( const QStyleOptionViewItem & option, const QModelIndex & index ) const;
+    protected:
+
+        void paint ( QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index ) const;
+
+        QSize sizeHint ( const QStyleOptionViewItem & option, const QModelIndex & index ) const;
 };
+
 
 void MessageViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
@@ -49,7 +61,9 @@ void MessageViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem &o
 
     // Highlighting text if item is selected
     if (optionV4.state & QStyle::State_Selected)
+    {
         ctx.palette.setColor(QPalette::Text, optionV4.palette.color(QPalette::Active, QPalette::HighlightedText));
+    }
 
     QRect textRect = style->subElementRect(QStyle::SE_ItemViewItemText, &optionV4);
     doc.setTextWidth( textRect.width() );
@@ -60,24 +74,22 @@ void MessageViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem &o
     painter->restore();
 }
 
+
 QSize MessageViewDelegate::sizeHint ( const QStyleOptionViewItem & option, const QModelIndex & index ) const
 {
     QStyleOptionViewItemV4 options = option;
+    
     initStyleOption(&options, index);
 
     QTextDocument doc;
     doc.setHtml(index.data(MessageModel::HTMLRole).toString());
     doc.setTextWidth(options.rect.width());
+    
     return QSize(doc.idealWidth(), doc.size().height() + 20);
 }
 
 
-MessagePage::MessagePage(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::MessagePage),
-    model(0),
-    msgdelegate(new MessageViewDelegate()),
-    messageTextEdit(new MRichTextEdit())
+MessagePage::MessagePage(QWidget *parent) : QWidget(parent), ui(new Ui::MessagePage), model(0), msgdelegate(new MessageViewDelegate()), messageTextEdit(new MRichTextEdit())
 {
     ui->setupUi(this);
    
@@ -113,16 +125,21 @@ MessagePage::MessagePage(QWidget *parent) :
     ui->listConversation->setAttribute(Qt::WA_MacShowFocusRect, false);
 }
 
+
 MessagePage::~MessagePage()
 {
     delete ui;
 }
 
+
 void MessagePage::setModel(MessageModel *model)
 {
     this->model = model;
+
     if(!model)
+    {
         return;
+    }
     
     //if (model->proxyModel)
     //    delete model->proxyModel;
@@ -167,10 +184,13 @@ void MessagePage::setModel(MessageModel *model)
     selectionChanged();
 }
 
+
 void MessagePage::on_sendButton_clicked()
 {
     if(!model)
+    {
         return;
+    }
 
     std::string sError;
     std::string sendTo  = replyToAddress.toStdString();
@@ -179,9 +199,7 @@ void MessagePage::on_sendButton_clicked()
 
     if (SecureMsgSend(addFrom, sendTo, message, sError) != 0)
     {
-        QMessageBox::warning(NULL, tr("Send Secure Message"),
-            tr("Send failed: %1.").arg(sError.c_str()),
-            QMessageBox::Ok, QMessageBox::Ok);
+        QMessageBox::warning(NULL, tr("Send Secure Message"), tr("Send failed: %1.").arg(sError.c_str()), QMessageBox::Ok, QMessageBox::Ok);
 
         return;
     };
@@ -191,10 +209,13 @@ void MessagePage::on_sendButton_clicked()
     ui->listConversation->scrollToBottom();
 }
 
+
 void MessagePage::on_newButton_clicked()
 {
     if(!model)
-        return;
+    {
+        return; 
+    }
 
     SendMessagesDialog dlg(SendMessagesDialog::Encrypted, SendMessagesDialog::Dialog, this);
 
@@ -202,22 +223,27 @@ void MessagePage::on_newButton_clicked()
     dlg.exec();
 }
 
+
 void MessagePage::on_copyFromAddressButton_clicked()
 {
     GUIUtil::copyEntryData(ui->tableView, MessageModel::FromAddress, Qt::DisplayRole);
 }
+
 
 void MessagePage::on_copyToAddressButton_clicked()
 {
     GUIUtil::copyEntryData(ui->tableView, MessageModel::ToAddress, Qt::DisplayRole);
 }
 
+
 void MessagePage::on_deleteButton_clicked()
 {
     QListView *list = ui->listConversation;
 
     if(!list->selectionModel())
+    {
         return;
+    }
 
     QModelIndexList indexes = list->selectionModel()->selectedIndexes();
 
@@ -227,9 +253,12 @@ void MessagePage::on_deleteButton_clicked()
         indexes = list->selectionModel()->selectedIndexes();
 
         if(indexes.isEmpty())
+        {
             on_backButton_clicked();
+        }
     }
 }
+
 
 void MessagePage::on_backButton_clicked()
 {
@@ -241,6 +270,7 @@ void MessagePage::on_backButton_clicked()
 
     ui->tableView->clearSelection();
     ui->listConversation->clearSelection();
+    
     itemSelectionChanged();
     selectionChanged();
 
@@ -253,12 +283,16 @@ void MessagePage::on_backButton_clicked()
     ui->messageEdit->setVisible(false);
 }
 
+
 void MessagePage::selectionChanged()
 {
     // Set button states based on selected tab and selection
     QTableView *table = ui->tableView;
+
     if(!table->selectionModel())
+    {
         return;
+    }
 
     if(table->selectionModel()->hasSelection())
     {
@@ -285,25 +319,41 @@ void MessagePage::selectionChanged()
         QModelIndexList addressToColumn   = table->selectionModel()->selectedRows(MessageModel::ToAddress);
         QModelIndexList typeColumn        = table->selectionModel()->selectedRows(MessageModel::Type);
 
-        int type;
+        int type = 0;
 
         foreach (QModelIndex index, typeColumn)
+        {
             type = (table->model()->data(index).toString() == MessageModel::Sent ? MessageTableEntry::Sent : MessageTableEntry::Received);
+        }
 
         foreach (QModelIndex index, labelColumn)
+        {
             ui->contactLabel->setText(table->model()->data(index).toString());
+        }
 
         foreach (QModelIndex index, addressFromColumn)
+        {
             if(type == MessageTableEntry::Sent)
+            {
                 replyFromAddress = table->model()->data(index).toString();
+            }
             else
+            {
                 replyToAddress = table->model()->data(index).toString();
+            }
+        }
 
         foreach (QModelIndex index, addressToColumn)
+        {
             if(type == MessageTableEntry::Sent)
+            {
                 replyToAddress = table->model()->data(index).toString();
+            }
             else
+            {
                 replyFromAddress = table->model()->data(index).toString();
+            }
+        }
 
         QString filter = (type == MessageTableEntry::Sent ? replyToAddress + replyFromAddress : replyToAddress + replyFromAddress);
 
@@ -312,6 +362,7 @@ void MessagePage::selectionChanged()
         model->proxyModel->sort(MessageModel::ReceivedDateTime);
         model->proxyModel->setFilterRole(MessageModel::FilterAddressRole);
         model->proxyModel->setFilterFixedString(filter);
+        
         ui->messageDetails->show();
         ui->listConversation->setCurrentIndex(model->proxyModel->index(0, 0, QModelIndex()));
     }
@@ -330,12 +381,16 @@ void MessagePage::selectionChanged()
     }
 }
 
+
 void MessagePage::itemSelectionChanged()
 {
     // Set button states based on selected tab and selection
     QListView *list = ui->listConversation;
+    
     if(!list->selectionModel())
+    {
         return;
+    }
 
     if(list->selectionModel()->hasSelection())
     {
@@ -372,10 +427,12 @@ void MessagePage::itemSelectionChanged()
     }
 }
 
+
 void MessagePage::incomingMessage()
 {
     ui->listConversation->scrollToBottom();
 }
+
 
 void MessagePage::messageTextChanged()
 {
@@ -388,15 +445,16 @@ void MessagePage::messageTextChanged()
 
 }
 
+
 void MessagePage::exportClicked()
 {
     // CSV is currently the only supported format
-    QString filename = GUIUtil::getSaveFileName(
-            this,
-            tr("Export Messages"), QString(),
-            tr("Comma separated file (*.csv)"));
+    QString filename = GUIUtil::getSaveFileName(this, tr("Export Messages"), QString(), tr("Comma separated file (*.csv)"));
 
-    if (filename.isNull()) return;
+    if (filename.isNull())
+    {
+        return;
+    }
 
     CSVModelWriter writer(filename);
 
@@ -412,8 +470,7 @@ void MessagePage::exportClicked()
 
     if(!writer.write())
     {
-        QMessageBox::critical(this, tr("Error exporting"), tr("Could not write to file %1.").arg(filename),
-                              QMessageBox::Abort, QMessageBox::Abort);
+        QMessageBox::critical(this, tr("Error exporting"), tr("Could not write to file %1.").arg(filename), QMessageBox::Abort, QMessageBox::Abort);
     }
 }
 
@@ -421,6 +478,7 @@ void MessagePage::exportClicked()
 void MessagePage::contextualMenu(const QPoint &point)
 {
     QModelIndex index = ui->tableView->indexAt(point);
+
     if(index.isValid())
     {
         contextMenu->exec(QCursor::pos());

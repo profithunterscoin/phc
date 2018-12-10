@@ -1,3 +1,12 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2018 Profit Hunters Coin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #ifndef GUICONSTANTS_H
 #define GUICONSTANTS_H
 
@@ -15,8 +24,10 @@ static const int STATUSBAR_ICONSIZE = 16;
 
 /* Transaction list -- unconfirmed transaction */
 #define COLOR_UNCONFIRMED QColor(128, 128, 128)
+
 /* Transaction list -- negative amount */
 #define COLOR_NEGATIVE QColor(255, 0, 0)
+
 /* Transaction list -- bare address (without label) */
 #define COLOR_BAREADDRESS QColor(140, 140, 140)
 

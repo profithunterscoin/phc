@@ -1,3 +1,12 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2018 Profit Hunters Coin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #ifndef PAYMENTSERVER_H
 #define PAYMENTSERVER_H
 
@@ -39,36 +48,44 @@ class QLocalServer;
 class PaymentServer : public QObject
 {
     Q_OBJECT
-private:
-    bool saveURIs;
-    QLocalServer* uriServer;
 
-public:
-    // Returns true if there were URIs on the command line
-    // which were successfully sent to an already-running
-    // process.
-    static bool ipcSendCommandLine();
+    private:
 
-    PaymentServer(QApplication* parent);
+        bool saveURIs;
+        
+        QLocalServer* uriServer;
 
-    bool eventFilter(QObject *object, QEvent *event);
+    public:
 
-    // OptionsModel is used for getting proxy settings and display unit
-    void setOptionsModel(OptionsModel *optionsModel);
+        // Returns true if there were URIs on the command line
+        // which were successfully sent to an already-running
+        // process.
+        static bool ipcSendCommandLine();
 
-signals:
-    void receivedURI(QString);
+        PaymentServer(QApplication* parent);
 
-public slots:
-    // Signal this when the main window's UI is ready
-    // to display payment requests to the user
-    void uiReady();
+        bool eventFilter(QObject *object, QEvent *event);
 
-private slots:
-    void handleURIConnection();
+        // OptionsModel is used for getting proxy settings and display unit
+        void setOptionsModel(OptionsModel *optionsModel);
 
-private:
-    OptionsModel *optionsModel;
+    signals:
+
+        void receivedURI(QString);
+
+    public slots:
+
+        // Signal this when the main window's UI is ready
+        // to display payment requests to the user
+        void uiReady();
+
+    private slots:
+
+        void handleURIConnection();
+
+    private:
+
+        OptionsModel *optionsModel;
 };
 
 #endif // PAYMENTSERVER_H

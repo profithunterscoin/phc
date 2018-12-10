@@ -1,3 +1,12 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2018 Profit Hunters Coin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #include "darksendconfig.h"
 #include "ui_darksendconfig.h"
 
@@ -12,10 +21,7 @@
 #include <QKeyEvent>
 #include <QSettings>
 
-DarksendConfig::DarksendConfig(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::DarksendConfig),
-    model(0)
+DarksendConfig::DarksendConfig(QWidget *parent) : QDialog(parent), ui(new Ui::DarksendConfig), model(0)
 {
     ui->setupUi(this);
 
@@ -24,62 +30,57 @@ DarksendConfig::DarksendConfig(QWidget *parent) :
     connect(ui->buttonMax, SIGNAL(clicked()), this, SLOT(clickMax()));
 }
 
+
 DarksendConfig::~DarksendConfig()
 {
     delete ui;
 }
+
 
 void DarksendConfig::setModel(WalletModel *model)
 {
     this->model = model;
 }
 
+
 void DarksendConfig::clickBasic()
 {
     configure(true, 1000, 2);
 
-    QString strAmount(BitcoinUnits::formatWithUnit(
-        model->getOptionsModel()->getDisplayUnit(), 1000 * COIN));
-    QMessageBox::information(this, tr("Darksend Configuration"),
-        tr(
-            "Darksend was successfully set to basic (%1 and 2 rounds). You can change this at any time by opening PHC's configuration screen."
-        ).arg(strAmount)
-    );
+    QString strAmount(BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), 1000 * COIN));
+
+    QMessageBox::information(this, tr("Darksend Configuration"), tr("Darksend was successfully set to basic (%1 and 2 rounds). You can change this at any time by opening PHC's configuration screen.").arg(strAmount));
 
     close();
 }
+
 
 void DarksendConfig::clickHigh()
 {
     configure(true, 1000, 8);
 
-    QString strAmount(BitcoinUnits::formatWithUnit(
-        model->getOptionsModel()->getDisplayUnit(), 1000 * COIN));
-    QMessageBox::information(this, tr("Darksend Configuration"),
-        tr(
-            "Darksend was successfully set to high (%1 and 8 rounds). You can change this at any time by opening PHC's configuration screen."
-        ).arg(strAmount)
-    );
+    QString strAmount(BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), 1000 * COIN));
+
+    QMessageBox::information(this, tr("Darksend Configuration"), tr("Darksend was successfully set to high (%1 and 8 rounds). You can change this at any time by opening PHC's configuration screen.").arg(strAmount));
 
     close();
 }
+
 
 void DarksendConfig::clickMax()
 {
     configure(true, 1000, 16);
 
-    QString strAmount(BitcoinUnits::formatWithUnit(
-        model->getOptionsModel()->getDisplayUnit(), 1000 * COIN));
-    QMessageBox::information(this, tr("Darksend Configuration"),
-        tr(
-            "Darksend was successfully set to maximum (%1 and 16 rounds). You can change this at any time by opening Bitcoin's configuration screen."
-        ).arg(strAmount)
-    );
+    QString strAmount(BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), 1000 * COIN));
+
+    QMessageBox::information(this, tr("Darksend Configuration"), tr("Darksend was successfully set to maximum (%1 and 16 rounds). You can change this at any time by opening Bitcoin's configuration screen.").arg(strAmount));
 
     close();
 }
 
-void DarksendConfig::configure(bool enabled, int coins, int rounds) {
+
+void DarksendConfig::configure(bool enabled, int coins, int rounds)
+{
 
     QSettings settings;
 

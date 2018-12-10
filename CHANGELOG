@@ -1,4 +1,4 @@
-PHC 1.0.0.6 BETA
+PHC 1.0.0.7 BETA
 
 Copyright © 2018 Profit Hunters Coin Developers
 Copyright © 2017 The XUV developers
@@ -20,6 +20,10 @@ Profit Hunters Coin (PHC) is a free open source decentralized experimental proje
 from Bitcoin, with the goal of providing a long-term energy-efficient scrypt-based
 crypto-currency. Built on the foundations of PPCoin, NovaCoin, CraveProject & Dash, BATA and Crypostle
 to help further advance the field of crypto-currency.
+
+v1.0.0.7
+--------
+ * Cleaned Core and QT source files
 
 v1.0.0.6
 --------

@@ -1,7 +1,10 @@
 // Copyright (c) 2015 The PHC developers
 // Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2018 Profit Hunters Coin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #ifndef SPORK_H
 #define SPORK_H
 
@@ -65,8 +68,11 @@ extern std::map<int, CSporkMessage> mapSporksActive;
 extern CSporkManager sporkManager;
 
 void ProcessSpork(CNode* pfrom, std::string& strCommand, CDataStream& vRecv);
+
 int64_t GetSporkValue(int nSporkID);
+
 bool IsSporkActive(int nSporkID);
+
 void ExecuteSpork(int nSporkID, int nValue);
 //void ReprocessBlocks(int nBlocks);
 
@@ -77,53 +83,64 @@ void ExecuteSpork(int nSporkID, int nValue);
 
 class CSporkMessage
 {
-public:
-    std::vector<unsigned char> vchSig;
-    int nSporkID;
-    int64_t nValue;
-    int64_t nTimeSigned;
+    public:
 
-    uint256 GetHash(){
-        uint256 n = Hash(BEGIN(nSporkID), END(nTimeSigned));
-        return n;
-    }
+        std::vector<unsigned char> vchSig;
+    
+        int nSporkID;
+    
+        int64_t nValue;
+        int64_t nTimeSigned;
 
-    ADD_SERIALIZE_METHODS;
+        uint256 GetHash()
+        {
+            uint256 n = Hash(BEGIN(nSporkID), END(nTimeSigned));
 
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
-	unsigned int nSerSize = 0;
-        READWRITE(nSporkID);
-        READWRITE(nValue);
-        READWRITE(nTimeSigned);
-        READWRITE(vchSig);
-	}
+            return n;
+        }
+
+        ADD_SERIALIZE_METHODS;
+
+        template <typename Stream, typename Operation> inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion)
+        {
+            unsigned int nSerSize = 0;
+
+            READWRITE(nSporkID);
+            READWRITE(nValue);
+            READWRITE(nTimeSigned);
+            READWRITE(vchSig);
+        }
 };
 
 
 class CSporkManager
 {
-private:
-    std::vector<unsigned char> vchSig;
+    private:
 
-    std::string strMasterPrivKey;
-    std::string strTestPubKey;
-    std::string strMainPubKey;
+        std::vector<unsigned char> vchSig;
 
-public:
+        std::string strMasterPrivKey;
+        std::string strTestPubKey;
+        std::string strMainPubKey;
 
-    CSporkManager() {
-        strMainPubKey = "04a983220ea7a38a7106385003fef77896538a382a0dcc389cc45f3c98751d9af423a097789757556259351198a8aaa628a1fd644c3232678c5845384c744ff8d7";
-        strTestPubKey = "04a983220ea7a38a7106385003fef77896538a382a0dcc389cc45f3c98751d9af423a097789757556259351198a8aaa628a1fd644c3232678c5845384c744ff8d7";
-    }
+    public:
 
-    std::string GetSporkNameByID(int id);
-    int GetSporkIDByName(std::string strName);
-    bool UpdateSpork(int nSporkID, int64_t nValue);
-    bool SetPrivKey(std::string strPrivKey);
-    bool CheckSignature(CSporkMessage& spork);
-    bool Sign(CSporkMessage& spork);
-    void Relay(CSporkMessage& msg);
+        CSporkManager()
+        {
+            strMainPubKey = "04a983220ea7a38a7106385003fef77896538a382a0dcc389cc45f3c98751d9af423a097789757556259351198a8aaa628a1fd644c3232678c5845384c744ff8d7";
+            strTestPubKey = "04a983220ea7a38a7106385003fef77896538a382a0dcc389cc45f3c98751d9af423a097789757556259351198a8aaa628a1fd644c3232678c5845384c744ff8d7";
+        }
+
+        std::string GetSporkNameByID(int id);
+
+        int GetSporkIDByName(std::string strName);
+
+        bool UpdateSpork(int nSporkID, int64_t nValue);
+        bool SetPrivKey(std::string strPrivKey);
+        bool CheckSignature(CSporkMessage& spork);
+        bool Sign(CSporkMessage& spork);
+
+        void Relay(CSporkMessage& msg);
 
 };
 

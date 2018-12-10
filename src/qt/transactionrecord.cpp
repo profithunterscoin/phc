@@ -1,3 +1,12 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2018 Profit Hunters Coin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #include "transactionrecord.h"
 
 #include "base58.h"
@@ -47,10 +56,13 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
             if(mine)
             {
                 TransactionRecord sub(hash, nTime);
+                
                 CTxDestination address;
+
                 sub.idx = parts.size(); // sequence number
                 sub.credit = txout.nValue;
                 sub.involvesWatchAddress = mine == ISMINE_WATCH_ONLY;
+
                 if (ExtractDestination(txout.scriptPubKey, address) && IsMine(*wallet, address))
                 {
                     // Received by Bitcoin Address
@@ -74,17 +86,29 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
                     // Generated (proof-of-stake)
 
                     if (hashPrev == hash)
+                    {
                         continue; // last coinstake output
+                    }
+
                     CAmount nValueOut = 0;
+                    
                     BOOST_FOREACH(const CTxOut& txout, wtx.vout)
                     {
                         if (IsMine(*wallet,txout.scriptPubKey))
+                        {
                             nValueOut += txout.nValue;
+                        }
+
                         if (!MoneyRange(txout.nValue) || !MoneyRange(nValueOut))
+                        {
                             throw std::runtime_error("CTransaction::GetValueOut() : value out of range");
+                        }
+
                     }
+
                     sub.type = TransactionRecord::Generated;
                     sub.credit = nNet > 0 ? nNet : nValueOut - nDebit;
+                    
                     hashPrev = hash;
                 }
 
@@ -97,32 +121,58 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
         bool fAllFromMeDenom = true;
         int nFromMe = 0;
         bool involvesWatchAddress = false;
+        
         isminetype fAllFromMe = ISMINE_SPENDABLE;
+        
         BOOST_FOREACH(const CTxIn& txin, wtx.vin)
         {
-            if(wallet->IsMine(txin)) {
+            if(wallet->IsMine(txin))
+            {
                 fAllFromMeDenom = fAllFromMeDenom && wallet->IsDenominated(txin);
                 nFromMe++;
             }
+
             isminetype mine = wallet->IsMine(txin);
-            if(mine == ISMINE_WATCH_ONLY) involvesWatchAddress = true;
-            if(fAllFromMe > mine) fAllFromMe = mine;
+            
+            if(mine == ISMINE_WATCH_ONLY)
+            {
+                involvesWatchAddress = true;
+            }
+
+            if(fAllFromMe > mine)
+            {
+                fAllFromMe = mine;
+            }
         }
 
         isminetype fAllToMe = ISMINE_SPENDABLE;
+        
         bool fAllToMeDenom = true;
         int nToMe = 0;
-        BOOST_FOREACH(const CTxOut& txout, wtx.vout) {
-            if(wallet->IsMine(txout)) {
+        
+        BOOST_FOREACH(const CTxOut& txout, wtx.vout)
+        {
+            if(wallet->IsMine(txout))
+            {
                 fAllToMeDenom = fAllToMeDenom && wallet->IsDenominatedAmount(txout.nValue);
                 nToMe++;
             }
+
             isminetype mine = wallet->IsMine(txout);
-            if(mine == ISMINE_WATCH_ONLY) involvesWatchAddress = true;
-            if(fAllToMe > mine) fAllToMe = mine;
+            
+            if(mine == ISMINE_WATCH_ONLY)
+            {
+                involvesWatchAddress = true;
+            }
+
+            if(fAllToMe > mine)
+            {
+                fAllToMe = mine;
+            }
         }
 
-        if(fAllFromMeDenom && fAllToMeDenom && nFromMe * nToMe) {
+        if(fAllFromMeDenom && fAllToMeDenom && nFromMe * nToMe)
+        {
             parts.append(TransactionRecord(hash, nTime, TransactionRecord::DarksendDenominate, "", -nDebit, nCredit));
             parts.last().involvesWatchAddress = false;   // maybe pass to TransactionRecord as constructor argument
         }
@@ -159,9 +209,20 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
                     const CTxOut& txout = wtx.vout[nOut];
                     sub.idx = parts.size();
 
-                    if(wallet->IsCollateralAmount(txout.nValue)) sub.type = TransactionRecord::DarksendMakeCollaterals;
-                    if(wallet->IsDenominatedAmount(txout.nValue)) sub.type = TransactionRecord::DarksendCreateDenominations;
-                    if(nDebit - wtx.GetValueOut() == DARKSEND_COLLATERAL) sub.type = TransactionRecord::DarksendCollateralPayment;
+                    if(wallet->IsCollateralAmount(txout.nValue))
+                    {
+                        sub.type = TransactionRecord::DarksendMakeCollaterals;
+                    }
+
+                    if(wallet->IsDenominatedAmount(txout.nValue))
+                    {
+                        sub.type = TransactionRecord::DarksendCreateDenominations;
+                    }
+
+                    if(nDebit - wtx.GetValueOut() == DARKSEND_COLLATERAL)
+                    {
+                        sub.type = TransactionRecord::DarksendCollateralPayment;
+                    }
                 }
             }
 
@@ -169,6 +230,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
 
             sub.debit = -(nDebit - nChange);
             sub.credit = nCredit - nChange;
+            
             parts.append(sub);
             parts.last().involvesWatchAddress = involvesWatchAddress;   // maybe pass to TransactionRecord as constructor argument
 
@@ -183,7 +245,9 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
             for (unsigned int nOut = 0; nOut < wtx.vout.size(); nOut++)
             {
                 const CTxOut& txout = wtx.vout[nOut];
+                
                 TransactionRecord sub(hash, nTime);
+                
                 sub.idx = parts.size();
                 sub.involvesWatchAddress = involvesWatchAddress;
 
@@ -207,6 +271,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
                     sub.type = TransactionRecord::SendToOther;
                     sub.address = mapValue["to"];
                 }
+                
                 if(mapValue["DS"] == "1")
                 {
                     sub.type = TransactionRecord::Darksent;
@@ -244,16 +309,15 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx)
 
     // Find the block the tx is in
     CBlockIndex* pindex = NULL;
+    
     std::map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(wtx.hashBlock);
     if (mi != mapBlockIndex.end())
+    {
         pindex = (*mi).second;
+    }
 
     // Sort order, unrecorded transactions sort to the top
-    status.sortKey = strprintf("%010d-%01d-%010u-%03d",
-        (pindex ? pindex->nHeight : std::numeric_limits<int>::max()),
-        (wtx.IsCoinBase() ? 1 : 0),
-        wtx.nTimeReceived,
-        idx);
+    status.sortKey = strprintf("%010d-%01d-%010u-%03d", (pindex ? pindex->nHeight : std::numeric_limits<int>::max()), (wtx.IsCoinBase() ? 1 : 0), wtx.nTimeReceived, idx);
     status.countsForBalance = wtx.IsTrusted() && !(wtx.GetBlocksToMaturity() > 0);
     status.depth = wtx.GetDepthInMainChain();
     status.cur_num_blocks = nBestHeight;
@@ -272,10 +336,10 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx)
             status.open_for = wtx.nLockTime;
         }
     }
-
-    // For generated transactions, determine maturity
     else if(type == TransactionRecord::Generated)
     {
+        // For generated transactions, determine maturity
+
         if (wtx.GetBlocksToMaturity() > 0)
         {
             status.status = TransactionStatus::Immature;
@@ -326,6 +390,7 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx)
 bool TransactionRecord::statusUpdateNeeded()
 {
     AssertLockHeld(cs_main);
+    
     return status.cur_num_blocks != nBestHeight || status.cur_num_ix_locks != nCompleteTXLocks;
 }
 

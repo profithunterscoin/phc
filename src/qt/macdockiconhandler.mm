@@ -1,3 +1,12 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2018 Profit Hunters Coin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #include "macdockiconhandler.h"
 
 #include <QImageWriter>
@@ -12,6 +21,7 @@
 extern void qt_mac_set_dock_menu(QMenu *);
 #endif
 
+
 @interface DockIconClickEventHandler : NSObject
 {
     MacDockIconHandler* dockIconHandler;
@@ -19,12 +29,14 @@ extern void qt_mac_set_dock_menu(QMenu *);
 
 @end
 
+
 @implementation DockIconClickEventHandler
 
 - (id)initWithDockIconHandler:(MacDockIconHandler *)aDockIconHandler
 {
     self = [super init];
-    if (self) {
+    if (self)
+    {
         dockIconHandler = aDockIconHandler;
 
         [[NSAppleEventManager sharedAppleEventManager]
@@ -33,20 +45,24 @@ extern void qt_mac_set_dock_menu(QMenu *);
               forEventClass:kCoreEventClass
                  andEventID:kAEReopenApplication];
     }
+
     return self;
 }
+
 
 - (void)handleDockClickEvent:(NSAppleEventDescriptor*)event withReplyEvent:(NSAppleEventDescriptor*)replyEvent
 {
     Q_UNUSED(event)
     Q_UNUSED(replyEvent)
 
-    if (dockIconHandler) {
+    if (dockIconHandler)
+    {
         dockIconHandler->handleDockIconClickEvent();
     }
 }
 
 @end
+
 
 MacDockIconHandler::MacDockIconHandler() : QObject()
 {
@@ -62,45 +78,60 @@ MacDockIconHandler::MacDockIconHandler() : QObject()
     [pool release];
 }
 
-void MacDockIconHandler::setMainWindow(QMainWindow *window) {
+
+void MacDockIconHandler::setMainWindow(QMainWindow *window)
+{
     this->mainWindow = window;
 }
+
 
 MacDockIconHandler::~MacDockIconHandler()
 {
     [this->m_dockIconClickEventHandler release];
+
     delete this->m_dummyWidget;
+
     this->setMainWindow(NULL);
 }
+
 
 QMenu *MacDockIconHandler::dockMenu()
 {
     return this->m_dockMenu;
 }
 
+
 void MacDockIconHandler::setIcon(const QIcon &icon)
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     NSImage *image = nil;
+
     if (icon.isNull())
+    {
         image = [[NSImage imageNamed:@"NSApplicationIcon"] retain];
-    else {
+    }
+    else
+    {
         // generate NSImage from QIcon and use this as dock icon.
         QSize size = icon.actualSize(QSize(128, 128));
         QPixmap pixmap = icon.pixmap(size);
 
         // Write image into a R/W buffer from raw pixmap, then save the image.
         QBuffer notificationBuffer;
-        if (!pixmap.isNull() && notificationBuffer.open(QIODevice::ReadWrite)) {
+        
+        if (!pixmap.isNull() && notificationBuffer.open(QIODevice::ReadWrite))
+        {
             QImageWriter writer(&notificationBuffer, "PNG");
-            if (writer.write(pixmap.toImage())) {
+            if (writer.write(pixmap.toImage()))
+            {
                 NSData* macImgData = [NSData dataWithBytes:notificationBuffer.buffer().data()
                                              length:notificationBuffer.buffer().size()];
                 image =  [[NSImage alloc] initWithData:macImgData];
             }
         }
 
-        if(!image) {
+        if(!image)
+        {
             // if testnet image could not be created, load std. app icon
             image = [[NSImage imageNamed:@"NSApplicationIcon"] retain];
         }
@@ -111,13 +142,19 @@ void MacDockIconHandler::setIcon(const QIcon &icon)
     [pool release];
 }
 
+
 MacDockIconHandler *MacDockIconHandler::instance()
 {
     static MacDockIconHandler *s_instance = NULL;
+
     if (!s_instance)
+    {
         s_instance = new MacDockIconHandler();
+    }
+
     return s_instance;
 }
+
 
 void MacDockIconHandler::handleDockIconClickEvent()
 {

@@ -1,8 +1,12 @@
-
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2012 The Bitcoin developers
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2018 Profit Hunters Coin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #ifndef MASTERNODEMAN_H
 #define MASTERNODEMAN_H
 
@@ -20,7 +24,9 @@
 #define MASTERNODES_DUMP_SECONDS               (15*60)
 #define MASTERNODES_DSEG_SECONDS               (3*60*60)
 
+
 using namespace std;
+
 
 class CMasternodeMan;
 
@@ -30,128 +36,152 @@ extern void Misbehaving(NodeId nodeid, int howmuch);
 
 void DumpMasternodes();
 
+
 /** Access to the MN database (mncache.dat) */
 class CMasternodeDB
 {
-private:
-    boost::filesystem::path pathMN;
-    std::string strMagicMessage;
-public:
-    enum ReadResult {
-        Ok,
-       FileError,
-        HashReadError,
-        IncorrectHash,
-        IncorrectMagicMessage,
-        IncorrectMagicNumber,
-        IncorrectFormat
+    private:
+
+        boost::filesystem::path pathMN;
+        std::string strMagicMessage;
+    
+    public:
+
+        enum ReadResult
+        {
+            Ok,
+            FileError,
+            HashReadError,
+            IncorrectHash,
+            IncorrectMagicMessage,
+            IncorrectMagicNumber,
+            IncorrectFormat
+        };
+
+        CMasternodeDB();
+        bool Write(const CMasternodeMan &mnodemanToSave);
+        ReadResult Read(CMasternodeMan& mnodemanToLoad);
     };
 
-    CMasternodeDB();
-    bool Write(const CMasternodeMan &mnodemanToSave);
-    ReadResult Read(CMasternodeMan& mnodemanToLoad);
-};
 
-class CMasternodeMan
-{
-private:
-    // critical section to protect the inner data structures
-    mutable CCriticalSection cs;
+    class CMasternodeMan
+    {
+        private:
 
-    // map to hold all MNs
-    std::vector<CMasternode> vMasternodes;
-    // who's asked for the masternode list and the last time
-    std::map<CNetAddr, int64_t> mAskedUsForMasternodeList;
-    // who we asked for the masternode list and the last time
-    std::map<CNetAddr, int64_t> mWeAskedForMasternodeList;
-    // which masternodes we've asked for
-    std::map<COutPoint, int64_t> mWeAskedForMasternodeListEntry;
+            // critical section to protect the inner data structures
+            mutable CCriticalSection cs;
 
-public:
-    // keep track of dsq count to prevent masternodes from gaming darksend queue
-    int64_t nDsqCount;
+            // map to hold all MNs
+            std::vector<CMasternode> vMasternodes;
 
-    IMPLEMENT_SERIALIZE
-    (
-        // serialized format:
-        // * version byte (currently 0)
-        // * masternodes vector
-        {
-                LOCK(cs);
-                unsigned char nVersion = 0;
-                READWRITE(nVersion);
-                READWRITE(vMasternodes);
-                READWRITE(mAskedUsForMasternodeList);
-                READWRITE(mWeAskedForMasternodeList);
-                READWRITE(mWeAskedForMasternodeListEntry);
-                READWRITE(nDsqCount);
-        }
-    )
+            // who's asked for the masternode list and the last time
+            std::map<CNetAddr, int64_t> mAskedUsForMasternodeList;
 
-    CMasternodeMan();
-    CMasternodeMan(CMasternodeMan& other);
+            // who we asked for the masternode list and the last time
+            std::map<CNetAddr, int64_t> mWeAskedForMasternodeList;
 
-    // Add an entry
-    bool Add(CMasternode &mn);
+            // which masternodes we've asked for
+            std::map<COutPoint, int64_t> mWeAskedForMasternodeListEntry;
 
-    // Check all masternodes
-    void Check();
+        public:
 
-    /// Ask (source) node for mnb
-    void AskForMN(CNode *pnode, CTxIn &vin);
+            // keep track of dsq count to prevent masternodes from gaming darksend queue
+            int64_t nDsqCount;
 
-    // Check all masternodes and remove inactive
-    void CheckAndRemove();
+            IMPLEMENT_SERIALIZE
+            (
+                // serialized format:
+                // * version byte (currently 0)
+                // * masternodes vector
 
-    // Clear masternode vector
-    void Clear();
+                // Global Namespace Start
+                {
+                        LOCK(cs);
+                        unsigned char nVersion = 0;
+                        READWRITE(nVersion);
+                        READWRITE(vMasternodes);
+                        READWRITE(mAskedUsForMasternodeList);
+                        READWRITE(mWeAskedForMasternodeList);
+                        READWRITE(mWeAskedForMasternodeListEntry);
+                        READWRITE(nDsqCount);
+                }
+                // Global Namespace End
+            )
 
-    int CountEnabled(int protocolVersion = -1);
+            CMasternodeMan();
+            CMasternodeMan(CMasternodeMan& other);
 
-    int CountMasternodesAboveProtocol(int protocolVersion);
+            // Add an entry
+            bool Add(CMasternode &mn);
 
-    void DsegUpdate(CNode* pnode);
+            // Check all masternodes
+            void Check();
 
-    // Find an entry
-    CMasternode* Find(const CTxIn& vin);
-    CMasternode* Find(const CPubKey& pubKeyMasternode);
+            /// Ask (source) node for mnb
+            void AskForMN(CNode *pnode, CTxIn &vin);
 
-    //Find an entry thta do not match every entry provided vector
-    CMasternode* FindOldestNotInVec(const std::vector<CTxIn> &vVins, int nMinimumAge);
+            // Check all masternodes and remove inactive
+            void CheckAndRemove();
 
-    // Find a random entry
-    CMasternode* FindRandom();
+            // Clear masternode vector
+            void Clear();
 
-    /// Find a random entry
-    CMasternode* FindRandomNotInVec(std::vector<CTxIn> &vecToExclude, int protocolVersion = -1);
+            int CountEnabled(int protocolVersion = -1);
 
-    // Get the current winner for this block
-    CMasternode* GetCurrentMasterNode(int mod=1, int64_t nBlockHeight=0, int minProtocol=0);
+            int CountMasternodesAboveProtocol(int protocolVersion);
 
-    std::vector<CMasternode> GetFullMasternodeVector() { Check(); return vMasternodes; }
+            void DsegUpdate(CNode* pnode);
 
-    std::vector<pair<int, CMasternode> > GetMasternodeRanks(int64_t nBlockHeight, int minProtocol=0);
-    int GetMasternodeRank(const CTxIn &vin, int64_t nBlockHeight, int minProtocol=0, bool fOnlyActive=true);
-    CMasternode* GetMasternodeByRank(int nRank, int64_t nBlockHeight, int minProtocol=0, bool fOnlyActive=true);
+            // Find an entry
+            CMasternode* Find(const CTxIn& vin);
+            CMasternode* Find(const CPubKey& pubKeyMasternode);
 
-    void ProcessMasternodeConnections();
+            //Find an entry thta do not match every entry provided vector
+            CMasternode* FindOldestNotInVec(const std::vector<CTxIn> &vVins, int nMinimumAge);
 
-    void ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStream& vRecv);
+            // Find a random entry
+            CMasternode* FindRandom();
 
-    // Return the number of (unique) masternodes
-    int size() { return vMasternodes.size(); }
+            /// Find a random entry
+            CMasternode* FindRandomNotInVec(std::vector<CTxIn> &vecToExclude, int protocolVersion = -1);
 
-    std::string ToString() const;
+            // Get the current winner for this block
+            CMasternode* GetCurrentMasterNode(int mod=1, int64_t nBlockHeight=0, int minProtocol=0);
 
-    //
-    // Relay Masternode Messages
-    //
+            std::vector<CMasternode> GetFullMasternodeVector()
+            {
+                Check();
 
-    void RelayOldMasternodeEntry(const CTxIn vin, const CService addr, const std::vector<unsigned char> vchSig, const int64_t nNow, const CPubKey pubkey, const CPubKey pubkey2, const int count, const int current, const int64_t lastUpdated, const int protocolVersion);
-    void RelayMasternodeEntry(const CTxIn vin, const CService addr, const std::vector<unsigned char> vchSig, const int64_t nNow, const CPubKey pubkey, const CPubKey pubkey2, const int count, const int current, const int64_t lastUpdated, const int protocolVersion, CScript rewardAddress, int rewardPercentage);
-    void RelayMasternodeEntryPing(const CTxIn vin, const std::vector<unsigned char> vchSig, const int64_t nNow, const bool stop);
+                return vMasternodes;
+            }
 
-    void Remove(CTxIn vin);
+            std::vector<pair<int, CMasternode> > GetMasternodeRanks(int64_t nBlockHeight, int minProtocol=0);
+
+            int GetMasternodeRank(const CTxIn &vin, int64_t nBlockHeight, int minProtocol=0, bool fOnlyActive=true);
+            
+            CMasternode* GetMasternodeByRank(int nRank, int64_t nBlockHeight, int minProtocol=0, bool fOnlyActive=true);
+
+            void ProcessMasternodeConnections();
+
+            void ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStream& vRecv);
+
+            // Return the number of (unique) masternodes
+            int size()
+            {
+                return vMasternodes.size();
+            }
+
+            std::string ToString() const;
+
+            //
+            // Relay Masternode Messages
+            //
+
+            void RelayOldMasternodeEntry(const CTxIn vin, const CService addr, const std::vector<unsigned char> vchSig, const int64_t nNow, const CPubKey pubkey, const CPubKey pubkey2, const int count, const int current, const int64_t lastUpdated, const int protocolVersion);
+            void RelayMasternodeEntry(const CTxIn vin, const CService addr, const std::vector<unsigned char> vchSig, const int64_t nNow, const CPubKey pubkey, const CPubKey pubkey2, const int count, const int current, const int64_t lastUpdated, const int protocolVersion, CScript rewardAddress, int rewardPercentage);
+            void RelayMasternodeEntryPing(const CTxIn vin, const std::vector<unsigned char> vchSig, const int64_t nNow, const bool stop);
+
+            void Remove(CTxIn vin);
 
 };
 

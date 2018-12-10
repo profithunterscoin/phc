@@ -1,6 +1,7 @@
 /*-
  * Copyright 2009 Colin Percival, 2011 ArtForz, 2011 pooler, 2013 Balthazar
  * All rights reserved.
+ * Edited by: Profit Hunters Coin (2018)
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -27,6 +28,7 @@
  * online backup system.
  */
 
+
 #include <stdlib.h>
 #include <stdint.h>
 
@@ -42,6 +44,7 @@
 extern "C" void scrypt_core(unsigned int *X, unsigned int *V);
 #else
 // Generic scrypt_core implementation
+
 
 static inline void xor_salsa8(unsigned int B[16], const unsigned int Bx[16])
 {
@@ -64,7 +67,9 @@ static inline void xor_salsa8(unsigned int B[16], const unsigned int Bx[16])
     x13 = (B[13] ^= Bx[13]);
     x14 = (B[14] ^= Bx[14]);
     x15 = (B[15] ^= Bx[15]);
-    for (i = 0; i < 8; i += 2) {
+
+    for (i = 0; i < 8; i += 2)
+    {
 #define R(a, b) (((a) << (b)) | ((a) >> (32 - (b))))
         /* Operate on columns. */
         x04 ^= R(x00+x12, 7); x09 ^= R(x05+x01, 7);
@@ -93,6 +98,7 @@ static inline void xor_salsa8(unsigned int B[16], const unsigned int Bx[16])
         x10 ^= R(x09+x08,18); x15 ^= R(x14+x13,18);
 #undef R
     }
+
     B[0] += x00;
     B[1] += x01;
     B[2] += x02;
@@ -111,25 +117,34 @@ static inline void xor_salsa8(unsigned int B[16], const unsigned int Bx[16])
     B[15] += x15;
 }
 
+
 static inline void scrypt_core(unsigned int *X, unsigned int *V)
 {
     unsigned int i, j, k;
 
-    for (i = 0; i < 1024; i++) {
+    for (i = 0; i < 1024; i++)
+    {
         memcpy(&V[i * 32], X, 128);
         xor_salsa8(&X[0], &X[16]);
         xor_salsa8(&X[16], &X[0]);
     }
-    for (i = 0; i < 1024; i++) {
+
+    for (i = 0; i < 1024; i++)
+    {
         j = 32 * (X[16] & 1023);
+
         for (k = 0; k < 32; k++)
+        {
             X[k] ^= V[j + k];
+        }
+
         xor_salsa8(&X[0], &X[16]);
         xor_salsa8(&X[16], &X[0]);
     }
 }
 
 #endif
+
 
 /* cpu and memory intensive function to transform a 80 byte buffer into a 32 byte output
    scratchpad size needs to be at least 63 + (128 * r * p) + (256 * r + 64) + (128 * r * N) bytes
@@ -140,41 +155,53 @@ uint256 scrypt_nosalt(const void* input, size_t inputlen, void *scratchpad)
 {
     unsigned int *V;
     unsigned int X[32];
+
     uint256 result = 0;
     V = (unsigned int *)(((uintptr_t)(scratchpad) + 63) & ~ (uintptr_t)(63));
 
     PBKDF2_SHA256((const uint8_t*)input, inputlen, (const uint8_t*)input, inputlen, 1, (uint8_t *)X, 128);
+    
     scrypt_core(X, V);
+    
     PBKDF2_SHA256((const uint8_t*)input, inputlen, (uint8_t *)X, 128, 1, (uint8_t*)&result, 32);
 
     return result;
 }
 
+
 uint256 scrypt(const void* data, size_t datalen, const void* salt, size_t saltlen, void *scratchpad)
 {
     unsigned int *V;
     unsigned int X[32];
+    
     uint256 result = 0;
     V = (unsigned int *)(((uintptr_t)(scratchpad) + 63) & ~ (uintptr_t)(63));
 
     PBKDF2_SHA256((const uint8_t*)data, datalen, (const uint8_t*)salt, saltlen, 1, (uint8_t *)X, 128);
+    
     scrypt_core(X, V);
+    
     PBKDF2_SHA256((const uint8_t*)data, datalen, (uint8_t *)X, 128, 1, (uint8_t*)&result, 32);
 
     return result;
 }
 
+
 uint256 scrypt_hash(const void* input, size_t inputlen)
 {
     unsigned char scratchpad[SCRYPT_BUFFER_SIZE];
+    
     return scrypt_nosalt(input, inputlen, scratchpad);
 }
+
 
 uint256 scrypt_salted_hash(const void* input, size_t inputlen, const void* salt, size_t saltlen)
 {
     unsigned char scratchpad[SCRYPT_BUFFER_SIZE];
+    
     return scrypt(input, inputlen, salt, saltlen, scratchpad);
 }
+
 
 uint256 scrypt_salted_multiround_hash(const void* input, size_t inputlen, const void* salt, size_t saltlen, const unsigned int nRounds)
 {
@@ -184,15 +211,18 @@ uint256 scrypt_salted_multiround_hash(const void* input, size_t inputlen, const 
     for(unsigned int i = 1; i < nRounds; i++)
     {
         resultHash = scrypt_salted_hash(input, inputlen, (const void*)&transitionalHash, 32);
+        
         transitionalHash = resultHash;
     }
 
     return resultHash;
 }
 
+
 uint256 scrypt_blockhash(const void* input)
 {
     unsigned char scratchpad[SCRYPT_BUFFER_SIZE];
+    
     return scrypt_nosalt(input, 80, scratchpad);
 }
 

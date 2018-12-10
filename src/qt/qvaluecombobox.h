@@ -1,3 +1,12 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2018 Profit Hunters Coin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #ifndef QVALUECOMBOBOX_H
 #define QVALUECOMBOBOX_H
 
@@ -11,23 +20,28 @@ class QValueComboBox : public QComboBox
 
     Q_PROPERTY(QVariant value READ value WRITE setValue NOTIFY valueChanged USER true)
 
-public:
-    explicit QValueComboBox(QWidget *parent = 0);
+    public:
 
-    QVariant value() const;
-    void setValue(const QVariant &value);
+        explicit QValueComboBox(QWidget *parent = 0);
 
-    /** Specify model role to use as ordinal value (defaults to Qt::UserRole) */
-    void setRole(int role);
+        QVariant value() const;
 
-signals:
-    void valueChanged();
+        void setValue(const QVariant &value);
 
-private:
-    int role;
+        /** Specify model role to use as ordinal value (defaults to Qt::UserRole) */
+        void setRole(int role);
 
-private slots:
-    void handleSelectionChanged(int idx);
+    signals:
+
+        void valueChanged();
+
+    private:
+
+        int role;
+
+    private slots:
+    
+        void handleSelectionChanged(int idx);
 };
 
 #endif // QVALUECOMBOBOX_H
