@@ -119,15 +119,9 @@ bool parseCommandLine(std::vector<std::string> &args, const std::string &strComm
     {
         switch(state)
         {
-            case STATE_ARGUMENT:
+            case STATE_ARGUMENT: // In or after argument
+            case STATE_EATING_SPACES: // Handle runs of whitespace
             {
-                 // In or after argument
-            }
-            break;
-            
-            case STATE_EATING_SPACES:
-            {
-                 // Handle runs of whitespace
                 switch(ch)
                 {
                     case '"':
