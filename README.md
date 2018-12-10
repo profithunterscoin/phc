@@ -58,23 +58,17 @@ You're using this software with no guarantees or warranty of any kind. Use it at
 Built on the foundations of Bitcoin, Litecoin, PeerCoin, NovaCoin, CraveProject, Dash Masternodes
 XUVCoin, BATA, and Crypostle to help further advance the field of crypto-currency.
 
-Copyright © 2018 Crypostle developers
+## Contributions:
 
-Copyright © 2017 The XUV developers
-
-Copyright © 2014-2015 The ShadowCoin developers
-
-Copyright © 2014-2015 The Dash developers
-
-Copyright © 2014 The Crave developers
-
-Copyright © 2009-2012 The Darkcoin developers
-
-Copyright © 2012-2014 The NovaCoin developers
-
-Copyright © 2011-2015 The Peercoin developers
-
-Copyright © 2009-2014 The Bitcoin developers
+- Copyright © 2018 Crypostle developers
+- Copyright © 2017 The XUV developers
+- Copyright © 2014-2015 The ShadowCoin developers
+- Copyright © 2014-2015 The Dash developers
+- Copyright © 2014 The Crave developers
+- Copyright © 2009-2012 The Darkcoin developers
+- Copyright © 2012-2014 The NovaCoin developers
+- Copyright © 2011-2015 The Peercoin developers
+- Copyright © 2009-2014 The Bitcoin developers
 
 This product includes software developed by the OpenSSL Project for use in
 the OpenSSL Toolkit (http://www.openssl.org/).
