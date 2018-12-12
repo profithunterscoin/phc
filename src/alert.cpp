@@ -178,7 +178,7 @@ bool CAlert::CheckSignature() const
 
     if (!key.Verify(Hash(vchMsg.begin(), vchMsg.end()), vchSig))
     {
-        return error("CAlert::CheckSignature() : verify signature failed");
+        return error("% -- verify signature failed", __func__);
     }
 
     // Now unserialize the data
@@ -259,7 +259,7 @@ bool CAlert::ProcessAlert(bool fThread)
             {
                 if (fDebug)
                 {
-                    LogPrint("alert", "cancelling alert %d\n", alert.nID);
+                    LogPrint("alert", "% -- cancelling alert %d\n", __func__, alert.nID);
                 }
 
                 uiInterface.NotifyAlertChanged((*mi).first, CT_DELETED);
@@ -269,7 +269,7 @@ bool CAlert::ProcessAlert(bool fThread)
             {
                 if (fDebug)
                 {
-                    LogPrint("alert", "expiring alert %d\n", alert.nID);
+                    LogPrint("alert", "% -- expiring alert %d\n", __func__, alert.nID);
                 }
 
                 uiInterface.NotifyAlertChanged((*mi).first, CT_DELETED);
@@ -289,7 +289,7 @@ bool CAlert::ProcessAlert(bool fThread)
             {
                 if (fDebug)
                 {
-                    LogPrint("alert", "alert already cancelled by %d\n", alert.nID);
+                    LogPrint("alert", "% -- alert already cancelled by %d\n", __func__, alert.nID);
                 }
 
                 return false;
@@ -332,7 +332,7 @@ bool CAlert::ProcessAlert(bool fThread)
 
     if (fDebug)
     {
-        LogPrint("alert", "accepted alert %d, AppliesToMe()=%d\n", nID, AppliesToMe());
+        LogPrint("alert", "% -- accepted alert %d, AppliesToMe()=%d\n", __func__, nID, AppliesToMe());
     }
 
     return true;

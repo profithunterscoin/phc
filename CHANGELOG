@@ -17,6 +17,7 @@ v1.0.0.7 (Pre-release)
  * Cleaned Core and QT source files
  * OpenSSL 1.1 Support
  * FIX: Excessive CPU use during mining
+ * Upgrade: Debug to Logfile (Disabled by default, Added Categories and Function Names)
 
 v1.0.0.6
 --------

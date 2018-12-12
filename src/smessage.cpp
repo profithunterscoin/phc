@@ -210,7 +210,10 @@ void SecMsgBucket::hashBucket()
 {
     if (fDebugSmsg)
     {
-        LogPrint("smessage", "SecMsgBucket::hashBucket()\n");
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- \n", __func__);
+        }
     }
     
     timeChanged = GetTime();
@@ -228,7 +231,10 @@ void SecMsgBucket::hashBucket()
     
     if (fDebugSmsg)
     {
-        LogPrint("smessage", "Hashed %u messages, hash %u\n", setTokens.size(), hash);
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Hashed %u messages, hash %u\n", __func__, setTokens.size(), hash);
+        }
     }
 };
 
@@ -248,8 +254,11 @@ bool SecMsgDB::Open(const char* pszMode)
 
     if (!fCreate && (!fs::exists(fullpath) || !fs::is_directory(fullpath)))
     {
-        LogPrint("smessage", "SecMsgDB::open() - DB does not exist.\n");
-        
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- DB does not exist.\n", __func__);
+        }
+
         return false;
     }
 
@@ -259,8 +268,11 @@ bool SecMsgDB::Open(const char* pszMode)
 
     if (!s.ok())
     {
-        LogPrint("smessage", "SecMsgDB::open() - Error opening db: %s.\n", s.ToString().c_str());
-        
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Error opening db: %s.\n", __func__, s.ToString().c_str());
+        }
+
         return false;
     }
 
@@ -329,8 +341,11 @@ bool SecMsgDB::ScanBatch(const CDataStream& key, std::string* value, bool* delet
     
     if (!s.ok())
     {
-        LogPrint("smessage", "SecMsgDB ScanBatch error: %s\n", s.ToString().c_str());
-    
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- ScanBatch error: %s\n", __func__, s.ToString().c_str());
+        }
+
         return false;
     }
 
@@ -370,8 +385,11 @@ bool SecMsgDB::TxnCommit()
 
     if (!status.ok())
     {
-        LogPrint("smessage", "SecMsgDB batch commit failure: %s\n", status.ToString().c_str());
-        
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- batch commit failure: %s\n", __func__, status.ToString().c_str());
+        }
+
         return false;
     }
 
@@ -430,7 +448,10 @@ bool SecMsgDB::ReadPK(CKeyID& addr, CPubKey& pubkey)
                 return false;
             }
 
-            LogPrint("smessage", "LevelDB read failure: %s\n", s.ToString().c_str());
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- LevelDB read failure: %s\n", __func__, s.ToString().c_str());
+            }
             
             return false;
         }
@@ -443,8 +464,11 @@ bool SecMsgDB::ReadPK(CKeyID& addr, CPubKey& pubkey)
     }
     catch (std::exception& e)
     {
-        LogPrint("smessage", "SecMsgDB::ReadPK() unserialize threw: %s.\n", e.what());
-        
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- unserialize threw: %s.\n", __func__, e.what());
+        }
+
         return false;
     }
 
@@ -486,8 +510,11 @@ bool SecMsgDB::WritePK(CKeyID& addr, CPubKey& pubkey)
     
     if (!s.ok())
     {
-        LogPrint("smessage", "SecMsgDB write failure: %s\n", s.ToString().c_str());
-        
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- write failure: %s\n", __func__, s.ToString().c_str());
+        }
+
         return false;
     }
 
@@ -559,8 +586,11 @@ bool SecMsgDB::NextSmesg(leveldb::Iterator* it, std::string& prefix, uint8_t* ch
     }
     catch (std::exception& e)
     {
-        LogPrint("smessage", "SecMsgDB::NextSmesg() unserialize threw: %s.\n", e.what());
-    
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- unserialize threw: %s.\n", __func__, e.what());
+        }
+
         return false;
     }
 
@@ -633,8 +663,11 @@ bool SecMsgDB::ReadSmesg(uint8_t* chKey, SecMsgStored& smsgStored)
                 return false;
             }
 
-            LogPrint("smessage", "LevelDB read failure: %s\n", s.ToString().c_str());
-            
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- LevelDB read failure: %s\n", __func__, s.ToString().c_str());
+            }
+
             return false;
         }
     }
@@ -647,8 +680,11 @@ bool SecMsgDB::ReadSmesg(uint8_t* chKey, SecMsgStored& smsgStored)
     }
     catch (std::exception& e)
     {
-        LogPrint("smessage", "SecMsgDB::ReadSmesg() unserialize threw: %s.\n", e.what());
-        
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- unserialize threw: %s.\n", __func__, e.what());
+        }
+
         return false;
     }
 
@@ -659,7 +695,9 @@ bool SecMsgDB::ReadSmesg(uint8_t* chKey, SecMsgStored& smsgStored)
 bool SecMsgDB::WriteSmesg(uint8_t* chKey, SecMsgStored& smsgStored)
 {
     if (!pdb)
+    {
         return false;
+    }
 
     CDataStream ssKey(SER_DISK, CLIENT_VERSION);
     ssKey.write((const char*)chKey, 18);
@@ -680,8 +718,11 @@ bool SecMsgDB::WriteSmesg(uint8_t* chKey, SecMsgStored& smsgStored)
     
     if (!s.ok())
     {
-        LogPrint("smessage", "SecMsgDB write failed: %s\n", s.ToString().c_str());
-        
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- write failed: %s\n", __func__, s.ToString().c_str());
+        }
+
         return false;
     }
 
@@ -742,8 +783,11 @@ bool SecMsgDB::EraseSmesg(uint8_t* chKey)
         return true;
     }
     
-    LogPrint("smessage", "SecMsgDB erase failed: %s\n", s.ToString().c_str());
-    
+    if (fDebug)
+    {
+        LogPrint("smessage", "% -- erase failed: %s\n", __func__, s.ToString().c_str());
+    }
+
     return false;
 };
 
@@ -764,8 +808,11 @@ void ThreadSecureMsg()
         
         if (fDebugSmsg && nLoop % SMSG_THREAD_LOG_GAP == 0)
         {
-            // log every SMSG_THREAD_LOG_GAP instance, is useful source of timestamps
-            LogPrint("smessage", "SecureMsgThread %d \n", now);
+            if (fDebug)
+            {
+                // log every SMSG_THREAD_LOG_GAP instance, is useful source of timestamps
+                LogPrint("smessage", "% -- %d \n", __func__, now);
+            }
         } 
         
         vTimedOutLocks.resize(0);
@@ -783,7 +830,10 @@ void ThreadSecureMsg()
                 {
                     if (fDebugSmsg)
                     {
-                        LogPrint("smessage", "Removing bucket %d \n", it->first);
+                        if (fDebug)
+                        {
+                            LogPrint("smessage", "% -- Removing bucket %d \n", __func__, it->first);
+                        }
                     }
 
                     std::string fileName = boost::lexical_cast<std::string>(it->first);
@@ -798,12 +848,18 @@ void ThreadSecureMsg()
                         } 
                         catch (const fs::filesystem_error& ex)
                         {
-                            LogPrint("smessage", "Error removing bucket file %s.\n", ex.what());
+                            if (fDebug)
+                            {
+                                LogPrint("smessage", "% -- Error removing bucket file %s.\n", __func__, ex.what());
+                            }
                         }
                     }
                     else
                     {
-                        LogPrint("smessage", "Path %s does not exist \n", fullPath.string().c_str());
+                        if (fDebug)
+                        {
+                            LogPrint("smessage", "% -- Path %s does not exist \n", __func__, fullPath.string().c_str());
+                        }
                     }
                     
                     // -- look for a wl file, it stores incoming messages when wallet is locked
@@ -817,7 +873,10 @@ void ThreadSecureMsg()
                         }
                         catch (const fs::filesystem_error& ex)
                         {
-                            LogPrint("smessage", "Error removing wallet locked file %s.\n", ex.what());
+                            if (fDebug)
+                            {
+                                LogPrint("smessage", "% -- Error removing wallet locked file %s.\n", __func__, ex.what());
+                            }
                         }
                     }
 
@@ -846,7 +905,10 @@ void ThreadSecureMsg()
 
             if (fDebugSmsg)
             {
-                LogPrint("smessage", "Lock on bucket %d for peer %d timed out.\n", it->first, nPeerId);
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- Lock on bucket %d for peer %d timed out.\n", __func__, it->first, nPeerId);
+                }
             }
 
             // -- look through the nodes for the peer that locked this bucket
@@ -877,7 +939,10 @@ void ThreadSecureMsg()
 
                     if (fDebugSmsg)
                     {
-                        LogPrint("smessage", "This node will ignore peer %d until %d.\n", nPeerId, ignoreUntil);
+                        if (fDebug)
+                        {
+                            LogPrint("smessage", "% -- This node will ignore peer %d until %d.\n", __func__, nPeerId, ignoreUntil);
+                        }
                     }
                     
                     break;
@@ -905,13 +970,19 @@ void ThreadSecureMsgPow()
     
     uint8_t chKey[18];
 
-    LogPrintf("smessage", "*** RGP >>> ThreadSecureMsgPow start... Debug 001\n");
+    if (fDebug)
+    {
+        LogPrint("smessage", "% -- *** RGP >>> ThreadSecureMsgPow start... Debug 001\n", __func__);
+    }
 
     while (fSecMsgEnabled)
     {
         // -- sleep at end, then fSecMsgEnabled is tested on wake
 
-        LogPrint("smessage", "*** RGP >>> ThreadSecureMsgPow main loop Debug 002\n" );
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- *** RGP >>> ThreadSecureMsgPow main loop Debug 002\n", __func__);
+        }
 
         SecMsgDB dbOutbox;
         leveldb::Iterator* it;
@@ -922,8 +993,11 @@ void ThreadSecureMsgPow()
 
             if (!dbOutbox.Open("cr+"))
             {
-                LogPrint("smessage", "*** RGP >>> ThreadSecureMsgPow dbOutbox.Open Debug 003\n" );
-                
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- *** RGP >>> ThreadSecureMsgPow dbOutbox.Open Debug 003\n", __func__);
+                }
+
                 MilliSleep(500); // RGP added
                 
                 continue;
@@ -935,7 +1009,10 @@ void ThreadSecureMsgPow()
         // Global Namespace End
         // -- break up lock, SecureMsgSetHash will take long
 
-        LogPrint("smessage", "*** RGP >>> ThreadSecureMsgPow main loop Debug 004\n");
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- *** RGP >>> ThreadSecureMsgPow main loop Debug 004\n", __func__);
+        }
 
         for (;;)
         {
@@ -944,9 +1021,12 @@ void ThreadSecureMsgPow()
                 LOCK(cs_smsgDB);
                 
                 if (!dbOutbox.NextSmesg(it, sPrefix, chKey, smsgStored))
-                {         
-                    LogPrint("smessage", "*** RGP*** ThreadSecureMsgPow No Next Messagee... Debug 001a\n");
-                    
+                {        
+                    if (fDebug)
+                    { 
+                        LogPrint("smessage", "% -- *** RGP*** ThreadSecureMsgPow No Next Messagee... Debug 001a\n", __func__);
+                    }
+
                     MilliSleep(500); // RGP added
                     
                     break;
@@ -969,7 +1049,10 @@ void ThreadSecureMsgPow()
             // -- message is removed here, no matter what
             // Global Namespace Start
             {
-                LogPrint("smessage", "*** RGP*** ThreadSecureMsgPow Erase Message... Debug 002\n");
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- *** RGP*** ThreadSecureMsgPow Erase Message... Debug 002\n", __func__);
+                }
 
                 LOCK(cs_smsgDB);
                 
@@ -979,8 +1062,11 @@ void ThreadSecureMsgPow()
 
             if (rv != 0)
             {
-                LogPrint("smessage", "SecMsgPow: Could not get proof of work hash, message removed.\n");
-                
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- Could not get proof of work hash, message removed.\n", __func__);
+                }
+
                 continue;
             }
 
@@ -991,8 +1077,11 @@ void ThreadSecureMsgPow()
                 
                 if (SecureMsgStore(pHeader, pPayload, psmsg->nPayload, true) != 0)
                 {
-                    LogPrint("smessage", "*** RGP*** ThreadSecureMsgPow SecureMsgScanMessage error... Debug 003\n");
-                    
+                    if (fDebug)
+                    {
+                        LogPrint("smessage", "% -- *** RGP*** ThreadSecureMsgPow SecureMsgScanMessage error... Debug 003\n", __func__);
+                    }
+
                     continue;
                 }
             }
@@ -1004,8 +1093,11 @@ void ThreadSecureMsgPow()
                 // message recipient is not this node (or failed)
             }
 
-            LogPrint("smessage", "*** RGP*** ThreadSecureMsgPow start... Debug 002\n");
-            
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- *** RGP*** ThreadSecureMsgPow start... Debug 002\n", __func__);
+            }
+
             /* RGP, Added as smsg-po was using 100% cpu time? */
             MilliSleep(500); // Added
         }
@@ -1028,7 +1120,10 @@ int SecureMsgBuildBucketSet()
 
     if (fDebugSmsg)
     {
-        LogPrint("smessage", "SecureMsgBuildBucketSet()\n");
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- \n", __func__);
+        }
     }
 
     int64_t  now            = GetTime();
@@ -1040,8 +1135,11 @@ int SecureMsgBuildBucketSet()
 
     if (!fs::exists(pathSmsgDir) || !fs::is_directory(pathSmsgDir))
     {
-        LogPrint("smessage", "Message store directory does not exist.\n");
-    
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Message store directory does not exist.\n", __func__);
+        }
+
         return 0; // not an error
     }
 
@@ -1063,7 +1161,10 @@ int SecureMsgBuildBucketSet()
 
         if (fDebugSmsg)
         {
-            LogPrint("smessage", "Processing file: %s.\n", fileName.c_str());
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- Processing file: %s.\n", __func__, fileName.c_str());
+            }
         }
 
         nFiles++;
@@ -1083,15 +1184,21 @@ int SecureMsgBuildBucketSet()
 
         if (fileTime < now - SMSG_RETENTION)
         {
-            LogPrint("smessage", "Dropping file %s, expired.\n", fileName.c_str());
-            
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- Dropping file %s, expired.\n", __func__, fileName.c_str());
+            }
+
             try
             {
                 fs::remove((*itd).path());
             }
             catch (const fs::filesystem_error& ex)
             {
-                LogPrint("smessage", "Error removing bucket file %s, %s.\n", fileName.c_str(), ex.what());
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- Error removing bucket file %s, %s.\n", __func__, fileName.c_str(), ex.what());
+                }
             }
             
             continue;
@@ -1101,7 +1208,10 @@ int SecureMsgBuildBucketSet()
         {
             if (fDebugSmsg)
             {
-                LogPrint("smessage", "Skipping wallet locked file: %s.\n", fileName.c_str());
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- Skipping wallet locked file: %s.\n", __func__, fileName.c_str());
+                }
             }
 
             continue;
@@ -1121,9 +1231,12 @@ int SecureMsgBuildBucketSet()
 
             if (!(fp = fopen((*itd).path().string().c_str(), "rb")))
             {
-                LogPrint("smessage", "Error opening file: %s\n", strerror(errno));
-            
-                    continue;
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- Error opening file: %s\n", __func__, strerror(errno));
+                }
+                
+                continue;
             }
 
             for (;;)
@@ -1140,11 +1253,17 @@ int SecureMsgBuildBucketSet()
                 {
                     if (errno != 0)
                     {
-                        LogPrint("smessage", "fread header failed: %s\n", strerror(errno));
+                        if (fDebug)
+                        {
+                            LogPrint("smessage", "% -- fread header failed: %s\n", __func__, strerror(errno));
+                        }
                     }
                     else
                     {
-                        //LogPrint("smessage", "End of file.\n");
+                        if (fDebug)
+                        {
+                            LogPrint("smessage", "% -- End of file.\n", __func__);
+                        }
                     }
 
                     break;
@@ -1159,15 +1278,21 @@ int SecureMsgBuildBucketSet()
 
                 if (fread(token.sample, sizeof(uint8_t), 8, fp) != 8)
                 {
-                    LogPrint("smessage", "fread data failed: %s\n", strerror(errno));
-                 
+                    if (fDebug)
+                    {
+                        LogPrint("smessage", "% -- fread data failed: %s\n", __func__, strerror(errno));
+                    }
+
                     break;
                 }
 
                 if (fseek(fp, smsg.nPayload-8, SEEK_CUR) != 0)
                 {
-                    LogPrint("smessage", "fseek, strerror: %s.\n", strerror(errno));
-                    
+                    if (fDebug)
+                    {
+                        LogPrint("smessage", "% -- fseek, strerror: %s.\n", __func__, strerror(errno));
+                    }
+
                     break;
                 }
 
@@ -1184,13 +1309,20 @@ int SecureMsgBuildBucketSet()
         // LOCK(cs_smsg);
         
         nMessages += nTokenSetSize;
+
         if (fDebugSmsg)
         {
-            LogPrint("smessage", "Bucket %d contains %u messages.\n", fileTime, nTokenSetSize);
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- Bucket %d contains %u messages.\n", __func__, fileTime, nTokenSetSize);
+            }
         }
     }
 
-    LogPrint("smessage", "Processed %u files, loaded %u buckets containing %u messages.\n", nFiles, smsgBuckets.size(), nMessages);
+    if (fDebug)
+    {
+        LogPrint("smessage", "% -- Processed %u files, loaded %u buckets containing %u messages.\n", __func__, nFiles, smsgBuckets.size(), nMessages);
+    }
 
     return 0;
 };
@@ -1200,7 +1332,10 @@ int SecureMsgAddWalletAddresses()
 {
     if (fDebugSmsg)
     {
-        LogPrint("smessage", "SecureMsgAddWalletAddresses()\n");
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- SecureMsgAddWalletAddresses()\n", __func__);
+        }
     }
 
     std::string sAnonPrefix("ao ");
@@ -1260,7 +1395,10 @@ int SecureMsgAddWalletAddresses()
 
     if (fDebugSmsg)
     {
-        LogPrint("smessage", "Added %u addresses to whitelist.\n", nAdded);
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Added %u addresses to whitelist.\n", __func__, nAdded);
+        }
     }
 
     return 0;
@@ -1276,7 +1414,10 @@ int SecureMsgReadIni()
 
     if (fDebugSmsg)
     {
-        LogPrint("smessage", "SecureMsgReadIni()\n");
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- \n", __func__);
+        }
     }
 
     fs::path fullpath = GetDataDir() / "smsg.ini";
@@ -1287,8 +1428,11 @@ int SecureMsgReadIni()
     
     if (!(fp = fopen(fullpath.string().c_str(), "r")))
     {
-        LogPrint("smessage", "Error opening file: %s\n", strerror(errno));
-        
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Error opening file: %s\n", __func__, strerror(errno));
+        }
+
         return 1;
     }
 
@@ -1337,16 +1481,25 @@ int SecureMsgReadIni()
             }
             else
             {
-                LogPrint("smessage", "Could not parse key line %s, rv %d.\n", pValue, rv);
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- Could not parse key line %s, rv %d.\n", __func__, pValue, rv);
+                }
             }
         }
         else
         {
-            LogPrint("smessage", "Unknown setting name: '%s'.", pName);
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- Unknown setting name: '%s'.", __func__, pName);
+            }
         }
     }
 
-    LogPrint("smessage", "Loaded %u addresses.\n", smsgAddresses.size());
+    if (fDebug)
+    {
+        LogPrint("smessage", "% -- Loaded %u addresses.\n", __func__, smsgAddresses.size());
+    }
 
     fclose(fp);
 
@@ -1363,7 +1516,10 @@ int SecureMsgWriteIni()
 
     if (fDebugSmsg)
     {
-        LogPrint("smessage", "SecureMsgWriteIni()\n");
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- SecureMsgWriteIni()\n", __func__);
+        }
     }
 
     fs::path fullpath = GetDataDir() / "smsg.ini~";
@@ -1373,15 +1529,21 @@ int SecureMsgWriteIni()
     
     if (!(fp = fopen(fullpath.string().c_str(), "w")))
     {
-        LogPrint("smessage", "Error opening file: %s\n", strerror(errno));
-        
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Error opening file: %s\n", __func__, strerror(errno));
+        }
+
         return 1;
     }
 
     if (fwrite("[Options]\n", sizeof(char), 10, fp) != 10)
     {
-        LogPrint("smessage", "fwrite error: %s\n", strerror(errno));
-        
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- fwrite error: %s\n", __func__, strerror(errno));
+        }
+
         fclose(fp);
         
         return false;
@@ -1391,8 +1553,11 @@ int SecureMsgWriteIni()
         || fprintf(fp, "newAddressAnon=%s\n", smsgOptions.fNewAddressAnon ? "true" : "false") < 0
         || fprintf(fp, "scanIncoming=%s\n", smsgOptions.fScanIncoming ? "true" : "false") < 0)
     {
-        LogPrint("smessage", "fprintf error: %s\n", strerror(errno));
-        
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- fprintf error: %s\n", __func__, strerror(errno));
+        }
+
         fclose(fp);
         
         return false;
@@ -1400,8 +1565,11 @@ int SecureMsgWriteIni()
 
     if (fwrite("\n[Keys]\n", sizeof(char), 8, fp) != 8)
     {
-        LogPrint("smessage", "fwrite error: %s\n", strerror(errno));
-        
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- fwrite error: %s\n", __func__, strerror(errno));
+        }
+
         fclose(fp);
         
         return false;
@@ -1413,8 +1581,11 @@ int SecureMsgWriteIni()
 
         if (fprintf(fp, "key=%s|%d|%d\n", it->sAddress.c_str(), it->fReceiveEnabled, it->fReceiveAnon) < 0)
         {
-            LogPrint("smessage", "fprintf error: %s\n", strerror(errno));
-        
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- fprintf error: %s\n", __func__, strerror(errno));
+            }
+
             continue;
         }
     }
@@ -1429,7 +1600,10 @@ int SecureMsgWriteIni()
     }
     catch (const fs::filesystem_error& ex)
     {
-        LogPrint("smessage", "Error renaming file %s, %s.\n", fullpath.string().c_str(), ex.what());
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Error renaming file %s, %s.\n", __func__, fullpath.string().c_str(), ex.what());
+        }
     }
 
     return 0;
@@ -1441,27 +1615,42 @@ bool SecureMsgStart(bool fDontStart, bool fScanChain)
 {
     if (fDontStart)
     {
-        LogPrint("smessage", "Secure messaging not started.\n");
-        
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Secure messaging not started.\n", __func__);
+        }
+
         return false;
     }
 
-    LogPrint("smessage", "Secure messaging starting.\n");
+    if (fDebug)
+    {
+        LogPrint("smessage", "% -- Secure messaging starting.\n", __func__);
+    }
 
     fSecMsgEnabled = true;
 
     if (SecureMsgReadIni() != 0)
     {
-        LogPrint("smessage", "Failed to read smsg.ini\n");
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Failed to read smsg.ini\n", __func__);
+        }
     }
 
     if (smsgAddresses.size() < 1)
     {
-        LogPrint("smessage", "No address keys loaded.\n");
-    
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- No address keys loaded.\n", __func__);
+        }
+
         if (SecureMsgAddWalletAddresses() != 0)
         {
-            LogPrint("smessage", "Failed to load addresses from wallet.\n");
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- Failed to load addresses from wallet.\n", __func__);
+            }
         }
     }
 
@@ -1472,8 +1661,11 @@ bool SecureMsgStart(bool fDontStart, bool fScanChain)
 
     if (SecureMsgBuildBucketSet() != 0)
     {
-        LogPrint("smessage", "SecureMsg could not load bucket sets, secure messaging disabled.\n");
-    
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- SecureMsg could not load bucket sets, secure messaging disabled.\n", __func__);
+        }
+
         fSecMsgEnabled = false;
     
         return false;
@@ -1493,12 +1685,17 @@ bool SecureMsgShutdown()
         return false;
     }
 
-    LogPrint("smessage", "Stopping secure messaging.\n");
-
+    if (fDebug)
+    {
+        LogPrint("smessage", "% -- Stopping secure messaging.\n", __func__);
+    }
 
     if (SecureMsgWriteIni() != 0)
     {
-        LogPrint("smessage", "Failed to save smsg.ini\n");
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Failed to save smsg.ini\n", __func__);
+        }
     }
 
     fSecMsgEnabled = false;
@@ -1524,8 +1721,11 @@ bool SecureMsgEnable()
     // -- start secure messaging at runtime
     if (fSecMsgEnabled)
     {
-        LogPrint("smessage", "SecureMsgEnable: secure messaging is already enabled.\n");
-        
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- SecureMsgEnable: secure messaging is already enabled.\n", __func__);
+        }
+
         return false;
     }
 
@@ -1539,16 +1739,25 @@ bool SecureMsgEnable()
 
         if (SecureMsgReadIni() != 0)
         {
-            LogPrint("smessage", "Failed to read smsg.ini\n");
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- Failed to read smsg.ini\n", __func__);
+            }
         }
 
         if (smsgAddresses.size() < 1)
         {
-            LogPrint("smessage", "No address keys loaded.\n");
-            
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- No address keys loaded.\n", __func__);
+            }
+
             if (SecureMsgAddWalletAddresses() != 0)
             {
-                LogPrint("smessage", "Failed to load addresses from wallet.\n");
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- Failed to load addresses from wallet.\n", __func__);
+                }
             }
         }
 
@@ -1556,8 +1765,11 @@ bool SecureMsgEnable()
 
         if (SecureMsgBuildBucketSet() != 0)
         {
-            LogPrint("smessage", "SecureMsgEnable: could not load bucket sets, secure messaging disabled.\n");
-            
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- SecureMsgEnable: could not load bucket sets, secure messaging disabled.\n", __func__);
+            }
+
             fSecMsgEnabled = false;
 
             return false;
@@ -1575,7 +1787,7 @@ bool SecureMsgEnable()
     if (!NewThread(ThreadSecureMsg, NULL)
         || !NewThread(ThreadSecureMsgPow, NULL))
     {
-        LogPrint("smessage", "SecureMsgEnable could not start threads, secure messaging disabled.\n");
+        LogPrint("smessage", "% -- SecureMsgEnable could not start threads, secure messaging disabled.\n", __func__);
         fSecMsgEnabled = false;
         return false;
     };
@@ -1594,8 +1806,11 @@ bool SecureMsgEnable()
     } // cs_vNodes
     // Global Namespace End
 
-    LogPrint("smessage", "Secure messaging enabled.\n");
-    
+    if (fDebug)
+    {
+        LogPrint("smessage", "% -- Secure messaging enabled.\n", __func__);
+    }
+
     return true;
 };
 
@@ -1605,8 +1820,11 @@ bool SecureMsgDisable()
     // -- stop secure messaging at runtime
     if (!fSecMsgEnabled)
     {
-        LogPrint("smessage", "SecureMsgDisable: secure messaging is already disabled.\n");
-        
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- SecureMsgDisable: secure messaging is already disabled.\n", __func__);
+        }
+
         return false;
     }
     
@@ -1658,7 +1876,10 @@ bool SecureMsgDisable()
 
     if (SecureMsgWriteIni() != 0)
     {
-        LogPrint("smessage", "Failed to save smsg.ini\n");
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Failed to save smsg.ini\n", __func__);
+        }
     }
 
     // -- allow time for threads to stop
@@ -1674,7 +1895,10 @@ bool SecureMsgDisable()
         smsgDB = NULL;
     }
 
-    LogPrint("smessage", "Secure messaging disabled.\n");
+    if (fDebug)
+    {
+        LogPrint("smessage", "% -- Secure messaging disabled.\n", __func__);
+    }
 
     return true;
 };
@@ -1689,7 +1913,10 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
 
     if (fDebugSmsg)
     {
-        LogPrint("smessage", "SecureMsgReceiveData() %s %s.\n", pfrom->addrName.c_str(), strCommand.c_str());
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- %s %s.\n", __func__, pfrom->addrName.c_str(), strCommand.c_str());
+        }
     }    
     
     if (strCommand == "smsgInv")
@@ -1714,7 +1941,10 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
             {
                 if (fDebugSmsg)
                 {
-                    LogPrint("smessage", "Node is ignoring peer %d until %d.\n", pfrom->id, pfrom->smsgData.ignoreUntil);
+                    if (fDebug)
+                    {
+                        LogPrint("smessage", "% -- Node is ignoring peer %d until %d.\n", __func__, pfrom->id, pfrom->smsgData.ignoreUntil);
+                    }
                 }
 
                 return false;
@@ -1730,14 +1960,20 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
         
         if (fDebugSmsg)
         {
-            LogPrint("smessage", "Remote node sent %d bucket headers, this has %d.\n", nInvBuckets, nBuckets);
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- Remote node sent %d bucket headers, this has %d.\n", __func__, nInvBuckets, nBuckets);
+            }
         }
 
         // -- Check no of buckets:
         if (nInvBuckets > (SMSG_RETENTION / SMSG_BUCKET_LEN) + 1) // +1 for some leeway
         {
-            LogPrint("smessage", "Peer sent more bucket headers than possible %u, %u.\n", nInvBuckets, (SMSG_RETENTION / SMSG_BUCKET_LEN));
-            
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- Peer sent more bucket headers than possible %u, %u.\n", __func__, nInvBuckets, (SMSG_RETENTION / SMSG_BUCKET_LEN));
+            }
+
             Misbehaving(pfrom->GetId(), 1);
             
             return false;
@@ -1745,8 +1981,11 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
 
         if (vchData.size() < 4 + nInvBuckets*16)
         {
-            LogPrint("smessage", "Remote node did not send enough data.\n");
-           
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- Remote node did not send enough data.\n", __func__);
+            }
+
             Misbehaving(pfrom->GetId(), 1);
             
             return false;
@@ -1778,7 +2017,10 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
             {
                 if (fDebugSmsg)
                 {
-                    LogPrint("smessage", "Not interested in peer bucket %d, has expired.\n", time);
+                    if (fDebug)
+                    {
+                        LogPrint("smessage", "% -- Not interested in peer bucket %d, has expired.\n", __func__, time);
+                    }
                 }
 
                 if (time < now - SMSG_RETENTION - SMSG_TIME_LEEWAY)
@@ -1793,7 +2035,10 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
             {
                 if (fDebugSmsg)
                 {
-                    LogPrint("smessage", "Not interested in peer bucket %d, in the future.\n", time);
+                    if (fDebug)
+                    {
+                        LogPrint("smessage", "% -- Not interested in peer bucket %d, in the future.\n", __func__, time);
+                    }
                 }
 
                 Misbehaving(pfrom->GetId(), 1);
@@ -1805,7 +2050,10 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
             {
                 if (fDebugSmsg)
                 {
-                    LogPrint("smessage", "Peer sent empty bucket, ignore %d %u %u.\n", time, ncontent, hash);
+                    if (fDebug)
+                    {
+                        LogPrint("smessage", "% -- Peer sent empty bucket, ignore %d %u %u.\n", __func__, time, ncontent, hash);
+                    }
                 }
 
                 continue;
@@ -1813,9 +2061,12 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
 
             if (fDebugSmsg)
             {
-                LogPrint("smessage", "peer bucket %d %u %u.\n", time, ncontent, hash);
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- peer bucket %d %u %u.\n", __func__, time, ncontent, hash);
 
-                LogPrint("smessage", "this bucket %d %u %u.\n", time, smsgBuckets[time].setTokens.size(), smsgBuckets[time].hash);
+                    LogPrint("smessage", "% -- this bucket %d %u %u.\n", __func__, time, smsgBuckets[time].setTokens.size(), smsgBuckets[time].hash);
+                }
             }
 
             // Global Namespace Start
@@ -1826,7 +2077,10 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
                 {
                     if (fDebugSmsg)
                     {
-                        LogPrint("smessage", "Bucket is locked %u, waiting for peer %u to send data.\n", smsgBuckets[time].nLockCount, smsgBuckets[time].nLockPeerId);
+                        if (fDebug)
+                        {
+                            LogPrint("smessage", "% -- Bucket is locked %u, waiting for peer %u to send data.\n", __func__, smsgBuckets[time].nLockCount, smsgBuckets[time].nLockPeerId);
+                        }
                     }
 
                     nLocked++;
@@ -1840,7 +2094,10 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
                 {
                     if (fDebugSmsg)
                     {
-                        LogPrint("smessage", "Requesting contents of bucket %d.\n", time);
+                        if (fDebug)
+                        {
+                            LogPrint("smessage", "% -- Requesting contents of bucket %d.\n", __func__, time);
+                        }
                     }
 
                     uint32_t sz = vchDataOut.size();
@@ -1875,7 +2132,10 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
             
             if (fDebugSmsg)
             {
-                LogPrint("smessage", "Sending smsgMatch, %d.\n", now);
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- Sending smsgMatch, %d.\n", __func__, now);
+                }
             }
         }
 
@@ -1900,7 +2160,10 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
 
         if (fDebugSmsg)
         {
-            LogPrint("smessage", "smsgShow: peer wants to see content of %u buckets.\n", nBuckets);
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- peer wants to see content of %u buckets.\n", __func__, nBuckets);
+            }
         }
         
         std::map<int64_t, SecMsgBucket>::iterator itb;
@@ -1926,7 +2189,10 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
                 {
                     if (fDebugSmsg)
                     {
-                        LogPrint("smessage", "Don't have bucket %d.\n", time);
+                        if (fDebug)
+                        {
+                            LogPrint("smessage", "% -- Don't have bucket %d.\n", __func__, time);
+                        }
                     }
 
                     continue;
@@ -1940,7 +2206,10 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
                 }
                 catch (std::exception& e)
                 {
-                    LogPrint("smessage", "vchDataOut.resize %u threw: %s.\n", 8 + 16 * tokenSet.size(), e.what());
+                    if (fDebug)
+                    {
+                        LogPrint("smessage", "% -- vchDataOut.resize %u threw: %s.\n", __func__, 8 + 16 * tokenSet.size(), e.what());
+                    }
 
                     continue;
                 }
@@ -1988,7 +2257,10 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
         {
             if (fDebugSmsg)
             {
-                LogPrint("smessage", "Not interested in peer bucket %d, has expired.\n", time);
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- Not interested in peer bucket %d, has expired.\n", __func__, time);
+                }
             }
             
             return false;
@@ -1998,7 +2270,10 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
         {
             if (fDebugSmsg)
             {
-                LogPrint("smessage", "Not interested in peer bucket %d, in the future.\n", time);
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- Not interested in peer bucket %d, in the future.\n", __func__, time);
+                }
             }
             
             Misbehaving(pfrom->GetId(), 1);
@@ -2016,7 +2291,10 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
             {
                 if (fDebugSmsg)
                 {
-                    LogPrint("smessage", "Bucket %d lock count %u, waiting for message data from peer %u.\n", time, smsgBuckets[time].nLockCount, smsgBuckets[time].nLockPeerId);
+                    if (fDebug)
+                    {
+                        LogPrint("smessage", "% -- Bucket %d lock count %u, waiting for message data from peer %u.\n", __func__, time, smsgBuckets[time].nLockCount, smsgBuckets[time].nLockPeerId);
+                    }
                 }
 
                 return false;
@@ -2024,7 +2302,10 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
 
             if (fDebugSmsg)
             {
-                LogPrint("smessage", "Sifting through bucket %d.\n", time);
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- Sifting through bucket %d.\n", __func__, time);
+                }
             }
             
             vchDataOut.resize(8);
@@ -2054,8 +2335,11 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
                     }
                     catch (std::exception& e)
                     {
-                        LogPrint("smessage", "vchDataOut.resize %d threw: %s.\n", nd + 16, e.what());
-                    
+                        if (fDebug)
+                        {
+                            LogPrint("smessage", "% -- vchDataOut.resize %d threw: %s.\n", __func__, nd + 16, e.what());
+                        }
+
                         continue;
                     }
 
@@ -2071,8 +2355,11 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
         {
             if (fDebugSmsg)
             {
-                LogPrint("smessage", "Asking peer for %u messages.\n", (vchDataOut.size() - 8) / 16);
-                LogPrint("smessage", "Locking bucket %u for peer %d.\n", time, pfrom->id);
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- Asking peer for %u messages.\n", __func__, (vchDataOut.size() - 8) / 16);
+                    LogPrint("smessage", "% -- Locking bucket %u for peer %d.\n", __func__, time, pfrom->id);
+                }
             }
 
             // Global Namespace Start
@@ -2122,7 +2409,10 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
             {
                 if (fDebugSmsg)
                 {
-                    LogPrint("smessage", "Don't have bucket %d.\n", time);
+                    if (fDebug)
+                    {
+                        LogPrint("smessage", "% -- Don't have bucket %d.\n", __func__, time);
+                    }
                 }
 
                 return false;
@@ -2146,14 +2436,17 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
                 {
                     if (fDebugSmsg)
                     {
-                        LogPrint("smessage", "Don't have wanted message %d.\n", token.timestamp);
+                        if (fDebug)
+                        {
+                            LogPrint("smessage", "% -- Don't have wanted message %d.\n", __func__, token.timestamp);
+                        }
                     }
                 }
                 else
                 {
-                    //LogPrint("smessage", "Have message at %d.\n", it->offset); // DEBUG
+                    //LogPrint("smessage", "% -- Have message at %d.\n", __func__, it->offset); // DEBUG
                     token.offset = it->offset;
-                    //LogPrint("smessage", "winb before SecureMsgRetrieve %d.\n", token.timestamp);
+                    //LogPrint("smessage", "% -- winb before SecureMsgRetrieve %d.\n", __func__, token.timestamp);
 
                     // -- place in vchOne so if SecureMsgRetrieve fails it won't corrupt vchBunch
                     if (SecureMsgRetrieve(token, vchOne) == 0)
@@ -2164,14 +2457,20 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
                     }
                     else
                     {
-                        LogPrint("smessage", "SecureMsgRetrieve failed %d.\n", token.timestamp);
+                        if (fDebug)
+                        {
+                            LogPrint("smessage", "% -- SecureMsgRetrieve failed %d.\n", __func__, token.timestamp);
+                        }
                     }
 
                     if (nBunch >= 500 || vchBunch.size() >= 96000)
                     {
                         if (fDebugSmsg)
                         {
-                            LogPrint("smessage", "Break bunch %u, %u.\n", nBunch, vchBunch.size());
+                            if (fDebug)
+                            {
+                                LogPrint("smessage", "% -- Break bunch %u, %u.\n", __func__, nBunch, vchBunch.size());
+                            }
                         }
 
                         break; // end here, peer will send more want messages if needed.
@@ -2188,7 +2487,10 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
         {
             if (fDebugSmsg)
             {
-                LogPrint("smessage", "Sending block of %u messages for bucket %d.\n", nBunch, time);
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- Sending block of %u messages for bucket %d.\n", __func__, nBunch, time);
+                }
             }
 
             memcpy(&vchBunch[0], &nBunch, 4);
@@ -2204,7 +2506,10 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
 
         if (fDebugSmsg)
         {
-            LogPrint("smessage", "smsgMsg vchData.size() %u.\n", vchData.size());
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- smsgMsg vchData.size() %u.\n", __func__, vchData.size());
+            }
         }
 
         SecureMsgReceive(pfrom, vchData);
@@ -2216,8 +2521,11 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
 
         if (vchData.size() < 8)
         {
-            LogPrint("smessage", "smsgMatch, not enough data %u.\n", vchData.size());
-        
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- smsgMatch not enough data %u.\n", __func__, vchData.size());
+            }
+
             Misbehaving(pfrom->GetId(), 1);
         
             return false;
@@ -2233,8 +2541,11 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
         {
             if (fDebugSmsg)
             {
-                LogPrint("smessage", "Warning: Peer buckets matched in the future: %d.\nEither this node or the peer node has the incorrect time set.\n", time);
-                LogPrint("smessage", "Peer match time set to now.\n");
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- Warning: Peer buckets matched in the future: %d.\nEither this node or the peer node has the incorrect time set.\n", __func__, time);
+                    LogPrint("smessage", "% -- Peer match time set to now.\n", __func__);
+                }    
             }
 
             time = now;
@@ -2250,7 +2561,10 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
 
         if (fDebugSmsg)
         {
-            LogPrint("smessage", "Peer buckets matched at %d.\n", time);
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- Peer buckets matched at %d.\n", __func__, time);
+            }
         }
     }
     else if (strCommand == "smsgPing")
@@ -2262,7 +2576,10 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
     {
         if (fDebugSmsg)
         {
-             LogPrint("smessage", "Peer replied, secure messaging enabled.\n");
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- Peer replied, secure messaging enabled.\n", __func__);
+            }
         }
 
         // Global Namespace Start
@@ -2284,7 +2601,10 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
         
         if (fDebugSmsg)
         {
-            LogPrint("smessage", "Peer %d has disabled secure messaging.\n", pfrom->id);
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- Peer %d has disabled secure messaging.\n", __func__, pfrom->id);
+            }
         }
 
     }
@@ -2297,8 +2617,11 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
 
         if (vchData.size() < 8)
         {
-            LogPrint("smessage", "smsgIgnore, not enough data %u.\n", vchData.size());
-            
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- smsgIgnore, not enough data %u.\n", __func__, vchData.size());
+            }
+
             Misbehaving(pfrom->GetId(), 1);
             
             return false;
@@ -2317,7 +2640,10 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
 
         if (fDebugSmsg)
         {
-            LogPrint("smessage", "Peer %d is ignoring this node until %d, ignore peer too.\n", pfrom->id, time);
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- Peer %d is ignoring this node until %d, ignore peer too.\n", __func__, pfrom->id, time);
+            }
         }
     }
     else
@@ -2338,8 +2664,11 @@ bool SecureMsgSendData(CNode* pto, bool fSendTrickle)
     
     LOCK(pto->smsgData.cs_smsg_net);
 
-    //LogPrint("smessage", "SecureMsgSendData() %s.\n", pto->addrName.c_str());
-    
+    if (fDebug)
+    {
+        LogPrint("smessage", "% -- %s.\n", __func__, pto->addrName.c_str());
+    }
+
     int64_t now = GetTime();
 
     if (pto->smsgData.lastSeen == 0)
@@ -2347,7 +2676,10 @@ bool SecureMsgSendData(CNode* pto, bool fSendTrickle)
         // -- first contact
         if (fDebugSmsg)
         {
-            LogPrint("smessage", "SecureMsgSendData() new node %s, peer id %u.\n", pto->addrName.c_str(), pto->id);
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- new node %s, peer id %u.\n", __func__, pto->addrName.c_str(), pto->id);
+            }
         }
 
         // -- Send smsgPing once, do nothing until receive 1st smsgPong (then set fEnabled)
@@ -2369,8 +2701,11 @@ bool SecureMsgSendData(CNode* pto, bool fSendTrickle)
 
         if (fDebugSmsg)
         {
-            LogPrint("smessage", "SecureMsgSendData(): nWakeCounter expired, sending bucket inventory to %s.\n"
-            "Now %d next wake counter %u\n", pto->addrName.c_str(), now, pto->smsgData.nWakeCounter);
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- nWakeCounter expired, sending bucket inventory to %s.\n"
+            "Now %d next wake counter %u\n", __func__, pto->addrName.c_str(), now, pto->smsgData.nWakeCounter);
+            }
         }
     }
 
@@ -2415,8 +2750,11 @@ bool SecureMsgSendData(CNode* pto, bool fSendTrickle)
                 } 
                 catch (std::exception& e)
                 {
-                    LogPrint("smessage", "vchData.resize %u threw: %s.\n", vchData.size() + 16, e.what());
-                    
+                    if (fDebug)
+                    {
+                        LogPrint("smessage", "% -- vchData.resize %u threw: %s.\n", __func__, vchData.size() + 16, e.what());
+                    }
+
                     continue;
                 }
 
@@ -2427,8 +2765,13 @@ bool SecureMsgSendData(CNode* pto, bool fSendTrickle)
                 p += 16;
 
                 nBucketsShown++;
-                //if (fDebug)
-                //    LogPrint("smessage", "Sending bucket %d, size %d \n", it->first, it->second.size());
+                
+                /* Not working (Compile Error)
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- Sending bucket %d, size %d \n", __func__, it->first, it->second.size());
+                }
+                */
             }
 
             if (vchData.size() > 4)
@@ -2437,7 +2780,10 @@ bool SecureMsgSendData(CNode* pto, bool fSendTrickle)
                 
                 if (fDebugSmsg)
                 {
-                    LogPrint("smessage", "Sending %d bucket headers.\n", nBucketsShown);
+                    if (fDebug)
+                    {
+                        LogPrint("smessage", "% -- Sending %d bucket headers.\n", __func__, nBucketsShown);
+                    }
                 }
 
                 pto->PushMessage("smsgInv", vchData);
@@ -2468,18 +2814,28 @@ static int SecureMsgInsertAddress(CKeyID& hashKey, CPubKey& pubKey, SecMsgDB& ad
 
     if (addrpkdb.ExistsPK(hashKey))
     {
-        //LogPrint("smessage", "DB already contains public key for address.\n");
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- DB already contains public key for address.\n", __func__);
+        }
+
         CPubKey cpkCheck;
         
         if (!addrpkdb.ReadPK(hashKey, cpkCheck))
         {
-            LogPrint("smessage", "addrpkdb.Read failed.\n");
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- addrpkdb.Read failed.\n", __func__);
+            }
         }
         else
         {
             if (cpkCheck != pubKey)
             {
-                LogPrint("smessage", "DB already contains existing public key that does not match .\n");
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- DB already contains existing public key that does not match .\n", __func__);
+                }
             }
         }
     
@@ -2488,8 +2844,11 @@ static int SecureMsgInsertAddress(CKeyID& hashKey, CPubKey& pubKey, SecMsgDB& ad
 
     if (!addrpkdb.WritePK(hashKey, pubKey))
     {
-        LogPrint("smessage", "Write pair failed.\n");
-    
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Write pair failed.\n", __func__);
+        }
+
         return 1;
     }
 
@@ -2553,8 +2912,11 @@ static bool ScanBlock(CBlock& block, CTxDB& txdb, SecMsgDB& addrpkdb, uint32_t& 
                     
                     if (!pubKey.IsValid() || !pubKey.IsCompressed())
                     {
-                        LogPrint("smessage", "Public key is invalid %s.\n", HexStr(pubKey).c_str());
-                        
+                        if (fDebug)
+                        {
+                            LogPrint("smessage", "% -- Public key is invalid %s.\n", __func__, HexStr(pubKey).c_str());
+                        }
+
                         continue;
                     }
                     
@@ -2606,8 +2968,11 @@ static bool ScanBlock(CBlock& block, CTxDB& txdb, SecMsgDB& addrpkdb, uint32_t& 
                         
                         if (!pubKey.IsValid() || !pubKey.IsCompressed())
                         {
-                            LogPrint("smessage", "Public key is invalid %s.\n", HexStr(pubKey).c_str());
-                            
+                            if (fDebug)
+                            {
+                                LogPrint("smessage", "% -- Public key is invalid %s.\n", __func__, HexStr(pubKey).c_str());
+                            }
+
                             continue;
                         }
                         
@@ -2630,7 +2995,10 @@ static bool ScanBlock(CBlock& block, CTxDB& txdb, SecMsgDB& addrpkdb, uint32_t& 
                         break;
                     }
 
-                    //LogPrint("smessage", "opcode %d, %s, value %s.\n", opcode, GetOpName(opcode), ValueString(vch).c_str());
+                    if (fDebug)
+                    {
+                        LogPrint("smessage", "% -- opcode %d, %s, value %s.\n", __func__, opcode, GetOpName(opcode), ValueString(vch).c_str());
+                    }
                 }
 
                 nElements++;
@@ -2641,7 +3009,10 @@ static bool ScanBlock(CBlock& block, CTxDB& txdb, SecMsgDB& addrpkdb, uint32_t& 
 
         if (nTransactions % 10000 == 0) // for ScanChainForPublicKeys
         {
-            LogPrint("smessage", "Scanning transaction no. %u.\n", nTransactions);
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- Scanning transaction no. %u.\n", __func__, nTransactions);
+            }
         }
     }
 
@@ -2660,7 +3031,10 @@ bool SecureMsgScanBlock(CBlock& block)
 
     if (fDebugSmsg)
     {
-        LogPrint("smessage", "SecureMsgScanBlock().\n");
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- \n", __func__);
+        }
     }
 
     uint32_t nTransactions  = 0;
@@ -2690,7 +3064,10 @@ bool SecureMsgScanBlock(CBlock& block)
 
     if (fDebugSmsg)
     {
-        LogPrint("smessage", "Found %u transactions, %u elements, %u new public keys, %u duplicates.\n", nTransactions, nElements, nPubkeys, nDuplicates);
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Found %u transactions, %u elements, %u new public keys, %u duplicates.\n", __func__, nTransactions, nElements, nPubkeys, nDuplicates);
+        }
     }
 
     return true;
@@ -2699,13 +3076,19 @@ bool SecureMsgScanBlock(CBlock& block)
 
 bool ScanChainForPublicKeys(CBlockIndex* pindexStart)
 {
-    LogPrint("smessage", "Scanning block chain for public keys.\n");
-    
+    if (fDebug)
+    {
+        LogPrint("smessage", "% -- Scanning block chain for public keys.\n", __func__);
+    }
+
     int64_t nStart = GetTimeMillis();
 
     if (fDebugSmsg)
     {
-        LogPrint("smessage", "From height %u.\n", pindexStart->nHeight);
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- From height %u.\n", __func__, pindexStart->nHeight);
+        }
     }
 
     // -- public keys are in txin.scriptSig
@@ -2750,9 +3133,12 @@ bool ScanChainForPublicKeys(CBlockIndex* pindexStart)
     // Global Namespace End
     // cs_smsgDB
 
-    LogPrint("smessage", "Scanned %u blocks, %u transactions, %u inputs\n", nBlocks, nTransactions, nInputs);
-    LogPrint("smessage", "Found %u public keys, %u duplicates.\n", nPubkeys, nDuplicates);
-    LogPrint("smessage", "Took %d ms\n", GetTimeMillis() - nStart);
+    if (fDebug)
+    {
+        LogPrint("smessage", "% -- Scanned %u blocks, %u transactions, %u inputs\n", __func__, nBlocks, nTransactions, nInputs);
+        LogPrint("smessage", "% -- Found %u public keys, %u duplicates.\n", __func__, nPubkeys, nDuplicates);
+        LogPrint("smessage", "% -- Took %d ms\n", __func__, GetTimeMillis() - nStart);
+    }
 
     return true;
 };
@@ -2768,8 +3154,11 @@ bool SecureMsgScanBlockChain()
     
         if (pindexScan == NULL)
         {
-            LogPrint("smessage", "Error: pindexGenesisBlock not set.\n");
-            
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- Error: pindexGenesisBlock not set.\n", __func__);
+            }
+
             return false;
         }
 
@@ -2783,15 +3172,21 @@ bool SecureMsgScanBlockChain()
         }
         catch (std::exception& e)
         {
-            LogPrint("smessage", "ScanChainForPublicKeys() threw: %s.\n", e.what());
-            
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- threw: %s.\n", __func__, e.what());
+            }
+
             return false;
         }
     }
     else
     {
-        LogPrint("smessage", "ScanChainForPublicKeys() Could not lock main.\n");
-        
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Could not lock main.\n", __func__);
+        }
+
         return false;
     }
 
@@ -2803,7 +3198,10 @@ bool SecureMsgScanBuckets()
 {
     if (fDebugSmsg)
     {
-        LogPrint("smessage", "SecureMsgScanBuckets()\n");
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- \n", __func__);
+        }
     }
 
     if (!fSecMsgEnabled || pwalletMain->IsLocked())
@@ -2822,8 +3220,11 @@ bool SecureMsgScanBuckets()
 
     if (!fs::exists(pathSmsgDir) || !fs::is_directory(pathSmsgDir))
     {
-        LogPrint("smessage", "Message store directory does not exist.\n");
-        
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Message store directory does not exist.\n", __func__);
+        }
+
         return 0; // not an error
     }
 
@@ -2848,7 +3249,10 @@ bool SecureMsgScanBuckets()
 
         if (fDebugSmsg)
         {
-            LogPrint("smessage", "Processing file: %s.\n", fileName.c_str());
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- Processing file: %s.\n", __func__, fileName.c_str());
+            }
         }
 
         nFiles++;
@@ -2868,15 +3272,21 @@ bool SecureMsgScanBuckets()
 
         if (fileTime < now - SMSG_RETENTION)
         {
-            LogPrint("smessage", "Dropping file %s, expired.\n", fileName.c_str());
-            
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- Dropping file %s, expired.\n", __func__, fileName.c_str());
+            }
+
             try
             {
                 fs::remove((*itd).path());
             }
             catch (const fs::filesystem_error& ex)
             {
-                LogPrint("smessage", "Error removing bucket file %s, %s.\n", fileName.c_str(), ex.what());
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- Error removing bucket file %s, %s.\n", __func__, fileName.c_str(), ex.what());
+                }
             }
 
             continue;
@@ -2886,7 +3296,10 @@ bool SecureMsgScanBuckets()
         {
             if (fDebugSmsg)
             {
-                LogPrint("smessage", "Skipping wallet locked file: %s.\n", fileName.c_str());
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- Skipping wallet locked file: %s.\n", __func__, fileName.c_str());
+                }
             }
 
             continue;
@@ -2902,8 +3315,11 @@ bool SecureMsgScanBuckets()
             
             if (!(fp = fopen((*itd).path().string().c_str(), "rb")))
             {
-                LogPrint("smessage", "Error opening file: %s\n", strerror(errno));
-            
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- Error opening file: %s\n", __func__, strerror(errno));
+                }
+
                 continue;
             }
 
@@ -2915,11 +3331,17 @@ bool SecureMsgScanBuckets()
                 {
                     if (errno != 0)
                     {
-                        LogPrint("smessage", "fread header failed: %s\n", strerror(errno));
+                        if (fDebug)
+                        {
+                            LogPrint("smessage", "% -- fread header failed: %s\n", __func__, strerror(errno));
+                        }
                     }
                     else
                     {
-                        //LogPrint("smessage", "End of file.\n");
+                        if (fDebug)
+                        {
+                            LogPrint("smessage", "% -- End of file.\n", __func__);
+                        }
                     }
                     break;
                 }
@@ -2930,8 +3352,11 @@ bool SecureMsgScanBuckets()
                 }
                 catch (std::exception& e)
                 {
-                    LogPrint("smessage", "SecureMsgWalletUnlocked(): Could not resize vchData, %u, %s\n", smsg.nPayload, e.what());
-                    
+                    if (fDebug)
+                    {
+                        LogPrint("smessage", "% -- Could not resize vchData, %u, %s\n", __func__, smsg.nPayload, e.what());
+                    }
+
                     fclose(fp);
                     
                     return 1;
@@ -2939,8 +3364,11 @@ bool SecureMsgScanBuckets()
 
                 if (fread(&vchData[0], sizeof(uint8_t), smsg.nPayload, fp) != smsg.nPayload)
                 {
-                    LogPrint("smessage", "fread data failed: %s\n", strerror(errno));
-                    
+                    if (fDebug)
+                    {
+                        LogPrint("smessage", "% -- fread data failed: %s\n", __func__, strerror(errno));
+                    }
+
                     break;
                 }
 
@@ -2968,15 +3396,21 @@ bool SecureMsgScanBuckets()
             }
             catch (const boost::filesystem::filesystem_error& ex)
             {
-                LogPrint("smessage", "Error removing wl file %s - %s\n", fileName.c_str(), ex.what());
-                
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- Error removing wl file %s - %s\n", __func__, fileName.c_str(), ex.what());
+                }
+
                 return 1;
             }
         } // cs_smsg
     }
 
-    LogPrint("smessage", "Processed %u files, scanned %u messages, received %u messages.\n", nFiles, nMessages, nFoundMessages);
-    LogPrint("smessage", "Took %d ms\n", GetTimeMillis() - mStart);
+    if (fDebug)
+    {
+        LogPrint("smessage", "% -- Processed %u files, scanned %u messages, received %u messages.\n", __func__, nFiles, nMessages, nFoundMessages);
+        LogPrint("smessage", "% -- Took %d ms\n", __func__, GetTimeMillis() - mStart);
+    }
 
     return true;
 }
@@ -2992,12 +3426,18 @@ int SecureMsgWalletUnlocked()
         return 0;
     }
 
-    LogPrint("smessage", "SecureMsgWalletUnlocked()\n");
+    if (fDebug)
+    {
+        LogPrint("smessage", "% -- \n");
+    }
 
     if (pwalletMain->IsLocked())
     {
-        LogPrint("smessage", "Error: Wallet is locked.\n");
-        
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Error: Wallet is locked.\n", __func__);
+        }
+
         return 1;
     }
 
@@ -3011,8 +3451,11 @@ int SecureMsgWalletUnlocked()
 
     if (!fs::exists(pathSmsgDir) || !fs::is_directory(pathSmsgDir))
     {
-        LogPrint("smessage", "Message store directory does not exist.\n");
-        
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Message store directory does not exist.\n", __func__);
+        }
+
         return 0; // not an error
     }
 
@@ -3035,7 +3478,10 @@ int SecureMsgWalletUnlocked()
 
         if (fDebugSmsg)
         {
-            LogPrint("smessage", "Processing file: %s.\n", fileName.c_str());
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- Processing file: %s.\n", __func__, fileName.c_str());
+            }
         }
 
         nFiles++;
@@ -3055,16 +3501,22 @@ int SecureMsgWalletUnlocked()
 
         if (fileTime < now - SMSG_RETENTION)
         {
-            LogPrint("smessage", "Dropping wallet locked file %s, expired.\n", fileName.c_str());
-            
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- Dropping wallet locked file %s, expired.\n", __func__, fileName.c_str());
+            }
+
             try
             {
                 fs::remove((*itd).path());
             }
             catch (const boost::filesystem::filesystem_error& ex)
             {
-                LogPrint("smessage", "Error removing wl file %s - %s\n", fileName.c_str(), ex.what());
-                
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- Error removing wl file %s - %s\n", __func__, fileName.c_str(), ex.what());
+                }
+
                 return 1;
             }
 
@@ -3081,8 +3533,11 @@ int SecureMsgWalletUnlocked()
             
             if (!(fp = fopen((*itd).path().string().c_str(), "rb")))
             {
-                LogPrint("smessage", "Error opening file: %s\n", strerror(errno));
-                
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- Error opening file: %s\n", __func__, strerror(errno));
+                }
+
                 continue;
             }
 
@@ -3094,11 +3549,17 @@ int SecureMsgWalletUnlocked()
                 {
                     if (errno != 0)
                     {
-                        LogPrint("smessage", "fread header failed: %s\n", strerror(errno));
+                        if (fDebug)
+                        {
+                            LogPrint("smessage", "% -- fread header failed: %s\n", __func__, strerror(errno));
+                        }
                     }
                     else
                     {
-                        //LogPrint("smessage", "End of file.\n");
+                        if (fDebug)
+                        {
+                            LogPrint("smessage", "% -- End of file.\n", __func__);
+                        }
                     }
 
                     break;
@@ -3110,7 +3571,12 @@ int SecureMsgWalletUnlocked()
                 }
                 catch (std::exception& e)
                 {
-                    LogPrint("smessage", "SecureMsgWalletUnlocked(): Could not resize vchData, %u, %s\n", smsg.nPayload, e.what());
+                 
+                    if (fDebug)
+                    {
+                        LogPrint("smessage", "% -- Could not resize vchData, %u, %s\n", __func__, smsg.nPayload, e.what());
+                    }
+
                     fclose(fp);
                 
                     return 1;
@@ -3118,8 +3584,11 @@ int SecureMsgWalletUnlocked()
 
                 if (fread(&vchData[0], sizeof(uint8_t), smsg.nPayload, fp) != smsg.nPayload)
                 {
-                    LogPrint("smessage", "fread data failed: %s\n", strerror(errno));
-                
+                    if (fDebug)
+                    {
+                        LogPrint("smessage", "% -- fread data failed: %s\n", __func__, strerror(errno));
+                    }
+
                     break;
                 }
 
@@ -3147,8 +3616,11 @@ int SecureMsgWalletUnlocked()
             }
             catch (const boost::filesystem::filesystem_error& ex)
             {
-                LogPrint("smessage", "Error removing wl file %s - %s\n", fileName.c_str(), ex.what());
-                
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- Error removing wl file %s - %s\n", __func__, fileName.c_str(), ex.what());
+                }
+
                 return 1;
             }
         }
@@ -3156,8 +3628,11 @@ int SecureMsgWalletUnlocked()
         // cs_smsg
     }
 
-    LogPrint("smessage", "Processed %u files, scanned %u messages, received %u messages.\n", nFiles, nMessages, nFoundMessages);
-    
+    if (fDebug)
+    {
+        LogPrint("smessage", "% -- Processed %u files, scanned %u messages, received %u messages.\n", __func__, nFiles, nMessages, nFoundMessages);
+    }
+
     // -- notify gui
     NotifySecMsgWalletUnlocked();
     
@@ -3172,7 +3647,10 @@ int SecureMsgWalletKeyChanged(std::string sAddress, std::string sLabel, ChangeTy
         return 0;
     }
 
-    LogPrint("smessage", "SecureMsgWalletKeyChanged()\n");
+    if (fDebug)
+    {
+        LogPrint("smessage", "% -- \n", __func__);
+    }
 
     // TODO: default recv and recvAnon
     // Global Namespace Start
@@ -3239,23 +3717,28 @@ int SecureMsgScanMessage(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload,
 
     if (fDebugSmsg)
     {
-        LogPrint("smessage", "SecureMsgScanMessage()\n");
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- \n", __func__);
+        }
     }
 
     if (pwalletMain->IsLocked())
     {
         if (fDebugSmsg)
         {
-            LogPrint("smessage", "ScanMessage: Wallet is locked, storing message to scan later.\n");
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- ScanMessage: Wallet is locked, storing message to scan later.\n", __func__);
+            }
         }
 
         int rv;
         
         if ((rv = SecureMsgStoreUnscanned(pHeader, pPayload, nPayload)) != 0)
         {
-
-        }
             return 1;
+        }
 
         return 3;
     }
@@ -3283,7 +3766,10 @@ int SecureMsgScanMessage(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload,
             {
                 if (fDebugSmsg)
                 {
-                    LogPrint("smessage", "Decrypted message with %s.\n", addressTo.c_str());
+                    if (fDebug)
+                    {
+                        LogPrint("smessage", "% -- Decrypted message with %s.\n", __func__, addressTo.c_str());
+                    }
                 }
 
                 if (msg.sFromAddress.compare("anon") != 0)
@@ -3301,7 +3787,10 @@ int SecureMsgScanMessage(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload,
             {
                 if (fDebugSmsg)
                 {
-                    LogPrint("smessage", "Decrypted message with %s.\n", addressTo.c_str());
+                    if (fDebug)
+                    {
+                        LogPrint("smessage", "% -- Decrypted message with %s.\n", __func__, addressTo.c_str());
+                    }
                 }
 
                 fOwnMessage = true;
@@ -3336,8 +3825,11 @@ int SecureMsgScanMessage(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload,
         }
         catch (std::exception& e)
         {
-            LogPrint("smessage", "SecureMsgScanMessage(): Could not resize vchData, %u, %s\n", SMSG_HDR_LEN + nPayload, e.what());
-        
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- Could not resize vchData, %u, %s\n", __func__, SMSG_HDR_LEN + nPayload, e.what());
+            }
+
             return 1;
         }
 
@@ -3356,7 +3848,10 @@ int SecureMsgScanMessage(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload,
                 {
                     if (fDebugSmsg)
                     {
-                        LogPrint("smessage", "Message already exists in inbox db.\n");
+                        if (fDebug)
+                        {
+                            LogPrint("smessage", "% -- Message already exists in inbox db.\n", __func__);
+                        }
                     }
                 }
                 else
@@ -3368,7 +3863,10 @@ int SecureMsgScanMessage(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload,
                         NotifySecMsgInboxChanged(smsgInbox);
                     }
 
-                    LogPrint("smessage", "SecureMsg saved to inbox, received with %s.\n", addressTo.c_str());
+                    if (fDebug)
+                    {
+                        LogPrint("smessage", "% -- SecureMsg saved to inbox, received with %s.\n", __func__, addressTo.c_str());
+                    }
                 }
             }
         }
@@ -3384,7 +3882,10 @@ int SecureMsgGetLocalKey(CKeyID& ckid, CPubKey& cpkOut)
 {
     if (fDebugSmsg)
     {
-        LogPrint("smessage", "SecureMsgGetLocalKey()\n");
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- \n", __func__);
+        }
     }
 
     if (!pwalletMain->GetPubKey(ckid, cpkOut))
@@ -3394,7 +3895,10 @@ int SecureMsgGetLocalKey(CKeyID& ckid, CPubKey& cpkOut)
 
     if (!cpkOut.IsValid() || !cpkOut.IsCompressed())
     {
-        LogPrint("smessage", "Public key is invalid %s.\n", HexStr(cpkOut).c_str());
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Public key is invalid %s.\n", __func__, HexStr(cpkOut).c_str());
+        }
 
         return 1;
     }
@@ -3412,8 +3916,13 @@ int SecureMsgGetLocalPublicKey(std::string& strAddress, std::string& strPublicKe
         3 address does not refer to a key
         4 address not in wallet
     */
-    //if (fDebugSmsg)
-    //   LogPrint("smessage", "SecureMsgGetLocalPublicKey().\n");
+    if (fDebugSmsg)
+    {
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- \n", __func__);
+        }
+    }
 
     CPHCcoinAddress address;
     if (!address.SetString(strAddress))
@@ -3451,7 +3960,10 @@ int SecureMsgGetStoredKey(CKeyID& ckid, CPubKey& cpkOut)
     */
     if (fDebugSmsg)
     {
-        LogPrint("smessage", "SecureMsgGetStoredKey().\n");
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- \n", __func__);
+        }
     }
 
     // Global Namespace Start
@@ -3467,7 +3979,13 @@ int SecureMsgGetStoredKey(CKeyID& ckid, CPubKey& cpkOut)
 
         if (!addrpkdb.ReadPK(ckid, cpkOut))
         {
-            //LogPrint("smessage", "addrpkdb.Read failed: %s.\n", coinAddress.ToString().c_str());
+            /* Not working (Compile Error)
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- addrpkdb.Read failed: %s.\n", __func__, addrpkdb.ToString().c_str());
+            }
+            */
+
             return 2;
         }
     }
@@ -3497,8 +4015,11 @@ int SecureMsgAddAddress(std::string& address, std::string& publicKey)
 
     if (!coinAddress.IsValid())
     {
-        LogPrint("smessage", "%s - Address is not valid: %s.\n", __func__, address.c_str());
-    
+        if (fDebug)
+        {
+            LogPrint("smessage", "%s - Address is not valid: %s.\n", __func__, address.c_str());
+        }
+
         return 5;
     }
 
@@ -3506,8 +4027,11 @@ int SecureMsgAddAddress(std::string& address, std::string& publicKey)
 
     if (!coinAddress.GetKeyID(hashKey))
     {
-        LogPrint("smessage", "%s - coinAddress.GetKeyID failed: %s.\n", __func__, coinAddress.ToString().c_str());
-    
+        if (fDebug)
+        {
+            LogPrint("smessage", "%s - coinAddress.GetKeyID failed: %s.\n", __func__, coinAddress.ToString().c_str());
+        }
+
         return 5;
     }
 
@@ -3521,8 +4045,11 @@ int SecureMsgAddAddress(std::string& address, std::string& publicKey)
     CPubKey pubKeyT(pubKey);
     if (!pubKeyT.IsValid())
     {
-        LogPrint("smessage", "%s - Invalid PubKey.\n", __func__);
-    
+        if (fDebug)
+        {
+            LogPrint("smessage", "%s - Invalid PubKey.\n", __func__);
+        }
+
         return 2;
     }
     
@@ -3531,8 +4058,11 @@ int SecureMsgAddAddress(std::string& address, std::string& publicKey)
 
     if (addressT.ToString().compare(address) != 0)
     {
-        LogPrint("smessage", "%s - Public key does not hash to address, addressT %s.\n", __func__, addressT.ToString().c_str());
-    
+        if (fDebug)
+        {
+            LogPrint("smessage", "%s - Public key does not hash to address, addressT %s.\n", __func__, addressT.ToString().c_str());
+        }
+
         return 3;
     }
 
@@ -3544,31 +4074,44 @@ int SecureMsgRetrieve(SecMsgToken &token, std::vector<uint8_t>& vchData)
 {
     if (fDebugSmsg)
     {
-        LogPrint("smessage", "SecureMsgRetrieve() %d.\n", token.timestamp);
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- %d.\n", __func__, token.timestamp);
+        }
     }
 
     // -- has cs_smsg lock from SecureMsgReceiveData
 
     fs::path pathSmsgDir = GetDataDir() / "smsgStore";
 
-    //LogPrint("smessage", "token.offset %d.\n", token.offset); // DEBUG
+    if (fDebug)
+    {
+        LogPrint("smessage", "% -- token.offset %d.\n", __func__, token.offset); // DEBUG
+    }
+
     int64_t bucket = token.timestamp - (token.timestamp % SMSG_BUCKET_LEN);
     
     std::string fileName = boost::lexical_cast<std::string>(bucket) + "_01.dat";
     
     fs::path fullpath = pathSmsgDir / fileName;
 
-    //LogPrint("smessage", "bucket %d.\n", bucket);
-    //LogPrint("smessage", "bucket d %d.\n", bucket);
-    //LogPrint("smessage", "fileName %s.\n", fileName.c_str());
+    if (fDebug)
+    {
+        LogPrint("smessage", "% -- bucket %d.\n", __func__, bucket);
+        LogPrint("smessage", "% -- bucket d %d.\n", __func__, bucket);
+        LogPrint("smessage", "% -- fileName %s.\n", __func__, fileName.c_str());
+    }
 
     FILE *fp;
     errno = 0;
     
     if (!(fp = fopen(fullpath.string().c_str(), "rb")))
     {
-        LogPrint("smessage", "Error opening file: %s\nPath %s\n", strerror(errno), fullpath.string().c_str());
-    
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Error opening file: %s\nPath %s\n", __func__, strerror(errno), fullpath.string().c_str());
+        }
+
         return 1;
     }
 
@@ -3576,8 +4119,11 @@ int SecureMsgRetrieve(SecMsgToken &token, std::vector<uint8_t>& vchData)
     
     if (fseek(fp, token.offset, SEEK_SET) != 0)
     {
-        LogPrint("smessage", "fseek, strerror: %s.\n", strerror(errno));
-    
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- fseek, strerror: %s.\n", __func__, strerror(errno));
+        }
+
         fclose(fp);
     
         return 1;
@@ -3588,8 +4134,11 @@ int SecureMsgRetrieve(SecMsgToken &token, std::vector<uint8_t>& vchData)
     
     if (fread(&smsg.hash[0], sizeof(uint8_t), SMSG_HDR_LEN, fp) != (size_t)SMSG_HDR_LEN)
     {
-        LogPrint("smessage", "fread header failed: %s\n", strerror(errno));
-    
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- fread header failed: %s\n", __func__, strerror(errno));
+        }
+
         fclose(fp);
     
         return 1;
@@ -3601,8 +4150,11 @@ int SecureMsgRetrieve(SecMsgToken &token, std::vector<uint8_t>& vchData)
     }
     catch (std::exception& e)
     {
-        LogPrint("smessage", "SecureMsgRetrieve(): Could not resize vchData, %u, %s\n", SMSG_HDR_LEN + smsg.nPayload, e.what());
-    
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Could not resize vchData, %u, %s\n", __func__, SMSG_HDR_LEN + smsg.nPayload, e.what());
+        }
+
         return 1;
     }
 
@@ -3612,8 +4164,11 @@ int SecureMsgRetrieve(SecMsgToken &token, std::vector<uint8_t>& vchData)
     
     if (fread(&vchData[SMSG_HDR_LEN], sizeof(uint8_t), smsg.nPayload, fp) != smsg.nPayload)
     {
-        LogPrint("smessage", "fread data failed: %s. Wanted %u bytes.\n", strerror(errno), smsg.nPayload);
-        
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- fread data failed: %s. Wanted %u bytes.\n", __func__, strerror(errno), smsg.nPayload);
+        }
+
         fclose(fp);
         
         return 1;
@@ -3629,12 +4184,15 @@ int SecureMsgReceive(CNode* pfrom, std::vector<uint8_t>& vchData)
 {
     if (fDebugSmsg)
     {
-        LogPrint("smessage", "SecureMsgReceive().\n");
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- \n", __func__);
+        }
     }
 
     if (vchData.size() < 12) // nBunch4 + timestamp8
     {
-        LogPrint("smessage", "Error: not enough data.\n");
+        LogPrint("smessage", "% -- Error: not enough data.\n", __func__);
         
         return 1;
     }
@@ -3653,7 +4211,10 @@ int SecureMsgReceive(CNode* pfrom, std::vector<uint8_t>& vchData)
     {
         if (fDebugSmsg)
         {
-            LogPrint("smessage", "bktTime > now.\n");
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- bktTime > now.\n", __func__);
+            }
         }
 
         // misbehave?
@@ -3663,7 +4224,10 @@ int SecureMsgReceive(CNode* pfrom, std::vector<uint8_t>& vchData)
     {
         if (fDebugSmsg)
         {
-            LogPrint("smessage", "bktTime < now - SMSG_RETENTION.\n");
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- bktTime < now - SMSG_RETENTION.\n", __func__);
+            }
         }
 
         // misbehave?
@@ -3674,8 +4238,11 @@ int SecureMsgReceive(CNode* pfrom, std::vector<uint8_t>& vchData)
 
     if (nBunch == 0 || nBunch > 500)
     {
-        LogPrint("smessage", "Error: Invalid no. messages received in bunch %u, for bucket %d.\n", nBunch, bktTime);
-        
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Error: Invalid no. messages received in bunch %u, for bucket %d.\n", __func__, nBunch, bktTime);
+        }
+
         Misbehaving(pfrom->GetId(), 1);
         
         // Global Namespace Start
@@ -3701,8 +4268,11 @@ int SecureMsgReceive(CNode* pfrom, std::vector<uint8_t>& vchData)
     {
         if (vchData.size() - n < SMSG_HDR_LEN)
         {
-            LogPrint("smessage", "Error: not enough data sent, n = %u.\n", n);
-            
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- Error: not enough data sent, n = %u.\n", __func__, n);
+            }
+
             break;
         }
 
@@ -3757,7 +4327,10 @@ int SecureMsgReceive(CNode* pfrom, std::vector<uint8_t>& vchData)
         {
             if (fDebugSmsg)
             {
-                LogPrint("smessage", "Don't have bucket %d.\n", bktTime);
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- Don't have bucket %d.\n", __func__, bktTime);
+                }
             }
 
             return 1;
@@ -3782,13 +4355,19 @@ int SecureMsgStoreUnscanned(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPaylo
 
     if (fDebugSmsg)
     {
-        LogPrint("smessage", "SecureMsgStoreUnscanned()\n");
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- \n", __func__);
+        }
     }
 
     if (!pHeader || !pPayload)
     {
-        LogPrint("smessage", "Error: null pointer to header or payload.\n");
-        
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Error: null pointer to header or payload.\n", __func__);
+        }
+
         return 1;
     }
 
@@ -3804,8 +4383,11 @@ int SecureMsgStoreUnscanned(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPaylo
     }
     catch (const boost::filesystem::filesystem_error& ex)
     {
-        LogPrint("smessage", "Error: Failed to create directory %s - %s\n", pathSmsgDir.string().c_str(), ex.what());
-        
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Error: Failed to create directory %s - %s\n", __func__, pathSmsgDir.string().c_str(), ex.what());
+        }
+
         return 1;
     }
 
@@ -3813,14 +4395,20 @@ int SecureMsgStoreUnscanned(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPaylo
     
     if (psmsg->timestamp > now + SMSG_TIME_LEEWAY)
     {
-        LogPrint("smessage", "Message > now.\n");
-        
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Message > now.\n", __func__);
+        }
+
         return 1;
     }
     else if (psmsg->timestamp < now - SMSG_RETENTION)
     {
-        LogPrint("smessage", "Message < SMSG_RETENTION.\n");
-        
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Message < SMSG_RETENTION.\n", __func__);
+        }
+
         return 1;
     }
 
@@ -3834,15 +4422,21 @@ int SecureMsgStoreUnscanned(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPaylo
     
     if (!(fp = fopen(fullpath.string().c_str(), "ab")))
     {
-        LogPrint("smessage", "Error opening file: %s\n", strerror(errno));
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Error opening file: %s\n", __func__, strerror(errno));
+        }
 
         return 1;
     }
 
     if (fwrite(pHeader, sizeof(uint8_t), SMSG_HDR_LEN, fp) != (size_t)SMSG_HDR_LEN || fwrite(pPayload, sizeof(uint8_t), nPayload, fp) != nPayload)
     {
-        LogPrint("smessage", "fwrite failed: %s\n", strerror(errno));
-        
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- fwrite failed: %s\n", __func__, strerror(errno));
+        }
+
         fclose(fp);
         
         return 1;
@@ -3858,14 +4452,17 @@ int SecureMsgStore(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload, bool 
 {
     if (fDebugSmsg)
     {
-        LogPrint("smessage", "SecureMsgStore()\n");
-        
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- \n", __func__);
+        }
+
         AssertLockHeld(cs_smsg);
     }
     
     if (!pHeader || !pPayload)
     {
-        return errorN(1, "null pointer to header or payload.");
+        return errorN(1, "% -- null pointer to header or payload.", __func__);
     }
 
     SecureMessage* psmsg = (SecureMessage*) pHeader;
@@ -3881,21 +4478,27 @@ int SecureMsgStore(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload, bool 
     }
     catch (const boost::filesystem::filesystem_error& ex)
     {
-        return errorN(1, "Failed to create directory %s - %s.", pathSmsgDir.string().c_str(), ex.what());
+        return errorN(1, "% -- Failed to create directory %s - %s.", __func__, pathSmsgDir.string().c_str(), ex.what());
     }
 
     int64_t now = GetTime();
     
     if (psmsg->timestamp > now + SMSG_TIME_LEEWAY)
     {
-        LogPrint("smessage", "Message > now.\n");
-    
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Message > now.\n", __func__);
+        }
+
         return 1;
     }
     else if (psmsg->timestamp < now - SMSG_RETENTION)
     {
-        LogPrint("smessage", "Message < SMSG_RETENTION.\n");
-    
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Message < SMSG_RETENTION.\n", __func__);
+        }
+
         return 1;
     }
 
@@ -3910,33 +4513,39 @@ int SecureMsgStore(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload, bool 
     
     if (it != tokenSet.end())
     {
-        LogPrint("smessage", "Already have message.\n");
-    
-        if (fDebugSmsg)
+        if (fDebug)
         {
-            LogPrint("smessage", "nPayload: %u\n", nPayload);
-            
-            LogPrint("smessage", "bucket: %d\n", bucket);
-            
-            LogPrint("smessage", "message ts: %d", token.timestamp);
-    
-            std::vector<uint8_t> vchShow;
-    
-            vchShow.resize(8);
-    
-            memcpy(&vchShow[0], token.sample, 8);
-    
-            LogPrint("smessage", " sample %s\n", ValueString(vchShow).c_str());
-            /*
-            LogPrint("smessage", "\nmessages in bucket:\n");
-            for (it = tokenSet.begin(); it != tokenSet.end(); ++it)
+            LogPrint("smessage", "% -- Already have message.\n", __func__);
+
+            if (fDebugSmsg)
             {
-                LogPrint("smessage", "message ts: %d", (*it).timestamp);
+                LogPrint("smessage", "% -- nPayload: %u\n", __func__, nPayload);
+                
+                LogPrint("smessage", "% -- bucket: %d\n", __func__, bucket);
+                
+                LogPrint("smessage", "% -- message ts: %d", __func__, token.timestamp);
+
+                std::vector<uint8_t> vchShow;
+
                 vchShow.resize(8);
-                memcpy(&vchShow[0], (*it).sample, 8);
-                LogPrint("smessage", " sample %s\n", ValueString(vchShow).c_str());
-            };
-            */
+
+                memcpy(&vchShow[0], token.sample, 8);
+
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% --  sample %s\n", __func__, ValueString(vchShow).c_str());
+                    /*
+                    LogPrint("smessage", "% -- \nmessages in bucket:\n", __func__);
+                    for (it = tokenSet.begin(); it != tokenSet.end(); ++it)
+                    {
+                        LogPrint("smessage", "% -- message ts: %d", __func__, (*it).timestamp);
+                        vchShow.resize(8);
+                        memcpy(&vchShow[0], (*it).sample, 8);
+                        LogPrint("smessage", "% --  sample %s\n", __func__, ValueString(vchShow).c_str());
+                    };
+                    */
+                }
+            }
         }
 
         return 1;
@@ -3950,14 +4559,14 @@ int SecureMsgStore(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload, bool 
 
     if (!(fp = fopen(fullpath.string().c_str(), "ab")))
     {
-        return errorN(1, "fopen failed: %s.", strerror(errno));
+        return errorN(1, "% -- fopen failed: %s.", __func__, strerror(errno));
     }
 
     // -- on windows ftell will always return 0 after fopen(ab), call fseek to set.
     errno = 0;
     if (fseek(fp, 0, SEEK_END) != 0)
     {
-        return errorN(1, "fseek failed: %s.", strerror(errno));
+        return errorN(1, "% -- fseek failed: %s.", __func__, strerror(errno));
     }
 
     ofs = ftell(fp);
@@ -3966,14 +4575,18 @@ int SecureMsgStore(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload, bool 
     {
         fclose(fp);
 
-        return errorN(1, "fwrite failed: %s.", strerror(errno));
+        return errorN(1, "% -- fwrite failed: %s.", __func__, strerror(errno));
     }
 
     fclose(fp);
 
     token.offset = ofs;
 
-    //LogPrint("smessage", "token.offset: %d\n", token.offset); // DEBUG
+    if (fDebug)
+    {
+        LogPrint("smessage", "% -- token.offset: %d\n", __func__, token.offset); // DEBUG
+    }
+
     tokenSet.insert(token);
 
     if (fUpdateBucket)
@@ -3983,7 +4596,10 @@ int SecureMsgStore(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload, bool 
 
     if (fDebugSmsg)
     {
-        LogPrint("smessage", "SecureMsg added to bucket %d.\n", bucket);
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- SecureMsg added to bucket %d.\n", __func__, bucket);
+        }
     }
 
     return 0;
@@ -4028,7 +4644,10 @@ int SecureMsgValidate(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
 
     if (fDebugSmsg)
     {
-        LogPrint("smessage", "SecureMsgValidate() nonse %u.\n", nonse);
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- nonse %u.\n", __func__, nonse);
+        }
     }
 
     for (int i = 0; i < 32; i+=4)
@@ -4054,7 +4673,10 @@ int SecureMsgValidate(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
     {
         if (fDebugSmsg)
         {
-            LogPrint("smessage", "HMAC error.\n");
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- HMAC error.\n", __func__);
+            }
         }
 
         rv = 1; // error
@@ -4067,7 +4689,10 @@ int SecureMsgValidate(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
         {
             if (fDebugSmsg)
             {
-                LogPrint("smessage", "Hash Valid.\n");
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- Hash Valid.\n", __func__);
+                }
             }
 
             rv = 0; // smsg is valid
@@ -4075,10 +4700,13 @@ int SecureMsgValidate(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
 
         if (memcmp(psmsg->hash, sha256Hash, 4) != 0)
         {
-             if (fDebugSmsg)
-             {
-                LogPrint("smessage", "Checksum mismatch.\n");
-             }
+            if (fDebugSmsg)
+            {
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- Checksum mismatch.\n", __func__);
+                }
+            }
 
             rv = 3; // checksum mismatch
         }
@@ -4164,7 +4792,9 @@ int SecureMsgSetHash(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
         {
             found = true;
             if (fDebugSmsg)
-                LogPrint("smessage", "Match %u\n", nonse);
+            {
+               LogPrint("smessage", "% -- Match %u\n", nonse);
+            }
             break;
         };
         */
@@ -4175,8 +4805,15 @@ int SecureMsgSetHash(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
         //    && sha256Hash[29] == 0)
         {
             found = true;
-            //if (fDebugSmsg)
-            //    LogPrint("smessage", "Match %u\n", nonse);
+            
+            if (fDebugSmsg)
+            {
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- Match %u\n", __func__, nonse);
+                }
+            }
+
             break;
         }
 
@@ -4185,7 +4822,10 @@ int SecureMsgSetHash(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
         {
             if (fDebugSmsg)
             {
-                LogPrint("smessage", "No match %u\n", nonse);
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- No match %u\n", __func__, nonse);
+                }
             }
 
             break;
@@ -4206,7 +4846,10 @@ int SecureMsgSetHash(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
     {
         if (fDebugSmsg)
         {
-            LogPrint("smessage", "SecureMsgSetHash() stopped, shutdown detected.\n");
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- stopped, shutdown detected.\n", __func__);
+            }
         }
 
         return 2;
@@ -4216,7 +4859,10 @@ int SecureMsgSetHash(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
     {
         if (fDebugSmsg)
         {
-            LogPrint("smessage", "SecureMsgSetHash() failed, took %d ms, nonse %u\n", GetTimeMillis() - nStart, nonse);
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- failed, took %d ms, nonse %u\n", __func__, GetTimeMillis() - nStart, nonse);
+            }
         }
 
         return 1;
@@ -4227,7 +4873,10 @@ int SecureMsgSetHash(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
 
     if (fDebugSmsg)
     {
-        LogPrint("smessage", "SecureMsgSetHash() took %d ms, nonse %u\n", GetTimeMillis() - nStart, nonse);
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- took %d ms, nonse %u\n", __func__, GetTimeMillis() - nStart, nonse);
+        }
     }
 
     return 0;
@@ -4261,12 +4910,15 @@ int SecureMsgEncrypt(SecureMessage &smsg, const std::string &addressFrom, const 
 
     if (fDebugSmsg)
     {
-        LogPrint("smessage", "SecureMsgEncrypt(%s, %s, ...)\n", addressFrom.c_str(), addressTo.c_str());
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- SecureMsgEncrypt(%s, %s, ...)\n", __func__, addressFrom.c_str(), addressTo.c_str());
+        }
     }
 
     if (message.size() > SMSG_MAX_MSG_BYTES)
     {
-        return errorN(2, "%s: Message is too long, %u.", __func__, message.size());
+        return errorN(2, "% -- Message is too long, %u.", __func__, message.size());
     }
 
     smsg.version[0] = 1;
@@ -4290,12 +4942,12 @@ int SecureMsgEncrypt(SecureMessage &smsg, const std::string &addressFrom, const 
 
         if (!coinAddrFrom.SetString(addressFrom))
         {
-            return errorN(3, "%s: addressFrom is not valid.", __func__);
+            return errorN(3, "% -- addressFrom is not valid.", __func__);
         }
 
         if (!coinAddrFrom.GetKeyID(ckidFrom))
         {
-            return errorN(4, "%s: coinAddrFrom.GetKeyID failed: %s.", __func__, coinAddrFrom.ToString().c_str());
+            return errorN(4, "% -- coinAddrFrom.GetKeyID failed: %s.", __func__, coinAddrFrom.ToString().c_str());
         }
     }
 
@@ -4304,12 +4956,12 @@ int SecureMsgEncrypt(SecureMessage &smsg, const std::string &addressFrom, const 
 
     if (!coinAddrDest.SetString(addressTo))
     {
-        return errorN(4, "%s: addressTo is not valid.", __func__);
+        return errorN(4, "% -- addressTo is not valid.", __func__);
     }
 
     if (!coinAddrDest.GetKeyID(ckidDest))
     {
-        return errorN(4, "%s: coinAddrDest.GetKeyID failed: %s.", __func__, coinAddrDest.ToString().c_str());
+        return errorN(4, "% -- coinAddrDest.GetKeyID failed: %s.", __func__, coinAddrDest.ToString().c_str());
     }
 
     // -- public key K is the destination address
@@ -4317,7 +4969,7 @@ int SecureMsgEncrypt(SecureMessage &smsg, const std::string &addressFrom, const 
 
     if (SecureMsgGetStoredKey(ckidDest, cpkDestK) != 0 && SecureMsgGetLocalKey(ckidDest, cpkDestK) != 0) // maybe it's a local key (outbox?)
     {
-        return errorN(5, "%s: Could not get public key for destination address.", __func__);
+        return errorN(5, "% -- Could not get public key for destination address.", __func__);
     }
 
     // -- Generate 16 random bytes as IV.
@@ -4336,7 +4988,7 @@ int SecureMsgEncrypt(SecureMessage &smsg, const std::string &addressFrom, const 
     if (!ecKeyK.SetPubKey(cpkDestK.begin(), cpkDestK.size()))
     {
         // address to is invalid
-        return errorN(4, "%s: Could not set pubkey for K: %s.", __func__, HexStr(cpkDestK).c_str());
+        return errorN(4, "% -- Could not set pubkey for K: %s.", __func__, HexStr(cpkDestK).c_str());
     };
 
     std::vector<uint8_t> vchP;
@@ -4347,7 +4999,12 @@ int SecureMsgEncrypt(SecureMessage &smsg, const std::string &addressFrom, const 
     // always seems to be 32, worth checking?
     //int field_size = EC_GROUP_get_degree(EC_KEY_get0_group(pkeyr));
     //int secret_len = (field_size+7)/8;
-    //LogPrint("smessage", "secret_len %d.\n", secret_len);
+    /* ERROR (compile)
+    if (fDebug)
+    {
+        LogPrint("smessage", "% -- secret_len %d.\n", secret_len);
+    }
+    */
 
     // -- ECDH_compute_key returns the same P if fed compressed or uncompressed public keys
 #if OPENSSL_VERSION_NUMBER >= 0x10100000L
@@ -4360,14 +5017,14 @@ int SecureMsgEncrypt(SecureMessage &smsg, const std::string &addressFrom, const 
 
     if (lenP != 32)
     {
-        return errorN(6, "%s: ECDH_compute_key failed, lenP: %d.", __func__, lenP);
+        return errorN(6, "% -- ECDH_compute_key failed, lenP: %d.", __func__, lenP);
     }
 
     CPubKey cpkR = keyR.GetPubKey();
     
     if (!cpkR.IsValid() || !cpkR.IsCompressed())
     {
-        return errorN(1, "%s: Could not get public key for key R.", __func__);
+        return errorN(1, "% -- Could not get public key for key R.", __func__);
     }
 
     memcpy(smsg.cpkR, cpkR.begin(), 33);
@@ -4401,14 +5058,14 @@ int SecureMsgEncrypt(SecureMessage &smsg, const std::string &addressFrom, const 
         }
         catch (std::exception& e)
         {
-            return errorN(8, "%s: vchCompressed.resize %u threw: %s.", __func__, worstCase, e.what());
+            return errorN(8, "% -- vchCompressed.resize %u threw: %s.", __func__, worstCase, e.what());
         }
 
         int lenComp = LZ4_compress((char*)message.c_str(), (char*)&vchCompressed[0], lenMsg);
         
         if (lenComp < 1)
         {
-            return errorN(9, "%s: Could not compress message data.", __func__);
+            return errorN(9, "% -- Could not compress message data.", __func__);
         }
 
         pMsgData = &vchCompressed[0];
@@ -4426,7 +5083,7 @@ int SecureMsgEncrypt(SecureMessage &smsg, const std::string &addressFrom, const 
     {
         try { vchPayload.resize(9 + lenMsgData); } catch (std::exception& e)
         {
-            return errorN(8, "%s: vchPayload.resize %u threw: %s.", __func__, 9 + lenMsgData, e.what());
+            return errorN(8, "% -- vchPayload.resize %u threw: %s.", __func__, 9 + lenMsgData, e.what());
         }
 
         memcpy(&vchPayload[9], pMsgData, lenMsgData);
@@ -4439,14 +5096,14 @@ int SecureMsgEncrypt(SecureMessage &smsg, const std::string &addressFrom, const 
     {
         try { vchPayload.resize(SMSG_PL_HDR_LEN + lenMsgData); } catch (std::exception& e)
         {
-            return errorN(8, "%s: vchPayload.resize %u threw: %s.", __func__, SMSG_PL_HDR_LEN + lenMsgData, e.what());
+            return errorN(8, "% -- vchPayload.resize %u threw: %s.", __func__, SMSG_PL_HDR_LEN + lenMsgData, e.what());
         }
         
         memcpy(&vchPayload[SMSG_PL_HDR_LEN], pMsgData, lenMsgData);
         // -- compact signature proves ownership of from address and allows the public key to be recovered, recipient can always reply.
         if (!pwalletMain->GetKey(ckidFrom, keyFrom))
         {
-            return errorN(7, "%s: Could not get private key for addressFrom.", __func__);
+            return errorN(7, "% -- Could not get private key for addressFrom.", __func__);
         }
 
         // -- sign the plaintext
@@ -4468,7 +5125,7 @@ int SecureMsgEncrypt(SecureMessage &smsg, const std::string &addressFrom, const 
 
     if (!crypter.Encrypt(&vchPayload[0], vchPayload.size(), vchCiphertext))
     {
-        return errorN(11, "%s: crypter.Encrypt failed.", __func__);
+        return errorN(11, "% -- crypter.Encrypt failed.", __func__);
     }
 
     try
@@ -4477,7 +5134,7 @@ int SecureMsgEncrypt(SecureMessage &smsg, const std::string &addressFrom, const 
     }
     catch (std::exception& e)
     {
-        return errorN(8, "%s: Could not allocate pPayload, exception: %s.", __func__, e.what());
+        return errorN(8, "% -- Could not allocate pPayload, exception: %s.", __func__, e.what());
     }
 
     memcpy(smsg.pPayload, &vchCiphertext[0], vchCiphertext.size());
@@ -4514,7 +5171,7 @@ int SecureMsgEncrypt(SecureMessage &smsg, const std::string &addressFrom, const 
 
     if (!fHmacOk)
     {
-        return errorN(10, "%s: Could not generate MAC.", __func__);
+        return errorN(10, "% -- Could not generate MAC.", __func__);
     }
 
     return 0;
@@ -4531,15 +5188,21 @@ int SecureMsgSend(std::string &addressFrom, std::string &addressTo, std::string 
 
     if (fDebugSmsg)
     {
-        LogPrint("smessage", "SecureMsgSend(%s, %s, ...)\n", addressFrom.c_str(), addressTo.c_str());
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- SecureMsgSend(%s, %s, ...)\n", __func__, addressFrom.c_str(), addressTo.c_str());
+        }
     }
 
     if (pwalletMain->IsLocked())
     {
         sError = "Wallet is locked, wallet must be unlocked to send and recieve messages.";
-        
-        LogPrint("smessage", "Wallet is locked, wallet must be unlocked to send and recieve messages.\n");
-        
+      
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Wallet is locked, wallet must be unlocked to send and recieve messages.\n", __func__);
+        }
+
         return 1;
     }
 
@@ -4551,8 +5214,11 @@ int SecureMsgSend(std::string &addressFrom, std::string &addressTo, std::string 
         
         sError = "Message is too long, " + oss.str();
         
-        LogPrint("smessage", "Message is too long, %u.\n", message.size());
-        
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Message is too long, %u.\n", __func__, message.size());
+        }
+
         return 1;
     }
 
@@ -4561,7 +5227,10 @@ int SecureMsgSend(std::string &addressFrom, std::string &addressTo, std::string 
 
     if ((rv = SecureMsgEncrypt(smsg, addressFrom, addressTo, message)) != 0)
     {
-        LogPrint("smessage", "SecureMsgSend(), encrypt for recipient failed.\n");
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- SecureMsgSend(), encrypt for recipient failed.\n", __func__);
+        }
 
         switch(rv)
         {
@@ -4655,8 +5324,11 @@ int SecureMsgSend(std::string &addressFrom, std::string &addressTo, std::string 
     }
     catch (std::exception& e)
     {
-        LogPrint("smessage", "smsgSQ.vchMessage.resize %u threw: %s.\n", SMSG_HDR_LEN + smsg.nPayload, e.what());
-    
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- smsgSQ.vchMessage.resize %u threw: %s.\n", __func__, SMSG_HDR_LEN + smsg.nPayload, e.what());
+        }
+
         sError = "Could not allocate memory.";
     
         return 8;
@@ -4687,7 +5359,10 @@ int SecureMsgSend(std::string &addressFrom, std::string &addressTo, std::string 
 
     if (fDebugSmsg)
     {
-        LogPrint("smessage", "Encrypting message for outbox.\n");
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Encrypting message for outbox.\n", __func__);
+        }
     }
 
     std::string addressOutbox = "None";
@@ -4716,20 +5391,29 @@ int SecureMsgSend(std::string &addressFrom, std::string &addressTo, std::string 
 
     if (addressOutbox == "None")
     {
-        LogPrint("smessage", "Warning: SecureMsgSend() could not find an address to encrypt outbox message with.\n");
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Warning: SecureMsgSend() could not find an address to encrypt outbox message with.\n", __func__);
+        }
     }
     else
     {
         if (fDebugSmsg)
         {
-            LogPrint("smessage", "Encrypting a copy for outbox, using address %s\n", addressOutbox.c_str());
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- Encrypting a copy for outbox, using address %s\n", __func__, addressOutbox.c_str());
+            }
         }
 
         SecureMessage smsgForOutbox;
 
         if ((rv = SecureMsgEncrypt(smsgForOutbox, addressFrom, addressOutbox, message)) != 0)
         {
-            LogPrint("smessage", "SecureMsgSend(), encrypt for outbox failed, %d.\n", rv);
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- SecureMsgSend(), encrypt for outbox failed, %d.\n", __func__, rv);
+            }
         } 
         else
         {
@@ -4754,8 +5438,11 @@ int SecureMsgSend(std::string &addressFrom, std::string &addressTo, std::string 
             }
             catch (std::exception& e)
             {
-                LogPrint("smessage", "smsgOutbox.vchMessage.resize %u threw: %s.\n", SMSG_HDR_LEN + smsgForOutbox.nPayload, e.what());
-            
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- smsgOutbox.vchMessage.resize %u threw: %s.\n", __func__, SMSG_HDR_LEN + smsgForOutbox.nPayload, e.what());
+                }
+
                 sError = "Could not allocate memory.";
             
                 return 8;
@@ -4783,7 +5470,10 @@ int SecureMsgSend(std::string &addressFrom, std::string &addressTo, std::string 
 
     if (fDebugSmsg)
     {
-        LogPrint("smessage", "Secure message queued for sending to %s.\n", addressTo.c_str());
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Secure message queued for sending to %s.\n", __func__, addressTo.c_str());
+        }
     }
 
     return 0;
@@ -4807,19 +5497,22 @@ int SecureMsgDecrypt(bool fTestOnly, std::string &address, uint8_t *pHeader, uin
 
     if (fDebugSmsg)
     {
-        LogPrint("smessage", "%s: using %s, testonly %d.\n", __func__, address.c_str(), fTestOnly);
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- using %s, testonly %d.\n", __func__, address.c_str(), fTestOnly);
+        }
     }
 
     if (!pHeader || !pPayload)
     {
-        return errorN(1, "%s: null pointer to header or payload.", __func__);
+        return errorN(1, "% -- null pointer to header or payload.", __func__);
     }
 
     SecureMessage* psmsg = (SecureMessage*) pHeader;
 
     if (psmsg->version[0] != 1)
     {
-        return errorN(2, "%s: Unknown version number.", __func__);
+        return errorN(2, "% -- Unknown version number.", __func__);
     }
 
     // -- Fetch private key k, used to decrypt
@@ -4830,29 +5523,29 @@ int SecureMsgDecrypt(bool fTestOnly, std::string &address, uint8_t *pHeader, uin
     
     if (!coinAddrDest.SetString(address))
     {
-        return errorN(3, "%s: Address is not valid.", __func__);
+        return errorN(3, "% -- Address is not valid.", __func__);
     }
 
     if (!coinAddrDest.GetKeyID(ckidDest))
     {
-        return errorN(3, "%s: coinAddrDest.GetKeyID failed: %s.", __func__, coinAddrDest.ToString().c_str());
+        return errorN(3, "% -- coinAddrDest.GetKeyID failed: %s.", __func__, coinAddrDest.ToString().c_str());
     }
 
     if (!pwalletMain->GetKey(ckidDest, keyDest))
     {
-        return errorN(3, "%s: Could not get private key for addressDest.", __func__);
+        return errorN(3, "% -- Could not get private key for addressDest.", __func__);
     }
 
     CPubKey cpkR(psmsg->cpkR, psmsg->cpkR+33);
     if (!cpkR.IsValid())
     {
-        return errorN(1, "%s: Could not get pubkey for key R.", __func__);
+        return errorN(1, "% -- Could not get pubkey for key R.", __func__);
     }
 
     CECKey ecKeyR;
     if (!ecKeyR.SetPubKey(cpkR.begin(), cpkR.size()))
     {
-        return errorN(1, "%s: Could not set pubkey for key R: %s.", __func__, HexStr(cpkR).c_str());
+        return errorN(1, "% -- Could not set pubkey for key R: %s.", __func__, HexStr(cpkR).c_str());
     }
 
     CECKey ecKeyDest;
@@ -4877,7 +5570,7 @@ int SecureMsgDecrypt(bool fTestOnly, std::string &address, uint8_t *pHeader, uin
 
     if (lenPdec != 32)
     {
-        return errorN(1, "%s: ECDH_compute_key failed, lenPdec: %d.", __func__, lenPdec);
+        return errorN(1, "% -- ECDH_compute_key failed, lenPdec: %d.", __func__, lenPdec);
     }
 
     // -- Use public key P to calculate the SHA512 hash H.
@@ -4922,14 +5615,17 @@ int SecureMsgDecrypt(bool fTestOnly, std::string &address, uint8_t *pHeader, uin
 
     if (!fHmacOk)
     {
-        return errorN(1, "%s: Could not generate MAC.", __func__);
+        return errorN(1, "% -- Could not generate MAC.", __func__);
     }
 
     if (memcmp(MAC, psmsg->mac, 32) != 0)
     {
         if (fDebugSmsg)
         {
-            LogPrint("smessage", "MAC does not match.\n"); // expected if message is not to address on node
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- MAC does not match.\n", __func__); // expected if message is not to address on node
+            }
         }
 
         return 1;
@@ -4948,7 +5644,7 @@ int SecureMsgDecrypt(bool fTestOnly, std::string &address, uint8_t *pHeader, uin
     
     if (!crypter.Decrypt(pPayload, nPayload, vchPayload))
     {
-        return errorN(1, "%s: Decrypt failed.", __func__);
+        return errorN(1, "% -- Decrypt failed.", __func__);
     }
 
     msg.timestamp = psmsg->timestamp;
@@ -4981,7 +5677,7 @@ int SecureMsgDecrypt(bool fTestOnly, std::string &address, uint8_t *pHeader, uin
     }
     catch (std::exception& e)
     {
-        return errorN(8, "%s: msg.vchMessage.resize %u threw: %s.", __func__, lenPlain + 1, e.what());
+        return errorN(8, "% -- msg.vchMessage.resize %u threw: %s.", __func__, lenPlain + 1, e.what());
     }
 
     if (lenPlain > 128)
@@ -4989,7 +5685,7 @@ int SecureMsgDecrypt(bool fTestOnly, std::string &address, uint8_t *pHeader, uin
         // -- decompress
         if (LZ4_decompress_safe((char*) pMsgData, (char*) &msg.vchMessage[0], lenData, lenPlain) != (int) lenPlain)
         {
-            return errorN(1, "%s: Could not decompress message data.", __func__);
+            return errorN(1, "% -- Could not decompress message data.", __func__);
         }
     }
     else
@@ -5020,7 +5716,7 @@ int SecureMsgDecrypt(bool fTestOnly, std::string &address, uint8_t *pHeader, uin
         
         if (!coinAddrFrom.IsValid())
         {
-            return errorN(1, "%s: From Address is invalid.", __func__);
+            return errorN(1, "% -- From Address is invalid.", __func__);
         }
 
         std::vector<uint8_t> vchSig;
@@ -5033,7 +5729,7 @@ int SecureMsgDecrypt(bool fTestOnly, std::string &address, uint8_t *pHeader, uin
         
         if (!cpkFromSig.IsValid())
         {
-            return errorN(1, "%s: Signature validation failed.", __func__);
+            return errorN(1, "% -- Signature validation failed.", __func__);
         }
 
         // -- get address for the compressed public key
@@ -5042,7 +5738,7 @@ int SecureMsgDecrypt(bool fTestOnly, std::string &address, uint8_t *pHeader, uin
 
         if (!(coinAddrFrom == coinAddrFromSig))
         {
-            return errorN(1, "%s: Signature validation failed.", __func__);
+            return errorN(1, "% -- Signature validation failed.", __func__);
         }
 
         int rv = 5;
@@ -5053,7 +5749,11 @@ int SecureMsgDecrypt(bool fTestOnly, std::string &address, uint8_t *pHeader, uin
         }
         catch (std::exception& e)
         {
-            LogPrint("smessage", "SecureMsgInsertAddress(), exception: %s.\n", e.what());
+            if (fDebug)
+            {
+                LogPrint("smessage", "% -- SecureMsgInsertAddress(), exception: %s.\n", __func__, e.what());
+            }
+
             //return 1;
         }
 
@@ -5061,19 +5761,28 @@ int SecureMsgDecrypt(bool fTestOnly, std::string &address, uint8_t *pHeader, uin
         {
             case 0:
             {
-                LogPrint("smessage", "Sender public key added to db.\n");
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- Sender public key added to db.\n", __func__);
+                }
             }
             break;
 
             case 4:
             {
-                LogPrint("smessage", "Sender public key already in db.\n");
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- Sender public key already in db.\n", __func__);
+                }
             }
             break;
 
             default:
             {
-                LogPrint("smessage", "Error adding sender public key to db.\n");
+                if (fDebug)
+                {
+                    LogPrint("smessage", "% -- Error adding sender public key to db.\n", __func__);
+                }
             }
             break;
         };
@@ -5083,7 +5792,10 @@ int SecureMsgDecrypt(bool fTestOnly, std::string &address, uint8_t *pHeader, uin
 
     if (fDebugSmsg)
     {
-        LogPrint("smessage", "Decrypted message for %s.\n", address.c_str());
+        if (fDebug)
+        {
+            LogPrint("smessage", "% -- Decrypted message for %s.\n", __func__, address.c_str());
+        }
     }
 
     return 0;

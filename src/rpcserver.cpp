@@ -718,7 +718,10 @@ void StartRPCThreads()
         }
         else
         {
-            LogPrintf("ThreadRPCServer ERROR: missing server certificate file %s\n", pathCertFile.string());
+            if (fDebug)
+            {
+                LogPrint("rpc", "% -- ERROR: missing server certificate file %s\n", __func__, pathCertFile.string());
+            }
         }
 
         filesystem::path pathPKFile(GetArg("-rpcsslprivatekeyfile", "server.pem"));
@@ -734,7 +737,10 @@ void StartRPCThreads()
         }
         else
         {
-            LogPrintf("ThreadRPCServer ERROR: missing server private key file %s\n", pathPKFile.string());
+            if (fDebug)
+            {
+                LogPrint("rpc", "% -- ERROR: missing server private key file %s\n", __func__, pathPKFile.string());
+            }
         } 
 
         string strCiphers = GetArg("-rpcsslciphers", "TLSv1.2+HIGH:TLSv1+HIGH:!SSLv3:!SSLv2:!aNULL:!eNULL:!3DES:@STRENGTH");
@@ -908,7 +914,10 @@ void JSONRequest::parse(const Value& valRequest)
 
     if (strMethod != "getwork" && strMethod != "getblocktemplate")
     {
-        LogPrint("rpc", "ThreadRPCServer method=%s\n", strMethod);
+        if (fDebug)
+        {
+            LogPrint("rpc", "% -- method=%s\n", __func__, strMethod);
+        }
     }
 
     // Parse params
@@ -1005,8 +1014,11 @@ void ServiceConnection(AcceptedConnection *conn)
 
         if (!HTTPAuthorized(mapHeaders))
         {
-            LogPrintf("ThreadRPCServer incorrect password attempt from %s\n", conn->peer_address_to_string());
-            
+            if (fDebug)
+            {
+                LogPrint("rpc", "% -- incorrect password attempt from %s\n", __func__, conn->peer_address_to_string());
+            }
+
             /* Deter brute-forcing short passwords.
                If this results in a DoS the user really
                shouldn't have their RPC port exposed. */

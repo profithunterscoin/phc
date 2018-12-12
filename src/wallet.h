@@ -1353,7 +1353,11 @@ class COutput
 
         void print() const
         {
-            LogPrintf("%s\n", ToString().c_str());
+            if (fDebug)
+            {
+                LogPrint("wallet", "% -- %s\n", __func__, ToString().c_str());
+            }
+
         }
 };
 

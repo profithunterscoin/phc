@@ -373,7 +373,10 @@ Value importwallet(const Array& params, bool fHelp)
         
         if (pwalletMain->HaveKey(keyid))
         {
-            LogPrintf("Skipping import of %s (key already present)\n", CPHCcoinAddress(keyid).ToString());
+            if (fDebug)
+            {
+                LogPrint("rpc", "% -- Skipping import of %s (key already present)\n", __func__, CPHCcoinAddress(keyid).ToString());
+            }
 
             continue;
         }
@@ -409,7 +412,10 @@ Value importwallet(const Array& params, bool fHelp)
             }
         }
         
-        LogPrintf("Importing %s...\n", CPHCcoinAddress(keyid).ToString());
+        if (fDebug)
+        {
+            LogPrint("rpc", "% -- Importing %s...\n", __func__, CPHCcoinAddress(keyid).ToString());
+        }
 
         if (!pwalletMain->AddKey(key))
         {
@@ -444,7 +450,10 @@ Value importwallet(const Array& params, bool fHelp)
         pwalletMain->nTimeFirstKey = nTimeBegin;
     }
 
-    LogPrintf("Rescanning last %i blocks\n", pindexBest->nHeight - pindex->nHeight + 1);
+    if (fDebug)
+    {
+        LogPrint("rpc", "% -- Rescanning last %i blocks\n", __func__, pindexBest->nHeight - pindex->nHeight + 1);
+    }
 
     pwalletMain->ScanForWalletTransactions(pindex);
     pwalletMain->ReacceptWalletTransactions();

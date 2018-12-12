@@ -411,8 +411,11 @@ void CAddrMan::Good_(const CService &addr, int64_t nTime)
         return;
     }
 
-    LogPrint("addrman", "Moving %s to tried\n", addr.ToString());
-
+    if (fDebug)
+    {
+        LogPrint("addrman", "% -- Moving %s to tried\n", __func__, addr.ToString());
+    }
+    
     // move nId to the tried tables
     MakeTried(info, nId, nUBucket);
 }

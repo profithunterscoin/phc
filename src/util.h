@@ -169,6 +169,7 @@ int LogPrintStr(const std::string &str);
     template<TINYFORMAT_ARGTYPES(n)>                                          \
     static inline int LogPrint(const char* category, const char* format, TINYFORMAT_VARARGS(n))  \
     {                                                                                \
+        if (!fDebug) { return 0; }                                                   \
         if(!LogAcceptCategory(category)) { return 0; }                               \
         return LogPrintStr(tfm::format(format, TINYFORMAT_PASSARGS(n)));             \
     }                                                                                \
@@ -176,6 +177,7 @@ int LogPrintStr(const std::string &str);
     template<TINYFORMAT_ARGTYPES(n)>                                                 \
     static inline bool error(const char* format, TINYFORMAT_VARARGS(n))              \
     {                                                                                \
+        if (!fDebug) { return false; }                                               \
         LogPrintStr("ERROR: " + tfm::format(format, TINYFORMAT_PASSARGS(n)) + "\n"); \
         return false;                                                                \
     }                                                                                \
@@ -183,6 +185,7 @@ int LogPrintStr(const std::string &str);
     template<TINYFORMAT_ARGTYPES(n)>                                                 \
     static inline int errorN(int rv, const char* format, TINYFORMAT_VARARGS(n))      \
     {                                                                                \
+        if (!fDebug) { return 0; }                                                   \
         LogPrintStr("ERROR: " + tfm::format(format, TINYFORMAT_PASSARGS(n)) + "\n"); \
         return rv;                                                                   \
     }
@@ -195,6 +198,11 @@ TINYFORMAT_FOREACH_ARGNUM(MAKE_ERROR_AND_LOG_FUNC)
  */
 static inline int LogPrint(const char* category, const char* format)
 {
+    if (!fDebug)
+    {
+        return 0;
+    }
+
     if(!LogAcceptCategory(category))
     {
         return 0;
@@ -205,6 +213,11 @@ static inline int LogPrint(const char* category, const char* format)
 
 static inline bool error(const char* format)
 {
+    if (!fDebug)
+    {
+        return false;
+    }
+
     LogPrintStr(std::string("ERROR: ") + format + "\n");
 
     return false;
@@ -212,6 +225,11 @@ static inline bool error(const char* format)
 
 static inline int errorN(int n, const char* format)
 {
+    if (!fDebug)
+    {
+        return 0;
+    }
+
     LogPrintStr(std::string("ERROR: ") + format + "\n");
     
     return n;
@@ -671,8 +689,11 @@ template <typename Callable> void LoopForever(const char* name,  Callable func, 
     
     RenameThread(s.c_str());
     
-    LogPrintf("%s thread start\n", name);
-    
+    if (fDebug)
+    {
+        LogPrint("util", "% -- %s thread start\n", __func__, name);
+    }
+
     try
     {
         while (1)
@@ -684,8 +705,11 @@ template <typename Callable> void LoopForever(const char* name,  Callable func, 
     }
     catch (boost::thread_interrupted)
     {
-        LogPrintf("%s thread stop\n", name);
-        
+        if (fDebug)
+        {
+            LogPrint("util", "% -- %s thread stop\n", __func__, name);
+        }
+
         throw;
     }
     catch (std::exception& e)
@@ -708,16 +732,25 @@ template <typename Callable> void TraceThread(const char* name,  Callable func)
     
     try
     {
-        LogPrintf("%s thread start\n", name);
-        
+        if (fDebug)
+        {
+            LogPrint("util", "% -- %s thread start\n", __func__, name);
+        }
+
         func();
         
-        LogPrintf("%s thread exit\n", name);
+        if (fDebug)
+        {
+            LogPrint("util", "% -- %s thread exit\n", __func__, name);
+        }
     }
     catch (boost::thread_interrupted)
     {
-        LogPrintf("%s thread interrupt\n", name);
-        
+        if (fDebug)
+        {
+            LogPrint("util", "% -- %s thread interrupt\n", __func__, name);
+        }
+
         throw;
     }
     catch (std::exception& e)

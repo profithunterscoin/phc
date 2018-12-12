@@ -223,7 +223,10 @@ void CoinControlDialog::buttonSelectAllClicked()
     
     double t = double(end - begin) / CLOCKS_PER_SEC;
     
-    LogPrintf("CoinControlDialog::buttonSelectAllClicked(CoinControlDialog::updateLabels) - Time elapsed: %f \n", t);
+    if (fDebug)
+    {
+        LogPrint("coincontrol", "% -- CoinControlDialog::updateLabels) - Time elapsed: %f \n", __func__, t);
+    }
 }
 
 // Toggle lock state
@@ -817,7 +820,10 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog* dialog)
     
     double t = double(end - begin) / CLOCKS_PER_SEC;
     
-    LogPrintf("CoinControlDialog::updateLabels() - Time elapsed: %f \n", t);
+    if (fDebug)
+    {
+        LogPrint("coincontrol", "% -- Time elapsed: %f \n", __func__, t);
+    }
 }
 
 void CoinControlDialog::updateView()
@@ -1038,5 +1044,8 @@ void CoinControlDialog::updateView()
     
     double t = double(end - begin) / CLOCKS_PER_SEC;
     
-    LogPrintf("CoinControlDialog::updateView - Time elapsed: %f \n", t);
+    if (fDebug)
+    {
+        LogPrint("coincontrol", "% -- Time elapsed: %f \n", __func__, t);
+    }
 }

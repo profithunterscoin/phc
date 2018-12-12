@@ -52,8 +52,11 @@ bool CMasternodeConfig::read(boost::filesystem::path path)
             
             if (!(iss >> alias >> ip >> privKey >> txHash >> outputIndex))
             {
-                LogPrintf("Could not parse masternode.conf line: %s\n", line.c_str());
-            
+                if (fDebug)
+                {
+                    LogPrint("masternode", "% -- Could not parse masternode.conf line: %s\n", __func__, line.c_str());
+                }
+
                 streamConfig.close();
             
                 return false;
@@ -79,8 +82,11 @@ bool CMasternodeConfig::read(boost::filesystem::path path)
             
             if (!address.IsValid())
             {
-                LogPrintf("Invalid TX address in masternode.conf line: %s\n", line.c_str());
-                
+                if (fDebug)
+                {
+                    LogPrint("masternode", "% -- Invalid TX address in masternode.conf line: %s\n", __func__, line.c_str());
+                }
+
                 streamConfig.close();
                 
                 return false;

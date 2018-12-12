@@ -71,7 +71,7 @@ bool CMasternodeDB::Write(const CMasternodeMan& mnodemanToSave)
 
     if (fileout.IsNull())
     {
-        return error("%s : Failed to open file %s", __func__, pathMN.string());
+        return error("% -- Failed to open file %s", __func__, pathMN.string());
     }
 
     // Write and commit header, data
@@ -81,14 +81,18 @@ bool CMasternodeDB::Write(const CMasternodeMan& mnodemanToSave)
     }
     catch (std::exception &e)
     {
-        return error("%s : Serialize or I/O error - %s", __func__, e.what());
+        return error("% -- Serialize or I/O error - %s", __func__, e.what());
     }
 
     FileCommit(fileout.Get());
     fileout.fclose();
 
-    LogPrintf("Written info to mncache.dat  %dms\n", GetTimeMillis() - nStart);
-    LogPrintf("  %s\n", mnodemanToSave.ToString());
+    if (fDebug)
+    {
+        LogPrint("masternode", "% -- Written info to mncache.dat  %dms\n", __func__, GetTimeMillis() - nStart);
+        
+        LogPrint("masternode", "% --   %s\n", __func__, mnodemanToSave.ToString());
+    }
 
     return true;
 }
@@ -105,7 +109,8 @@ CMasternodeDB::ReadResult CMasternodeDB::Read(CMasternodeMan& mnodemanToLoad)
     
     if (filein.IsNull())
     {
-        error("%s : Failed to open file %s", __func__, pathMN.string());
+        error("% -- Failed to open file %s", __func__, pathMN.string());
+        
         return FileError;
     }
 
@@ -131,7 +136,7 @@ CMasternodeDB::ReadResult CMasternodeDB::Read(CMasternodeMan& mnodemanToLoad)
     }
     catch (std::exception &e)
     {
-        error("%s : Deserialize or I/O error - %s", __func__, e.what());
+        error("% -- Deserialize or I/O error - %s", __func__, e.what());
     
         return HashReadError;
     }
@@ -144,7 +149,7 @@ CMasternodeDB::ReadResult CMasternodeDB::Read(CMasternodeMan& mnodemanToLoad)
 
     if (hashIn != hashTmp)
     {
-        error("%s : Checksum mismatch, data corrupted", __func__);
+        error("% -- Checksum mismatch, data corrupted", __func__);
     
         return IncorrectHash;
     }
@@ -161,7 +166,7 @@ CMasternodeDB::ReadResult CMasternodeDB::Read(CMasternodeMan& mnodemanToLoad)
         // ... verify the message matches predefined one
         if (strMagicMessage != strMagicMessageTmp)
         {
-            error("%s : Invalid masternode cache magic message", __func__);
+            error("% -- Invalid masternode cache magic message", __func__);
             
             return IncorrectMagicMessage;
         }
@@ -172,7 +177,7 @@ CMasternodeDB::ReadResult CMasternodeDB::Read(CMasternodeMan& mnodemanToLoad)
         // ... verify the network matches ours
         if (memcmp(pchMsgTmp, Params().MessageStart(), sizeof(pchMsgTmp)))
         {
-            error("%s : Invalid network magic number", __func__);
+            error("% -- Invalid network magic number", __func__);
             
             return IncorrectMagicNumber;
         }
@@ -184,16 +189,19 @@ CMasternodeDB::ReadResult CMasternodeDB::Read(CMasternodeMan& mnodemanToLoad)
     {
         mnodemanToLoad.Clear();
     
-        error("%s : Deserialize or I/O error - %s", __func__, e.what());
+        error("% -- Deserialize or I/O error - %s", __func__, e.what());
     
         return IncorrectFormat;
     }
 
     mnodemanToLoad.CheckAndRemove(); // clean out expired
     
-    LogPrintf("Loaded info from mncache.dat  %dms\n", GetTimeMillis() - nStart);
+    if (fDebug)
+    {
+        LogPrint("masternode", "% -- Loaded info from mncache.dat  %dms\n", __func__, GetTimeMillis() - nStart);
     
-    LogPrintf("  %s\n", mnodemanToLoad.ToString());
+        LogPrint("masternode", "% --   %s\n", __func__, mnodemanToLoad.ToString());
+    }
 
     return Ok;
 }
@@ -206,36 +214,57 @@ void DumpMasternodes()
     CMasternodeDB mndb;
     CMasternodeMan tempMnodeman;
 
-    LogPrintf("Verifying mncache.dat format...\n");
-    
+    if (fDebug)
+    {
+        LogPrint("masternode", "% -- Verifying mncache.dat format...\n", __func__);
+    }
+
     CMasternodeDB::ReadResult readResult = mndb.Read(tempMnodeman);
     
     // there was an error and it was not an error on file openning => do not proceed
     if (readResult == CMasternodeDB::FileError)
     {
-        LogPrintf("Missing masternode list file - mncache.dat, will try to recreate\n");
+        if (fDebug)
+        {
+            LogPrint("masternode", "% -- Missing masternode list file - mncache.dat, will try to recreate\n", __func__);
+        }
     }
     else if (readResult != CMasternodeDB::Ok)
     {
-        LogPrintf("Error reading mncache.dat: ");
-        
+        if (fDebug)
+        {
+            LogPrint("masternode", "% -- Error reading mncache.dat: ", __func__);
+        }
+
         if(readResult == CMasternodeDB::IncorrectFormat)
         {
-            LogPrintf("magic is ok but data has invalid format, will try to recreate\n");
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- magic is ok but data has invalid format, will try to recreate\n", __func__);
+            }
         }
         else
         {
-            LogPrintf("file format is unknown or invalid, please fix it manually\n");
-            
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- file format is unknown or invalid, please fix it manually\n", __func__);
+            }
+
             return;
         }
     }
 
-    LogPrintf("Writting info to mncache.dat...\n");
-    
+    if (fDebug)
+    {
+        LogPrint("masternode", "% -- Writting info to mncache.dat...\n", __func__);
+    }
+
     mndb.Write(mnodeman);
 
-    LogPrintf("Masternode dump finished  %dms\n", GetTimeMillis() - nStart);
+    if (fDebug)
+    {
+        LogPrint("masternode", "% -- Masternode dump finished  %dms\n", __func__, GetTimeMillis() - nStart);
+    }
 }
 
 
@@ -253,8 +282,11 @@ bool CMasternodeMan::Add(CMasternode &mn)
 
     if (pmn == NULL)
     {
-        LogPrint("masternode", "CMasternodeMan: Adding new masternode %s - %i now\n", mn.addr.ToString().c_str(), size() + 1);
-        
+        if (fDebug)
+        {
+            LogPrint("masternode", "% -- Adding new masternode %s - %i now\n", __func__, mn.addr.ToString().c_str(), size() + 1);
+        }
+
         vMasternodes.push_back(mn);
         
         return true;
@@ -280,8 +312,11 @@ void CMasternodeMan::AskForMN(CNode* pnode, CTxIn &vin)
 
     // ask for the mnb info once from the node that sent mnp
 
-    LogPrintf("CMasternodeMan::AskForMN - Asking node for missing entry, vin: %s\n", vin.ToString());
-    
+    if (fDebug)
+    {
+        LogPrint("masternode", "% -- Asking node for missing entry, vin: %s\n", __func__, vin.ToString());
+    }
+
     pnode->PushMessage("dseg", vin);
     
     int64_t askAgain = GetTime() + MASTERNODE_MIN_DSEEP_SECONDS;
@@ -313,8 +348,11 @@ void CMasternodeMan::CheckAndRemove()
     {
         if((*it).activeState == CMasternode::MASTERNODE_REMOVE || (*it).activeState == CMasternode::MASTERNODE_VIN_SPENT || (*it).protocolVersion < nMasternodeMinProtocol)
         {
-            LogPrint("masternode", "CMasternodeMan: Removing inactive masternode %s - %i now\n", (*it).addr.ToString().c_str(), size() - 1);
-            
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- Removing inactive masternode %s - %i now\n", __func__, (*it).addr.ToString().c_str(), size() - 1);
+            }
+
             it = vMasternodes.erase(it);
         }
         else
@@ -435,8 +473,11 @@ void CMasternodeMan::DsegUpdate(CNode* pnode)
     {
         if (GetTime() < (*it).second)
         {
-            LogPrintf("dseg - we already asked %s for the list; skipping...\n", pnode->addr.ToString());
-            
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- we already asked %s for the list; skipping...\n", __func__, pnode->addr.ToString());
+            }
+
             return;
         }
     }
@@ -547,8 +588,11 @@ CMasternode *CMasternodeMan::FindRandomNotInVec(std::vector<CTxIn> &vecToExclude
 
     int nCountEnabled = CountEnabled(protocolVersion);
     
-    LogPrintf("CMasternodeMan::FindRandomNotInVec - nCountEnabled - vecToExclude.size() %d\n", nCountEnabled - vecToExclude.size());
-    
+    if (fDebug)
+    {
+        LogPrint("masternode", "% -- nCountEnabled - vecToExclude.size() %d\n", __func__, nCountEnabled - vecToExclude.size());
+    }
+
     if(nCountEnabled - vecToExclude.size() < 1)
     {
         return NULL;
@@ -556,8 +600,11 @@ CMasternode *CMasternodeMan::FindRandomNotInVec(std::vector<CTxIn> &vecToExclude
 
     int rand = GetRandInt(nCountEnabled - vecToExclude.size());
 
-    LogPrintf("CMasternodeMan::FindRandomNotInVec - rand %d\n", rand);
-    
+    if (fDebug)
+    {
+        LogPrint("masternode", "% -- rand %d\n", __func__, rand);
+    }
+
     bool found;
 
     BOOST_FOREACH(CMasternode &mn, vMasternodes) 
@@ -579,7 +626,10 @@ CMasternode *CMasternodeMan::FindRandomNotInVec(std::vector<CTxIn> &vecToExclude
             }
         }
 
-        if(found) continue;
+        if(found)
+        {
+            continue;
+        }
         
         if(--rand < 1)
         {
@@ -797,7 +847,10 @@ void CMasternodeMan::ProcessMasternodeConnections()
 
         if(pnode->fDarkSendMaster)
         {
-            LogPrintf("Closing masternode connection %s \n", pnode->addr.ToString().c_str());
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- Closing masternode connection %s \n", __func__, pnode->addr.ToString().c_str());
+            }
 
             pnode->CloseSocketDisconnect();
         }
@@ -851,26 +904,38 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         //Invalid nodes check
         if (sigTime < 1511159400)
         {
-            //LogPrintf("dsee - Bad packet\n");
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- Bad packet\n", __func__);
+            }
+
             return;
         }
         
         if (sigTime > lastUpdated)
         {
-            //LogPrintf("dsee - Bad node entry\n");
+            LogPrint("masternode", "% -- Bad node entry\n", __func__);
+            
             return;
         }
         
         if (addr.GetPort() == 0)
         {
-            //LogPrintf("dsee - Bad port\n");
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- Bad port\n", __func__);
+            }
+
             return;
         }
         
         // make sure signature isn't in the future (past is OK)
         if (sigTime > GetAdjustedTime() + 60 * 60)
         {
-            LogPrintf("dsee - Signature rejected, too far into the future %s\n", vin.ToString().c_str());
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- Signature rejected, too far into the future %s\n", __func__, vin.ToString().c_str());
+            }
 
             return;
         }
@@ -885,7 +950,10 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
         if(protocolVersion < MIN_POOL_PEER_PROTO_VERSION)
         {
-            LogPrintf("dsee - ignoring outdated masternode %s protocol version %d\n", vin.ToString().c_str(), protocolVersion);
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- ignoring outdated masternode %s protocol version %d\n", __func__, vin.ToString().c_str(), protocolVersion);
+            }
 
             return;
         }
@@ -895,7 +963,10 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
         if(pubkeyScript.size() != 25)
         {
-            LogPrintf("dsee - pubkey the wrong size\n");
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- pubkey the wrong size\n", __func__);
+            }
 
             Misbehaving(pfrom->GetId(), 100);
 
@@ -907,7 +978,10 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
         if(pubkeyScript2.size() != 25)
         {
-            LogPrintf("dsee - pubkey2 the wrong size\n");
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- pubkey2 the wrong size\n", __func__);
+            }
 
             Misbehaving(pfrom->GetId(), 100);
 
@@ -916,7 +990,10 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
         if(!vin.scriptSig.empty())
         {
-            LogPrintf("dsee - Ignore Not Empty ScriptSig %s\n",vin.ToString().c_str());
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- Ignore Not Empty ScriptSig %s\n", __func__, vin.ToString().c_str());
+            }
 
             return;
         }
@@ -924,7 +1001,10 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         std::string errorMessage = "";
         if(!darkSendSigner.VerifyMessage(pubkey, vchSig, strMessage, errorMessage))
         {
-            LogPrintf("dsee - Got bad masternode address signature\n");
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- Got bad masternode address signature\n", __func__);
+            }
 
             Misbehaving(pfrom->GetId(), 100);
 
@@ -958,8 +1038,11 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
                         addrman.Add(CAddress(addr), pfrom->addr, 2*60*60); // use this as a peer
                     }
 
-                    LogPrintf("dsee - Got updated entry for %s\n", addr.ToString().c_str());
-                    
+                    if (fDebug)
+                    {
+                        LogPrint("masternode", "% -- Got updated entry for %s\n", __func__, addr.ToString().c_str());
+                    }
+
                     pmn->pubkey2 = pubkey2;
                     pmn->sigTime = sigTime;
                     pmn->sig = vchSig;
@@ -982,14 +1065,20 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         //  - this is expensive, so it's only done once per masternode
         if(!darkSendSigner.IsVinAssociatedWithPubkey(vin, pubkey))
         {
-            LogPrintf("dsee - Got mismatched pubkey and vin\n");
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- Got mismatched pubkey and vin\n", __func__);
+            }
 
             Misbehaving(pfrom->GetId(), 100);
             
             return;
         }
 
-        LogPrint("masternode", "dsee - Got NEW masternode entry %s\n", addr.ToString().c_str());
+        if (fDebug)
+        {
+            LogPrint("masternode", "% -- Got NEW masternode entry %s\n", __func__, addr.ToString().c_str());
+        }
 
         // make sure it's still unspent
         //  - this is checked later by .check() in many places and by ThreadCheckDarkSendPool()
@@ -1019,12 +1108,18 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
         if(fAcceptable)
         {
-            LogPrint("masternode", "dsee - Accepted masternode entry %i %i\n", count, current);
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- Accepted masternode entry %i %i\n", __func__, count, current);
+            }
 
             if(GetInputAge(vin) < MASTERNODE_MIN_CONFIRMATIONS)
             {
-                LogPrintf("dsee - Input must have least %d confirmations\n", MASTERNODE_MIN_CONFIRMATIONS);
-                
+                if (fDebug)
+                {
+                    LogPrint("masternode", "% -- Input must have least %d confirmations\n", __func__, MASTERNODE_MIN_CONFIRMATIONS);
+                }
+
                 Misbehaving(pfrom->GetId(), 20);
                 
                 return;
@@ -1044,8 +1139,11 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
                 
                 if(pConfIndex->GetBlockTime() > sigTime)
                 {
-                    LogPrintf("dsee - Bad sigTime %d for masternode %20s %105s (%i conf block is at %d)\n", sigTime, addr.ToString(), vin.ToString(), MASTERNODE_MIN_CONFIRMATIONS, pConfIndex->GetBlockTime());
-                    
+                    if (fDebug)
+                    {
+                        LogPrint("masternode", "% -- Bad sigTime %d for masternode %20s %105s (%i conf block is at %d)\n", __func__, sigTime, addr.ToString(), vin.ToString(), MASTERNODE_MIN_CONFIRMATIONS, pConfIndex->GetBlockTime());
+                    }
+
                     return;
                 }
             }
@@ -1079,14 +1177,20 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         }
         else
         {
-            LogPrintf("dsee - Rejected masternode entry %s\n", addr.ToString().c_str());
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- Rejected masternode entry %s\n", __func__, addr.ToString().c_str());
+            }
 
             int nDoS = 0;
 
             if (state.IsInvalid(nDoS))
             {
-                LogPrintf("dsee - %s from %s %s was not accepted into the memory pool\n", tx.GetHash().ToString().c_str(), pfrom->addr.ToString().c_str(), pfrom->cleanSubVer.c_str());
-                
+                if (fDebug)
+                {
+                    LogPrint("masternode", "% -- %s from %s %s was not accepted into the memory pool\n", __func__, tx.GetHash().ToString().c_str(), pfrom->addr.ToString().c_str(), pfrom->cleanSubVer.c_str());
+                }
+
                 if (nDoS > 0)
                 {
                     Misbehaving(pfrom->GetId(), nDoS);
@@ -1128,27 +1232,42 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         //Invalid nodes check
         if (sigTime < 1511159400)
         {
-            //LogPrintf("dsee+ - Bad packet\n");
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- Bad packet\n", __func__);
+            }
+
             return;
         }
         
         if (sigTime > lastUpdated)
         {
-            //LogPrintf("dsee+ - Bad node entry\n");
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- Bad node entry\n", __func__);
+            }
+
             return;
         }
         
         if (addr.GetPort() == 0)
         {
-            //LogPrintf("dsee+ - Bad port\n");
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- Bad port\n", __func__);
+            }
+
             return;
         }
         
         // make sure signature isn't in the future (past is OK)
         if (sigTime > GetAdjustedTime() + 60 * 60)
         {
-            LogPrintf("dsee+ - Signature rejected, too far into the future %s\n", vin.ToString().c_str());
-            
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- Signature rejected, too far into the future %s\n", __func__, vin.ToString().c_str());
+            }
+
             return;
         }
 
@@ -1162,15 +1281,21 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         
         if(rewardPercentage < 0 || rewardPercentage > 100)
         {
-            LogPrintf("dsee+ - reward percentage out of range %d\n", rewardPercentage);
-            
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- reward percentage out of range %d\n", __func__, rewardPercentage);
+            }
+
             return;
         }
 
         if(protocolVersion < MIN_POOL_PEER_PROTO_VERSION)
         {
-            LogPrintf("dsee+ - ignoring outdated masternode %s protocol version %d\n", vin.ToString().c_str(), protocolVersion);
-            
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- ignoring outdated masternode %s protocol version %d\n", __func__, vin.ToString().c_str(), protocolVersion);
+            }
+
             return;
         }
 
@@ -1179,8 +1304,11 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
         if(pubkeyScript.size() != 25)
         {
-            LogPrintf("dsee+ - pubkey the wrong size\n");
-            
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- pubkey the wrong size\n", __func__);
+            }
+
             Misbehaving(pfrom->GetId(), 100);
             
             return;
@@ -1191,8 +1319,11 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
         if(pubkeyScript2.size() != 25)
         {
-            LogPrintf("dsee+ - pubkey2 the wrong size\n");
-            
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- pubkey2 the wrong size\n", __func__);
+            }
+
             Misbehaving(pfrom->GetId(), 100);
             
             return;
@@ -1200,16 +1331,22 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
         if(!vin.scriptSig.empty())
         {
-            LogPrintf("dsee+ - Ignore Not Empty ScriptSig %s\n",vin.ToString().c_str());
-            
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- Ignore Not Empty ScriptSig %s\n", __func__, vin.ToString().c_str());
+            }
+
             return;
         }
 
         std::string errorMessage = "";
         if(!darkSendSigner.VerifyMessage(pubkey, vchSig, strMessage, errorMessage))
         {
-            LogPrintf("dsee+ - Got bad masternode address signature\n");
-            
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- Got bad masternode address signature\n", __func__);
+            }
+
             Misbehaving(pfrom->GetId(), 100);
             
             return;
@@ -1242,8 +1379,11 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
                         addrman.Add(CAddress(addr), pfrom->addr, 2*60*60); // use this as a peer
                     }
 
-                    LogPrintf("dsee+ - Got updated entry for %s\n", addr.ToString().c_str());
-                    
+                    if (fDebug)
+                    {
+                        LogPrint("masternode", "% -- Got updated entry for %s\n", __func__, addr.ToString().c_str());
+                    }
+
                     pmn->pubkey2 = pubkey2;
                     pmn->sigTime = sigTime;
                     pmn->sig = vchSig;
@@ -1268,14 +1408,20 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         //  - this is expensive, so it's only done once per masternode
         if(!darkSendSigner.IsVinAssociatedWithPubkey(vin, pubkey))
         {
-            LogPrintf("dsee+ - Got mismatched pubkey and vin\n");
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- Got mismatched pubkey and vin\n", __func__);
+            }
 
             Misbehaving(pfrom->GetId(), 100);
 
             return;
         }
 
-        LogPrint("masternode", "dsee+ - Got NEW masternode entry %s\n", addr.ToString().c_str());
+        if (fDebug)
+        {
+            LogPrint("masternode", "% -- Got NEW masternode entry %s\n", __func__, addr.ToString().c_str());
+        }
 
         // make sure it's still unspent
         //  - this is checked later by .check() in many places and by ThreadCheckDarkSendPool()
@@ -1305,12 +1451,18 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
         if(fAcceptable)
         {
-            LogPrint("masternode", "dsee+ - Accepted masternode entry %i %i\n", count, current);
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- Accepted masternode entry %i %i\n", __func__, count, current);
+            }
 
             if(GetInputAge(vin) < MASTERNODE_MIN_CONFIRMATIONS)
             {
-                LogPrintf("dsee+ - Input must have least %d confirmations\n", MASTERNODE_MIN_CONFIRMATIONS);
-                
+                if (fDebug)
+                {
+                    LogPrint("masternode", "% -- Input must have least %d confirmations\n", __func__, MASTERNODE_MIN_CONFIRMATIONS);
+                }
+
                 Misbehaving(pfrom->GetId(), 20);
                 
                 return;
@@ -1331,8 +1483,11 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
                 
                 if(pConfIndex->GetBlockTime() > sigTime)
                 {
-                    LogPrintf("dsee+ - Bad sigTime %d for masternode %20s %105s (%i conf block is at %d)\n", sigTime, addr.ToString(), vin.ToString(), MASTERNODE_MIN_CONFIRMATIONS, pConfIndex->GetBlockTime());
-                    
+                    if (fDebug)
+                    {
+                        LogPrint("masternode", "% -- Bad sigTime %d for masternode %20s %105s (%i conf block is at %d)\n", __func__, sigTime, addr.ToString(), vin.ToString(), MASTERNODE_MIN_CONFIRMATIONS, pConfIndex->GetBlockTime());
+                    }
+
                     return;
                 }
             }
@@ -1374,14 +1529,20 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         }
         else
         {
-            LogPrintf("dsee+ - Rejected masternode entry %s\n", addr.ToString().c_str());
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- Rejected masternode entry %s\n", __func__, addr.ToString().c_str());
+            }
 
             int nDoS = 0;
 
             if (state.IsInvalid(nDoS))
             {
-                LogPrintf("dsee+ - %s from %s %s was not accepted into the memory pool\n", tx.GetHash().ToString().c_str(), pfrom->addr.ToString().c_str(), pfrom->cleanSubVer.c_str());
-                
+                if (fDebug)
+                {
+                    LogPrint("masternode", "% -- %s from %s %s was not accepted into the memory pool\n", __func__, tx.GetHash().ToString().c_str(), pfrom->addr.ToString().c_str(), pfrom->cleanSubVer.c_str());
+                }
+
                 if (nDoS > 0)
                 {
                     Misbehaving(pfrom->GetId(), nDoS);
@@ -1403,18 +1564,27 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         
         vRecv >> vin >> vchSig >> sigTime >> stop;
 
-        //LogPrintf("dseep - Received: vin: %s sigTime: %lld stop: %s\n", vin.ToString().c_str(), sigTime, stop ? "true" : "false");
+        if (fDebug)
+        {
+            LogPrint("masternode", "% -- Received: vin: %s sigTime: %lld stop: %s\n", __func__, vin.ToString().c_str(), sigTime, stop ? "true" : "false");
+        }
 
         if (sigTime > GetAdjustedTime() + 60 * 60)
         {
-            LogPrintf("dseep - Signature rejected, too far into the future %s\n", vin.ToString().c_str());
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- Signature rejected, too far into the future %s\n", __func__, vin.ToString().c_str());
+            }
 
             return;
         }
 
         if (sigTime <= GetAdjustedTime() - 60 * 60)
         {
-            LogPrintf("dseep - Signature rejected, too far into the past %s - %d %d \n", vin.ToString().c_str(), sigTime, GetAdjustedTime());
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- Signature rejected, too far into the past %s - %d %d \n", __func__, vin.ToString().c_str(), sigTime, GetAdjustedTime());
+            }
 
             return;
         }
@@ -1424,7 +1594,11 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
         if(pmn != NULL && pmn->protocolVersion >= MIN_POOL_PEER_PROTO_VERSION)
         {
-            // LogPrintf("dseep - Found corresponding mn for vin: %s\n", vin.ToString().c_str());
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- Found corresponding mn for vin: %s\n", __func__, vin.ToString().c_str());
+            }
+
             // take this only if it's newer
             if(pmn->lastDseep < sigTime)
             {
@@ -1434,8 +1608,11 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
                 if(!darkSendSigner.VerifyMessage(pmn->pubkey2, vchSig, strMessage, errorMessage))
                 {
-                    LogPrintf("dseep - Got bad masternode address signature %s \n", vin.ToString().c_str());
-                    
+                    if (fDebug)
+                    {
+                        LogPrint("masternode", "% -- Got bad masternode address signature %s \n", __func__, vin.ToString().c_str());
+                    }
+
                     //Misbehaving(pfrom->GetId(), 100);
                     return;
                 }
@@ -1465,7 +1642,10 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
             return;
         }
 
-        LogPrint("masternode", "dseep - Couldn't find masternode entry %s\n", vin.ToString().c_str());
+        if (fDebug)
+        {
+            LogPrint("masternode", "% -- Couldn't find masternode entry %s\n", __func__, vin.ToString().c_str());
+        }
 
         std::map<COutPoint, int64_t>::iterator i = mWeAskedForMasternodeListEntry.find(vin.prevout);
         
@@ -1481,8 +1661,11 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
         // ask for the dsee info once from the node that sent dseep
 
-        LogPrintf("dseep - Asking source node for missing entry %s\n", vin.ToString().c_str());
-        
+        if (fDebug)
+        {
+            LogPrint("masternode", "% -- Asking source node for missing entry %s\n", __func__, vin.ToString().c_str());
+        }
+
         pfrom->PushMessage("dseg", vin);
         
         int64_t askAgain = GetTime()+ MASTERNODE_MIN_DSEEP_SECONDS;
@@ -1513,8 +1696,11 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
                 if(!darkSendSigner.VerifyMessage(pmn->pubkey2, vchSig, strMessage, errorMessage))
                 {
-                    LogPrintf("mvote - Got bad Masternode address signature %s \n", vin.ToString().c_str());
-                    
+                    if (fDebug)
+                    {
+                        LogPrint("masternode", "% -- mvote - Got bad Masternode address signature %s \n", __func__, vin.ToString().c_str());
+                    }
+
                     return;
                 }
 
@@ -1558,8 +1744,11 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
                         
                         Misbehaving(pfrom->GetId(), 34);
                         
-                        LogPrintf("dseg - peer already asked me for the list\n");
-                        
+                        if (fDebug)
+                        {
+                            LogPrint("masternode", "% -- peer already asked me for the list\n", __func__);
+                        }
+
                         return;
                     }
                 }
@@ -1582,7 +1771,10 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
             if(mn.IsEnabled())
             {
-                LogPrint("masternode", "dseg - Sending masternode entry - %s \n", mn.addr.ToString().c_str());
+                if (fDebug)
+                {
+                    LogPrint("masternode", "% -- Sending masternode entry - %s \n", __func__, mn.addr.ToString().c_str());
+                }
 
                 if(vin == CTxIn())
                 {
@@ -1606,8 +1798,11 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
                         pfrom->PushMessage("dsee+", mn.vin, mn.addr, mn.sig, mn.sigTime, mn.pubkey, mn.pubkey2, count, i, mn.lastTimeSeen, mn.protocolVersion, mn.rewardAddress, mn.rewardPercentage);
                     }
 
-                    LogPrintf("dseg - Sent 1 masternode entries to %s\n", pfrom->addr.ToString().c_str());
-                    
+                    if (fDebug)
+                    {
+                        LogPrint("masternode", "% -- Sent 1 masternode entries to %s\n", __func__, pfrom->addr.ToString().c_str());
+                    }
+
                     return;
                 }
 
@@ -1615,7 +1810,10 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
             }
         }
 
-        LogPrintf("dseg - Sent %d masternode entries to %s\n", i, pfrom->addr.ToString().c_str());
+        if (fDebug)
+        {
+            LogPrint("masternode", "% -- Sent %d masternode entries to %s\n", __func__, i, pfrom->addr.ToString().c_str());
+        }
     }
 
 }
@@ -1664,7 +1862,10 @@ void CMasternodeMan::Remove(CTxIn vin)
     {
         if((*it).vin == vin)
         {
-            LogPrint("masternode", "CMasternodeMan: Removing Masternode %s - %i now\n", (*it).addr.ToString().c_str(), size() - 1);
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- Removing Masternode %s - %i now\n", __func__, (*it).addr.ToString().c_str(), size() - 1);
+            }
             
             vMasternodes.erase(it);
             

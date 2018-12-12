@@ -239,10 +239,10 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
                     // or other transactions in the memory pool.
                     if (!mempool.mapTx.count(txin.prevout.hash))
                     {
-                        LogPrintf("ERROR: mempool transaction missing input\n");
-
                         if (fDebug)
                         {
+                            LogPrint("mempool", "% -- ERROR: mempool transaction missing input\n", __func__);
+
                             assert("mempool transaction missing input" == 0);
                         }
 
@@ -398,7 +398,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
 
             if (fDebug && GetBoolArg("-printpriority", false))
             {
-                LogPrintf("priority %.1f feeperkb %.1f txid %s\n", dPriority, dFeePerKb, tx.GetHash().ToString());
+                LogPrint("miner", "% --priority %.1f feeperkb %.1f txid %s\n", __func__, dPriority, dFeePerKb, tx.GetHash().ToString());
             }
 
             // Add transactions that depend on this one to the priority queue
@@ -425,7 +425,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
 
         if (fDebug && GetBoolArg("-printpriority", false))
         {
-            LogPrintf("CreateNewBlock(): total size %u\n", nBlockSize);
+            LogPrint("miner", "% -- total size %u\n", __func__, nBlockSize);
         }
         
         // >PHC<
@@ -537,27 +537,31 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
 
     if(!pblock->IsProofOfWork())
     {
-        return error("CheckWork() : %s is not a proof-of-work block", hashBlock.GetHex());
+        return error("% -- %s is not a proof-of-work block", __func__, hashBlock.GetHex());
     }
 
     if (hashProof > hashTarget)
     {
-        return error("CheckWork() : proof-of-work not meeting target");
+        return error("% -- proof-of-work not meeting target", __func__);
     }
 
-    //// debug print
-    LogPrintf("CheckWork() : new proof-of-work block found  \n  proof hash: %s  \ntarget: %s\n", hashProof.GetHex(), hashTarget.GetHex());
-    LogPrintf("%s\n", pblock->ToString());
-    LogPrintf("generated %s\n", FormatMoney(pblock->vtx[0].vout[0].nValue));
+    if (fDebug)
+    {
+        //// debug print
+        LogPrint("miner", "% -- new proof-of-work block found  \n  proof hash: %s  \ntarget: %s\n",  __func__, hashProof.GetHex(), hashTarget.GetHex());
+        LogPrint("miner", "% -- %s\n", __func__, pblock->ToString());
+        LogPrint("miner", "% -- generated %s\n", __func__, FormatMoney(pblock->vtx[0].vout[0].nValue));
+    }
 
     // Global Namespace Start
     {
         // Found a solution
 
         LOCK(cs_main);
+
         if (pblock->hashPrevBlock != hashBestChain)
         {
-            return error("CheckWork() : generated block is stale");
+            return error("% -- generated block is stale", __func__);
         }
 
         // Remove key from key pool
@@ -575,7 +579,7 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
         // Process this block the same as if we had received it from another node
         if (!ProcessBlock(NULL, pblock))
         {
-            return error("CheckWork() : ProcessBlock, block not accepted");
+            return error("% -- ProcessBlock, block not accepted", __func__);
         }
     }
     // Global Namespace End
@@ -590,19 +594,22 @@ bool CheckStake(CBlock* pblock, CWallet& wallet)
 
     if(!pblock->IsProofOfStake())
     {
-        return error("CheckStake() : %s is not a proof-of-stake block", hashBlock.GetHex());
+        return error("% -- %s is not a proof-of-stake block", __func__, hashBlock.GetHex());
     }
 
     // verify hash target and signature of coinstake tx
     if (!CheckProofOfStake(mapBlockIndex[pblock->hashPrevBlock], pblock->vtx[1], pblock->nBits, proofHash, hashTarget))
     {
-        return error("CheckStake() : proof-of-stake checking failed");
+        return error("% -- proof-of-stake checking failed", __func__);
     }
 
-    //// debug print
-    LogPrint("coinstake", "CheckStake() : new proof-of-stake block found  \n  hash: %s \nproofhash: %s  \ntarget: %s\n", hashBlock.GetHex(), proofHash.GetHex(), hashTarget.GetHex());
-    LogPrint("coinstake", "%s\n", pblock->ToString());
-    LogPrint("coinstake", "out %s\n", FormatMoney(pblock->vtx[1].GetValueOut()));
+    if (fDebug)
+    {
+        //// debug print
+        LogPrint("coinstake", "% -- new proof-of-stake block found  \n  hash: %s \nproofhash: %s  \ntarget: %s\n", __func__, hashBlock.GetHex(), proofHash.GetHex(), hashTarget.GetHex());
+        LogPrint("coinstake", "% -- %s\n", __func__, pblock->ToString());
+        LogPrint("coinstake", "% -- out %s\n", __func__, FormatMoney(pblock->vtx[1].GetValueOut()));
+    }
 
     // Global Namespace Start
     {
@@ -611,7 +618,7 @@ bool CheckStake(CBlock* pblock, CWallet& wallet)
         LOCK(cs_main);
         if (pblock->hashPrevBlock != hashBestChain)
         {
-            return error("CheckStake() : generated block is stale");
+            return error("% -- generated block is stale", __func__);
         }
 
         // Global Namespace Start
@@ -625,7 +632,7 @@ bool CheckStake(CBlock* pblock, CWallet& wallet)
         // Process this block the same as if we had received it from another node
         if (!ProcessBlock(NULL, pblock))
         {
-            return error("CheckStake() : ProcessBlock, block not accepted");
+            return error("% -- ProcessBlock, block not accepted", __func__);
         }
         else
         {
@@ -637,7 +644,10 @@ bool CheckStake(CBlock* pblock, CWallet& wallet)
 
             if (nMismatchSpent != 0)
             {
-                LogPrintf("PoS mismatched spent coins = %d and balance affects = %d \n", nMismatchSpent, nBalanceInQuestion);
+                if (fDebug)
+                {
+                    LogPrint("coinstake", "% -- PoS mismatched spent coins = %d and balance affects = %d \n", __func__, nMismatchSpent, nBalanceInQuestion);
+                }
             }
         }
     }

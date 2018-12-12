@@ -44,7 +44,10 @@ static int noui_ThreadSafeMessageBox(const std::string& message, const std::stri
         }
     }
 
-    LogPrintf("%s: %s\n", caption, message);
+    if (fDebug)
+    {
+        LogPrint("daemon", "% -- %s: %s\n", __func__, caption, message);
+    }
 
     fprintf(stderr, "%s: %s\n", strCaption.c_str(), message.c_str());
 
@@ -58,7 +61,10 @@ static bool noui_ThreadSafeAskFee(int64_t nFeeRequired, const std::string& strCa
 
 static void noui_InitMessage(const std::string &message)
 {
-    LogPrintf("init message: %s\n", message);
+    if (fDebug)
+    {
+        LogPrint("daemon", "% -- init message: %s\n", __func__, message);
+    }
 }
 
 void noui_connect()

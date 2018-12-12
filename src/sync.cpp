@@ -13,8 +13,11 @@
 #ifdef DEBUG_LOCKCONTENTION
 void PrintLockContention(const char* pszName, const char* pszFile, int nLine)
 {
-    LogPrintf("LOCKCONTENTION: %s\n", pszName);
-    LogPrintf("Locker: %s:%d\n", pszFile, nLine);
+    if (fDebug)
+    {
+        LogPrint("sync", "% -- LOCKCONTENTION: %s\n", __func__, pszName);
+        LogPrint("sync", "% -- Locker: %s:%d\n", __func__, pszFile, nLine);
+    }
 }
 #endif /* DEBUG_LOCKCONTENTION */
 
@@ -66,40 +69,64 @@ static boost::thread_specific_ptr<LockStack> lockstack;
 
 static void potential_deadlock_detected(const std::pair<void*, void*>& mismatch, const LockStack& s1, const LockStack& s2)
 {
-    LogPrintf("POTENTIAL DEADLOCK DETECTED\n");
-    
-    LogPrintf("Previous lock order was:\n");
-    
+    if (fDebug)
+    {
+        LogPrint("sync", "% -- POTENTIAL DEADLOCK DETECTED\n", __func__);
+        
+        LogPrint("sync", "% -- Previous lock order was:\n", __func__);
+    }
+
     BOOST_FOREACH(const PAIRTYPE(void*, CLockLocation)& i, s2)
     {
         if (i.first == mismatch.first)
         {
-            LogPrintf(" (1)");
+            if (fDebug)
+            {
+                LogPrint("sync", "% --  (1)", __func__);
+            }
         }
 
         if (i.first == mismatch.second)
         {
-            LogPrintf(" (2)")
+            if (fDebug)
+            {
+                LogPrint("sync", "% --  (2)", __func__)
+            }
         }
 
-        LogPrintf(" %s\n", i.second.ToString());
+        if (fDebug)
+        {
+            LogPrint("sync", "% --  %s\n", __func__, i.second.ToString());
+        }
     }
     
-    LogPrintf("Current lock order is:\n");
+    if (fDebug)
+    {
+        LogPrint("sync", "% -- Current lock order is:\n", __func__);
+    }
 
     BOOST_FOREACH(const PAIRTYPE(void*, CLockLocation)& i, s1)
     {
         if (i.first == mismatch.first)
         {
-            LogPrintf(" (1)");
+            if (fDebug)
+            {
+                LogPrint("sync", "% --  (1)", __func__);
+            }
         }
 
         if (i.first == mismatch.second)
         {
-            LogPrintf(" (2)");
+            if (fDebug)
+            {
+                LogPrint("sync", "% --  (2)", __func__);
+            }
         }
 
-        LogPrintf(" %s\n", i.second.ToString());
+        if (fDebug)
+        {
+            LogPrint("sync", "% --  %s\n", __func__, i.second.ToString());
+        }
     }
 }
 
@@ -111,7 +138,10 @@ static void push_lock(void* c, const CLockLocation& locklocation, bool fTry)
         lockstack.reset(new LockStack);
     }
 
-    LogPrint("lock", "Locking: %s\n", locklocation.ToString());
+    if (fDebug)
+    {
+        LogPrint("lock", "% -- Locking: %s\n", __func__, locklocation.ToString());
+    }
 
     dd_mutex.lock();
 
@@ -155,7 +185,7 @@ static void pop_lock()
     {
         const CLockLocation& locklocation = (*lockstack).rbegin()->second;
 
-        LogPrint("lock", "Unlocked: %s\n", locklocation.ToString());
+        LogPrint("lock", "% -- Unlocked: %s\n", __func__, locklocation.ToString());
     }
 
     dd_mutex.lock();
@@ -199,8 +229,11 @@ void AssertLockHeldInternal(const char *pszName, const char* pszFile, int nLine,
         }
     }
 
-    fprintf(stderr, "Assertion failed: lock %s not held in %s:%i; locks held:\n%s", pszName, pszFile, nLine, LocksHeld().c_str());
-
+    if (fDebug)
+    {
+        fprintf(stderr, "% -- Assertion failed: lock %s not held in %s:%i; locks held:\n%s", __func__, pszName, pszFile, nLine, LocksHeld().c_str());
+    }
+    
     abort();
 }
 

@@ -116,8 +116,11 @@ void Shutdown()
 {
 	fRequestShutdown = true; // Needed when we shutdown the wallet
     
-    LogPrintf("Shutdown : In progress...\n");
-    
+    if (fDebug)
+    {
+        LogPrint("init", "% -- Shutdown : In progress...\n", __func__);
+    }
+
     static CCriticalSection cs_Shutdown;
     
     TRY_LOCK(cs_Shutdown, lockShutdown);
@@ -183,7 +186,10 @@ void Shutdown()
 
     ECC_Stop();
 
-    LogPrintf("Shutdown : done\n");
+    if (fDebug)
+    {
+        LogPrint("init", "% -- Shutdown : done\n", __func__);
+    }
 }
 
 //
@@ -293,18 +299,20 @@ std::string HelpMessage()
     strUsage += "  -testnet               " + _("Use the test network") + "\n";
     strUsage += "  -debug=<category>      " + _("Output debugging information (default: 0, supplying <category> is optional)") + "\n";
     strUsage +=                               _("If <category> is not supplied, output all debugging information.") + "\n";
-    strUsage +=                               _("<category> can be:");
-    strUsage +=                                 " addrman, alert, db, lock, rand, rpc, selectcoins, mempool, net,"; // Don't translate these and qt below
-    strUsage +=                                 " coinage, coinstake, creation, stakemodifier";
+    strUsage +=                               _("<category> can be: alert, core, init, db, wallet, masternode, instantx, firewall,") + "\n";
+    strUsage +=                               _("stealth, protocol, net, darksend, mempool, uint, stakemodifier, kernel, util, rpc,") + "\n";
+    strUsage +=                               _("addrman, daemon, sync, socks, smessage, mining, coinage, spork") + "\n";
 
     if (fHaveGUI)
     {
-        strUsage += ", qt.\n";
+        strUsage += ", gui , qt.\n";
     }
     else
     {
         strUsage += ".\n";
     }
+
+    strUsage += "-nodebug                 " + _("Turn off debugging messages, same as -debug=0") + "\n";
 
     strUsage += "  -logtimestamps         " + _("Prepend debug output with timestamp") + "\n";
     strUsage += "  -shrinkdebugfile       " + _("Shrink debug.log file on client startup (default: 1 when no -debug)") + "\n";
@@ -445,6 +453,17 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     // ********************************************************* Step 2: parameter interactions
 
+    fDebug = false;
+
+    // Special-case: if -debug=0/-nodebug is set, turn off debugging messages
+    const vector<string>& categories = mapMultiArgs["-debug"];
+
+    // Special-case: if -debug=1/ is set, turn on debugging messages
+    if (GetBoolArg("-debug", false) || find(categories.begin(), categories.end(), string("1")) != categories.end())
+    {
+        fDebug = true;
+    }
+
     nNodeLifespan = GetArg("-addrlifespan", 7);
     fUseFastIndex = GetBoolArg("-fastindex", true);
     nMinerSleep = GetArg("-minersleep", 500);
@@ -462,7 +481,10 @@ bool AppInit2(boost::thread_group& threadGroup)
         // even when -connect or -proxy is specified
         if (SoftSetBoolArg("-listen", true))
         {
-            LogPrintf("AppInit2 : parameter interaction: -bind set -> setting -listen=1\n");
+            if (fDebug)
+            {
+                LogPrint("init", "% -- AppInit2 : parameter interaction: -bind set -> setting -listen=1\n", __func__);
+            }
         }
     }
 
@@ -474,12 +496,18 @@ bool AppInit2(boost::thread_group& threadGroup)
         // when only connecting to trusted nodes, do not seed via DNS, or listen by default
         if (SoftSetBoolArg("-dnsseed", false))
         {
-            LogPrintf("AppInit2 : parameter interaction: -connect set -> setting -dnsseed=0\n");
+            if (fDebug)
+            {
+                LogPrint("init", "% -- AppInit2 : parameter interaction: -connect set -> setting -dnsseed=0\n", __func__);
+            }
         }
 
         if (SoftSetBoolArg("-listen", false))
         {
-            LogPrintf("AppInit2 : parameter interaction: -connect set -> setting -listen=0\n");
+            if (fDebug)
+            {
+                LogPrint("init", "% -- AppInit2 : parameter interaction: -connect set -> setting -listen=0\n", __func__);
+            }
         }
     }
 
@@ -488,20 +516,29 @@ bool AppInit2(boost::thread_group& threadGroup)
         // to protect privacy, do not listen by default if a default proxy server is specified
         if (SoftSetBoolArg("-listen", false))
         {
-            LogPrintf("AppInit2 : parameter interaction: -proxy set -> setting -listen=0\n");
+            if (fDebug)
+            {
+                LogPrint("init", "AppInit2 : parameter interaction: -proxy set -> setting -listen=0\n", __func__);
+            }
         }
 
         // to protect privacy, do not use UPNP when a proxy is set. The user may still specify -listen=1
         // to listen locally, so don't rely on this happening through -listen below.
         if (SoftSetBoolArg("-upnp", false))
         {
-            LogPrintf("AppInit2 : parameter interaction: -proxy set -> setting -upnp=0\n");
+            if (fDebug)
+            {
+                LogPrint("init", "AppInit2 : parameter interaction: -proxy set -> setting -upnp=0\n", __func__);
+            }
         }
 
         // to protect privacy, do not discover addresses by default
         if (SoftSetBoolArg("-discover", false))
         {
-            LogPrintf("AppInit2 : parameter interaction: -proxy set -> setting -discover=0\n");
+            if (fDebug)
+            {
+                LogPrint("init", "% -- AppInit2 : parameter interaction: -proxy set -> setting -discover=0\n", __func__);
+            }
         }
     }
 
@@ -510,12 +547,18 @@ bool AppInit2(boost::thread_group& threadGroup)
         // do not map ports or try to retrieve public IP when not listening (pointless)
         if (SoftSetBoolArg("-upnp", false))
         {
-            LogPrintf("AppInit2 : parameter interaction: -listen=0 -> setting -upnp=0\n");
+            if (fDebug)
+            {
+                LogPrint("init", "AppInit2 : parameter interaction: -listen=0 -> setting -upnp=0\n", __func__);
+            }
         }
 
         if (SoftSetBoolArg("-discover", false))
         {
-            LogPrintf("AppInit2 : parameter interaction: -listen=0 -> setting -discover=0\n");
+            if (fDebug)
+            {
+                LogPrint("init", "AppInit2 : parameter interaction: -listen=0 -> setting -discover=0\n", __func__);
+            }
         }
     }
 
@@ -524,7 +567,10 @@ bool AppInit2(boost::thread_group& threadGroup)
         // if an explicit public IP is specified, do not try to find others
         if (SoftSetBoolArg("-discover", false))
         {
-            LogPrintf("AppInit2 : parameter interaction: -externalip set -> setting -discover=0\n");
+            if (fDebug)
+            {
+                LogPrint("init", "% -- AppInit2 : parameter interaction: -externalip set -> setting -discover=0\n", __func__);
+            }
         }
     }
 
@@ -533,21 +579,14 @@ bool AppInit2(boost::thread_group& threadGroup)
         // Rewrite just private keys: rescan to find transactions
         if (SoftSetBoolArg("-rescan", true))
         {
-            LogPrintf("AppInit2 : parameter interaction: -salvagewallet=1 -> setting -rescan=1\n");
+            if (fDebug)
+            {
+                LogPrint("init", "% -- AppInit2 : parameter interaction: -salvagewallet=1 -> setting -rescan=1\n", __func__);
+            }
         }
     }
 
     // ********************************************************* Step 3: parameter-to-internal-flags
-
-    fDebug = !mapMultiArgs["-debug"].empty();
-
-    // Special-case: if -debug=0/-nodebug is set, turn off debugging messages
-    const vector<string>& categories = mapMultiArgs["-debug"];
-
-    if (GetBoolArg("-nodebug", false) || find(categories.begin(), categories.end(), string("0")) != categories.end())
-    {
-        fDebug = false;
-    }
 
     if(fDebug)
     {
@@ -683,17 +722,26 @@ bool AppInit2(boost::thread_group& threadGroup)
         ShrinkDebugFile();
     }
 
-    LogPrintf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-    LogPrintf("PHC version %s (%s)\n", FormatFullVersion(), CLIENT_DATE);
-    LogPrintf("Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
+    if (fDebug)
+    {
+        LogPrint("init", "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+        LogPrint("init", "% -- PHC version %s (%s)\n", __func__, FormatFullVersion(), CLIENT_DATE);
+        LogPrint("init", "% -- Using OpenSSL version %s\n", __func__, SSLeay_version(SSLEAY_VERSION));
+    }
 
     if (!fLogTimestamps)
     {
-        LogPrintf("Startup time: %s\n", DateTimeStrFormat("%x %H:%M:%S", GetTime()));
+        if (fDebug)
+        {
+            LogPrint("init", "% -- Startup time: %s\n", __func__, DateTimeStrFormat("%x %H:%M:%S", GetTime()));
+        }
     }
 
-    LogPrintf("Default data directory %s\n", GetDefaultDataDir().string());
-    LogPrintf("Used data directory %s\n", strDataDir);
+    if (fDebug)
+    {
+        LogPrint("init", "% -- Default data directory %s\n", __func__, GetDefaultDataDir().string());
+        LogPrint("init", "% -- Used data directory %s\n", __func__, strDataDir);
+    }
 
     std::ostringstream strErrors;
 
@@ -715,7 +763,10 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     if (fDaemon)
     {
-        fprintf(stdout, "PHC server starting\n");
+        if (fDebug)
+        {
+            fprintf(stdout, "PHC server starting\n");
+        }
     }
 
     int64_t nStart;
@@ -756,11 +807,18 @@ bool AppInit2(boost::thread_group& threadGroup)
                 try
                 {
                     boost::filesystem::copy_file(sourceFile, backupFile);
-                    LogPrintf("Creating backup of %s -> %s\n", sourceFile, backupFile);
+                    
+                    if (fDebug)
+                    {
+                        LogPrint("init", "% -- Creating backup of %s -> %s\n", __func__, sourceFile, backupFile);
+                    }
                 }
                 catch(boost::filesystem::filesystem_error &error)
                 {
-                    LogPrintf("Failed to create backup %s\n", error.what());
+                    if (fDebug)
+                    {
+                        LogPrint("init", "% -- Failed to create backup %s\n", __func__, error.what());
+                    }
                 }
 
                 // Keep only the last 10 backups, including the new one of course
@@ -805,11 +863,17 @@ bool AppInit2(boost::thread_group& threadGroup)
                         {
                             boost::filesystem::remove(file.second);
 
-                            LogPrintf("Old backup deleted: %s\n", file.second);
+                            if (fDebug)
+                            {
+                                LogPrint("init", "% -- Old backup deleted: %s\n", __func__, file.second);
+                            }
                         }
                         catch(boost::filesystem::filesystem_error &error)
                         {
-                            LogPrintf("Failed to delete backup %s\n", error.what());
+                            if (fDebug)
+                            {
+                                LogPrint("init", "% -- Failed to delete backup %s\n", __func__, error.what());
+                            }
                         }
                     }
                 }
@@ -828,7 +892,10 @@ bool AppInit2(boost::thread_group& threadGroup)
             {
                 boost::filesystem::rename(pathDatabase, pathDatabaseBak);
 
-                LogPrintf("Moved old %s to %s. Retrying.\n", pathDatabase.string(), pathDatabaseBak.string());
+                if (fDebug)
+                {
+                    LogPrint("init", "% -- Moved old %s to %s. Retrying.\n", __func__, pathDatabase.string(), pathDatabaseBak.string());
+                }
             }
             catch(boost::filesystem::filesystem_error &error)
             {
@@ -1080,11 +1147,18 @@ bool AppInit2(boost::thread_group& threadGroup)
     // As the program has not fully started yet, Shutdown() is possibly overkill.
     if (fRequestShutdown)
     {
-        LogPrintf("Shutdown requested. Exiting.\n");
+        if (fDebug)
+        {
+            LogPrint("init", "% -- Shutdown requested. Exiting.\n", __func__);
+        }
 
         return false;
     }
-    LogPrintf(" block index %15dms\n", GetTimeMillis() - nStart);
+
+    if (fDebug)
+    {
+        LogPrint("init", "% -- block index %15dms\n", __func__, GetTimeMillis() - nStart);
+    }
 
     if (GetBoolArg("-printblockindex", false) || GetBoolArg("-printblocktree", false))
     {
@@ -1112,7 +1186,10 @@ bool AppInit2(boost::thread_group& threadGroup)
                 block.ReadFromDisk(pindex);
                 block.BuildMerkleTree();
 
-                LogPrintf("%s\n", block.ToString());
+                if (fDebug)
+                {
+                    LogPrint("init", "% -- %s\n", __func__, block.ToString());
+                }
 
                 nFound++;
             }
@@ -1120,7 +1197,10 @@ bool AppInit2(boost::thread_group& threadGroup)
 
         if (nFound == 0)
         {
-            LogPrintf("No blocks matching %s were found\n", strMatch);
+            if (fDebug)
+            {
+                LogPrint("init", "% -- No blocks matching %s were found\n", __func__, strMatch);
+            }
         }
 
         return false;
@@ -1132,7 +1212,10 @@ bool AppInit2(boost::thread_group& threadGroup)
     {
         pwalletMain = NULL;
 
-        LogPrintf("Wallet disabled!\n");
+        if (fDebug)
+        {
+            LogPrint("init", "% -- Wallet disabled!\n", __func__);
+        }
     }
     else
     {
@@ -1165,7 +1248,10 @@ bool AppInit2(boost::thread_group& threadGroup)
             {
                 strErrors << _("Wallet needed to be rewritten: restart PHC to complete") << "\n";
 
-                LogPrintf("%s", strErrors.str());
+                if (fDebug)
+                {
+                    LogPrint("init", "% -- %s", __func__, strErrors.str());
+                }
 
                 return InitError(strErrors.str());
             }
@@ -1181,14 +1267,20 @@ bool AppInit2(boost::thread_group& threadGroup)
 
             if (nMaxVersion == 0) // the -upgradewallet without argument case
             {
-                LogPrintf("Performing wallet upgrade to %i\n", FEATURE_LATEST);
+                if (fDebug)
+                {
+                    LogPrint("init", "% -- Performing wallet upgrade to %i\n", __func__, FEATURE_LATEST);
+                }
 
                 nMaxVersion = CLIENT_VERSION;
                 pwalletMain->SetMinVersion(FEATURE_LATEST); // permanently upgrade the wallet immediately
             }
             else
             {
-                LogPrintf("Allowing wallet upgrade up to %i\n", nMaxVersion);
+                if (fDebug)
+                {
+                    LogPrint("init", "% -- Allowing wallet upgrade up to %i\n", __func__, nMaxVersion);
+                }
             }
 
             if (nMaxVersion < pwalletMain->GetVersion())
@@ -1218,8 +1310,11 @@ bool AppInit2(boost::thread_group& threadGroup)
             pwalletMain->SetBestChain(CBlockLocator(pindexBest));
         }
 
-        LogPrintf("%s", strErrors.str());
-        LogPrintf(" wallet      %15dms\n", GetTimeMillis() - nStart);
+        if (fDebug)
+        {
+            LogPrint("init", "% -- %s", __func__, strErrors.str());
+            LogPrint("init", "% --  wallet      %15dms\n", __func__, GetTimeMillis() - nStart);
+        }
 
         RegisterWallet(pwalletMain);
 
@@ -1248,12 +1343,19 @@ bool AppInit2(boost::thread_group& threadGroup)
         if (pindexBest != pindexRescan && pindexBest && pindexRescan && pindexBest->nHeight > pindexRescan->nHeight)
         {
             uiInterface.InitMessage(_("Rescanning..."));
-            LogPrintf("Rescanning last %i blocks (from block %i)...\n", pindexBest->nHeight - pindexRescan->nHeight, pindexRescan->nHeight);
+            
+            if (fDebug)
+            {
+                LogPrint("init", "% -- Rescanning last %i blocks (from block %i)...\n", __func__, pindexBest->nHeight - pindexRescan->nHeight, pindexRescan->nHeight);
+            }
 
             nStart = GetTimeMillis();
             pwalletMain->ScanForWalletTransactions(pindexRescan, true);
 
-            LogPrintf(" rescan      %15dms\n", GetTimeMillis() - nStart);
+            if (fDebug)
+            {
+                LogPrint("init", "% -- rescan      %15dms\n", __func__, GetTimeMillis() - nStart);
+            }
 
             pwalletMain->SetBestChain(CBlockLocator(pindexBest));
             nWalletDBUpdated++;
@@ -1261,7 +1363,10 @@ bool AppInit2(boost::thread_group& threadGroup)
     } // (!fDisableWallet)
 
 #else // ENABLE_WALLET
-    LogPrintf("No wallet compiled in!\n");
+    if (fDebug)
+    {
+        LogPrint("init", "% -- No wallet compiled in!\n", __func__);
+    }
 #endif // !ENABLE_WALLET
     // ********************************************************* Step 9: import blocks
 
@@ -1288,13 +1393,18 @@ bool AppInit2(boost::thread_group& threadGroup)
 
         if (!adb.Read(addrman))
         {
-            LogPrintf("Invalid or missing peers.dat; recreating\n");
+            if (fDebug)
+            {
+                LogPrint("init", "% -- Invalid or missing peers.dat; recreating\n", __func__);
+            }
         }
     }
     // Global Namespace End
 
-    LogPrintf("Loaded %i addresses from peers.dat  %dms\n",
-           addrman.size(), GetTimeMillis() - nStart);
+    if (fDebug)
+    {
+        LogPrint("init", "% -- Loaded %i addresses from peers.dat  %dms\n", __func__, addrman.size(), GetTimeMillis() - nStart);
+    }
 
     // ********************************************************* Step 10.1: startup secure messaging
     
@@ -1319,19 +1429,31 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     if (readResult == CMasternodeDB::FileError)
     {
-        LogPrintf("Missing masternode cache file - mncache.dat, will try to recreate\n");
+        if (fDebug)
+        {
+            LogPrint("init", "% -- Missing masternode cache file - mncache.dat, will try to recreate\n", __func__);
+        }
     }
     else if (readResult != CMasternodeDB::Ok)
     {
-        LogPrintf("Error reading mncache.dat: ");
+        if (fDebug)
+        {
+            LogPrint("init", "% -- Error reading mncache.dat: ", __func__);
+        }
 
         if(readResult == CMasternodeDB::IncorrectFormat)
         {
-            LogPrintf("magic is ok but data has invalid format, will try to recreate\n");
+            if (fDebug)
+            {
+                LogPrint("init", "% -- magic is ok but data has invalid format, will try to recreate\n", __func__);
+            }
         }
         else
         {
-            LogPrintf("file format is unknown or invalid, please fix it manually\n");
+            if (fDebug)
+            {
+                LogPrint("init", "% -- file format is unknown or invalid, please fix it manually\n", __func__);
+            }
         }
     }
 
@@ -1339,11 +1461,17 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     if(fMasterNode)
     {
-        LogPrintf("IS DARKSEND MASTER NODE\n");
+        if (fDebug)
+        {
+            LogPrint("init", "% -- IS DARKSEND MASTER NODE\n", __func__);
+        }
 
         strMasterNodeAddr = GetArg("-masternodeaddr", "");
 
-        LogPrintf(" addr %s\n", strMasterNodeAddr.c_str());
+        if (fDebug)
+        {
+            LogPrint("init", "% --  addr %s\n", __func__, strMasterNodeAddr.c_str());
+        }
 
         if(!strMasterNodeAddr.empty())
         {
@@ -1382,13 +1510,19 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     if(GetBoolArg("-mnconflock", false))
     {
-        LogPrintf("Locking Masternodes:\n");
+        if (fDebug)
+        {
+            LogPrint("init", "% -- Locking Masternodes:\n", __func__);
+        }
 
         uint256 mnTxHash;
 
         BOOST_FOREACH(CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries())
         {
-            LogPrintf("  %s %s\n", mne.getTxHash(), mne.getOutputIndex());
+            if (fDebug)
+            {
+                LogPrint("init", "% -- %s %s\n", __func__, mne.getTxHash(), mne.getOutputIndex());
+            }
 
             mnTxHash.SetHex(mne.getTxHash());
             COutPoint outpoint = COutPoint(mnTxHash, boost::lexical_cast<unsigned int>(mne.getOutputIndex()));
@@ -1445,10 +1579,13 @@ bool AppInit2(boost::thread_group& threadGroup)
         return InitError("You can not start a masternode in litemode");
     }
 
-    LogPrintf("fLiteMode %d\n", fLiteMode);
-    LogPrintf("nInstantXDepth %d\n", nInstantXDepth);
-    LogPrintf("Darksend rounds %d\n", nDarksendRounds);
-    LogPrintf("Anonymize PHC Amount %d\n", nAnonymizePHCAmount);
+    if (fDebug)
+    {
+        LogPrint("init", "% -- fLiteMode %d\n", __func__, fLiteMode);
+        LogPrint("init", "% -- nInstantXDepth %d\n", __func__, nInstantXDepth);
+        LogPrint("init", "% -- Darksend rounds %d\n", __func__, nDarksendRounds);
+        LogPrint("init", "% -- Anonymize PHC Amount %d\n", __func__, nAnonymizePHCAmount);
+    }
 
     /* Denominations
        A note about convertability. Within Darksend pools, each denomination
@@ -1499,14 +1636,17 @@ bool AppInit2(boost::thread_group& threadGroup)
         }
     }
 
-    //// debug print
-    LogPrintf("mapBlockIndex.size() = %u\n",   mapBlockIndex.size());
-    LogPrintf("nBestHeight = %d\n",                   nBestHeight);
+    if (fDebug)
+    {
+        //// debug print
+        LogPrint("init", "% -- mapBlockIndex.size() = %u\n", __func__,   mapBlockIndex.size());
+        LogPrint("init", "% -- nBestHeight = %d\n", __func__,            nBestHeight);
 #ifdef ENABLE_WALLET
-    LogPrintf("setKeyPool.size() = %u\n",      pwalletMain ? pwalletMain->setKeyPool.size() : 0);
-    LogPrintf("mapWallet.size() = %u\n",       pwalletMain ? pwalletMain->mapWallet.size() : 0);
-    LogPrintf("mapAddressBook.size() = %u\n",  pwalletMain ? pwalletMain->mapAddressBook.size() : 0);
+        LogPrint("init", "% -- setKeyPool.size() = %u\n", __func__,      pwalletMain ? pwalletMain->setKeyPool.size() : 0);
+        LogPrint("init", "% -- mapWallet.size() = %u\n", __func__,       pwalletMain ? pwalletMain->mapWallet.size() : 0);
+        LogPrint("init", "% -- mapAddressBook.size() = %u\n", __func__,  pwalletMain ? pwalletMain->mapAddressBook.size() : 0);
 #endif
+    }
 
     StartNode(threadGroup);
 #ifdef ENABLE_WALLET
@@ -1519,10 +1659,13 @@ bool AppInit2(boost::thread_group& threadGroup)
     }
 
 #ifdef ENABLE_WALLET
-    // Mine proof-of-stake blocks in the background
+    // Mine proof-of-stake blocks in the background (Enabled by default)
     if (!GetBoolArg("-staking", true))
     {
-               LogPrintf("Staking disabled\n"); 
+        if (fDebug)
+        {
+            LogPrint("init", "% -- Staking disabled\n", __func__); 
+        }
     }
     else if (pwalletMain)
     {

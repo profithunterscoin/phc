@@ -76,7 +76,10 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
         {
             std::string strError = _("Incompatible version.");
 
-            LogPrintf("dsa -- incompatible version! \n");
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- dsa -- incompatible version! \n", __func__);
+            }
 
             pfrom->PushMessage("dssu", sessionID, GetState(), GetEntriesCount(), MASTERNODE_REJECTED, strError);
 
@@ -87,7 +90,10 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
         {
             std::string strError = _("This is not a Masternode.");
 
-            LogPrintf("dsa -- not a Masternode! \n");
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- dsa -- not a Masternode! \n", __func__);
+            }
 
             pfrom->PushMessage("dssu", sessionID, GetState(), GetEntriesCount(), MASTERNODE_REJECTED, strError);
 
@@ -113,7 +119,10 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
         {
             if(pmn->nLastDsq != 0 && pmn->nLastDsq + mnodeman.CountMasternodesAboveProtocol(MIN_POOL_PEER_PROTO_VERSION)/5 > mnodeman.nDsqCount)
             {
-                LogPrintf("dsa -- last dsq too recent, must wait. %s \n", pfrom->addr.ToString().c_str());
+                if (fDebug)
+                {
+                    LogPrint("darksend", "% -- dsa -- last dsq too recent, must wait. %s \n", __func__, pfrom->addr.ToString().c_str());
+                }
 
                 std::string strError = _("Last Darksend was too recent.");
                 pfrom->PushMessage("dssu", sessionID, GetState(), GetEntriesCount(), MASTERNODE_REJECTED, strError);
@@ -124,7 +133,10 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
 
         if(!IsCompatibleWithSession(nDenom, txCollateral, error))
         {
-            LogPrintf("dsa -- not compatible with existing transactions! \n");
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- dsa -- not compatible with existing transactions! \n", __func__);
+            }
 
             pfrom->PushMessage("dssu", sessionID, GetState(), GetEntriesCount(), MASTERNODE_REJECTED, error);
 
@@ -132,7 +144,10 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
         }
         else
         {
-            LogPrintf("dsa -- is compatible, please submit! \n");
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- dsa -- is compatible, please submit! \n", __func__);
+            }
 
             pfrom->PushMessage("dssu", sessionID, GetState(), GetEntriesCount(), MASTERNODE_ACCEPTED, error);
 
@@ -192,14 +207,20 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
 
             if((CNetAddr)pSubmittedToMasternode->addr != (CNetAddr)addr)
             {
-                LogPrintf("dsq - message doesn't match current Masternode - %s != %s\n", pSubmittedToMasternode->addr.ToString().c_str(), addr.ToString().c_str());
-                
+                if (fDebug)
+                {
+                    LogPrint("darksend", "% -- dsq - message doesn't match current Masternode - %s != %s\n", __func__, pSubmittedToMasternode->addr.ToString().c_str(), addr.ToString().c_str());
+                }
+
                 return;
             }
 
             if(state == POOL_STATUS_QUEUE)
             {
-                LogPrintf("Darksend queue is ready - %s\n", addr.ToString().c_str());
+                if (fDebug)
+                {
+                    LogPrint("darksend", "% -- Darksend queue is ready - %s\n", __func__, addr.ToString().c_str());
+                }
 
                 PrepareDarksendDenominate();
             }
@@ -214,12 +235,18 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
                 }
             }
 
-            LogPrint("darksend", "dsq last %d last2 %d count %d\n", pmn->nLastDsq, pmn->nLastDsq + mnodeman.size()/5, mnodeman.nDsqCount);
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- dsq last %d last2 %d count %d\n", pmn->nLastDsq, pmn->nLastDsq + mnodeman.size()/5, mnodeman.nDsqCount);
+            }
 
             //don't allow a few nodes to dominate the queuing process
             if(pmn->nLastDsq != 0 && pmn->nLastDsq + mnodeman.CountMasternodesAboveProtocol(MIN_POOL_PEER_PROTO_VERSION)/5 > mnodeman.nDsqCount)
             {
-                LogPrint("darksend", "dsq -- Masternode sending too many dsq messages. %s \n", pmn->addr.ToString().c_str());
+                if (fDebug)
+                {
+                    LogPrint("darksend", "% -- dsq -- Masternode sending too many dsq messages. %s \n", __func__, pmn->addr.ToString().c_str());
+                }
 
                 return;
             }
@@ -228,7 +255,10 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
             pmn->nLastDsq = mnodeman.nDsqCount;
             pmn->allowFreeTx = true;
 
-            LogPrint("darksend", "dsq - new Darksend queue object - %s\n", addr.ToString().c_str());
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- dsq - new Darksend queue object - %s\n", __func__, addr.ToString().c_str());
+            }
 
             vecDarksendQueue.push_back(dsq);
             dsq.Relay();
@@ -243,7 +273,10 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
         std::string error = "";
         if (pfrom->nVersion < MIN_POOL_PEER_PROTO_VERSION)
         {
-            LogPrintf("dsi -- incompatible version! \n");
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- dsi -- incompatible version! \n", __func__);
+            }
 
             error = _("Incompatible version.");
             pfrom->PushMessage("dssu", sessionID, GetState(), GetEntriesCount(), MASTERNODE_REJECTED, error);
@@ -253,7 +286,10 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
 
         if(!fMasterNode)
         {
-            LogPrintf("dsi -- not a Masternode! \n");
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- dsi -- not a Masternode! \n", __func__);
+            }
 
             error = _("This is not a Masternode.");
             pfrom->PushMessage("dssu", sessionID, GetState(), GetEntriesCount(), MASTERNODE_REJECTED, error);
@@ -273,7 +309,10 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
         //do we have enough users in the current session?
         if(!IsSessionReady())
         {
-            LogPrintf("dsi -- session not complete! \n");
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- dsi -- session not complete! \n", __func__);
+            }
 
             error = _("Session not complete!");
             pfrom->PushMessage("dssu", sessionID, GetState(), GetEntriesCount(), MASTERNODE_REJECTED, error);
@@ -284,7 +323,10 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
         //do we have the same denominations as the current session?
         if(!IsCompatibleWithEntries(out))
         {
-            LogPrintf("dsi -- not compatible with existing transactions! \n");
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- dsi -- not compatible with existing transactions! \n", __func__);
+            }
 
             error = _("Not compatible with existing transactions.");
             pfrom->PushMessage("dssu", sessionID, GetState(), GetEntriesCount(), MASTERNODE_REJECTED, error);
@@ -309,7 +351,10 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
 
                 if(o.scriptPubKey.size() != 25)
                 {
-                    LogPrintf("dsi - non-standard pubkey detected! %s\n", o.scriptPubKey.ToString().c_str());
+                    if (fDebug)
+                    {
+                        LogPrint("darksend", "% -- dsi - non-standard pubkey detected! %s\n", __func__, o.scriptPubKey.ToString().c_str());
+                    }
 
                     error = _("Non-standard public key detected.");
                     pfrom->PushMessage("dssu", sessionID, GetState(), GetEntriesCount(), MASTERNODE_REJECTED, error);
@@ -319,7 +364,10 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
 
                 if(!o.scriptPubKey.IsNormalPaymentScript())
                 {
-                    LogPrintf("dsi - invalid script! %s\n", o.scriptPubKey.ToString().c_str());
+                    if (fDebug)
+                    {
+                        LogPrint("darksend", "% -- dsi - invalid script! %s\n", __func__, o.scriptPubKey.ToString().c_str());
+                    }
 
                     error = _("Invalid script detected.");
                     pfrom->PushMessage("dssu", sessionID, GetState(), GetEntriesCount(), MASTERNODE_REJECTED, error);
@@ -332,7 +380,10 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
             {
                 tx.vin.push_back(i);
 
-                LogPrint("darksend", "dsi -- tx in %s\n", i.ToString().c_str());
+                if (fDebug)
+                {
+                    LogPrint("darksend", "% -- dsi -- tx in %s\n", __func__, i.ToString().c_str());
+                }
 
                 CTransaction tx2;
                 uint256 hash;
@@ -351,7 +402,10 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
 
             if (nValueIn > DARKSEND_POOL_MAX)
             {
-                LogPrintf("dsi -- more than Darksend pool max! %s\n", tx.ToString().c_str());
+                if (fDebug)
+                {
+                    LogPrint("darksend", "% -- dsi -- more than Darksend pool max! %s\n", __func__, tx.ToString().c_str());
+                }
 
                 error = _("Value more than Darksend pool maximum allows.");
                 pfrom->PushMessage("dssu", sessionID, GetState(), GetEntriesCount(), MASTERNODE_REJECTED, error);
@@ -363,7 +417,10 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
             {
                 if (nValueIn-nValueOut > nValueIn*.01)
                 {
-                    LogPrintf("dsi -- fees are too high! %s\n", tx.ToString().c_str());
+                    if (fDebug)
+                    {
+                        LogPrint("darksend", "% -- dsi -- fees are too high! %s\n", __func__, tx.ToString().c_str());
+                    }
 
                     error = _("Transaction fees are too high.");
                     pfrom->PushMessage("dssu", sessionID, GetState(), GetEntriesCount(), MASTERNODE_REJECTED, error);
@@ -373,7 +430,10 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
             }
             else
             {
-                LogPrintf("dsi -- missing input tx! %s\n", tx.ToString().c_str());
+                if (fDebug)
+                {
+                    LogPrint("darksend", "% -- dsi -- missing input tx! %s\n", __func__, tx.ToString().c_str());
+                }
 
                 error = _("Missing input transaction information.");
                 pfrom->PushMessage("dssu", sessionID, GetState(), GetEntriesCount(), MASTERNODE_REJECTED, error);
@@ -383,7 +443,10 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
 
             if(!AcceptableInputs(mempool, tx, false, NULL, false, true))
             {
-                LogPrintf("dsi -- transaction not valid! \n");
+                if (fDebug)
+                {
+                    LogPrint("darksend", "% -- dsi -- transaction not valid! \n", __func__);
+                }
 
                 error = _("Transaction not valid.");
                 pfrom->PushMessage("dssu", sessionID, GetState(), GetEntriesCount(), MASTERNODE_REJECTED, error);
@@ -421,7 +484,11 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
 
         if((CNetAddr)pSubmittedToMasternode->addr != (CNetAddr)pfrom->addr)
         {
-            //LogPrintf("dssu - message doesn't match current Masternode - %s != %s\n", pSubmittedToMasternode->addr.ToString().c_str(), pfrom->addr.ToString().c_str());
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- dssu - message doesn't match current Masternode - %s != %s\n", __func__, pSubmittedToMasternode->addr.ToString().c_str(), pfrom->addr.ToString().c_str());
+            }
+
             return;
         }
 
@@ -433,11 +500,17 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
         std::string error;
         vRecv >> sessionIDMessage >> state >> entriesCount >> accepted >> error;
 
-        LogPrint("darksend", "dssu - state: %i entriesCount: %i accepted: %i error: %s \n", state, entriesCount, accepted, error.c_str());
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- dssu - state: %i entriesCount: %i accepted: %i error: %s \n", __func__, state, entriesCount, accepted, error.c_str());
+        }
 
         if((accepted != 1 && accepted != 0) && sessionID != sessionIDMessage)
         {
-            LogPrintf("dssu - message doesn't match current Darksend session %d %d\n", sessionID, sessionIDMessage);
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- dssu - message doesn't match current Darksend session %d %d\n", __func__, sessionID, sessionIDMessage);
+            }
 
             return;
         }
@@ -467,7 +540,10 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
                 success = true;
             }
 
-            LogPrint("darksend", " -- sigs count %d %d\n", (int)sigs.size(), count);
+            if (fDebug)
+            {
+                LogPrint("darksend", "% --  sigs count %d %d\n", __func__, (int)sigs.size(), count);
+            }
 
             count++;
         }
@@ -494,7 +570,11 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
 
         if((CNetAddr)pSubmittedToMasternode->addr != (CNetAddr)pfrom->addr)
         {
-            //LogPrintf("dsc - message doesn't match current Masternode - %s != %s\n", pSubmittedToMasternode->addr.ToString().c_str(), pfrom->addr.ToString().c_str());
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- dsc - message doesn't match current Masternode - %s != %s\n", __func__, pSubmittedToMasternode->addr.ToString().c_str(), pfrom->addr.ToString().c_str());
+            }
+
             return;
         }
 
@@ -505,7 +585,10 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
 
         if(sessionID != sessionIDMessage)
         {
-            LogPrint("darksend", "dsf - message doesn't match current darksend session %d %d\n", sessionID, sessionIDMessage);
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- dsf - message doesn't match current darksend session %d %d\n", __func__, sessionID, sessionIDMessage);
+            }
 
             return;
         }
@@ -528,7 +611,7 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
 
         if((CNetAddr)pSubmittedToMasternode->addr != (CNetAddr)pfrom->addr)
         {
-            //LogPrintf("dsc - message doesn't match current Masternode - %s != %s\n", pSubmittedToMasternode->addr.ToString().c_str(), pfrom->addr.ToString().c_str());
+            LogPrint("darksend", "% -- dsc - message doesn't match current Masternode - %s != %s\n", __func__, pSubmittedToMasternode->addr.ToString().c_str(), pfrom->addr.ToString().c_str());
             
             return;
         }
@@ -540,7 +623,7 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
 
         if(sessionID != sessionIDMessage)
         {
-            LogPrint("darksend", "dsc - message doesn't match current darksend session %d %d\n", darkSendPool.sessionID, sessionIDMessage);
+            LogPrint("darksend", "% -- dsc - message doesn't match current darksend session %d %d\n", __func__, darkSendPool.sessionID, sessionIDMessage);
 
             return;
         }
@@ -602,7 +685,10 @@ bool CDarksendPool::SetCollateralAddress(std::string strAddress)
     CPHCcoinAddress address;
     if (!address.SetString(strAddress))
     {
-        LogPrintf("CDarksendPool::SetCollateralAddress - Invalid DarkSend collateral address\n");
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- Invalid DarkSend collateral address\n", __func__);
+        }
 
         return false;
     }
@@ -732,7 +818,7 @@ std::string CDarksendPool::GetStatus()
                 
                 if (showingDarkSendMessage % 70 <= 40)
                 {
-                    return strprintf(_("Submitted following entries to masternode: %u / %d"), entriesCount, GetMaxPoolTransactions());
+                    return strprintf(_("% -- Submitted following entries to masternode: %u / %d"), __func__, entriesCount, GetMaxPoolTransactions());
                 }
                 else if(showingDarkSendMessage % 70 <= 50)
                 {
@@ -747,7 +833,7 @@ std::string CDarksendPool::GetStatus()
                     suffix = "...";
                 }
                 
-                return strprintf(_("Submitted to masternode, waiting for more entries ( %u / %d ) %s"), entriesCount, GetMaxPoolTransactions(), suffix);
+                return strprintf(_("% -- Submitted to masternode, waiting for more entries ( %u / %d ) %s"), __func__, entriesCount, GetMaxPoolTransactions(), suffix);
             }
         }
 
@@ -755,7 +841,7 @@ std::string CDarksendPool::GetStatus()
         {
             if(      showingDarkSendMessage % 70 <= 40)
             {
-                return _("Found enough users, signing ...");
+                return _("Darksend Found enough users, signing ...");
             }
             else if (showingDarkSendMessage % 70 <= 50)
             {
@@ -770,18 +856,18 @@ std::string CDarksendPool::GetStatus()
                 suffix = "...";
             } 
 
-            return strprintf(_("Found enough users, signing ( waiting %s )"), suffix);
+            return strprintf(_("% -- Found enough users, signing ( waiting %s )"), __func__, suffix);
         }
 
 
         case POOL_STATUS_TRANSMISSION:
         {
-            return _("Transmitting final transaction.");
+            return _("Darksend Transmitting final transaction.");
         }
 
         case POOL_STATUS_FINALIZE_TRANSACTION:
         {
-            return _("Finalizing transaction.");
+            return _("Darksend Finalizing transaction.");
         }
 
         case POOL_STATUS_ERROR:
@@ -809,12 +895,12 @@ std::string CDarksendPool::GetStatus()
                 suffix = "...";
             }
 
-            return strprintf(_("Submitted to masternode, waiting in queue %s"), suffix);;
+            return strprintf(_("% -- Submitted to masternode, waiting in queue %s"), __func__, suffix);;
         }
 
        default:
        {
-            return strprintf(_("Unknown state: id = %u"), state);
+            return strprintf(_("% -- Unknown state: id = %u"), __func__, state);
        }
     }
 }
@@ -827,19 +913,28 @@ void CDarksendPool::Check()
 {
     if(fMasterNode)
     {
-        LogPrint("darksend", "CDarksendPool::Check() - entries count %lu\n", entries.size());
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- entries count %lu\n", __func__, entries.size());
+        }
     }
 
     //printf("CDarksendPool::Check() %d - %d - %d\n", state, anonTx.CountEntries(), GetTimeMillis()-lastTimeChanged);
 
     if(fMasterNode)
     {
-        LogPrint("darksend", "CDarksendPool::Check() - entries count %lu\n", entries.size());
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- entries count %lu\n", __func__, entries.size());
+        }
 
         // If entries is full, then move on to the next phase
         if(state == POOL_STATUS_ACCEPTING_ENTRIES && (int)entries.size() >= GetMaxPoolTransactions())
         {
-            LogPrint("darksend", "CDarksendPool::Check() -- TRYING TRANSACTION \n");
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- TRYING TRANSACTION \n", __func__);
+            }
 
             UpdateState(POOL_STATUS_FINALIZE_TRANSACTION);
         }
@@ -848,7 +943,10 @@ void CDarksendPool::Check()
     // create the finalized transaction for distribution to the clients
     if(state == POOL_STATUS_FINALIZE_TRANSACTION)
     {
-        LogPrint("darksend", "CDarksendPool::Check() -- FINALIZE TRANSACTIONS\n");
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- FINALIZE TRANSACTIONS\n", __func__);
+        }
 
         UpdateState(POOL_STATUS_SIGNING);
 
@@ -874,7 +972,10 @@ void CDarksendPool::Check()
             std::random_shuffle ( txNew.vin.begin(),  txNew.vin.end(),  randomizeList);
             std::random_shuffle ( txNew.vout.begin(), txNew.vout.end(), randomizeList);
 
-            LogPrint("darksend", "Transaction 1: %s\n", txNew.ToString());
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- Transaction 1: %s\n", __func__, txNew.ToString());
+            }
 
             finalTransaction = txNew;
 
@@ -886,7 +987,10 @@ void CDarksendPool::Check()
     // If we have all of the signatures, try to compile the transaction
     if(fMasterNode && state == POOL_STATUS_SIGNING && SignaturesComplete())
     {
-        LogPrint("darksend", "CDarksendPool::Check() -- SIGNING\n");
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- SIGNING\n", __func__);
+        }
 
         UpdateState(POOL_STATUS_TRANSMISSION);
 
@@ -896,7 +1000,10 @@ void CDarksendPool::Check()
     // reset if we're here for 10 seconds
     if((state == POOL_STATUS_ERROR || state == POOL_STATUS_SUCCESS) && GetTimeMillis()-lastTimeChanged >= 10000)
     {
-        LogPrint("darksend", "CDarksendPool::Check() -- timeout, RESETTING\n");
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- timeout, RESETTING\n", __func__);
+        }
 
         UnlockCoins();
         
@@ -923,12 +1030,18 @@ void CDarksendPool::CheckFinalTransaction()
 
     // Global Namespace Start
     {
-        LogPrint("darksend", "Transaction 2: %s\n", txNew.ToString());
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- Transaction 2: %s\n", __func__, txNew.ToString());
+        }
 
         // See if the transaction is valid
         if (!txNew.AcceptToMemoryPool(false, true, true))
         {
-            LogPrintf("CDarksendPool::Check() - CommitTransaction : Error: Transaction not valid\n");
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- CommitTransaction : Error: Transaction not valid\n", __func__);
+            }
 
             SetNull();
 
@@ -940,7 +1053,10 @@ void CDarksendPool::CheckFinalTransaction()
             return;
         }
 
-        LogPrintf("CDarksendPool::Check() -- IS MASTER -- TRANSMITTING DARKSEND\n");
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- IS MASTER -- TRANSMITTING DARKSEND\n", __func__);
+        }
 
         // sign a message
 
@@ -953,28 +1069,40 @@ void CDarksendPool::CheckFinalTransaction()
 
         if(!darkSendSigner.SetKey(strMasterNodePrivKey, strError, key2, pubkey2))
         {
-            LogPrintf("CDarksendPool::Check() - ERROR: Invalid Masternodeprivkey: '%s'\n", strError);
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- ERROR: Invalid Masternodeprivkey: '%s'\n", __func__, strError);
+            }
 
             return;
         }
 
         if(!darkSendSigner.SignMessage(strMessage, strError, vchSig, key2))
         {
-            LogPrintf("CDarksendPool::Check() - Sign message failed\n");
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- Sign message failed\n", __func__);
+            }
 
             return;
         }
 
         if(!darkSendSigner.VerifyMessage(pubkey2, vchSig, strMessage, strError))
         {
-            LogPrintf("CDarksendPool::Check() - Verify message failed\n");
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- Verify message failed\n", __func__);
+            }
 
             return;
         }
 
         string txHash = txNew.GetHash().ToString().c_str();
 
-        LogPrintf("CDarksendPool::Check() -- txHash %d \n", txHash);
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- txHash %d \n", __func__, txHash);
+        }
 
         if(!mapDarksendBroadcastTxes.count(txNew.GetHash()))
         {
@@ -997,7 +1125,7 @@ void CDarksendPool::CheckFinalTransaction()
         ChargeRandomFees();
 
         // Reset
-        LogPrint("darksend", "CDarksendPool::Check() -- COMPLETED -- RESETTING \n");
+        LogPrint("darksend", "% -- COMPLETED -- RESETTING \n", __func__);
 
         SetNull();
 
@@ -1052,7 +1180,10 @@ void CDarksendPool::ChargeFees()
             // This queue entry didn't send us the promised transaction
             if(!found)
             {
-                LogPrintf("CDarksendPool::ChargeFees -- found uncooperative node (didn't send transaction). Found offence.\n");
+                if (fDebug)
+                {
+                    LogPrint("darksend", "% -- found uncooperative node (didn't send transaction). Found offence.\n", __func__);
+                }
 
                 offences++;
             }
@@ -1068,7 +1199,10 @@ void CDarksendPool::ChargeFees()
             {
                 if(!s.fHasSig)
                 {
-                    LogPrintf("CDarksendPool::ChargeFees -- found uncooperative node (didn't sign). Found offence\n");
+                    if (fDebug)
+                    {
+                        LogPrint("darksend", "% -- found uncooperative node (didn't sign). Found offence\n", __func__);
+                    }
 
                     offences++;
                 }
@@ -1117,15 +1251,21 @@ void CDarksendPool::ChargeFees()
             // This queue entry didn't send us the promised transaction
             if(!found && r > target)
             {
-                LogPrintf("CDarksendPool::ChargeFees -- found uncooperative node (didn't send transaction). charging fees.\n");
+                if (fDebug)
+                {
+                    LogPrint("darksend", "% -- found uncooperative node (didn't send transaction). charging fees.\n", __func__);
+                }
 
                 CWalletTx wtxCollateral = CWalletTx(pwalletMain, txCollateral);
 
                 // Broadcast
                 if (!wtxCollateral.AcceptToMemoryPool(true))
                 {
-                    // This must not fail. The transaction has already been signed and recorded.
-                    LogPrintf("CDarksendPool::ChargeFees() : Error: Transaction not valid");
+                    if (fDebug)
+                    {
+                        // This must not fail. The transaction has already been signed and recorded.
+                        LogPrint("darksend", "% -- Error: Transaction not valid", __func__);
+                    }
                 }
 
                 wtxCollateral.RelayWalletTransaction();
@@ -1144,15 +1284,21 @@ void CDarksendPool::ChargeFees()
             {
                 if(!s.fHasSig && r > target)
                 {
-                    LogPrintf("CDarksendPool::ChargeFees -- found uncooperative node (didn't sign). charging fees.\n");
+                    if (fDebug)
+                    {
+                        LogPrint("darksend", "% -- found uncooperative node (didn't sign). charging fees.\n", __func__);
+                    }
 
                     CWalletTx wtxCollateral = CWalletTx(pwalletMain, v.collateral);
 
                     // Broadcast
                     if (!wtxCollateral.AcceptToMemoryPool(false))
                     {
-                        // This must not fail. The transaction has already been signed and recorded.
-                        LogPrintf("CDarksendPool::ChargeFees() : Error: Transaction not valid");
+                        if (fDebug)
+                        {
+                            // This must not fail. The transaction has already been signed and recorded.
+                            LogPrint("darksend", "% -- Error: Transaction not valid", __func__);
+                        }
                     }
                     wtxCollateral.RelayWalletTransaction();
                     
@@ -1187,15 +1333,21 @@ void CDarksendPool::ChargeRandomFees()
             */
             if(r <= 10)
             {
-                LogPrintf("CDarksendPool::ChargeRandomFees -- charging random fees. %u\n", i);
+                if (fDebug)
+                {
+                    LogPrint("darksend", "% -- charging random fees. %u\n", __func__, i);
+                }
 
                 CWalletTx wtxCollateral = CWalletTx(pwalletMain, txCollateral);
 
                 // Broadcast
                 if (!wtxCollateral.AcceptToMemoryPool(true))
                 {
-                    // This must not fail. The transaction has already been signed and recorded.
-                    LogPrintf("CDarksendPool::ChargeRandomFees() : Error: Transaction not valid");
+                    if (fDebug)
+                    {
+                        // This must not fail. The transaction has already been signed and recorded.
+                        LogPrint("darksend", "% -- Error: Transaction not valid", __func__);
+                    }
                 }
                 wtxCollateral.RelayWalletTransaction();
             }
@@ -1221,7 +1373,10 @@ void CDarksendPool::CheckTimeout()
         {
             case POOL_STATUS_TRANSMISSION:
             {
-                LogPrint("darksend", "CDarksendPool::CheckTimeout() -- Session complete -- Running Check()\n");
+                if (fDebug)
+                {
+                    LogPrint("darksend", "% -- Session complete -- Running Check()\n", __func__);
+                }
 
                 Check();
 
@@ -1230,7 +1385,10 @@ void CDarksendPool::CheckTimeout()
 
             case POOL_STATUS_ERROR:
             {
-                LogPrint("darksend", "CDarksendPool::CheckTimeout() -- Pool error -- Running Check()\n");
+                if (fDebug)
+                {
+                    LogPrint("darksend", "% -- Pool error -- Running Check()\n", __func__);
+                }
 
                 Check();
 
@@ -1239,7 +1397,10 @@ void CDarksendPool::CheckTimeout()
 
             case POOL_STATUS_SUCCESS:
             {
-                LogPrint("darksend", "CDarksendPool::CheckTimeout() -- Pool success -- Running Check()\n");
+                if (fDebug)
+                {
+                    LogPrint("darksend", "% -- Pool success -- Running Check()\n", __func__);
+                }
 
                 Check();
 
@@ -1258,7 +1419,10 @@ void CDarksendPool::CheckTimeout()
     {
         if((*it).IsExpired())
         {
-            LogPrint("darksend", "CDarksendPool::CheckTimeout() : Removing expired queue entry - %d\n", c);
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- Removing expired queue entry - %d\n", __func__, c);
+            }
 
             it = vecDarksendQueue.erase(it);
         }
@@ -1286,7 +1450,10 @@ void CDarksendPool::CheckTimeout()
         {
             if((*it2).IsExpired())
             {
-                LogPrint("darksend", "CDarksendPool::CheckTimeout() : Removing expired entry - %d\n", c);
+                if (fDebug)
+                {
+                    LogPrint("darksend", "% -- Removing expired entry - %d\n", __func__, c);
+                }
 
                 it2 = entries.erase(it2);
                 if(entries.size() == 0)
@@ -1318,7 +1485,10 @@ void CDarksendPool::CheckTimeout()
     } 
     else if(GetTimeMillis()-lastTimeChanged >= (DARKSEND_QUEUE_TIMEOUT*1000)+addLagTime)
     {
-        LogPrint("darksend", "CDarksendPool::CheckTimeout() -- Session timed out (%ds) -- resetting\n", DARKSEND_QUEUE_TIMEOUT);
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- Session timed out (%ds) -- resetting\n", __func__, DARKSEND_QUEUE_TIMEOUT);
+        }
 
         UnlockCoins();
         
@@ -1331,16 +1501,19 @@ void CDarksendPool::CheckTimeout()
 
     if(state == POOL_STATUS_SIGNING && GetTimeMillis()-lastTimeChanged >= (DARKSEND_SIGNING_TIMEOUT*1000)+addLagTime )
     {
-            LogPrint("darksend", "CDarksendPool::CheckTimeout() -- Session timed out (%ds) -- restting\n", DARKSEND_SIGNING_TIMEOUT);
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- Session timed out (%ds) -- restting\n", __func__, DARKSEND_SIGNING_TIMEOUT);
+        }
+        
+        ChargeFees();
+        
+        UnlockCoins();
+        
+        SetNull();
 
-            ChargeFees();
-            
-            UnlockCoins();
-            
-            SetNull();
-
-            UpdateState(POOL_STATUS_ERROR);
-            lastMessage = _("Signing timed out.");
+        UpdateState(POOL_STATUS_ERROR);
+        lastMessage = _("Signing timed out.");
     }
 }
 
@@ -1415,17 +1588,26 @@ bool CDarksendPool::SignatureValid(const CScript& newSig, const CTxIn& newVin)
         int n = found;
         txNew.vin[n].scriptSig = newSig;
 
-        LogPrint("darksend", "CDarksendPool::SignatureValid() - Sign with sig %s\n", newSig.ToString().substr(0,24));
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- Sign with sig %s\n", __func__, newSig.ToString().substr(0,24));
+        }
 
         if (!VerifyScript(txNew.vin[n].scriptSig, sigPubKey, txNew, n, SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC, 0))
         {
-            LogPrint("darksend", "CDarksendPool::SignatureValid() - Signing - Error signing input %u\n", n);
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- Signing - Error signing input %u\n", __func__, n);
+            }
 
             return false;
         }
     }
 
-    LogPrint("darksend", "CDarksendPool::SignatureValid() - Signing - Successfully validated input\n");
+    if (fDebug)
+    {
+        LogPrint("darksend", "% -- Signing - Successfully validated input\n", __func__);
+    }
 
     return true;
 }
@@ -1455,7 +1637,10 @@ bool CDarksendPool::IsCollateralValid(const CTransaction& txCollateral)
 
         if(!o.scriptPubKey.IsNormalPaymentScript())
         {
-            LogPrintf ("CDarksendPool::IsCollateralValid - Invalid Script %s\n", txCollateral.ToString());
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- Invalid Script %s\n", __func__, txCollateral.ToString());
+            }
 
             return false;
         }
@@ -1481,7 +1666,10 @@ bool CDarksendPool::IsCollateralValid(const CTransaction& txCollateral)
 
     if(missingTx)
     {
-        LogPrint("darksend", "CDarksendPool::IsCollateralValid - Unknown inputs in collateral transaction - %s\n", txCollateral.ToString());
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- Unknown inputs in collateral transaction - %s\n", __func__, txCollateral.ToString());
+        }
 
         return false;
     }
@@ -1489,12 +1677,18 @@ bool CDarksendPool::IsCollateralValid(const CTransaction& txCollateral)
     //collateral transactions are required to pay out DARKSEND_COLLATERAL as a fee to the miners
     if(nValueIn-nValueOut < DARKSEND_COLLATERAL)
     {
-        LogPrint("darksend", "CDarksendPool::IsCollateralValid - did not include enough fees in transaction %d\n%s\n", nValueOut-nValueIn, txCollateral.ToString());
-        
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- did not include enough fees in transaction %d\n%s\n", __func__, nValueOut-nValueIn, txCollateral.ToString());
+        }
+
         return false;
     }
 
-    LogPrint("darksend", "CDarksendPool::IsCollateralValid %s\n", txCollateral.ToString());
+    if (fDebug)
+    {
+        LogPrint("darksend", "% --  %s\n", __func__, txCollateral.ToString());
+    }
 
     // Global Namespace Start
     {
@@ -1503,7 +1697,10 @@ bool CDarksendPool::IsCollateralValid(const CTransaction& txCollateral)
         CValidationState state;
         if(!AcceptableInputs(mempool, txCollateral, true, NULL))
         {
-            LogPrintf ("CDarksendPool::IsCollateralValid - didn't pass IsAcceptable\n");
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- didn't pass IsAcceptable\n", __func__);
+            }
 
             return false;
         }
@@ -1528,7 +1725,10 @@ bool CDarksendPool::AddEntry(const std::vector<CTxIn>& newInput, const int64_t& 
     {
         if (in.prevout.IsNull() || nAmount < 0)
         {
-            LogPrint("darksend", "CDarksendPool::AddEntry - input not valid!\n");
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- input not valid!\n", __func__);
+            }
 
             error = _("Input is not valid.");
             sessionUsers--;
@@ -1539,7 +1739,10 @@ bool CDarksendPool::AddEntry(const std::vector<CTxIn>& newInput, const int64_t& 
 
     if (!IsCollateralValid(txCollateral))
     {
-        LogPrint("darksend", "CDarksendPool::AddEntry - collateral not valid!\n");
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- collateral not valid!\n", __func__);
+        }
 
         error = _("Collateral is not valid.");
         sessionUsers--;
@@ -1549,7 +1752,10 @@ bool CDarksendPool::AddEntry(const std::vector<CTxIn>& newInput, const int64_t& 
 
     if((int)entries.size() >= GetMaxPoolTransactions())
     {
-        LogPrint("darksend", "CDarksendPool::AddEntry - entries is full!\n");
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- entries is full!\n", __func__);
+        }
 
         error = _("Entries are full.");
         sessionUsers--;
@@ -1559,7 +1765,10 @@ bool CDarksendPool::AddEntry(const std::vector<CTxIn>& newInput, const int64_t& 
 
     BOOST_FOREACH(CTxIn in, newInput)
     {
-        LogPrint("darksend", "looking for vin -- %s\n", in.ToString());
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- looking for vin -- %s\n", __func__, in.ToString());
+        }
 
         BOOST_FOREACH(const CDarkSendEntry& v, entries)
         {
@@ -1567,7 +1776,10 @@ bool CDarksendPool::AddEntry(const std::vector<CTxIn>& newInput, const int64_t& 
             {
                 if((CTxIn)s == in)
                 {
-                    LogPrint("darksend", "CDarksendPool::AddEntry - found in vin\n");
+                    if (fDebug)
+                    {
+                        LogPrint("darksend", "% -- found in vin\n", __func__);
+                    }
 
                     error = _("Already have that input.");
                     sessionUsers--;
@@ -1582,7 +1794,11 @@ bool CDarksendPool::AddEntry(const std::vector<CTxIn>& newInput, const int64_t& 
     v.Add(newInput, nAmount, txCollateral, newOutput);
     entries.push_back(v);
 
-    LogPrint("darksend", "CDarksendPool::AddEntry -- adding %s\n", newInput[0].ToString());
+    if (fDebug)
+    {
+        LogPrint("darksend", "% -- adding %s\n", __func__, newInput[0].ToString());
+    }
+
     error = "";
 
     return true;
@@ -1591,7 +1807,10 @@ bool CDarksendPool::AddEntry(const std::vector<CTxIn>& newInput, const int64_t& 
 
 bool CDarksendPool::AddScriptSig(const CTxIn& newVin)
 {
-    LogPrint("darksend", "CDarksendPool::AddScriptSig -- new sig  %s\n", newVin.scriptSig.ToString().substr(0,24));
+    if (fDebug)
+    {
+        LogPrint("darksend", "% -- new sig  %s\n", __func__, newVin.scriptSig.ToString().substr(0,24));
+    }
 
     BOOST_FOREACH(const CDarkSendEntry& v, entries)
     {
@@ -1599,7 +1818,10 @@ bool CDarksendPool::AddScriptSig(const CTxIn& newVin)
         {
             if(s.scriptSig == newVin.scriptSig)
             {
-                LogPrint("darksend", "CDarksendPool::AddScriptSig - already exists \n");
+                if (fDebug)
+                {
+                    LogPrint("darksend", "% -- already exists \n", __func__);
+                }
 
                 return false;
             }
@@ -1608,12 +1830,18 @@ bool CDarksendPool::AddScriptSig(const CTxIn& newVin)
 
     if(!SignatureValid(newVin.scriptSig, newVin))
     {
-        LogPrint("darksend", "CDarksendPool::AddScriptSig - Invalid Sig\n");
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- Invalid Sig\n", __func__);
+        }
 
         return false;
     }
 
-    LogPrint("darksend", "CDarksendPool::AddScriptSig -- sig %s\n", newVin.ToString());
+    if (fDebug)
+    {
+        LogPrint("darksend", "% -- sig %s\n", __func__, newVin.ToString());
+    }
 
     BOOST_FOREACH(CTxIn& vin, finalTransaction.vin)
     {
@@ -1622,7 +1850,10 @@ bool CDarksendPool::AddScriptSig(const CTxIn& newVin)
             vin.scriptSig = newVin.scriptSig;
             vin.prevPubKey = newVin.prevPubKey;
 
-            LogPrint("darksend", "CDarksendPool::AddScriptSig -- adding to finalTransaction  %s\n", newVin.scriptSig.ToString().substr(0,24));
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- adding to finalTransaction  %s\n", __func__, newVin.scriptSig.ToString().substr(0,24));
+            }
         }
     }
 
@@ -1630,14 +1861,19 @@ bool CDarksendPool::AddScriptSig(const CTxIn& newVin)
     {
         if(entries[i].AddSig(newVin))
         {
-            LogPrint("darksend", "CDarksendPool::AddScriptSig -- adding  %s\n", newVin.scriptSig.ToString().substr(0,24));
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- adding  %s\n", __func__, newVin.scriptSig.ToString().substr(0,24));
+            }
 
             return true;
         }
     }
 
-
-    LogPrintf("CDarksendPool::AddScriptSig -- Couldn't set sig!\n" );
+    if (fDebug)
+    {
+        LogPrint("darksend", "% -- Couldn't set sig!\n", __func__);
+    }
 
     return false;
 }
@@ -1671,14 +1907,20 @@ void CDarksendPool::SendDarksendDenominate(std::vector<CTxIn>& vin, std::vector<
 
     if(fMasterNode)
     {
-        LogPrintf("CDarksendPool::SendDarksendDenominate() - Darksend from a Masternode is not supported currently.\n");
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- Darksend from a Masternode is not supported currently.\n", __func__);
+        }
 
         return;
     }
 
     if(txCollateral == CTransaction())
     {
-        LogPrintf ("CDarksendPool:SendDarksendDenominate() - Darksend collateral not set");
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- Darksend collateral not set", __func__);
+        }
 
         return;
     }
@@ -1694,14 +1936,21 @@ void CDarksendPool::SendDarksendDenominate(std::vector<CTxIn>& vin, std::vector<
         lockedCoins.push_back(in);
     }
 
-    //BOOST_FOREACH(CTxOut o, vout)
-    //    LogPrintf(" vout - %s\n", o.ToString());
-
+    if (fDebug)
+    {
+        BOOST_FOREACH(CTxOut o, vout)
+        {
+            LogPrint("darksend", "% --  vout - %s\n", __func__, o.ToString());
+        }
+    }
 
     // we should already be connected to a Masternode
     if(!sessionFoundMasternode)
     {
-        LogPrintf("CDarksendPool::SendDarksendDenominate() - No Masternode has been selected yet.\n");
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- No Masternode has been selected yet.\n", __func__);
+        }
 
         UnlockCoins();
         
@@ -1717,14 +1966,20 @@ void CDarksendPool::SendDarksendDenominate(std::vector<CTxIn>& vin, std::vector<
 
         fEnableDarksend = false;
 
-        LogPrintf("CDarksendPool::SendDarksendDenominate() - Not enough disk space, disabling Darksend.\n");
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- Not enough disk space, disabling Darksend.\n", __func__);
+        }
 
         return;
     }
 
     UpdateState(POOL_STATUS_ACCEPTING_ENTRIES);
 
-    LogPrintf("CDarksendPool::SendDarksendDenominate() - Added transaction to pool.\n");
+    if (fDebug)
+    {
+       LogPrint("darksend", "% -- Added transaction to pool.\n", __func__);
+    }
 
     ClearLastMessage();
 
@@ -1747,10 +2002,13 @@ void CDarksendPool::SendDarksendDenominate(std::vector<CTxIn>& vin, std::vector<
         {
             tx.vin.push_back(i);
 
-            LogPrint("darksend", "dsi -- tx in %s\n", i.ToString());
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- dsi -- tx in %s\n", __func__, i.ToString());
+            }
         }
 
-        LogPrintf("Submitting tx %s\n", tx.ToString());
+        LogPrint("darksend", "% -- Darkend Submitting tx %s\n", __func__, tx.ToString());
 
         while(true)
         {
@@ -1759,12 +2017,16 @@ void CDarksendPool::SendDarksendDenominate(std::vector<CTxIn>& vin, std::vector<
             if(!lockMain)
             {
                 MilliSleep(50);
+
                 continue;
             }
 
             if(!AcceptableInputs(mempool, txCollateral, false, NULL, false, true))
             {
-                LogPrintf("dsi -- transaction not valid! %s \n", tx.ToString());
+                if (fDebug)
+                {
+                    LogPrint("darksend", "% -- dsi -- transaction not valid! %s \n", __func__, tx.ToString());
+                }
 
                 UnlockCoins();
                 
@@ -1826,7 +2088,11 @@ bool CDarksendPool::StatusUpdate(int newState, int newEntriesCount, int newAccep
         if(newAccepted == 1 && newSessionID != 0)
         {
             sessionID = newSessionID;
-            LogPrintf("CDarksendPool::StatusUpdate - set sessionID to %d\n", sessionID);
+
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- set sessionID to %d\n", __func__, sessionID);
+            }
 
             sessionFoundMasternode = true;
         }
@@ -1836,7 +2102,10 @@ bool CDarksendPool::StatusUpdate(int newState, int newEntriesCount, int newAccep
     {
         if(newAccepted == 1)
         {
-            LogPrintf("CDarksendPool::StatusUpdate - entry accepted! \n");
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- entry accepted! \n", __func__);
+            }
 
             sessionFoundMasternode = true;
 
@@ -1845,7 +2114,10 @@ bool CDarksendPool::StatusUpdate(int newState, int newEntriesCount, int newAccep
         }
         else if (newAccepted == 0 && sessionID == 0 && !sessionFoundMasternode)
         {
-            LogPrintf("CDarksendPool::StatusUpdate - entry not accepted by Masternode \n");
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- entry not accepted by Masternode \n", __func__);
+            }
 
             UnlockCoins();
 
@@ -1875,7 +2147,10 @@ bool CDarksendPool::SignFinalTransaction(CTransaction& finalTransactionNew, CNod
 
     finalTransaction = finalTransactionNew;
 
-    LogPrintf("CDarksendPool::SignFinalTransaction %s\n", finalTransaction.ToString());
+    if (fDebug)
+    {
+        LogPrint("darksend", "% -- %s\n", __func__, finalTransaction.ToString());
+    }
 
     vector<CTxIn> sigs;
 
@@ -1918,7 +2193,10 @@ bool CDarksendPool::SignFinalTransaction(CTransaction& finalTransactionNew, CNod
 
                         if(Ftx == Otx)
                         {
-                            //if(fDebug) LogPrintf("CDarksendPool::SignFinalTransaction - foundOutputs = %d \n", foundOutputs);
+                            if(fDebug)
+                            {
+                                LogPrint("darksend", "% -- foundOutputs = %d \n", __func__, foundOutputs);
+                            }
 
                             foundOutputs++;
                             nValue1 += finalTransaction.vout[i].nValue;
@@ -1937,8 +2215,11 @@ bool CDarksendPool::SignFinalTransaction(CTransaction& finalTransactionNew, CNod
                 {
                     // in this case, something went wrong and we'll refuse to sign. It's possible we'll be charged collateral. But that's
                     // better then signing if the transaction doesn't look like what we wanted.
-                    LogPrintf("CDarksendPool::Sign - My entries are not correct! Refusing to sign. %d entries %d target. \n", foundOutputs, targetOuputs);
-                    
+                    if (fDebug)
+                    {
+                        LogPrint("darksend", "% -- My entries are not correct! Refusing to sign. %d entries %d target. \n", __func__, foundOutputs, targetOuputs);
+                    }
+
                     UnlockCoins();
 
                     SetNull();
@@ -1948,24 +2229,35 @@ bool CDarksendPool::SignFinalTransaction(CTransaction& finalTransactionNew, CNod
 
                 const CKeyStore& keystore = *pwalletMain;
 
-                LogPrint("darksend", "CDarksendPool::Sign - Signing my input %i\n", mine);
+                if (fDebug)
+                {
+                    LogPrint("darksend", "% -- Signing my input %i\n", __func__, mine);
+                }
 
                 if(!SignSignature(keystore, prevPubKey, finalTransaction, mine, int(SIGHASH_ALL|SIGHASH_ANYONECANPAY)))
                 {
                     // changes scriptSig
-
-                    LogPrint("darksend", "CDarksendPool::Sign - Unable to sign my own transaction! \n");
-                    // not sure what to do here, it will timeout...?
+                    if (fDebug)
+                    {
+                        LogPrint("darksend", "% -- Unable to sign my own transaction! \n", __func__);
+                        // not sure what to do here, it will timeout...?
+                    }
                 }
 
                 sigs.push_back(finalTransaction.vin[mine]);
 
-                LogPrint("darksend", " -- dss %d %d %s\n", mine, (int)sigs.size(), finalTransaction.vin[mine].scriptSig.ToString());
+                if (fDebug)
+                {
+                    LogPrint("darksend", "% -- dss %d %d %s\n", __func__, mine, (int)sigs.size(), finalTransaction.vin[mine].scriptSig.ToString());
+                }
             }
 
         }
 
-        LogPrint("darksend", "CDarksendPool::Sign - txNew:\n%s", finalTransaction.ToString());
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- txNew:\n%s", __func__, finalTransaction.ToString());
+        }
     }
 
    // push all of our signatures to the Masternode
@@ -1980,7 +2272,10 @@ bool CDarksendPool::SignFinalTransaction(CTransaction& finalTransactionNew, CNod
 
 void CDarksendPool::NewBlock()
 {
-    LogPrint("darksend", "CDarksendPool::NewBlock \n");
+    if (fDebug)
+    {
+        LogPrint("darksend", "% -- \n", __func__);
+    }
 
     //we we're processing lots of blocks, we'll just leave
     if(GetTime() - lastNewBlock < 10)
@@ -2005,7 +2300,10 @@ void CDarksendPool::CompletedTransaction(bool error, int errorID)
 
     if(error)
     {
-        LogPrintf("CompletedTransaction -- error \n");
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- error \n", __func__);
+        }
 
         UpdateState(POOL_STATUS_ERROR);
 
@@ -2018,7 +2316,10 @@ void CDarksendPool::CompletedTransaction(bool error, int errorID)
     }
     else
     {
-        LogPrintf("CompletedTransaction -- success \n");
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- success \n", __func__);
+        }
 
         UpdateState(POOL_STATUS_SUCCESS);
 
@@ -2092,7 +2393,10 @@ bool CDarksendPool::DoAutomaticDenominating(bool fDryRun)
 
     if(pindexBest->nHeight - cachedLastSuccess < minBlockSpacing)
     {
-        LogPrintf("CDarksendPool::DoAutomaticDenominating - Last successful Darksend action was too recent\n");
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- Last successful Darksend action was too recent\n", __func__);
+        }
 
         strAutoDenomResult = _("Last successful Darksend action was too recent.");
 
@@ -2101,7 +2405,10 @@ bool CDarksendPool::DoAutomaticDenominating(bool fDryRun)
 
     if(mnodeman.size() == 0)
     {
-        LogPrint("darksend", "CDarksendPool::DoAutomaticDenominating - No Masternodes detected\n");
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- No Masternodes detected\n", __func__);
+        }
 
         strAutoDenomResult = _("No Masternodes detected.");
 
@@ -2143,14 +2450,20 @@ bool CDarksendPool::DoAutomaticDenominating(bool fDryRun)
 
     if(nBalanceNeedsAnonymized < nLowestDenom)
     {
-        LogPrintf("DoAutomaticDenominating : No funds detected in need of denominating \n");
+        if (fDebug)
+        {
+            LogPrint("darksend", "% --  No funds detected in need of denominating \n", __func__);
+        }
 
         strAutoDenomResult = _("No funds detected in need of denominating.");
 
         return false;
     }
 
-    LogPrint("darksend", "DoAutomaticDenominating : nLowestDenom=%d, nBalanceNeedsAnonymized=%d\n", nLowestDenom, nBalanceNeedsAnonymized);
+    if (fDebug)
+    {
+        LogPrint("darksend", "% --  nLowestDenom=%d, nBalanceNeedsAnonymized=%d\n", __func__, nLowestDenom, nBalanceNeedsAnonymized);
+    }
 
     // select coins that should be given to the pool
     if (!pwalletMain->SelectCoinsDark(nValueMin, nBalanceNeedsAnonymized, vCoins, nValueIn, 0, nDarksendRounds))
@@ -2175,18 +2488,27 @@ bool CDarksendPool::DoAutomaticDenominating(bool fDryRun)
 
             if(!fDryRun)
             {
-                LogPrintf("DoAutomaticDenominating : !fDryRun Returning CreateDenominated(nBalanceNeedsDenominated); \n");
-                
+                if (fDebug)
+                {
+                    LogPrint("darksend", "% --  !fDryRun Returning CreateDenominated(nBalanceNeedsDenominated); \n", __func__);
+                }
+
                 return CreateDenominated(nBalanceNeedsDenominated);
             }
 
-            LogPrintf("DoAutomaticDenominating : fDryRun Returning true \n");
+            if (fDebug)
+            {
+                LogPrint("darksend", "% --  fDryRun Returning true \n", __func__);
+            }
 
             return true;
         }
         else
         {
-            LogPrintf("DoAutomaticDenominating : Can't denominate - no compatible inputs left\n");
+            if (fDebug)
+            {
+                LogPrint("darksend", "% --  Can't denominate - no compatible inputs left\n", __func__);
+            }
 
             strAutoDenomResult = _("Can't denominate: no compatible inputs left.");
             
@@ -2196,7 +2518,10 @@ bool CDarksendPool::DoAutomaticDenominating(bool fDryRun)
     }
     else
     {
-        LogPrintf("DoAutomaticDenominating : fDryRun Returning true 2 \n");
+        if (fDebug)
+        {
+            LogPrint("darksend", "% --  fDryRun Returning true 2 \n", __func__);
+        }
     }
 
     if(fDryRun)
@@ -2235,9 +2560,12 @@ bool CDarksendPool::DoAutomaticDenominating(bool fDryRun)
 
         if(pwalletMain->GetDenominatedBalance(true) > 0)
         {
-            //get denominated unconfirmed inputs
-            LogPrintf("DoAutomaticDenominating -- Found unconfirmed denominated outputs, will wait till they confirm to continue.\n");
+            if (fDebug)
+            {
+                LogPrint("darksend", "% --  Found unconfirmed denominated outputs, will wait till they confirm to continue.\n", __func__);
+            }
 
+            //get denominated unconfirmed inputs
             strAutoDenomResult = _("Found unconfirmed denominated outputs, will wait till they confirm to continue.");
             
             return false;
@@ -2249,7 +2577,10 @@ bool CDarksendPool::DoAutomaticDenominating(bool fDryRun)
         {
             if(!pwalletMain->CreateCollateralTransaction(txCollateral, strReason))
             {
-                LogPrintf("% -- create collateral error:%s\n", __func__, strReason);
+                if (fDebug)
+                {
+                    LogPrint("darksend", "% -- Darksend create collateral error:%s\n", __func__, strReason);
+                }
 
                 return false;
             }
@@ -2258,11 +2589,17 @@ bool CDarksendPool::DoAutomaticDenominating(bool fDryRun)
         {
             if(!IsCollateralValid(txCollateral))
             {
-                LogPrintf("%s -- invalid collateral, recreating...\n", __func__);
+                if (fDebug)
+                {
+                    LogPrint("darksend", "%s -- Darksend invalid collateral, recreating...\n", __func__);
+                }
 
                 if(!pwalletMain->CreateCollateralTransaction(txCollateral, strReason))
                 {
-                    LogPrintf("%s -- create collateral error: %s\n", __func__, strReason);
+                    if (fDebug)
+                    {
+                        LogPrint("darksend", "%s -- Darksend create collateral error: %s\n", __func__, strReason);
+                    }
 
                     return false;
                 }
@@ -2272,13 +2609,19 @@ bool CDarksendPool::DoAutomaticDenominating(bool fDryRun)
         //if we've used 90% of the Masternode list then drop all the oldest first
         int nThreshold = (int)(mnodeman.CountEnabled(MIN_POOL_PEER_PROTO_VERSION) * 0.9);
 
-        LogPrint("darksend", "Checking vecMasternodesUsed size %d threshold %d\n", (int)vecMasternodesUsed.size(), nThreshold);
+        if (fDebug)
+        {
+            LogPrint("darksend", "%s -- Checking vecMasternodesUsed size %d threshold %d\n", __func__, (int)vecMasternodesUsed.size(), nThreshold);
+        }
 
         while((int)vecMasternodesUsed.size() > nThreshold)
         {
             vecMasternodesUsed.erase(vecMasternodesUsed.begin());
 
-            LogPrint("darksend", "  vecMasternodesUsed size %d threshold %d\n", (int)vecMasternodesUsed.size(), nThreshold);
+            if (fDebug)
+            {
+                LogPrint("darksend", "%s -- vecMasternodesUsed size %d threshold %d\n", __func__, (int)vecMasternodesUsed.size(), nThreshold);
+            }
         }
 
         //don't use the queues all of the time for mixing
@@ -2346,7 +2689,10 @@ bool CDarksendPool::DoAutomaticDenominating(bool fDryRun)
                 // Try to match their denominations if possible
                 if (!pwalletMain->SelectCoinsByDenominations(dsq.nDenom, nValueMin, nBalanceNeedsAnonymized, vTempCoins, vTempCoins2, nValueIn, 0, nDarksendRounds))
                 {
-                    LogPrintf("DoAutomaticDenominating - Couldn't match denominations %d\n", dsq.nDenom);
+                    if (fDebug)
+                    {
+                        LogPrint("darksend", "% -- Couldn't match denominations %d\n", __func__, dsq.nDenom);
+                    }
 
                     continue;
                 }
@@ -2358,8 +2704,11 @@ bool CDarksendPool::DoAutomaticDenominating(bool fDryRun)
                     CMasternode* pmn = mnodeman.Find(dsq.vin);
                     if(pmn == NULL)
                     {
-                        LogPrintf("DoAutomaticDenominating --- dsq vin %s is not in Masternode list!", dsq.vin.ToString());
-                        
+                        if (fDebug)
+                        {
+                            LogPrint("darksend", "% -- dsq vin %s is not in Masternode list!", __func__, dsq.vin.ToString());
+                        }
+
                         continue;
                     }
 
@@ -2369,8 +2718,11 @@ bool CDarksendPool::DoAutomaticDenominating(bool fDryRun)
 
                     pnode->PushMessage("dsa", sessionDenom, txCollateral);
                     
-                    LogPrintf("DoAutomaticDenominating --- connected (from queue), sending dsa for %d - %s\n", sessionDenom, pnode->addr.ToString());
-                    
+                    if (fDebug)
+                    {
+                        LogPrint("darksend", "% -- connected (from queue), sending dsa for %d - %s\n", __func__, sessionDenom, pnode->addr.ToString());
+                    }
+
                     strAutoDenomResult = _("Mixing in progress...");
                     dsq.time = 0; //remove node
                     
@@ -2378,7 +2730,10 @@ bool CDarksendPool::DoAutomaticDenominating(bool fDryRun)
                 }
                 else
                 {
-                    LogPrintf("DoAutomaticDenominating --- error connecting \n");
+                    if (fDebug)
+                    {
+                        LogPrint("darksend", "% -- error connecting \n", __func__);
+                    }
 
                     strAutoDenomResult = _("Error connecting to Masternode.");
                     dsq.time = 0; //remove node
@@ -2402,8 +2757,11 @@ bool CDarksendPool::DoAutomaticDenominating(bool fDryRun)
             CMasternode* pmn = mnodeman.FindRandomNotInVec(vecMasternodesUsed, MIN_POOL_PEER_PROTO_VERSION);
             if(pmn == NULL)
             {
-                LogPrintf("DoAutomaticDenominating --- Can't find random masternode!\n");
-                
+                if (fDebug)
+                {
+                    LogPrint("darksend", "% -- Can't find random masternode!\n", __func__);
+                }
+
                 strAutoDenomResult = _("Can't find random Masternode.");
                 
                 return false;
@@ -2418,8 +2776,11 @@ bool CDarksendPool::DoAutomaticDenominating(bool fDryRun)
 
             lastTimeChanged = GetTimeMillis();
 
-            LogPrintf("DoAutomaticDenominating -- attempt %d connection to Masternode %s\n", i, pmn->addr.ToString().c_str());
-            
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- attempt %d connection to Masternode %s\n", __func__, i, pmn->addr.ToString().c_str());
+            }
+
             CNode* pnode = ConnectNode((CAddress)pmn->addr, NULL, true);
             if(pnode != NULL)
             {
@@ -2437,7 +2798,11 @@ bool CDarksendPool::DoAutomaticDenominating(bool fDryRun)
 
                 pnode->PushMessage("dsa", sessionDenom, txCollateral);
 
-                LogPrintf("DoAutomaticDenominating --- connected, sending dsa for %d\n", sessionDenom);
+                if (fDebug)
+                {
+                    LogPrint("darksend", "% -- connected, sending dsa for %d\n", __func__, sessionDenom);
+                }
+
                 strAutoDenomResult = _("Mixing in progress...");
 
                 return true;
@@ -2473,7 +2838,10 @@ bool CDarksendPool::PrepareDarksendDenominate()
     {
         strError = pwalletMain->PrepareDarksendDenominate(i, i+1);
 
-        LogPrintf("DoAutomaticDenominating : Running darksend denominate for %d rounds. Return '%s'\n", i, strError);
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- Running darksend denominate for %d rounds. Return '%s'\n", __func__, i, strError);
+        }
 
         if(strError == "")
         {
@@ -2483,8 +2851,11 @@ bool CDarksendPool::PrepareDarksendDenominate()
 
     strError = pwalletMain->PrepareDarksendDenominate(0, nDarksendRounds);
     
-    LogPrintf("DoAutomaticDenominating : Running Darksend denominate for all rounds. Return '%s'\n", strError);
-    
+    if (fDebug)
+    {
+        LogPrint("darksend", "% -- Running Darksend denominate for all rounds. Return '%s'\n", __func__, strError);
+    }
+
     if(strError == "")
     {
         return true;
@@ -2492,8 +2863,12 @@ bool CDarksendPool::PrepareDarksendDenominate()
 
     // Should never actually get here but just in case
     strAutoDenomResult = strError;
-    LogPrintf("DoAutomaticDenominating : Error running denominate, %s\n", strError);
     
+    if (fDebug)
+    {
+        LogPrint("darksend", "% -- Error running denominate, %s\n", __func__, strError);
+    }
+
     return false;
 }
 
@@ -2534,14 +2909,20 @@ bool CDarksendPool::SendRandomPaymentToSelf()
     
     if(!success)
     {
-        LogPrintf("SendRandomPaymentToSelf: Error - %s\n", strFail);
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- Error - %s\n", __func__, strFail);
+        }
 
         return false;
     }
 
     pwalletMain->CommitTransaction(wtx, reservekey);
 
-    LogPrintf("SendRandomPaymentToSelf Success: tx %s\n", wtx.GetHash().GetHex());
+    if (fDebug)
+    {
+       LogPrint("darksend", "% -- Success: tx %s\n", __func__, wtx.GetHash().GetHex());
+    }
 
     return true;
 }
@@ -2584,13 +2965,19 @@ bool CDarksendPool::MakeCollateralAmounts()
     {
         // if we failed (most likeky not enough funds), try to use denominated instead -
         // MN-like funds should not be touched in any case and we can't mix denominated without collaterals anyway
-        LogPrintf("MakeCollateralAmounts: ONLY_NONDENOMINATED_NOT1000IFMN Error - %s\n", strFail);
-        
+        if (fDebug)
+        {
+            LogPrint("darksend", "% --  ONLY_NONDENOMINATED_NOT1000IFMN Error - %s\n", __func__, strFail);
+        }
+
         success = pwalletMain->CreateTransaction(vecSend, wtx, reservekeyChange, nFeeRet, nChangePos, strFail, coinControl, ONLY_NOT10000IFMN);
         
         if(!success)
         {
-            LogPrintf("MakeCollateralAmounts: ONLY_NOT1000IFMN Error - %s\n", strFail);
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- ONLY_NOT1000IFMN Error - %s\n", __func__, strFail);
+            }
 
             reservekeyCollateral.ReturnKey();
             
@@ -2600,12 +2987,18 @@ bool CDarksendPool::MakeCollateralAmounts()
 
     reservekeyCollateral.KeepKey();
 
-    LogPrintf("MakeCollateralAmounts: tx %s\n", wtx.GetHash().GetHex());
+    if (fDebug)
+    {
+        LogPrint("darksend", "% -- tx %s\n", __func__, wtx.GetHash().GetHex());
+    }
 
     // use the same cachedLastSuccess as for DS mixinx to prevent race
     if(!pwalletMain->CommitTransaction(wtx, reservekeyChange))
     {
-        LogPrintf("MakeCollateralAmounts: CommitTransaction failed!\n");
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- CommitTransaction failed!\n", __func__);
+        }
 
         return false;
     }
@@ -2678,7 +3071,10 @@ bool CDarksendPool::CreateDenominated(int64_t nTotalValue)
             nOutputs++;
             nValueLeft -= v;
 
-            LogPrintf("CreateDenominated1 %d\n", nValueLeft);
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- CreateDenominated1 %d\n", __func__, nValueLeft);
+            }
         }
 
         if(nValueLeft == 0)
@@ -2687,7 +3083,10 @@ bool CDarksendPool::CreateDenominated(int64_t nTotalValue)
         }
     }
 
-    LogPrintf("CreateDenominated2 %d\n", nValueLeft);
+    if (fDebug)
+    {
+        LogPrint("darksend", "% -- CreateDenominated2 %d\n", __func__, nValueLeft);
+    }
 
     // if we have anything left over, it will be automatically send back as change - there is no need to send it manually
 
@@ -2698,7 +3097,10 @@ bool CDarksendPool::CreateDenominated(int64_t nTotalValue)
     
     if(!success)
     {
-        LogPrintf("CreateDenominated: Error - %s\n", strFail);
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- CreateDenominated: Error - %s\n", __func__, strFail);
+        }
 
         // TODO: return reservekeyDenom here
         reservekeyCollateral.ReturnKey();
@@ -2716,10 +3118,16 @@ bool CDarksendPool::CreateDenominated(int64_t nTotalValue)
     }
     else
     {
-        LogPrintf("CreateDenominated: CommitTransaction failed!\n");
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- CreateDenominated: CommitTransaction failed!\n", __func__);
+        }
     }
 
-    LogPrintf("CreateDenominated: tx %s\n", wtx.GetHash().GetHex());
+    if (fDebug)
+    {
+        LogPrint("darksend", "% -- CreateDenominated: tx %s\n", __func__, wtx.GetHash().GetHex());
+    }
 
     return true;
 }
@@ -2734,14 +3142,24 @@ bool CDarksendPool::IsCompatibleWithEntries(std::vector<CTxOut>& vout)
 
     BOOST_FOREACH(const CDarkSendEntry v, entries)
     {
-        LogPrintf(" IsCompatibleWithEntries %d %d\n", GetDenominations(vout), GetDenominations(v.vout));
-/*
-        BOOST_FOREACH(CTxOut o1, vout)
-            LogPrintf(" vout 1 - %s\n", o1.ToString());
+        if (fDebug)
+        {
+            LogPrint("darksend", "% --  IsCompatibleWithEntries %d %d\n", __func__, GetDenominations(vout), GetDenominations(v.vout));
+        }
 
-        BOOST_FOREACH(CTxOut o2, v.vout)
-            LogPrintf(" vout 2 - %s\n", o2.ToString());
-*/
+        if (fDebug)
+        {
+            BOOST_FOREACH(CTxOut o1, vout)
+            {
+                LogPrint("darksend", "% --  vout 1 - %s\n", __func__, o1.ToString());
+            }
+
+            BOOST_FOREACH(CTxOut o2, v.vout)
+            {
+                LogPrint("darksend", "% --  vout 2 - %s\n", __func__, o2.ToString());
+            }
+        }
+
         if(GetDenominations(vout) != GetDenominations(v.vout))
         {
             return false;
@@ -2759,11 +3177,17 @@ bool CDarksendPool::IsCompatibleWithSession(int64_t nDenom, CTransaction txColla
         return false;
     }
 
-    LogPrintf("CDarkSendPool::IsCompatibleWithSession - sessionDenom %d sessionUsers %d\n", sessionDenom, sessionUsers);
+    if (fDebug)
+    {
+        LogPrint("darksend", "% -- sessionDenom %d sessionUsers %d\n", __func__, sessionDenom, sessionUsers);
+    }
 
     if (!unitTest && !IsCollateralValid(txCollateral))
     {
-        LogPrint("darksend", "CDarksendPool::IsCompatibleWithSession - collateral not valid!\n");
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- collateral not valid!\n", __func__);
+        }
 
         strReason = _("Collateral not valid.");
         
@@ -2812,8 +3236,11 @@ bool CDarksendPool::IsCompatibleWithSession(int64_t nDenom, CTransaction txColla
             strReason = _("Masternode queue is full.");
         }
         
-        LogPrintf("CDarksendPool::IsCompatibleWithSession - incompatible mode, return false %d %d\n", state != POOL_STATUS_ACCEPTING_ENTRIES, sessionUsers >= GetMaxPoolTransactions());
-        
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- incompatible mode, return false %d %d\n", __func__, state != POOL_STATUS_ACCEPTING_ENTRIES, sessionUsers >= GetMaxPoolTransactions());
+        }
+
         return false;
     }
 
@@ -2824,7 +3251,10 @@ bool CDarksendPool::IsCompatibleWithSession(int64_t nDenom, CTransaction txColla
         return false;
     }
 
-    LogPrintf("CDarksendPool::IsCompatibleWithSession - compatible\n");
+    if (fDebug)
+    {
+        LogPrint("darksend", "% -- compatible\n", __func__);
+    }
 
     sessionUsers++;
     lastTimeChanged = GetTimeMillis();
@@ -3038,7 +3468,10 @@ int CDarksendPool::GetDenominationsByAmount(int64_t nAmount, int nDenomTarget)
             nOutputs++;
         }
 
-        LogPrintf("GetDenominationsByAmount --- %d nOutputs %d\n", v, nOutputs);
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- %d nOutputs %d\n", __func__, v, nOutputs);
+        }
     }
 
     return GetDenominations(vout1);
@@ -3273,7 +3706,10 @@ bool CDarkSendSigner::VerifyMessage(CPubKey pubkey, vector<unsigned char>& vchSi
 
     if (fDebug && (pubkey2.GetID() != pubkey.GetID()))
     {
-        LogPrintf("CDarkSendSigner::VerifyMessage -- keys don't match: %s %s\n", pubkey2.GetID().ToString(), pubkey.GetID().ToString());
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- keys don't match: %s %s\n", __func__, pubkey2.GetID().ToString(), pubkey.GetID().ToString());
+        }
     }
 
     return (pubkey2.GetID() == pubkey.GetID());
@@ -3295,21 +3731,30 @@ bool CDarksendQueue::Sign()
 
     if(!darkSendSigner.SetKey(strMasterNodePrivKey, errorMessage, key2, pubkey2))
     {
-        LogPrintf("CDarksendQueue():Relay - ERROR: Invalid Masternodeprivkey: '%s'\n", errorMessage);
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- ERROR: Invalid Masternodeprivkey: '%s'\n", __func__, errorMessage);
+        }
 
         return false;
     }
 
     if(!darkSendSigner.SignMessage(strMessage, errorMessage, vchSig, key2))
     {
-        LogPrintf("CDarksendQueue():Relay - Sign message failed");
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- Sign message failed", __func__);
+        }
 
         return false;
     }
 
     if(!darkSendSigner.VerifyMessage(pubkey2, vchSig, strMessage, errorMessage))
     {
-        LogPrintf("CDarksendQueue():Relay - Verify message failed");
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- Verify message failed", __func__);
+        }
 
         return false;
     }
@@ -3343,7 +3788,7 @@ bool CDarksendQueue::CheckSignature()
 
         if(!darkSendSigner.VerifyMessage(pmn->pubkey2, vchSig, strMessage, errorMessage))
         {
-            return error("CDarksendQueue::CheckSignature() - Got bad Masternode address signature %s \n", vin.ToString().c_str());
+            return error("% -- Got bad Masternode address signature %s \n", __func__, vin.ToString().c_str());
         }
 
         return true;
@@ -3387,7 +3832,10 @@ void CDarksendPool::RelayIn(const std::vector<CTxDSIn>& vin, const int64_t& nAmo
     CNode* pnode = FindNode(pSubmittedToMasternode->addr);
     if(pnode != NULL)
     {
-        LogPrintf("RelayIn - found master, relaying message - %s \n", pnode->addr.ToString());
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- RelayIn - found master, relaying message - %s \n", __func__, pnode->addr.ToString());
+        }
 
         pnode->PushMessage("dsi", vin2, nAmount, txCollateral, vout2);
     }
@@ -3433,7 +3881,11 @@ void ThreadCheckDarkSendPool()
     while (true)
     {
         MilliSleep(1000);
-        //LogPrintf("ThreadCheckDarkSendPool::check timeout\n");
+        
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- timeout\n", __func__);
+        }
 
         // try to sync from all available nodes, one step at a time
         //masternodeSync.Process();
