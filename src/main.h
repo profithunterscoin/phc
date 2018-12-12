@@ -809,8 +809,11 @@ class CBlock
             // Take last bit of block hash as entropy bit
             unsigned int nEntropyBit = ((GetHash().Get64()) & 1llu);
 
-            LogPrint("stakemodifier", "GetStakeEntropyBit: hashBlock=%s nEntropyBit=%u\n", GetHash().ToString(), nEntropyBit);
-
+            if (fDebug)
+            {
+                LogPrint("stakemodifier", "% -- GetStakeEntropyBit: hashBlock=%s nEntropyBit=%u\n", __func__, GetHash().ToString(), nEntropyBit);
+            }
+            
             return nEntropyBit;
         }
 

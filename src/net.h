@@ -790,7 +790,10 @@ class CNode
                 nRequestTime = 0;
             }
 
-            LogPrint("net", "askfor %s   %d (%s)\n", inv.ToString().c_str(), nRequestTime, DateTimeStrFormat("%H:%M:%S", nRequestTime/1000000).c_str());
+            if (fDebug)
+            {
+                LogPrint("net", "% -- askfor %s   %d (%s)\n", __func__, inv.ToString().c_str(), nRequestTime, DateTimeStrFormat("%H:%M:%S", nRequestTime/1000000).c_str());
+            }
 
             // Make sure not to reuse time indexes to keep things in the same order
             int64_t nNow = (GetTime() - 1) * 1000000;
@@ -828,7 +831,11 @@ class CNode
             ENTER_CRITICAL_SECTION(cs_vSend);
             assert(ssSend.size() == 0);
             ssSend << CMessageHeader(pszCommand, 0);
-            LogPrint("net", "sending: %s ", pszCommand);
+ 
+            if (fDebug)
+            {
+                LogPrint("net", "% -- sending: %s ", __func__, pszCommand);
+            }
         }
 
         // TODO: Document the precondition of this function.  Is cs_vSend locked?
@@ -838,7 +845,10 @@ class CNode
 
             LEAVE_CRITICAL_SECTION(cs_vSend);
 
-            LogPrint("net", "(aborted)\n");
+            if (fDebug)
+            {
+                LogPrint("net", "% -- (aborted)\n", __func__);
+            }
         }
 
         // TODO: Document the precondition of this function.  Is cs_vSend locked?
@@ -849,8 +859,11 @@ class CNode
             // not intended for end-users.
             if (mapArgs.count("-dropmessagestest") && GetRand(GetArg("-dropmessagestest", 2)) == 0)
             {
-                LogPrint("net", "dropmessages DROPPING SEND MESSAGE\n");
-                
+                if (fDebug)
+                {
+                    LogPrint("net", "% -- dropmessages DROPPING SEND MESSAGE\n", __func__);
+                }
+
                 AbortMessage();
 
                 return;
@@ -872,8 +885,11 @@ class CNode
             assert(ssSend.size () >= CMessageHeader::CHECKSUM_OFFSET + sizeof(nChecksum));
             memcpy((char*)&ssSend[CMessageHeader::CHECKSUM_OFFSET], &nChecksum, sizeof(nChecksum));
 
-            LogPrint("net", "(%d bytes)\n", nSize);
-
+            if (fDebug)
+            {
+                LogPrint("net", "% -- (%d bytes)\n", __func__, nSize);
+            }
+            
             std::deque<CSerializeData>::iterator it = vSendMsg.insert(vSendMsg.end(), CSerializeData());
             ssSend.GetAndClear(*it);
             nSendSize += (*it).size();

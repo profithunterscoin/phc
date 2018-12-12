@@ -449,12 +449,18 @@ class CDarksendPool
         {
             if (fMasterNode && (newState == POOL_STATUS_ERROR || newState == POOL_STATUS_SUCCESS))
             {
-                LogPrint("darksend", "CDarksendPool::UpdateState() - Can't set state to ERROR or SUCCESS as a Masternode. \n");
+                if (fDebug)
+                {
+                    LogPrint("darksend", "% -- Can't set state to ERROR or SUCCESS as a Masternode. \n", __func__);
+                }
 
                 return;
             }
 
-            LogPrintf("CDarksendPool::UpdateState() == %d | %d \n", state, newState);
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- == %d | %d \n", __func__, state, newState);
+            }
 
             if(state != newState)
             {

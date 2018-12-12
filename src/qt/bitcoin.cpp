@@ -62,7 +62,10 @@ static void ThreadSafeMessageBox(const std::string& message, const std::string& 
     }
     else
     {
-        LogPrintf("%s: %s\n", caption, message);
+        if (fDebug)
+        {
+            LogPrint("qt", "% -- %s: %s\n", __func__, caption, message);
+        }
 
         //fprintf(stderr, "%s: %s\n", caption.c_str(), message.c_str());
     }
@@ -98,7 +101,10 @@ static void InitMessage(const std::string &message)
         QApplication::instance()->processEvents();
     }
 
-    LogPrintf("init message: %s\n", message);
+    if (fDebug)
+    {
+        LogPrint("qt", "% -- init message: %s\n", __func__, message);
+    }
 }
 
 
@@ -129,16 +135,15 @@ void DebugMessageHandler(QtMsgType type, const char * msg)
 {
     const char *category = (type == QtDebugMsg) ? "qt" : NULL;
     
-    LogPrint(category, "GUI: %s\n", msg);
+    LogPrint(category, "% -- GUI: %s\n", __func__, msg);
 }
 #else
-
 
 void DebugMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString &msg)
 {
     const char *category = (type == QtDebugMsg) ? "qt" : NULL;
     
-    LogPrint(category, "GUI: %s\n", msg.toStdString());
+    LogPrint(category, "% -- GUI: %s\n", __func__, msg.toStdString());
 }
 #endif
 

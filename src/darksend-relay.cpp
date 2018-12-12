@@ -55,21 +55,30 @@ bool CDarkSendRelay::Sign(std::string strSharedKey)
 
     if(!darkSendSigner.SetKey(strSharedKey, errorMessage, key2, pubkey2))
     {
-        LogPrintf("CDarkSendRelay():Sign - ERROR: Invalid shared key: '%s'\n", errorMessage.c_str());
+        if (fDebug)
+        {
+            LogPrint("darksend", "% --  ERROR: Invalid shared key: '%s'\n", __func__, errorMessage.c_str());
+        }
 
         return false;
     }
 
     if(!darkSendSigner.SignMessage(strMessage, errorMessage, vchSig2, key2))
     {
-        LogPrintf("CDarkSendRelay():Sign - Sign message failed\n");
+        if (fDebug)
+        {
+            LogPrint("darksend", "% --  Sign message failed\n", __func__);
+        }
 
         return false;
     }
 
     if(!darkSendSigner.VerifyMessage(pubkey2, vchSig2, strMessage, errorMessage))
     {
-        LogPrintf("CDarkSendRelay():Sign - Verify message failed\n");
+        if (fDebug)
+        {
+            LogPrint("darksend", "% --  Verify message failed\n", __func__);
+        }
 
         return false;
     }
@@ -88,15 +97,21 @@ bool CDarkSendRelay::VerifyMessage(std::string strSharedKey)
 
     if(!darkSendSigner.SetKey(strSharedKey, errorMessage, key2, pubkey2))
     {
-        LogPrintf("CDarkSendRelay()::VerifyMessage - ERROR: Invalid shared key: '%s'\n", errorMessage.c_str());
+        if (fDebug)
+        {
+            LogPrint("darksend", "% --  ERROR: Invalid shared key: '%s'\n", __func__, errorMessage.c_str());
+        }
 
         return false;
     }
 
     if(!darkSendSigner.VerifyMessage(pubkey2, vchSig2, strMessage, errorMessage))
     {
-        LogPrintf("CDarkSendRelay()::VerifyMessage - Verify message failed\n");
-
+        if (fDebug)
+        {
+            LogPrint("darksend", "% --  Verify message failed\n", __func__);
+        }
+        
         return false;
     }
 

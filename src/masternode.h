@@ -242,7 +242,10 @@ class CMasternode
 
         bool UpdatedWithin(int seconds)
         {
-            // LogPrintf("UpdatedWithin %d, %d --  %d \n", GetAdjustedTime() , lastTimeSeen, (GetAdjustedTime() - lastTimeSeen) < seconds);
+            if (fDebug)
+            {
+                LogPrint("masternode", "% -- %d, %d --  %d \n", __func__, GetAdjustedTime(), lastTimeSeen, (GetAdjustedTime() - lastTimeSeen) < seconds);
+            }
 
             return (GetAdjustedTime() - lastTimeSeen) < seconds;
         }

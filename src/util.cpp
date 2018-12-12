@@ -184,8 +184,11 @@ bool GetRandBytes(unsigned char *buf, int num)
 {
     if (RAND_bytes(buf, num) == 0)
     {
-        LogPrint("rand", "%s : OpenSSL RAND_bytes() failed with error: %s\n", __func__, ERR_error_string(ERR_get_error(), NULL));
-        
+        if (fDebug)
+        {
+            LogPrint("rand", "% -- OpenSSL RAND_bytes() failed with error: %s\n", __func__, ERR_error_string(ERR_get_error(), NULL));
+        }
+
         return false;
     }
 
@@ -235,7 +238,10 @@ void RandAddSeedPerfmon()
         
         OPENSSL_cleanse(pdata, nSize);
         
-        LogPrint("rand", "RandAddSeed() %lu bytes\n", nSize);
+        if (fDebug)
+        {
+            LogPrint("rand", "% -- %lu bytes\n", __func__, nSize);
+        }
     }
 #endif
 }
@@ -351,6 +357,11 @@ bool LogAcceptCategory(const char* category)
 
 int LogPrintStr(const std::string &str)
 {
+    if (!fDebug)
+    {
+        return 0;
+    }
+    
     int ret = 0; // Returns total number of characters written
 
     if (fPrintToConsole)
@@ -1831,8 +1842,11 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime)
     
     vTimeOffsets.input(nOffsetSample);
     
-    LogPrintf("Added time data, samples %d, offset %+d (%+d minutes)\n", vTimeOffsets.size(), nOffsetSample, nOffsetSample/60);
-    
+    if (fDebug)
+    {
+        LogPrint("util", "% -- Added time data, samples %d, offset %+d (%+d minutes)\n", __func__, vTimeOffsets.size(), nOffsetSample, nOffsetSample/60);
+    }
+
     if (vTimeOffsets.size() >= 5 && vTimeOffsets.size() % 2 == 1)
     {
         int64_t nMedian = vTimeOffsets.median();
@@ -1870,8 +1884,11 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime)
                     
                     strMiscWarning = strMessage;
                     
-                    LogPrintf("*** %s\n", strMessage);
-                    
+                    if (fDebug)
+                    {
+                        LogPrint("util", "% -- *** %s\n", __func__, strMessage);
+                    }
+
                     uiInterface.ThreadSafeMessageBox(strMessage, "", CClientUIInterface::MSG_WARNING);
                 }
             }
@@ -1881,13 +1898,14 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime)
         {
             BOOST_FOREACH(int64_t n, vSorted)
             {
-                LogPrintf("%+d  ", n);
+                LogPrint("util", "% -- %+d  ", __func__, n);
             }
 
-            LogPrintf("|  ");
-        }
+            LogPrint("util", "% -- |  ", __func__);
         
-        LogPrintf("nTimeOffset = %+d  (%+d minutes)\n", nTimeOffset, nTimeOffset/60);
+            LogPrint("util", "% -- nTimeOffset = %+d  (%+d minutes)\n", __func__, nTimeOffset, nTimeOffset/60);
+        }
+
     }
 }
 
@@ -1972,8 +1990,11 @@ boost::filesystem::path GetSpecialFolderPath(int nFolder, bool fCreate)
         return fs::path(pszPath);
     }
 
-    LogPrintf("SHGetSpecialFolderPathA() failed, could not obtain requested path.\n");
-
+    if (fDebug)
+    {
+        LogPrint("util", "% -- failed, could not obtain requested path.\n", __func__);
+    }
+    
     return fs::path("");
 }
 #endif
@@ -1985,7 +2006,10 @@ void runCommand(std::string strCommand)
 
     if (nErr)
     {
-        LogPrintf("runCommand error: system(%s) returned %d\n", strCommand, nErr);
+        if (fDebug)
+        {
+            LogPrint("util", "% -- runCommand error: system(%s) returned %d\n", __func__, strCommand, nErr);
+        }
     }
 
 }

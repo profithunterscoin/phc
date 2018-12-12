@@ -275,7 +275,7 @@ void CWalletDB::ListAccountCreditDebit(const string& strAccount, list<CAccountin
 
     if (!pcursor)
     {
-        throw runtime_error("CWalletDB::ListAccountCreditDebit() : cannot create DB cursor");
+        throw runtime_error(strprintf("% -- cannot create DB cursor", __func__ ));
     }
     
     unsigned int fFlags = DB_SET_RANGE;
@@ -303,7 +303,7 @@ void CWalletDB::ListAccountCreditDebit(const string& strAccount, list<CAccountin
         {
             pcursor->close();
 
-            throw runtime_error("CWalletDB::ListAccountCreditDebit() : error scanning DB");
+            throw runtime_error(strprintf("% -- error scanning DB", __func__));
         }
 
         // Unserialize
@@ -496,12 +496,12 @@ bool ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue, CW
                     
                     ssValue >> fTmp >> fUnused >> wtx.strFromAccount;
 
-                    strErr = strprintf("LoadWallet() upgrading tx ver=%d %d '%s' %s", wtx.fTimeReceivedIsTxTime, fTmp, wtx.strFromAccount, hash.ToString());
+                    strErr = strprintf("% -- upgrading tx ver=%d %d '%s' %s", __func__, wtx.fTimeReceivedIsTxTime, fTmp, wtx.strFromAccount, hash.ToString());
                     wtx.fTimeReceivedIsTxTime = fTmp;
                 }
                 else
                 {
-                    strErr = strprintf("LoadWallet() repairing tx ver=%d %s", wtx.fTimeReceivedIsTxTime, hash.ToString());
+                    strErr = strprintf("% -- repairing tx ver=%d %s", __func__, wtx.fTimeReceivedIsTxTime, hash.ToString());
                     wtx.fTimeReceivedIsTxTime = 0;
                 }
 
@@ -515,19 +515,18 @@ bool ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue, CW
 
             pwallet->AddToWallet(wtx, true);
 
-            //// debug print
-            //LogPrintf("LoadWallet  %s\n", wtx.GetHash().ToString());
-            //LogPrintf(" %12d  %s  %s  %s\n",
-            //    wtx.vout[0].nValue,
-            //    DateTimeStrFormat("%x %H:%M:%S", wtx.GetBlockTime()),
-            //    wtx.hashBlock.ToString(),
-            //    wtx.mapValue["message"]);
+            if (fDebug)
+            {
+                //// debug print
+                LogPrint("db", "% -- LoadWallet  %s\n", __func__, wtx.GetHash().ToString());
+                //LogPrint("db", "% -- %12d  %s  %s  %s\n", __func__, wtx.vout[0].nValue, DateTimeStrFormat("%x %H:%M:%S", wtx.GetBlockTime()), wtx.hashBlock.ToString(), wtx.mapValue["message"]);
+            }
         } 
         else if (strType == "sxAddr")
         {
             if (fDebug)
             {
-                printf("WalletDB ReadKeyValue sxAddr\n");
+                LogPrint("% -- WalletDB ReadKeyValue sxAddr\n", __func__);
             }
             
             CStealthAddress sxAddr;
@@ -586,7 +585,7 @@ bool ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue, CW
             
             if (!vchPubKey.IsValid())
             {
-                strErr = "Error reading wallet database: CPubKey corrupt";
+                strErr = strprintf("% -- Error reading wallet database: CPubKey corrupt", __func__);
 
                 return false;
             }
@@ -632,7 +631,7 @@ bool ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue, CW
 
                 if (Hash(vchKey.begin(), vchKey.end()) != hash)
                 {
-                    strErr = "Error reading wallet database: CPubKey/CPrivKey corrupt";
+                    strErr = strprintf("% -- Error reading wallet database: CPubKey/CPrivKey corrupt", __func__);
 
                     return false;
                 }
@@ -642,14 +641,14 @@ bool ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue, CW
 
             if (!key.Load(pkey, vchPubKey, fSkipCheck))
             {
-                strErr = "Error reading wallet database: CPrivKey corrupt";
+                strErr = strprintf("% -- Error reading wallet database: CPrivKey corrupt", __func__);
 
                 return false;
             }
 
             if (!pwallet->LoadKey(key, vchPubKey))
             {
-                strErr = "Error reading wallet database: LoadKey failed";
+                strErr = strprintf("% -- Error reading wallet database: LoadKey failed", __func__);
             
                 return false;
             }
@@ -666,7 +665,7 @@ bool ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue, CW
             
             if(pwallet->mapMasterKeys.count(nID) != 0)
             {
-                strErr = strprintf("Error reading wallet database: duplicate CMasterKey id %u", nID);
+                strErr = strprintf("% -- Error reading wallet database: duplicate CMasterKey id %u", __func__, nID);
             
                 return false;
             }
@@ -688,7 +687,7 @@ bool ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue, CW
             
             if (!pwallet->LoadCryptedKey(vchPubKey, vchPrivKey))
             {
-                strErr = "Error reading wallet database: LoadCryptedKey failed";
+                strErr = strprintf("% -- Error reading wallet database: LoadCryptedKey failed", __func__);
                 
                 return false;
             }
@@ -715,7 +714,7 @@ bool ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue, CW
         {
             if (fDebug)
             {
-                printf("WalletDB ReadKeyValue sxKeyMeta\n");
+                LogPrint("% -- WalletDB ReadKeyValue sxKeyMeta\n", __func__);
             }
             
             CKeyID keyId;
@@ -766,7 +765,7 @@ bool ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue, CW
 
             if (!pwallet->LoadCScript(script))
             {
-                strErr = "Error reading wallet database: LoadCScript failed";
+                strErr = strprintf("% -- Error reading wallet database: LoadCScript failed", __func__);
                 
                 return false;
             }
@@ -821,8 +820,11 @@ DBErrors CWalletDB::LoadWallet(CWallet* pwallet)
 
         if (!pcursor)
         {
-            LogPrintf("Error getting wallet database cursor\n");
-            
+            if (fDebug)
+            {
+                LogPrint("db", "% -- Error getting wallet database cursor\n", __func__);
+            }
+
             return DB_CORRUPT;
         }
 
@@ -840,8 +842,11 @@ DBErrors CWalletDB::LoadWallet(CWallet* pwallet)
             }
             else if (ret != 0)
             {
-                LogPrintf("Error reading next record from wallet database\n");
-                
+                if (fDebug)
+                {
+                    LogPrint("db", "% -- Error reading next record from wallet database\n", __func__);
+                }
+
                 return DB_CORRUPT;
             }
 
@@ -870,7 +875,10 @@ DBErrors CWalletDB::LoadWallet(CWallet* pwallet)
 
             if (!strErr.empty())
             {
-                LogPrintf("%s\n", strErr);
+                if (fDebug)
+                {
+                    LogPrint("db", "% -- %s\n", __func__, strErr);
+                }
             }
 
         }
@@ -898,9 +906,12 @@ DBErrors CWalletDB::LoadWallet(CWallet* pwallet)
         return result;
     }
 
-    LogPrintf("nFileVersion = %d\n", wss.nFileVersion);
+    if (fDebug)
+    {
+        LogPrint("db", "% -- nFileVersion = %d\n", __func__, wss.nFileVersion);
 
-    LogPrintf("Keys: %u plaintext, %u encrypted, %u w/ metadata, %u total\n", wss.nKeys, wss.nCKeys, wss.nKeyMeta, wss.nKeys + wss.nCKeys);
+        LogPrint("db", "% -- Keys: %u plaintext, %u encrypted, %u w/ metadata, %u total\n", __func__, wss.nKeys, wss.nCKeys, wss.nKeyMeta, wss.nKeys + wss.nCKeys);
+    }
 
     // nTimeFirstKey is only reliable if all keys have metadata
     if ((wss.nKeys + wss.nCKeys) != wss.nKeyMeta)
@@ -1001,7 +1012,10 @@ void ThreadFlushWalletDB(const string& strFile)
                     
                     if (mi != bitdb.mapFileUseCount.end())
                     {
-                        LogPrint("db", "Flushing wallet.dat\n");
+                        if (fDebug)
+                        {
+                            LogPrint("db", "% -- Flushing wallet.dat\n", __func__);
+                        }
 
                         nLastFlushed = nWalletDBUpdated;
                         int64_t nStart = GetTimeMillis();
@@ -1012,7 +1026,10 @@ void ThreadFlushWalletDB(const string& strFile)
 
                         bitdb.mapFileUseCount.erase(mi++);
                         
-                        LogPrint("db", "Flushed wallet.dat %dms\n", GetTimeMillis() - nStart);
+                        if (fDebug)
+                        {
+                            LogPrint("db", "% -- Flushed wallet.dat %dms\n", __func__, GetTimeMillis() - nStart);
+                        }
                     }
                 }
             }
@@ -1057,13 +1074,19 @@ bool BackupWallet(const CWallet& wallet, const string& strDest)
 #else
                     filesystem::copy_file(pathSrc, pathDest);
 #endif
-                    LogPrintf("copied wallet.dat to %s\n", pathDest.string());
+                    if (fDebug)
+                    {
+                        LogPrint("db", "% -- copied wallet.dat to %s\n", __func__, pathDest.string());
+                    }
 
                     return true;
                 }
                 catch(const filesystem::filesystem_error &e)
                 {
-                    LogPrintf("error copying wallet.dat to %s - %s\n", pathDest.string(), e.what());
+                    if (fDebug)
+                    {
+                        LogPrint("db", "% -- error copying wallet.dat to %s - %s\n", __func__, pathDest.string(), e.what());
+                    }
 
                     return false;
                 }
@@ -1098,11 +1121,17 @@ bool CWalletDB::Recover(CDBEnv& dbenv, std::string filename, bool fOnlyKeys)
 
     if (result == 0)
     {
-        LogPrintf("Renamed %s to %s\n", filename, newFilename);
+        if (fDebug)
+        {
+            LogPrint("db", "% -- Renamed %s to %s\n", __func__, filename, newFilename);
+        }
     }
     else
     {
-        LogPrintf("Failed to rename %s to %s\n", filename, newFilename);
+        if (fDebug)
+        {
+            LogPrint("db", "% -- Failed to rename %s to %s\n", __func__, filename, newFilename);
+        }
 
         return false;
     }
@@ -1113,12 +1142,18 @@ bool CWalletDB::Recover(CDBEnv& dbenv, std::string filename, bool fOnlyKeys)
     
     if (salvagedData.empty())
     {
-        LogPrintf("Salvage(aggressive) found no records in %s.\n", newFilename);
+        if (fDebug)
+        {
+            LogPrint("db", "% -- Salvage(aggressive) found no records in %s.\n", __func__, newFilename);
+        }
 
         return false;
     }
     
-    LogPrintf("Salvage(aggressive) found %u records\n", salvagedData.size());
+    if (fDebug)
+    {
+        LogPrint("db", "% -- Salvage(aggressive) found %u records\n", __func__, salvagedData.size());
+    }
 
     bool fSuccess = allOK;
 
@@ -1132,8 +1167,11 @@ bool CWalletDB::Recover(CDBEnv& dbenv, std::string filename, bool fOnlyKeys)
                             0);
     if (ret > 0)
     {
-        LogPrintf("Cannot create database file %s\n", filename);
-        
+        if (fDebug)
+        {
+            LogPrint("db", "% -- Cannot create database file %s\n", __func__, filename);
+        }
+
         return false;
     }
 
@@ -1160,8 +1198,11 @@ bool CWalletDB::Recover(CDBEnv& dbenv, std::string filename, bool fOnlyKeys)
             
             if (!fReadOK)
             {
-                LogPrintf("WARNING: CWalletDB::Recover skipping %s: %s\n", strType, strErr);
-
+                if (fDebug)
+                {
+                    LogPrint("db", "% -- WARNING: CWalletDB::Recover skipping %s: %s\n", __func__, strType, strErr);
+                }
+                
                 continue;
             }
         }

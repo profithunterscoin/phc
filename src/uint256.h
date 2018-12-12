@@ -943,48 +943,95 @@ inline int Testuint256AdHoc(std::vector<std::string> vArg)
 {
     uint256 g(0);
 
-    LogPrintf("%s\n", g.ToString());
+    if (fDebug)
+    {
+        LogPrint("uint", "% -- %s\n", __func__, g.ToString());
+    }
+
+    g--;
+
+    if (fDebug)
+    {
+        LogPrint("uint", "% -- g--\n", __func__);
+        LogPrint("uint", "% -- %s\n", __func__, g.ToString());
+    }
+
+    g--;
+
+    if (fDebug)
+    {
+        LogPrint("uint", "% -- g--\n", __func__);
+        LogPrint("uint", "% -- %s\n", __func__, g.ToString());
+    }
+
+    g++;
+
+    if (fDebug)
+    {
+        LogPrint("uint", "% -- g++\n", __func__);
+        LogPrint("uint", "% -- %s\n", __func__, g.ToString());
+    }
     
-    g--;  LogPrintf("g--\n");
-    LogPrintf("%s\n", g.ToString());
+    g++;
+
+    if (fDebug)
+    {
+        LogPrint("uint", "% -- g++\n", __func__);
+        LogPrint("uint", "% -- %s\n", __func__, g.ToString());
+    }
     
-    g--;  LogPrintf("g--\n");
-    LogPrintf("%s\n", g.ToString());
+    g++;
+
+    if (fDebug)
+    {
+        LogPrint("uint", "% -- g++\n", __func__);
+        LogPrint("uint", "% -- %s\n", __func__, g.ToString());
+    }
     
-    g++;  LogPrintf("g++\n");
-    LogPrintf("%s\n", g.ToString());
-    
-    g++;  LogPrintf("g++\n");
-    LogPrintf("%s\n", g.ToString());
-    
-    g++;  LogPrintf("g++\n");
-    LogPrintf("%s\n", g.ToString());
-    
-    g++;  LogPrintf("g++\n");
-    LogPrintf("%s\n", g.ToString());
+    g++;
+
+    if (fDebug)
+    {
+        LogPrint("uint", "% -- g++\n", __func__);
+        LogPrint("uint", "% -- %s\n", __func__, g.ToString());
+    }
 
     uint256 a(7);
     
-    LogPrintf("a=7\n");
-    LogPrintf("%s\n", a.ToString());
+    if (fDebug)
+    {
+        LogPrint("uint", "% -- a=7\n", __func__);
+        LogPrint("uint", "% -- %s\n", __func__, a.ToString());
+    }
 
     uint256 b;
     
-    LogPrintf("b undefined\n");
-    LogPrintf("%s\n", b.ToString());
+    if (fDebug)
+    {
+        LogPrint("uint", "% -- b undefined\n", __func__);
+        LogPrint("uint", "% -- %s\n", __func__, b.ToString());
+    }
     
     int c = 3;
 
     a = c;
     a.pn[3] = 15;
     
-    LogPrintf("%s\n", a.ToString());
+    if (fDebug)
+    {
+        LogPrint("uint", "% -- %s\n", __func__, a.ToString());
+    }
+    
     uint256 k(c);
 
     a = 5;
     a.pn[3] = 15;
-    
-    LogPrintf("%s\n", a.ToString());
+
+    if (fDebug)
+    {  
+        LogPrint("uint", "% -- %s\n", __func__, a.ToString());
+    }
+
     b = 1;
     b <<= 52;
 
@@ -992,108 +1039,184 @@ inline int Testuint256AdHoc(std::vector<std::string> vArg)
 
     a ^= 0x500;
 
-    LogPrintf("a %s\n", a.ToString());
+    if (fDebug)
+    {
+        LogPrint("uint", "% -- a %s\n", __func__, a.ToString());
+    }
 
     a = a | b | (uint256)0x1000;
 
-    LogPrintf("a %s\n", a.ToString());
-    LogPrintf("b %s\n", b.ToString());
+    if (fDebug)
+    {
+        LogPrint("uint", "% -- a %s\n", __func__, a.ToString());
+        LogPrint("uint", "% -- b %s\n", __func__, b.ToString());
+    }
 
     a = 0xfffffffe;
     a.pn[4] = 9;
 
-    LogPrintf("%s\n", a.ToString());
-    
-    a++;
-    LogPrintf("%s\n", a.ToString());
-    
-    a++;
-    LogPrintf("%s\n", a.ToString());
-    
-    a++;
-    LogPrintf("%s\n", a.ToString());
+    if (fDebug)
+    {
+        LogPrint("uint", "% -- %s\n", __func__, a.ToString());
+    }
 
     a++;
-    LogPrintf("%s\n", a.ToString());
+
+    if (fDebug)
+    {
+        LogPrint("uint", "% -- %s\n", __func__, a.ToString());
+    }
+
+    a++;
+
+    if (fDebug)
+    {
+        LogPrint("uint", "% -- %s\n", __func__, a.ToString());
+    }
+
+    a++;
+
+    if (fDebug)
+    {
+        LogPrint("uint", "% -- %s\n", __func__, a.ToString());
+    }
+
+    a++;
+
+    if (fDebug)
+    {
+        LogPrint("uint", "% -- %s\n", __func__, a.ToString());
+    }
 
     a--;
-    LogPrintf("%s\n", a.ToString());
-    
+
+    if (fDebug)
+    {
+        LogPrint("uint", "% -- %s\n", __func__, a.ToString());
+    }
+
     a--;
-    LogPrintf("%s\n", a.ToString());
     
+    if (fDebug)
+    {
+        LogPrint("uint", "% -- %s\n", __func__, a.ToString());
+    }
+
     a--;
-    LogPrintf("%s\n", a.ToString());
-    
+
+    if (fDebug)
+    {
+        LogPrint("uint", "% -- %s\n", __func__, a.ToString());
+    }
+
     uint256 d = a--;
-    LogPrintf("%s\n", d.ToString());
-    LogPrintf("%s\n", a.ToString());
-    
+
+    if (fDebug)
+    {
+        LogPrint("uint", "% -- %s\n", __func__, d.ToString());
+        LogPrint("uint", "% -- %s\n", __func__, a.ToString());
+    }
+
     a--;
-    LogPrintf("%s\n", a.ToString());
-    
+
+    if (fDebug)
+    {
+        LogPrint("uint", "% -- %s\n", __func__, a.ToString());
+    }
+
     a--;
-    LogPrintf("%s\n", a.ToString());
+
+    if (fDebug)
+    {
+        LogPrint("uint", "% -- %s\n", __func__, a.ToString());
+    }
 
     d = a;
 
-    LogPrintf("%s\n", d.ToString());
-
-    for (int i = uint256::WIDTH-1; i >= 0; i--)
+    if (fDebug)
     {
-        LogPrintf("%08x", d.pn[i]);
-        LogPrintf("\n");
+        LogPrint("uint", "% -- %s\n", __func__, d.ToString());
+
+        for (int i = uint256::WIDTH-1; i >= 0; i--)
+        {
+            LogPrint("uint", "% -- %08x", __func__, d.pn[i]);
+            LogPrint("uint", "% -- \n", __func__);
+        }
     }
 
     uint256 neg = d;
     neg = ~neg;
 
-    LogPrintf("%s\n", neg.ToString());
+    if (fDebug)
+    {
+        LogPrint("uint", "% -- %s\n", __func__, neg.ToString());
+    }
 
     uint256 e = uint256("0xABCDEF123abcdef12345678909832180000011111111");
-    LogPrintf("\n");
-    LogPrintf("%s\n", e.ToString());
 
+    if (fDebug)
+    {
+        LogPrint("uint", "% -- \n",  __func__);
 
-    LogPrintf("\n");
+        LogPrint("uint", "% -- %s\n", __func__, e.ToString());
+
+        LogPrint("uint", "% -- \n",  __func__);
+    }
 
     uint256 x1 = uint256("0xABCDEF123abcdef12345678909832180000011111111");
     uint256 x2;
 
-    LogPrintf("%s\n", x1.ToString());
+    if (fDebug)
+    {
+        LogPrint("uint", "% -- %s\n", __func__, x1.ToString());
+    }
 
     for (int i = 0; i < 270; i += 4)
     {
         x2 = x1 << i;
 
-        LogPrintf("%s\n", x2.ToString());
+        if (fDebug)
+        {
+            LogPrint("uint", "% -- %s\n", __func__, x2.ToString());
+        }
     }
 
-    LogPrintf("\n");
+    if (fDebug)
+    {
+        LogPrint("uint", "% -- \n", __func__,);
 
-    LogPrintf("%s\n", x1.ToString());
+        LogPrint("uint", "% -- %s\n", __func__, x1.ToString());
+    }
 
     for (int i = 0; i < 270; i += 4)
     {
         x2 = x1;
         x2 >>= i;
         
-        LogPrintf("%s\n", x2.ToString());
+        if (fDebug)
+        {
+            LogPrint("uint", "% -- %s\n", __func__, x2.ToString());
+        }
     }
-
 
     for (int i = 0; i < 100; i++)
     {
         uint256 k = (~uint256(0) >> i);
         
-        LogPrintf("%s\n", k.ToString());
+        if (fDebug)
+        {
+            LogPrint("uint", "% -- %s\n", __func__, k.ToString());
+        }
     }
 
     for (int i = 0; i < 100; i++)
     {
         uint256 k = (~uint256(0) << i);
         
-        LogPrintf("%s\n", k.ToString());
+        if (fDebug)
+        {
+            LogPrint("uint", "% -- %s\n", __func__, k.ToString());
+        }
     }
 
     return (0);

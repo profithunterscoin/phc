@@ -50,8 +50,11 @@ Value SendMoney(const CTxDestination &address, CAmount nValue, CWalletTx& wtxNew
     {
         strError = "Error: Wallet locked, unable to create transaction!";
         
-        LogPrintf("SendMoney() : %s", strError);
-        
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- %s", __func__, strError);
+        }
+
         throw JSONRPCError(RPC_WALLET_ERROR, strError);
         
         return strError;
@@ -73,8 +76,11 @@ Value SendMoney(const CTxDestination &address, CAmount nValue, CWalletTx& wtxNew
         {
             strError = strprintf("Error: This transaction requires a transaction fee of at least %s because of its amount, complexity, or use of recently received funds!", FormatMoney(nFeeRequired));
 
-            LogPrintf("SendMoney() : %s\n", strError);
-        
+            if (fDebug)
+            {
+                LogPrint("darksend", "% -- %s\n", __func__, strError);
+            }
+
             throw JSONRPCError(RPC_WALLET_ERROR, strError);
 
             return strError;
@@ -85,8 +91,11 @@ Value SendMoney(const CTxDestination &address, CAmount nValue, CWalletTx& wtxNew
     {
         strError = "Error: The transaction was rejected! This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.\n";
 
-        LogPrintf("SendMoney() : %s\n", strError);
-
+        if (fDebug)
+        {
+            LogPrint("darksend", "% -- %s\n", __func__, strError);
+        }
+        
         throw JSONRPCError(RPC_WALLET_ERROR, strError);
 
         return strError;

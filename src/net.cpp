@@ -347,7 +347,10 @@ bool ForceDisconnectNode(CNode *pnode, string FromFunction)
         // release outbound grant (if any)
         pnode->CloseSocketDisconnect();
 
-        LogPrint("net", "%s (%s) Panic Disconnect: %s\n", ModuleName.c_str(), FromFunction, pnode->addrName.c_str());
+        if (fDebug)
+        {
+            LogPrint("firewall", "%s (%s) Panic Disconnect: %s\n", ModuleName.c_str(), FromFunction, pnode->addrName.c_str());
+        }
 
         if (FIREWALL_LIVE_DEBUG == true)
         {
@@ -435,7 +438,10 @@ bool AddToBlackList(CNode *pnode)
             }
 
             // Append Blacklist to debug.log
-            LogPrint("net", "%s Blacklisted: %s\n", ModuleName.c_str(), pnode->addrName.c_str());
+            if (fDebug)
+            {
+                LogPrint("firewall", "%s Blacklisted: %s\n", ModuleName.c_str(), pnode->addrName.c_str());
+            }
 
             return true;
         }
@@ -451,7 +457,10 @@ bool AddToBanList(CNode *pnode, BanReason BAN_REASON, int BAN_TIME)
     CNode::Ban(pnode->addr, BAN_REASON, BAN_TIME, false);
     DumpBanlist();
 
-    LogPrint("net", "%s Banned: %s\n", ModuleName.c_str(), pnode->addrName);
+    if (fDebug)
+    {
+        LogPrint("firewall", "%s Banned: %s\n", ModuleName.c_str(), pnode->addrName);
+    }
 
     if (FIREWALL_LIVE_DEBUG == true)
     {
@@ -1050,7 +1059,10 @@ bool CheckAttack(CNode *pnode, string FromFunction)
             cout << ModuleName << " [Attack Type: " << ATTACK_TYPE << "] [Detected from: " << pnode->addrName << "] [Node Traffic: " << pnode->nTrafficRatio << "] [Node Traffic Avrg: " << pnode->nTrafficAverage << "] [Traffic Avrg: " << Firewall_AverageTraffic << "] [Sent Bytes: " << pnode->nSendBytes << "] [Recv Bytes: " << pnode->nRecvBytes << "] [Sync Height: " << pnode->nSyncHeight << "] [Protocol: " << pnode->nRecvVersion <<"\n" << endl;
         }
 
-        LogPrint("net", "%s [Attack Type: %s] [Detected from: %s] [Node Traffic: %d] [Node Traffic Avrg: %d] [Traffic Avrg: %d] [Sent Bytes: %d] [Recv Bytes: %d] [Sync Height: %i] [Protocol: %i\n", ModuleName.c_str(), ATTACK_TYPE.c_str(), pnode->addrName.c_str(), pnode->nTrafficRatio, pnode->nTrafficAverage, Firewall_AverageTraffic, pnode->nSendBytes, pnode->nRecvBytes, pnode->nSyncHeight, pnode->nRecvVersion);
+        if (fDebug)
+        {
+            LogPrint("firewall", "%s [Attack Type: %s] [Detected from: %s] [Node Traffic: %d] [Node Traffic Avrg: %d] [Traffic Avrg: %d] [Sent Bytes: %d] [Recv Bytes: %d] [Sync Height: %i] [Protocol: %i\n", ModuleName.c_str(), ATTACK_TYPE.c_str(), pnode->addrName.c_str(), pnode->nTrafficRatio, pnode->nTrafficAverage, Firewall_AverageTraffic, pnode->nSendBytes, pnode->nRecvBytes, pnode->nSyncHeight, pnode->nRecvVersion);
+        }
 
         // Blacklist IP on Attack detection
         // * add node/peer IP to blacklist
@@ -1201,7 +1213,10 @@ bool FireWall(CNode *pnode, string FromFunction)
             
             std::fill_n(FIREWALL_BLACKLIST, TmpBlackListCount, 0);
             
-            LogPrint("net", "%s Cleared ban: %s\n", ModuleName.c_str(), pnode->addrName.c_str());
+            if (fDebug)
+            {
+                LogPrint("firewall", "%s Cleared ban: %s\n", ModuleName.c_str(), pnode->addrName.c_str());
+            }
         }
     }
 
@@ -1209,7 +1224,10 @@ bool FireWall(CNode *pnode, string FromFunction)
     {
         FromFunction = "CheckBlackList";
 
-        LogPrint("net", "%s Disconnected Blacklisted IP: %s\n", ModuleName.c_str(), pnode->addrName.c_str());
+        if (fDebug)
+        {
+            LogPrint("firewall", "%s Disconnected Blacklisted IP: %s\n", ModuleName.c_str(), pnode->addrName.c_str());
+        }
 
         // Peer/Node Panic Disconnect
         ForceDisconnectNode(pnode, FromFunction);
@@ -1221,7 +1239,10 @@ bool FireWall(CNode *pnode, string FromFunction)
     {
         FromFunction = "CheckBanned";
 
-        LogPrint("net", "%s Disconnected Banned IP: %s\n", ModuleName.c_str(), pnode->addrName.c_str());
+        if (fDebug)
+        {
+            LogPrint("firewall", "%s Disconnected Banned IP: %s\n", ModuleName.c_str(), pnode->addrName.c_str());
+        }
 
         // Peer/Node Panic Disconnect
         ForceDisconnectNode(pnode, FromFunction);
@@ -1353,7 +1374,10 @@ bool RecvLine(SOCKET hSocket, string& strLine)
             if (nBytes == 0)
             {
                 // socket closed
-                LogPrint("net", "socket closed\n");
+                if (fDebug)
+                {
+                    LogPrint("net", "% -- socket closed\n", __func__);
+                }
 
                 return false;
             }
@@ -1362,7 +1386,10 @@ bool RecvLine(SOCKET hSocket, string& strLine)
                 // socket error
                 int nErr = WSAGetLastError();
 
-                LogPrint("net", "recv failed: %s\n", nErr);
+                if (fDebug)
+                {
+                    LogPrint("net", "% -- recv failed: %s\n", __func__, nErr);
+                }
 
                 return false;
             }
@@ -1439,12 +1466,17 @@ bool AddLocal(const CService& addr, int nScore)
         return false;
     }
 
-    LogPrintf("AddLocal(%s,%i)\n", addr.ToString(), nScore);
+    if (fDebug)
+    {
+        LogPrint("net", "% -- (%s,%i)\n", __func__, addr.ToString(), nScore);
+    }
 
     // Global Namespace Start
     {
         LOCK(cs_mapLocalHost);
+
         bool fAlready = mapLocalHost.count(addr) > 0;
+
         LocalServiceInfo &info = mapLocalHost[addr];
         
         if (!fAlready || nScore >= info.nScore)
@@ -1623,10 +1655,15 @@ bool CheckNode(CAddress addrConnect)
 
     // Connect
     SOCKET hSocket;
+
     //bool proxyConnectionFailed = false;
+
     if (ConnectSocket(addrConnect, hSocket))
     {
-        LogPrint("net", "connected masternode %s\n", addrConnect.ToString());
+        if (fDebug)
+        {
+            LogPrint("net", "% -- connected masternode %s\n", __func__, addrConnect.ToString());
+        }
 
         closesocket(hSocket);
         
@@ -1634,10 +1671,22 @@ bool CheckNode(CAddress addrConnect)
 #ifdef WIN32
         u_long nOne = 1;
         if (ioctlsocket(hSocket, FIONBIO, &nOne) == SOCKET_ERROR)
-            LogPrintf("ConnectSocket() : ioctlsocket non-blocking setting failed, error %d\n", WSAGetLastError());
+        {
+            if (fDebug)
+            {
+                LogPrint("net", "% -- ioctlsocket non-blocking setting failed, error %d\n", __func__, WSAGetLastError());
+            }
+        }
+
 #else
         if (fcntl(hSocket, F_SETFL, O_NONBLOCK) == SOCKET_ERROR)
-            LogPrintf("ConnectSocket() : fcntl non-blocking setting failed, error %d\n", errno);
+        {
+            if (fDebug)
+            {
+                LogPrint("net", "% -- fcntl non-blocking setting failed, error %d\n", __func__, errno);
+            }
+        }
+
 #endif
         CNode* pnode = new CNode(hSocket, addrConnect, "", false);
         // Close connection
@@ -1646,8 +1695,11 @@ bool CheckNode(CAddress addrConnect)
         return true;
     }
 
-    LogPrint("net", "connecting to masternode %s failed\n", addrConnect.ToString());
-    
+    if (fDebug)
+    {
+        LogPrint("net", "% -- connecting to masternode %s failed\n", __func__, addrConnect.ToString());
+    }
+
     return false;
 }
 
@@ -1677,7 +1729,10 @@ CNode* ConnectNode(CAddress addrConnect, const char *pszDest, bool darkSendMaste
     }
 
     /// debug print
-    LogPrint("net", "trying connection %s lastseen=%.1fhrs\n", pszDest ? pszDest : addrConnect.ToString(), pszDest ? 0 : (double)(GetAdjustedTime() - addrConnect.nTime)/3600.0);
+    if (fDebug)
+    {
+        LogPrint("net", "% -- trying connection %s lastseen=%.1fhrs\n", __func__, pszDest ? pszDest : addrConnect.ToString(), pszDest ? 0 : (double)(GetAdjustedTime() - addrConnect.nTime)/3600.0);
+    }
 
     // Connect
     SOCKET hSocket;
@@ -1685,20 +1740,30 @@ CNode* ConnectNode(CAddress addrConnect, const char *pszDest, bool darkSendMaste
     {
         addrman.Attempt(addrConnect);
 
-        LogPrint("net", "connected %s\n", pszDest ? pszDest : addrConnect.ToString());
+        if (fDebug)
+        {
+            LogPrint("net", "% -- connected %s\n", __func__, pszDest ? pszDest : addrConnect.ToString());
+        }
 
         // Set to non-blocking
 #ifdef WIN32
         u_long nOne = 1;
+        
         if (ioctlsocket(hSocket, FIONBIO, &nOne) == SOCKET_ERROR)
         {
-            LogPrintf("ConnectSocket() : ioctlsocket non-blocking setting failed, error %d\n", WSAGetLastError());
+            if (fDebug)
+            {
+                LogPrint("net", "% -- ioctlsocket non-blocking setting failed, error %d\n", __func__, WSAGetLastError());
+            }
         }
 
 #else
         if (fcntl(hSocket, F_SETFL, O_NONBLOCK) == SOCKET_ERROR)
         {
-            LogPrintf("ConnectSocket() : fcntl non-blocking setting failed, error %d\n", errno);
+            if (fDebug)
+            {
+                LogPrint("net", "% -- fcntl non-blocking setting failed, error %d\n", __func__, errno);
+            }
         }
 
 #endif
@@ -1732,7 +1797,10 @@ void CNode::CloseSocketDisconnect()
 
     if (hSocket != INVALID_SOCKET)
     {
-        LogPrint("net", "disconnecting node %s\n", addrName);
+        if (fDebug)
+        {
+            LogPrint("net", "% -- disconnecting node %s\n", __func__, addrName);
+        }
 
         closesocket(hSocket);
         hSocket = INVALID_SOCKET;
@@ -1765,8 +1833,11 @@ void CNode::PushVersion()
     
     GetRandBytes((unsigned char*)&nLocalHostNonce, sizeof(nLocalHostNonce));
     
-    LogPrint("net", "send version message: version %d, blocks=%d, us=%s, them=%s, peer=%s\n", PROTOCOL_VERSION, nBestHeight, addrMe.ToString(), addrYou.ToString(), addr.ToString());
-    
+    if (fDebug)
+    {
+        LogPrint("net", "% -- send version message: version %d, blocks=%d, us=%s, them=%s, peer=%s\n", __func__, PROTOCOL_VERSION, nBestHeight, addrMe.ToString(), addrYou.ToString(), addr.ToString());
+    }
+
     PushMessage("version", PROTOCOL_VERSION, nLocalServices, nTime, addrYou, addrMe, nLocalHostNonce, strSubVersion, nBestHeight);
 }
 
@@ -2138,16 +2209,25 @@ void RefreshRecentConnections(int RefreshMinutes)
                 CAddrDB adb;
                 if (!adb.Read(addrman))
                 {
-                    LogPrintf("Invalid or missing peers.dat; recreating\n");
+                    if (fDebug)
+                    {
+                        LogPrint("net", "% -- Invalid or missing peers.dat; recreating\n", __func__);
+                    }
                 }
             }
-                
-            LogPrintf("Loaded %i addresses from peers.dat  %dms\n", addrman.size(), GetTimeMillis() - nStart);
+
+            if (fDebug)
+            {
+                LogPrint("net", "% -- Loaded %i addresses from peers.dat  %dms\n", __func__, addrman.size(), GetTimeMillis() - nStart);
+            }
 
             const vector<CDNSSeedData> &vSeeds = Params().DNSSeeds();
             int found = 0;
 
-            LogPrintf("Loading addresses from DNS seeds (could take a while)\n");
+            if (fDebug)
+            {
+                LogPrint("net", "% -- Loading addresses from DNS seeds (could take a while)\n", __func__);
+            }
 
             BOOST_FOREACH(const CDNSSeedData &seed, vSeeds)
             {
@@ -2178,7 +2258,10 @@ void RefreshRecentConnections(int RefreshMinutes)
                 }
             }
 
-            LogPrintf("%d addresses found from DNS seeds\n", found);
+            if (fDebug)
+            {
+                LogPrint("net", "% -- %d addresses found from DNS seeds\n", __func__, found);
+            }
 
             //DumpAddresses();
 
@@ -2291,8 +2374,11 @@ void SocketSendData(CNode *pnode)
             }
             else
             {
-                // could not send full message; stop sending more
-                LogPrintf("socket send error: interruption\n");
+                if (fDebug)
+                {
+                    // could not send full message; stop sending more
+                    LogPrint("net", "% -- socket send error: interruption\n", __func__);
+                }
 
                 // Disconnect node/peer if send/recv data becomes idle
                 if (GetTime() - pnode->nTimeConnected > 60)
@@ -2301,7 +2387,10 @@ void SocketSendData(CNode *pnode)
                     {
                         if (GetTime() - pnode->nLastSend < 60)
                         {
-                            LogPrintf("Error: Unexpected idle interruption %s\n", pnode->addrName);
+                            if (fDebug)
+                            {
+                                LogPrint("net", "% -- Error: Unexpected idle interruption %s\n", __func__, pnode->addrName);
+                            }
 
                             pnode->CloseSocketDisconnect();
                         }
@@ -2317,9 +2406,13 @@ void SocketSendData(CNode *pnode)
             {
                 // error
                 int nErr = WSAGetLastError();
+                
                 if (nErr != WSAEWOULDBLOCK && nErr != WSAEMSGSIZE && nErr != WSAEINTR && nErr != WSAEINPROGRESS)
                 {
-                    LogPrintf("socket send error %d\n", nErr);
+                    if (fDebug)
+                    {
+                        LogPrint("net", "% -- socket send error %d\n", __func__, nErr);
+                    }
 
                     // Disconnect node/peer if send/recv data becomes idle
                     if (GetTime() - pnode->nTimeConnected > 90)
@@ -2328,7 +2421,10 @@ void SocketSendData(CNode *pnode)
                         {
                             if (GetTime() - pnode->nLastSend < 30)
                             {
-                                LogPrintf("Error: Unexpected idle interruption %s\n", pnode->addrName);
+                                if (fDebug)
+                                {
+                                    LogPrint("net", "% -- Error: Unexpected idle interruption %s\n", __func__, pnode->addrName);
+                                }
 
                                 pnode->CloseSocketDisconnect();
                             }
@@ -2338,8 +2434,11 @@ void SocketSendData(CNode *pnode)
                 }
             }
 
-            // couldn't send anything at all
-            LogPrintf("socket send error: data failure\n");
+            if (fDebug)
+            {
+                // couldn't send anything at all
+                LogPrint("net", "% -- socket send error: data failure\n", __func__);
+            }
 
             // Disconnect node/peer if send/recv data becomes idle
                 if (GetTime() - pnode->nTimeConnected > 90)
@@ -2348,7 +2447,10 @@ void SocketSendData(CNode *pnode)
                     {
                         if (GetTime() - pnode->nLastSend < 30)
                         {
-                            LogPrintf("Error: Unexpected idle interruption %s\n", pnode->addrName);
+                            if (fDebug)
+                            {
+                                LogPrint("net", "% -- Error: Unexpected idle interruption %s\n", __func__, pnode->addrName);
+                            }
 
                             pnode->CloseSocketDisconnect();
                         }
@@ -2375,6 +2477,7 @@ static list<CNode*> vNodesDisconnected;
 void ThreadSocketHandler()
 {
     unsigned int nPrevNodeCount = 0;
+
     while (true)
     {
         //
@@ -2433,13 +2536,17 @@ void ThreadSocketHandler()
                             {
                                 TRY_LOCK(pnode->cs_inventory, lockInv);
                                 if (lockInv)
+                                {
                                     fDelete = true;
+                                }
                             }
                         }
                     }
+
                     if (fDelete)
                     {
                         vNodesDisconnected.remove(pnode);
+
                         delete pnode;
                     }
                 }
@@ -2549,7 +2656,10 @@ void ThreadSocketHandler()
             {
                 int nErr = WSAGetLastError();
 
-                LogPrintf("socket select error %d\n", nErr);
+                if (fDebug)
+                {
+                    LogPrint("net", "% -- socket select error %d\n", __func__, nErr);
+                }
 
                 for (unsigned int i = 0; i <= hSocketMax; i++)
                 {
@@ -2584,7 +2694,10 @@ void ThreadSocketHandler()
                 {
                     if (!addr.SetSockAddr((const struct sockaddr*)&sockaddr))
                     {
-                        LogPrintf("Warning: Unknown socket family\n");
+                        if (fDebug)
+                        {
+                            LogPrint("net", "% -- Warning: Unknown socket family\n", __func__);
+                        }
                     }
                 }
 
@@ -2609,7 +2722,10 @@ void ThreadSocketHandler()
 
                     if (nErr != WSAEWOULDBLOCK)
                     {
-                        LogPrintf("socket error accept failed: %d\n", nErr);
+                        if (fDebug)
+                        {
+                            LogPrint("net", "% -- socket error accept failed: %d\n", __func__, nErr);
+                        }
                     }
                 }
                 else if (nInbound >= nMaxConnections - MAX_OUTBOUND_CONNECTIONS)
@@ -2618,7 +2734,10 @@ void ThreadSocketHandler()
                 }
                 else if (CNode::IsBanned(addr))
                 {
-                    LogPrintf("connection from %s dropped (banned)\n", addr.ToString());
+                    if (fDebug)
+                    {
+                        LogPrint("net", "% -- connection from %s dropped (banned)\n", __func__, addr.ToString());
+                    }
 
                     closesocket(hSocket);
                 }
@@ -2633,7 +2752,10 @@ void ThreadSocketHandler()
                     setsockopt(hSocket, IPPROTO_TCP, TCP_NODELAY, (void*)&set, sizeof(int));
 #endif
 
-                    LogPrint("net", "accepted connection %s\n", addr.ToString());
+                    if (fDebug)
+                    {
+                        LogPrint("net", "% -- accepted connection %s\n", __func__, addr.ToString());
+                    }
 
                     CNode* pnode = new CNode(hSocket, addr, "", true);
                     pnode->AddRef();
@@ -2685,7 +2807,10 @@ void ThreadSocketHandler()
                     {
                         if (!pnode->fDisconnect)
                         {
-                            LogPrintf("socket recv flood control disconnect (%u bytes)\n", pnode->GetTotalRecvSize());
+                            if (fDebug)
+                            {
+                                LogPrint("net", "% -- socket recv flood control disconnect (%u bytes)\n", __func__, pnode->GetTotalRecvSize());
+                            }
                         }
 
                         pnode->CloseSocketDisconnect();
@@ -2712,7 +2837,10 @@ void ThreadSocketHandler()
                             // socket closed gracefully
                             if (!pnode->fDisconnect)
                             {
-                                LogPrint("net", "socket closed\n");
+                                if (fDebug)
+                                {
+                                    LogPrint("net", "% -- socket closed\n", __func__);
+                                }
                             }
 
                             pnode->CloseSocketDisconnect();
@@ -2725,7 +2853,10 @@ void ThreadSocketHandler()
                             {
                                 if (!pnode->fDisconnect)
                                 {
-                                    LogPrintf("socket recv error %d\n", nErr);
+                                    if (fDebug)
+                                    {
+                                        LogPrint("net", "% -- socket recv error %d\n", __func__, nErr);
+                                    }
                                 }
 
                                 pnode->CloseSocketDisconnect();
@@ -2765,21 +2896,30 @@ void ThreadSocketHandler()
             {
                 if (pnode->nLastRecv == 0 || pnode->nLastSend == 0)
                 {
-                    LogPrint("net", "socket no message in timeout, %d %d\n", pnode->nLastRecv != 0, pnode->nLastSend != 0);
+                    if (fDebug)
+                    {
+                        LogPrint("net", "% -- socket no message in timeout, %d %d\n", __func__, pnode->nLastRecv != 0, pnode->nLastSend != 0);
+                    }
 
                     pnode->fDisconnect = true;
                     pnode->CloseSocketDisconnect();
                 }
                 else if (GetTime() - pnode->nLastSend > DATA_TIMEOUT)
                 {
-                    LogPrintf("socket not sending\n");
+                    if (fDebug)
+                    {
+                        LogPrint("net", "% -- socket not sending\n", __func__);
+                    }
 
                     pnode->fDisconnect = true;
                     pnode->CloseSocketDisconnect();
                 }
                 else if (GetTime() - pnode->nLastRecv > DATA_TIMEOUT)
                 {
-                    LogPrintf("socket inactivity timeout\n");
+                    if (fDebug)
+                    {
+                        LogPrint("net", "% -- socket inactivity timeout\n", __func__);
+                    }
 
                     pnode->fDisconnect = true;
                     pnode->CloseSocketDisconnect();
@@ -2840,19 +2980,28 @@ void ThreadMapPort()
 
             if(r != UPNPCOMMAND_SUCCESS)
             {
-                LogPrintf("UPnP: GetExternalIPAddress() returned %d\n", r);
+                if (fDebug)
+                {
+                    LogPrint("net", "% -- UPnP: GetExternalIPAddress() returned %d\n", __func__, r);
+                }
             }
             else
             {
                 if(externalIPAddress[0])
                 {
-                    LogPrintf("UPnP: ExternalIPAddress = %s\n", externalIPAddress);
+                    if (fDebug)
+                    {
+                        LogPrint("net", "% -- UPnP: ExternalIPAddress = %s\n", __func__, externalIPAddress);
+                    }
 
                     AddLocal(CNetAddr(externalIPAddress), LOCAL_UPNP);
                 }
                 else
                 {
-                    LogPrintf("UPnP: GetExternalIPAddress failed.\n");
+                    if (fDebug)
+                    {
+                        LogPrint("net", "% -- UPnP: GetExternalIPAddress failed.\n", __func__);
+                    }
                 }
             }
         }
@@ -2877,11 +3026,17 @@ void ThreadMapPort()
 
                 if(r!=UPNPCOMMAND_SUCCESS)
                 {
-                    LogPrintf("AddPortMapping(%s, %s, %s) failed with code %d (%s)\n", port, port, lanaddr, r, strupnperror(r));
+                    if (fDebug)
+                    {
+                        LogPrint("net", "% -- (%s, %s, %s) failed with code %d (%s)\n", __func__, port, port, lanaddr, r, strupnperror(r));
+                    }
                 }
                 else
                 {
-                    LogPrintf("UPnP Port Mapping successful.\n");;
+                    if (fDebug)
+                    {
+                        LogPrint("net", "% -- UPnP Port Mapping successful.\n", __func__);;
+                    }
                 }
 
                 MilliSleep(20*60*1000); // Refresh every 20 minutes
@@ -2891,7 +3046,10 @@ void ThreadMapPort()
         {
             r = UPNP_DeletePortMapping(urls.controlURL, data.first.servicetype, port.c_str(), "TCP", 0);
 
-            LogPrintf("UPNP_DeletePortMapping() returned : %d\n", r);
+            if (fDebug)
+            {
+                LogPrint("net", "% -- UPNP_DeletePortMapping() returned : %d\n", __func__, r);
+            }
 
             freeUPNPDevlist(devlist); devlist = 0;
             FreeUPNPUrls(&urls);
@@ -2901,9 +3059,13 @@ void ThreadMapPort()
     }
     else
     {
-        LogPrintf("No valid UPnP IGDs found\n");
+        if (fDebug)
+        {
+            LogPrint("net", "% -- No valid UPnP IGDs found\n", __func__);
+        }
 
         freeUPNPDevlist(devlist); devlist = 0;
+
         if (r != 0)
         {
             FreeUPNPUrls(&urls);
@@ -2955,18 +3117,26 @@ void ThreadDNSAddressSeed()
         MilliSleep(11 * 1000);
 
         LOCK(cs_vNodes);
-        if (vNodes.size() >= 2)
+
+        if (vNodes.size() >= 8)
         {
-            LogPrintf("P2P peers available. Skipped DNS seeding.\n");
+            if (fDebug)
+            {
+                LogPrint("net", "% -- P2P peers available. Skipped DNS seeding.\n", __func__);
+            }
 
             return;
         }
     }
 
     const vector<CDNSSeedData> &vSeeds = Params().DNSSeeds();
+    
     int found = 0;
 
-    LogPrintf("Loading addresses from DNS seeds (could take a while)\n");
+    if (fDebug)
+    {
+        LogPrint("net", "% -- Loading addresses from DNS seeds (could take a while)\n", __func__);
+    }
 
     BOOST_FOREACH(const CDNSSeedData &seed, vSeeds)
     {
@@ -2997,7 +3167,10 @@ void ThreadDNSAddressSeed()
         }
     }
 
-    LogPrintf("%d addresses found from DNS seeds\n", found);
+    if (fDebug)
+    {
+        LogPrint("net", "% -- %d addresses found from DNS seeds\n", __func__, found);
+    }
 }
 
 void DumpAddresses()
@@ -3007,7 +3180,10 @@ void DumpAddresses()
     CAddrDB adb;
     adb.Write(addrman);
 
-    LogPrint("net", "Flushed %d addresses to peers.dat  %dms\n", addrman.size(), GetTimeMillis() - nStart);
+    if (fDebug)
+    {
+        LogPrint("net", "% -- Flushed %d addresses to peers.dat  %dms\n", __func__, addrman.size(), GetTimeMillis() - nStart);
+    }
 }
 
 void DumpData()
@@ -3091,7 +3267,10 @@ void ThreadOpenConnections()
 
             if (!done)
             {
-                LogPrintf("Adding fixed seed nodes as DNS doesn't seem to be available.\n");
+                if (fDebug)
+                {
+                    LogPrint("net", "% -- Adding fixed seed nodes as DNS doesn't seem to be available.\n", __func__);
+                }
 
                 addrman.Add(Params().FixedSeeds(), CNetAddr("127.0.0.1"));
                 done = true;
@@ -3124,6 +3303,7 @@ void ThreadOpenConnections()
         int64_t nANow = GetAdjustedTime();
 
         int nTries = 0;
+
         while (true)
         {
             // use an nUnkBias between 10 (no outgoing connections) and 90 (8 outgoing connections)
@@ -3440,7 +3620,10 @@ void ThreadMessageHandler()
                         {
                             if (GetTime() - pnode->nLastSend < 30)
                             {
-                                LogPrintf("Error: Unexpected idle interruption %s\n", pnode->addrName);
+                                if (fDebug)
+                                {
+                                    LogPrint("net", "% -- Error: Unexpected idle interruption %s\n", __func__, pnode->addrName);
+                                }
 
                                 pnode->CloseSocketDisconnect();
                             }
@@ -3503,11 +3686,16 @@ bool BindListenPort(const CService &addrBind, string& strError)
 #ifdef WIN32
     // Initialize Windows Sockets
     WSADATA wsadata;
+    
     int ret = WSAStartup(MAKEWORD(2,2), &wsadata);
+    
     if (ret != NO_ERROR)
     {
-        strError = strprintf("Error: TCP/IP socket library failed to start (WSAStartup returned error %d)", ret);
-        LogPrintf("%s\n", strError);
+        if (fDebug)
+        {
+            strError = strprintf("Error: TCP/IP socket library failed to start (WSAStartup returned error %d)", ret);
+            LogPrint("net", "% -- %s\n", __func__, strError);
+        }
 
         return false;
     }
@@ -3519,8 +3707,11 @@ bool BindListenPort(const CService &addrBind, string& strError)
 
     if (!addrBind.GetSockAddr((struct sockaddr*)&sockaddr, &len))
     {
-        strError = strprintf("Error: bind address family for %s not supported", addrBind.ToString());
-        LogPrintf("%s\n", strError);
+        if (fDebug)
+        {
+            strError = strprintf("Error: bind address family for %s not supported", addrBind.ToString());
+            LogPrint("net", "% -- %s\n", __func__, strError);
+        }
 
         return false;
     }
@@ -3528,8 +3719,11 @@ bool BindListenPort(const CService &addrBind, string& strError)
     SOCKET hListenSocket = socket(((struct sockaddr*)&sockaddr)->sa_family, SOCK_STREAM, IPPROTO_TCP);
     if (hListenSocket == INVALID_SOCKET)
     {
-        strError = strprintf("Error: Couldn't open socket for incoming connections (socket returned error %d)", WSAGetLastError());
-        LogPrintf("%s\n", strError);
+        if (fDebug)
+        {
+            strError = strprintf("Error: Couldn't open socket for incoming connections (socket returned error %d)", WSAGetLastError());
+            LogPrint("net", "% -- %s\n", __func__, strError);
+        }
 
         return false;
     }
@@ -3558,8 +3752,11 @@ bool BindListenPort(const CService &addrBind, string& strError)
     if (fcntl(hListenSocket, F_SETFL, O_NONBLOCK) == SOCKET_ERROR)
 #endif
     {
-        strError = strprintf("Error: Couldn't set properties on socket for incoming connections (error %d)", WSAGetLastError());
-        LogPrintf("%s\n", strError);
+        if (fDebug)
+        {
+            strError = strprintf("Error: Couldn't set properties on socket for incoming connections (error %d)", WSAGetLastError());
+            LogPrint("net", "% -- %s\n", __func__, strError);
+        }
 
         return false;
     }
@@ -3575,9 +3772,11 @@ bool BindListenPort(const CService &addrBind, string& strError)
         setsockopt(hListenSocket, IPPROTO_IPV6, IPV6_V6ONLY, (void*)&nOne, sizeof(int));
 #endif
 #endif
+
 #ifdef WIN32
         int nProtLevel = 10 /* PROTECTION_LEVEL_UNRESTRICTED */;
         int nParameterId = 23 /* IPV6_PROTECTION_LEVEl */;
+
         // this call is allowed to fail
         setsockopt(hListenSocket, IPPROTO_IPV6, nParameterId, (const char*)&nProtLevel, sizeof(int));
 #endif
@@ -3586,27 +3785,37 @@ bool BindListenPort(const CService &addrBind, string& strError)
     if (::bind(hListenSocket, (struct sockaddr*)&sockaddr, len) == SOCKET_ERROR)
     {
         int nErr = WSAGetLastError();
-        if (nErr == WSAEADDRINUSE)
-        {
-            strError = strprintf(_("Unable to bind to %s on this computer. PHC is probably already running."), addrBind.ToString());
-        }
-        else
-        {
-            strError = strprintf(_("Unable to bind to %s on this computer (bind returned error %d, %s)"), addrBind.ToString(), nErr, strerror(nErr));
-        }
 
-        LogPrintf("%s\n", strError);
+        if (fDebug)
+        {
+            if (nErr == WSAEADDRINUSE)
+            {
+                strError = strprintf(_("Unable to bind to %s on this computer. PHC is probably already running."), addrBind.ToString());
+            }
+            else
+            {
+                strError = strprintf(_("Unable to bind to %s on this computer (bind returned error %d, %s)"), addrBind.ToString(), nErr, strerror(nErr));
+            }
+
+            LogPrint("net", "% -- %s\n", __func__, strError);
+        }
 
         return false;
     }
 
-    LogPrintf("Bound to %s\n", addrBind.ToString());
+    if (fDebug)
+    {
+        LogPrint("net", "% -- Bound to %s\n", __func__, addrBind.ToString());
+    }
 
     // Listen for incoming connections
     if (listen(hListenSocket, SOMAXCONN) == SOCKET_ERROR)
     {
-        strError = strprintf("Error: Listening for incoming connections failed (listen returned error %d)", WSAGetLastError());
-        LogPrintf("%s\n", strError);
+        if (fDebug)
+        {
+            strError = strprintf("Error: Listening for incoming connections failed (listen returned error %d)", WSAGetLastError());
+            LogPrint("net", "% -- %s\n", __func__, strError);
+        }
 
         return false;
     }
@@ -3677,7 +3886,10 @@ void static Discover(boost::thread_group& threadGroup)
 
                 if (AddLocal(addr, LOCAL_IF))
                 {
-                    LogPrintf("IPv4 %s: %s\n", ifa->ifa_name, addr.ToString());
+                    if (fDebug)
+                    {
+                        LogPrint("net", "% -- IPv4 %s: %s\n", __func__, ifa->ifa_name, addr.ToString());
+                    }
                 }
             }
             else if (ifa->ifa_addr->sa_family == AF_INET6)
@@ -3687,7 +3899,10 @@ void static Discover(boost::thread_group& threadGroup)
 
                 if (AddLocal(addr, LOCAL_IF))
                 {
-                    LogPrintf("IPv6 %s: %s\n", ifa->ifa_name, addr.ToString());
+                    if (fDebug)
+                    {
+                        LogPrint("net", "% -- IPv6 %s: %s\n", __func__, ifa->ifa_name, addr.ToString());
+                    }
                 }
 
             }
@@ -3705,10 +3920,15 @@ void StartNode(boost::thread_group& threadGroup)
 
     //try to read stored banlist
     CBanDB bandb;
+    
     banmap_t banmap;
+
     if (!bandb.Read(banmap))
     {
-        LogPrintf("Invalid or missing banlist.dat; recreating\n");
+        if (fDebug)
+        {
+            LogPrint("net", "% -- Invalid or missing banlist.dat; recreating\n", __func__);
+        }
     }
 
     CNode::SetBanned(banmap); //thread save setter
@@ -3735,7 +3955,10 @@ void StartNode(boost::thread_group& threadGroup)
 
     if (!GetBoolArg("-dnsseed", true))
     {
-        LogPrintf("DNS seeding disabled\n");
+        if (fDebug)
+        {
+            LogPrint("net", "% -- DNS seeding disabled\n", __func__);
+        }
     }
     else
     {
@@ -3766,7 +3989,10 @@ void StartNode(boost::thread_group& threadGroup)
 
 bool StopNode()
 {
-    LogPrintf("StopNode()\n");
+    if (fDebug)
+    {
+        LogPrint("net", "% -- StopNode()\n", __func__);
+    }
 
     MapPort(false);
 
@@ -3814,7 +4040,10 @@ class CNetCleanup
                 {
                     if (closesocket(hListenSocket) == SOCKET_ERROR)
                     {
-                        LogPrintf("closesocket(hListenSocket) failed with error %d\n", WSAGetLastError());
+                        if (fDebug)
+                        {
+                            LogPrint("net", "% -- closesocket(hListenSocket) failed with error %d\n", __func__, WSAGetLastError());
+                        }
                     }
                 }
             }
@@ -3959,7 +4188,7 @@ bool CAddrDB::Write(const CAddrMan& addr)
 
     if (fileout.IsNull())
     {
-        return error("CAddrman::Write() : open failed");
+        return error("% -- open failed", __func__);
     }
 
     // Write and commit header, data
@@ -3969,7 +4198,7 @@ bool CAddrDB::Write(const CAddrMan& addr)
     }
     catch (std::exception &e)
     {
-        return error("CAddrman::Write() : I/O error");
+        return error("% -- I/O error", __func__);
     }
 
     FileCommit(fileout.Get());
@@ -3978,7 +4207,7 @@ bool CAddrDB::Write(const CAddrMan& addr)
     // replace existing peers.dat, if any, with new peers.dat.XXXX
     if (!RenameOver(pathTmp, pathAddr))
     {
-        return error("CAddrman::Write() : Rename-into-place failed");
+        return error("% -- Rename-into-place failed", __func__);
     }
 
     return true;
@@ -3992,7 +4221,7 @@ bool CAddrDB::Read(CAddrMan& addr)
     CAutoFile filein = CAutoFile(file, SER_DISK, CLIENT_VERSION);
     if (filein.IsNull())
     {
-        return error("CAddrman::Read() : open failed");
+        return error("% -- open failed", __func__);
     }
 
     // use file size to size memory buffer
@@ -4022,7 +4251,7 @@ bool CAddrDB::Read(CAddrMan& addr)
     }
     catch (std::exception &e)
     {
-        return error("CAddrman::Read() 2 : I/O error or stream data corrupted");
+        return error("% -- 2 : I/O error or stream data corrupted", __func__);
     }
     filein.fclose();
 
@@ -4032,7 +4261,7 @@ bool CAddrDB::Read(CAddrMan& addr)
     uint256 hashTmp = Hash(ssPeers.begin(), ssPeers.end());
     if (hashIn != hashTmp)
     {
-        return error("CAddrman::Read() : checksum mismatch; data corrupted");
+        return error("% -- checksum mismatch; data corrupted", __func__);
     }
 
     unsigned char pchMsgTmp[4];
@@ -4044,7 +4273,7 @@ bool CAddrDB::Read(CAddrMan& addr)
         // ... verify the network matches ours
         if (memcmp(pchMsgTmp, Params().MessageStart(), sizeof(pchMsgTmp)))
         {
-            return error("CAddrman::Read() : invalid network magic number");
+            return error("% -- invalid network magic number", __func__);
         }
 
         // de-serialize address data into one CAddrMan object
@@ -4052,7 +4281,7 @@ bool CAddrDB::Read(CAddrMan& addr)
     }
     catch (std::exception &e)
     {
-        return error("CAddrman::Read() : I/O error or stream data corrupted");
+        return error("% -- I/O error or stream data corrupted", __func__);
     }
 
     return true;
@@ -4190,11 +4419,17 @@ void DumpBanlist()
     CNode::SweepBanned(); //clean unused entires (if bantime has expired)
 
     CBanDB bandb;
+
     banmap_t banmap;
+
     CNode::GetBanned(banmap);
+
     bandb.Write(banmap);
 
-    LogPrint("net", "Flushed %d banned node ips/subnets to banlist.dat  %dms\n", banmap.size(), GetTimeMillis() - nStart);
+    if (fDebug)
+    {
+        LogPrint("net", "% -- Flushed %d banned node ips/subnets to banlist.dat  %dms\n", __func__, banmap.size(), GetTimeMillis() - nStart);
+    }
 }
 
 

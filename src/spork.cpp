@@ -38,7 +38,11 @@ void ProcessSpork(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
 
     if (strCommand == "spork")
     {
-        //LogPrintf("ProcessSpork::spork\n");
+        if (fDebug)
+        {
+            LogPrint("spork", "% --\n", __func__);
+        }
+
         CDataStream vMsg(vRecv);
         CSporkMessage spork;
         vRecv >> spork;
@@ -56,7 +60,7 @@ void ProcessSpork(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
             {
                 if(fDebug)
                 {
-                    LogPrintf("spork - seen %s block %d \n", hash.ToString().c_str(), pindexBest->nHeight);
+                    LogPrint("spork", "% -- seen %s block %d \n", __func__, hash.ToString().c_str(), pindexBest->nHeight);
                 }
 
                 return;
@@ -65,16 +69,22 @@ void ProcessSpork(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
             {
                 if(fDebug)
                 {
-                    LogPrintf("spork - got updated spork %s block %d \n", hash.ToString().c_str(), pindexBest->nHeight);
+                    LogPrint("spork", "% -- got updated spork %s block %d \n", __func__, hash.ToString().c_str(), pindexBest->nHeight);
                 }
             }
         }
 
-        LogPrintf("spork - new %s ID %d Time %d bestHeight %d\n", hash.ToString().c_str(), spork.nSporkID, spork.nValue, pindexBest->nHeight);
+        if (fDebug)
+        {
+            LogPrint("spork", "% -- new %s ID %d Time %d bestHeight %d\n", __func__, hash.ToString().c_str(), spork.nSporkID, spork.nValue, pindexBest->nHeight);
+        }
 
         if(!sporkManager.CheckSignature(spork))
         {
-            LogPrintf("spork - invalid signature\n");
+            if (fDebug)
+            {
+                LogPrint("spork", "% -- invalid signature\n", __func__);
+            }
 
             Misbehaving(pfrom->GetId(), 100);
 
@@ -176,7 +186,10 @@ bool IsSporkActive(int nSporkID)
 
         if(r == -1)
         {
-            LogPrintf("GetSpork::Unknown Spork %d\n", nSporkID);
+            if (fDebug)
+            {
+                LogPrint("spork", "% -- Spork %d\n", __func__, nSporkID);
+            }
         }
     }
 
@@ -262,7 +275,10 @@ int64_t GetSporkValue(int nSporkID)
 
         if(r == -1)
         {
-            LogPrintf("GetSpork::Unknown Spork %d\n", nSporkID);
+            if (fDebug)
+            {
+                LogPrint("spork", "% -- Spork %d\n", __func__, nSporkID);
+            }
         }
     }
 
@@ -285,7 +301,11 @@ void ExecuteSpork(int nSporkID, int nValue)
                 LOCK(cs_main);
 
                 CBlockIndex* pindex = (*mi).second;
-                LogPrintf("ReprocessBlocks - %s\n", (*it).first.ToString());
+                
+                if (fDebug)
+                {
+                    LogPrint("spork", "% -- ReprocessBlocks - %s\n", __func__, (*it).first.ToString());
+                }
 
                 CValidationState state;
                 ReconsiderBlock(state, pindex);
@@ -336,22 +356,31 @@ bool CSporkManager::Sign(CSporkMessage& spork)
 
     if(!darkSendSigner.SetKey(strMasterPrivKey, errorMessage, key2, pubkey2))
     {
-        LogPrintf("CMasternodePayments::Sign - ERROR: Invalid masternodeprivkey: '%s'\n", errorMessage.c_str());
-        
+        if (fDebug)
+        {
+            LogPrint("spork", "% -- ERROR: Invalid masternodeprivkey: '%s'\n", __func__, errorMessage.c_str());
+        }
+
         return false;
     }
 
     if(!darkSendSigner.SignMessage(strMessage, errorMessage, spork.vchSig, key2))
     {
-        LogPrintf("CMasternodePayments::Sign - Sign message failed");
-        
+        if (fDebug)
+        {
+            LogPrint("spork", "% -- Sign message failed", __func__);
+        }
+
         return false;
     }
 
     if(!darkSendSigner.VerifyMessage(pubkey2, spork.vchSig, strMessage, errorMessage))
     {
-        LogPrintf("CMasternodePayments::Sign - Verify message failed");
-        
+        if (fDebug)
+        {
+            LogPrint("spork", "% -- Verify message failed", __func__);
+        }
+
         return false;
     }
 
@@ -401,8 +430,11 @@ bool CSporkManager::SetPrivKey(std::string strPrivKey)
 
     if(CheckSignature(msg))
     {
-        LogPrintf("CSporkManager::SetPrivKey - Successfully initialized as spork signer\n");
-
+        if (fDebug)
+        {
+            LogPrint("spork", "% -- Successfully initialized as spork signer\n", __func__);
+        }
+        
         return true;
     }
     else

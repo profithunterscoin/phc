@@ -240,13 +240,16 @@ bool LookupNumeric(const char *pszName, CService& addr, int portDefault)
 
 bool static Socks4(const CService &addrDest, SOCKET& hSocket)
 {
-    LogPrintf("SOCKS4 connecting %s\n", addrDest.ToString());
+    if (fDebug)
+    {
+        LogPrint("socks", "% -- SOCKS4 connecting %s\n", __func__, addrDest.ToString());
+    }
 
     if (!addrDest.IsIPv4())
     {
         closesocket(hSocket);
 
-        return error("Proxy destination is not IPv4");
+        return error("% -- Proxy destination is not IPv4", __func__);
     }
 
     char pszSocks4IP[] = "\4\1\0\0\0\0\0\0user";
@@ -257,7 +260,7 @@ bool static Socks4(const CService &addrDest, SOCKET& hSocket)
     {
         closesocket(hSocket);
 
-        return error("Cannot get proxy destination address");
+        return error("% -- Cannot get proxy destination address", __func__);
     }
 
     memcpy(pszSocks4IP + 2, &addr.sin_port, 2);
@@ -271,7 +274,7 @@ bool static Socks4(const CService &addrDest, SOCKET& hSocket)
     {
         closesocket(hSocket);
 
-        return error("Error sending to proxy");
+        return error("% -- Error sending to proxy", __func__);
     }
 
     char pchRet[8];
@@ -279,7 +282,7 @@ bool static Socks4(const CService &addrDest, SOCKET& hSocket)
     {
         closesocket(hSocket);
 
-        return error("Error reading proxy response");
+        return error("% -- Error reading proxy response", __func__);
     }
 
     if (pchRet[1] != 0x5a)
@@ -288,13 +291,19 @@ bool static Socks4(const CService &addrDest, SOCKET& hSocket)
 
         if (pchRet[1] != 0x5b)
         {
-            LogPrintf("ERROR: Proxy returned error %d\n", pchRet[1]);
+            if (fDebug)
+            {
+                LogPrint("socks", "% -- ERROR: Proxy returned error %d\n", __func__, pchRet[1]);
+            }
         }
 
         return false;
     }
 
-    LogPrintf("SOCKS4 connected %s\n", addrDest.ToString());
+    if (fDebug)
+    {
+        LogPrint("socks", "% -- SOCKS4 connected %s\n", __func__, addrDest.ToString());
+    }
 
     return true;
 }
@@ -302,12 +311,15 @@ bool static Socks4(const CService &addrDest, SOCKET& hSocket)
 
 bool static Socks5(string strDest, int port, SOCKET& hSocket)
 {
-    LogPrintf("SOCKS5 connecting %s\n", strDest);
+    if (fDebug)
+    {
+        LogPrint("socks", "% -- SOCKS5 connecting %s\n", __func__, strDest);
+    }
 
     if (strDest.size() > 255)
     {
         closesocket(hSocket);
-        return error("Hostname too long");
+        return error("% -- Hostname too long", __func__);
     }
 
     char pszSocks5Init[] = "\5\1\0";
@@ -318,7 +330,7 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
     if (ret != nSize)
     {
         closesocket(hSocket);
-        return error("Error sending to proxy");
+        return error("% -- Error sending to proxy", __func__);
     }
 
     char pchRet1[2];
@@ -326,13 +338,13 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
     {
         closesocket(hSocket);
 
-        return error("Error reading proxy response");
+        return error("% -- Error reading proxy response", __func__);
     }
     if (pchRet1[0] != 0x05 || pchRet1[1] != 0x00)
     {
         closesocket(hSocket);
 
-        return error("Proxy failed to initialize");
+        return error("% -- Proxy failed to initialize", __func__);
     }
 
     string strSocks5("\5\1");
@@ -347,7 +359,7 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
     {
         closesocket(hSocket);
 
-        return error("Error sending to proxy");
+        return error("% -- Error sending to proxy", __func__);
     }
 
     char pchRet2[4];
@@ -355,14 +367,14 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
     {
         closesocket(hSocket);
 
-        return error("Error reading proxy response");
+        return error("% -- Error reading proxy response", __func__);
     }
 
     if (pchRet2[0] != 0x05)
     {
         closesocket(hSocket);
 
-        return error("Proxy failed to accept request");
+        return error("% -- Proxy failed to accept request", __func__);
     }
 
     if (pchRet2[1] != 0x00)
@@ -373,55 +385,55 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
         {
             case 0x01:
             {
-                return error("Proxy error: general failure");
+                return error("% -- Proxy error: general failure", __func__);
             }
             break;
 
             case 0x02:
             {
-                return error("Proxy error: connection not allowed");
+                return error("% -- Proxy error: connection not allowed", __func__);
             }
             break;
 
             case 0x03:
             {
-                return error("Proxy error: network unreachable");
+                return error("% -- Proxy error: network unreachable", __func__);
             }
             break;
 
             case 0x04:
             {
-                return error("Proxy error: host unreachable");
+                return error("% -- Proxy error: host unreachable", __func__);
             }
             break;
 
             case 0x05:
             {
-                return error("Proxy error: connection refused");
+                return error("% -- Proxy error: connection refused", __func__);
             }
             break;
 
             case 0x06:
             {
-                return error("Proxy error: TTL expired");
+                return error("% -- Proxy error: TTL expired", __func__);
             }
             break;
 
             case 0x07:
             {
-                return error("Proxy error: protocol error");
+                return error("% -- Proxy error: protocol error", __func__);
             }
             break;
 
             case 0x08:
             {
-                return error("Proxy error: address type not supported");
+                return error("% -- Proxy error: address type not supported", __func__);
             }
             break;
 
             default:
             {
-                return error("Proxy error: unknown");
+                return error("% -- Proxy error: unknown", __func__);
             }
             break;
         }
@@ -431,7 +443,7 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
     {
         closesocket(hSocket);
 
-        return error("Error: malformed proxy response");
+        return error("% -- Error: malformed proxy response", __func__);
     }
 
     char pchRet3[256];
@@ -458,7 +470,7 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
             {
                 closesocket(hSocket);
 
-                return error("Error reading from proxy");
+                return error("% -- Error reading from proxy", __func__);
             }
 
             int nRecv = pchRet3[0];
@@ -471,7 +483,7 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
         {
             closesocket(hSocket);
 
-            return error("Error: malformed proxy response");
+            return error("% -- Error: malformed proxy response");
         }
     }
 
@@ -479,17 +491,20 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
     {
         closesocket(hSocket);
 
-        return error("Error reading from proxy");
+        return error("% -- Error reading from proxy", __func__);
     }
 
     if (recv(hSocket, pchRet3, 2, 0) != 2)
     {
         closesocket(hSocket);
 
-        return error("Error reading from proxy");
+        return error("% -- Error reading from proxy", __func__);
     }
 
-    LogPrintf("SOCKS5 connected %s\n", strDest);
+    if (fDebug)
+    {
+        LogPrint("socks", "% -- SOCKS5 connected %s\n", __func__, strDest);
+    }
 
     return true;
 }
@@ -504,7 +519,10 @@ bool static ConnectSocketDirectly(const CService &addrConnect, SOCKET& hSocketRe
     
     if (!addrConnect.GetSockAddr((struct sockaddr*)&sockaddr, &len))
     {
-        LogPrintf("Cannot connect to %s: unsupported network\n", addrConnect.ToString());
+        if (fDebug)
+        {
+            LogPrint("net", "% -- Cannot connect to %s: unsupported network\n", __func__, addrConnect.ToString());
+        }
 
         return false;
     }
@@ -558,7 +576,10 @@ bool static ConnectSocketDirectly(const CService &addrConnect, SOCKET& hSocketRe
             int nRet = select(hSocket + 1, NULL, &fdset, NULL, &timeout);
             if (nRet == 0)
             {
-                LogPrint("net", "connection to %s timeout\n", addrConnect.ToString());
+                if (fDebug)
+                {
+                    LogPrint("net", "% -- connection to %s timeout\n", __func__, addrConnect.ToString());
+                }
 
                 closesocket(hSocket);
 
@@ -567,7 +588,10 @@ bool static ConnectSocketDirectly(const CService &addrConnect, SOCKET& hSocketRe
 
             if (nRet == SOCKET_ERROR)
             {
-                LogPrintf("select() for %s failed: %i\n", addrConnect.ToString(), WSAGetLastError());
+                if (fDebug)
+                {
+                    LogPrint("net", "% -- select() for %s failed: %i\n", __func__, addrConnect.ToString(), WSAGetLastError());
+                }
 
                 closesocket(hSocket);
 
@@ -581,7 +605,10 @@ bool static ConnectSocketDirectly(const CService &addrConnect, SOCKET& hSocketRe
             if (getsockopt(hSocket, SOL_SOCKET, SO_ERROR, &nRet, &nRetSize) == SOCKET_ERROR)
 #endif
             {
-                LogPrintf("getsockopt() for %s failed: %i\n", addrConnect.ToString(), WSAGetLastError());
+                if (fDebug)
+                {
+                    LogPrint("net", "% -- getsockopt() for %s failed: %i\n", __func__, addrConnect.ToString(), WSAGetLastError());
+                }
 
                 closesocket(hSocket);
 
@@ -590,7 +617,10 @@ bool static ConnectSocketDirectly(const CService &addrConnect, SOCKET& hSocketRe
 
             if (nRet != 0)
             {
-                LogPrintf("connect() to %s failed after select(): %s\n", addrConnect.ToString(), strerror(nRet));
+                if (fDebug)
+                {
+                    LogPrint("net", "% -- connect() to %s failed after select(): %s\n", __func__, addrConnect.ToString(), strerror(nRet));
+                }
 
                 closesocket(hSocket);
 
@@ -603,7 +633,10 @@ bool static ConnectSocketDirectly(const CService &addrConnect, SOCKET& hSocketRe
         else
 #endif
         {
-            LogPrintf("connect() to %s failed: %i\n", addrConnect.ToString(), WSAGetLastError());
+            if (fDebug)
+            {
+                LogPrint("net", "% -- connect() to %s failed: %i\n", __func__, addrConnect.ToString(), WSAGetLastError());
+            }
 
             closesocket(hSocket);
 
@@ -1365,7 +1398,10 @@ uint64_t CNetAddr::GetHash() const
 
 void CNetAddr::print() const
 {
-    LogPrintf("CNetAddr(%s)\n", ToString());
+    if (fDebug)
+    {
+        LogPrint("net", "% -- CNetAddr(%s)\n", __func__, ToString());
+    }
 }
 
 
@@ -1831,7 +1867,10 @@ std::string CService::ToString() const
 
 void CService::print() const
 {
-    LogPrintf("CService(%s)\n", ToString());
+    if (fDebug)
+    {
+        LogPrint("net", "% -- CService(%s)\n", __func__, ToString());
+    }
 }
 
 
@@ -2093,11 +2132,11 @@ std::string NetworkErrorString(int err)
 
     if(FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK, NULL, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buf, sizeof(buf), NULL))
     {
-        return strprintf("%s (%d)", buf, err);
+        return strprintf("% -- %s (%d)", __func__, buf, err);
     }
     else
     {
-        return strprintf("Unknown error (%d)", err);
+        return strprintf("% -- Unknown error (%d)", __func__, err);
     }
 }
 #else
@@ -2114,6 +2153,6 @@ std::string NetworkErrorString(int err)
 #else /* POSIX variant always returns message in buffer */
     (void)strerror_r(err, buf, sizeof(buf));
 #endif
-    return strprintf("%s (%d)", s, err);
+    return strprintf("% -- %s (%d)", __func__, s, err);
 }
 #endif

@@ -98,8 +98,11 @@ class CTxDB
                         return false;
                     }
 
-                    // Some unexpected error.
-                    LogPrintf("LevelDB read failure: %s\n", status.ToString());
+                    if (fDebug)
+                    {
+                        // Some unexpected error.
+                        LogPrint("db", "% -- LevelDB read failure: %s\n", __func__, status.ToString());
+                    }
 
                     return false;
                 }
@@ -145,7 +148,10 @@ class CTxDB
             
             if (!status.ok())
             {
-                LogPrintf("LevelDB write failure: %s\n", status.ToString());
+                if (fDebug)
+                {
+                    LogPrint("db", "% --LevelDB write failure: %s\n", __func__, status.ToString());
+                }
 
                 return false;
             }
@@ -156,18 +162,28 @@ class CTxDB
         template<typename K> bool Erase(const K& key)
         {
             if (!pdb)
+            {
                 return false;
+            }
+
             if (fReadOnly)
+            {
                 assert(!"Erase called on database in read-only mode");
+            }
 
             CDataStream ssKey(SER_DISK, CLIENT_VERSION);
             ssKey.reserve(1000);
             ssKey << key;
-            if (activeBatch) {
+
+            if (activeBatch)
+            {
                 activeBatch->Delete(ssKey.str());
+
                 return true;
             }
+
             leveldb::Status status = pdb->Delete(leveldb::WriteOptions(), ssKey.str());
+            
             return (status.ok() || status.IsNotFound());
         }
 
