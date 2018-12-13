@@ -48,7 +48,7 @@ void CDBEnv::EnvShutdown()
     {
         if (fDebug)
         {
-            LogPrint("db", "% -- Exception: %s (%d)\n", __func__, DbEnv::strerror(ret), ret);
+            LogPrint("db", "% -- : Exception: %s (%d)\n", __func__, DbEnv::strerror(ret), ret);
         }
     }
     
@@ -97,7 +97,7 @@ bool CDBEnv::Open(boost::filesystem::path pathEnv_)
     
     if (fDebug)
     {
-        LogPrint("db", "% -- LogDir=%s ErrorFile=%s\n", __func__, pathLogDir.string(), pathErrorFile.string());
+        LogPrint("db", "% -- : LogDir=%s ErrorFile=%s\n", __func__, pathLogDir.string(), pathErrorFile.string());
     }
 
     unsigned int nEnvFlags = 0;
@@ -137,7 +137,7 @@ bool CDBEnv::Open(boost::filesystem::path pathEnv_)
                      S_IRUSR | S_IWUSR);
     if (ret != 0)
     {
-        return error("% -- error %s (%d) opening database environment", __func__, DbEnv::strerror(ret), ret);
+        return error("% -- : error %s (%d) opening database environment", __func__, DbEnv::strerror(ret), ret);
     }
 
     fDbEnvInit = true;
@@ -151,7 +151,7 @@ void CDBEnv::MakeMock()
 {
     if (fDbEnvInit)
     {
-        throw runtime_error(strprintf("% -- already initialized", __func__));
+        throw runtime_error(strprintf("% -- : already initialized", __func__));
     }
 
     boost::this_thread::interruption_point();
@@ -182,7 +182,7 @@ void CDBEnv::MakeMock()
 
     if (ret > 0)
     {
-        throw runtime_error(strprintf("% -- error %d opening database environment", __func__, ret));
+        throw runtime_error(strprintf("% -- : error %d opening database environment", __func__, ret));
     }
 
     fDbEnvInit = true;
@@ -239,14 +239,14 @@ bool CDBEnv::Salvage(std::string strFile, bool fAggressive, std::vector<CDBEnv::
     {
         if (fDebug)
         {
-            LogPrint("db", "% -- Error: Salvage found errors, all data may not be recoverable.\n", __func__);
+            LogPrint("db", "% -- : Error: Salvage found errors, all data may not be recoverable.\n", __func__);
         }
 
         if (!fAggressive)
         {
             if (fDebug)
             {
-                LogPrint("db", "% -- Error: Rerun with aggressive mode to ignore errors and continue.\n", __func__);
+                LogPrint("db", "% -- : Error: Rerun with aggressive mode to ignore errors and continue.\n", __func__);
             }
             
             return false;
@@ -257,7 +257,7 @@ bool CDBEnv::Salvage(std::string strFile, bool fAggressive, std::vector<CDBEnv::
     {
         if (fDebug)
         {
-            LogPrint("db", "% -- ERROR: db salvage failed: %d\n", __func__, result);
+            LogPrint("db", "% -- : ERROR: db salvage failed: %d\n", __func__, result);
         }
 
         return false;
@@ -330,7 +330,7 @@ CDB::CDB(const std::string& strFilename, const char* pszMode) : pdb(NULL), activ
 
         if (!bitdb.Open(GetDataDir()))
         {
-            throw runtime_error(strprintf("% -- env open failed", __func__));
+            throw runtime_error(strprintf("% -- : env open failed", __func__));
         }
 
         strFile = strFilename;
@@ -351,7 +351,7 @@ CDB::CDB(const std::string& strFilename, const char* pszMode) : pdb(NULL), activ
 
                 if (ret != 0)
                 {
-                    throw runtime_error(strprintf("% -- Failed to configure for no temp file backing for database %s", __func__, strFile));
+                    throw runtime_error(strprintf("% -- : Failed to configure for no temp file backing for database %s", __func__, strFile));
                 }
             }
 
@@ -370,7 +370,7 @@ CDB::CDB(const std::string& strFilename, const char* pszMode) : pdb(NULL), activ
                 --bitdb.mapFileUseCount[strFile];
                 strFile = "";
                 
-                throw runtime_error(strprintf("% -- Error %d, can't open database %s", __func__, ret, strFile));
+                throw runtime_error(strprintf("% -- : Error %d, can't open database %s", __func__, ret, strFile));
             }
 
             if (fCreate && !Exists(string("version")))
@@ -475,7 +475,7 @@ bool CDB::Rewrite(const string& strFile, const char* pszSkip)
                 
                 if (fDebug)
                 {
-                    LogPrint("db", "% -- Rewriting %s...\n", __func__, strFile);
+                    LogPrint("db", "% -- : Rewriting %s...\n", __func__, strFile);
                 }
 
                 string strFileRes = strFile + ".rewrite";
@@ -496,7 +496,7 @@ bool CDB::Rewrite(const string& strFile, const char* pszSkip)
                     {
                         if (fDebug)
                         {
-                            LogPrint("db", "% -- Cannot create database file %s\n", __func__, strFileRes);
+                            LogPrint("db", "% -- : Cannot create database file %s\n", __func__, strFileRes);
                         }
 
                         fSuccess = false;
@@ -585,7 +585,7 @@ bool CDB::Rewrite(const string& strFile, const char* pszSkip)
                 {
                     if (fDebug)
                     {
-                        LogPrint("db", "% -- Rewriting of %s FAILED!\n", __func__, strFileRes);
+                        LogPrint("db", "% -- : Rewriting of %s FAILED!\n", __func__, strFileRes);
                     }
                 }
                 
@@ -609,7 +609,7 @@ void CDBEnv::Flush(bool fShutdown)
     
     if (fDebug)
     {
-        LogPrint("db", "% -- Flush(%s)%s\n", __func__, fShutdown ? "true" : "false", fDbEnvInit ? "" : " db not started");
+        LogPrint("db", "% -- : Flush(%s)%s\n", __func__, fShutdown ? "true" : "false", fDbEnvInit ? "" : " db not started");
     }
 
     if (!fDbEnvInit)
@@ -630,7 +630,7 @@ void CDBEnv::Flush(bool fShutdown)
             
             if (fDebug)
             {
-                LogPrint("db", "% -- %s refcount=%d\n", __func__, strFile, nRefCount);
+                LogPrint("db", "% -- : %s refcount=%d\n", __func__, strFile, nRefCount);
             }
 
             if (nRefCount == 0)
@@ -640,14 +640,14 @@ void CDBEnv::Flush(bool fShutdown)
                 
                 if (fDebug)
                 {
-                    LogPrint("db", "% -- %s checkpoint\n", __func__, strFile);
+                    LogPrint("db", "% -- : %s checkpoint\n", __func__, strFile);
                 }
 
                 dbenv.txn_checkpoint(0, 0, 0);
                 
                 if (fDebug)
                 {
-                    LogPrint("db", "% -- %s detach\n", __func__, strFile);
+                    LogPrint("db", "% -- : %s detach\n", __func__, strFile);
                 }
 
                 if (!fMockDb)
@@ -657,7 +657,7 @@ void CDBEnv::Flush(bool fShutdown)
                 
                 if (fDebug)
                 {
-                    LogPrint("db", "% -- %s closed\n", __func__, strFile);
+                    LogPrint("db", "% -- : %s closed\n", __func__, strFile);
                 }
 
                 mapFileUseCount.erase(mi++);
@@ -670,7 +670,7 @@ void CDBEnv::Flush(bool fShutdown)
 
         if (fDebug)
         {
-            LogPrint("db", "% -- (%s)%s ended %15dms\n", __func__, fShutdown ? "true" : "false", fDbEnvInit ? "" : " db not started", GetTimeMillis() - nStart);
+            LogPrint("db", "% -- : (%s)%s ended %15dms\n", __func__, fShutdown ? "true" : "false", fDbEnvInit ? "" : " db not started", GetTimeMillis() - nStart);
         }
 
         if (fShutdown)

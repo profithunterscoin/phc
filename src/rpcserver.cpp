@@ -37,7 +37,6 @@ using namespace boost;
 using namespace boost::asio;
 using namespace json_spirit;
 
-
 static std::string strRPCUserColonPass;
 
 
@@ -279,6 +278,65 @@ Value stop(const Array& params, bool fHelp)
     return "PHC server stopping";
 }
 
+
+Value debug(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 1)
+    {
+        string debugstatus =  "";
+        string debugargs = "";
+
+        if (fDebug)
+        {
+            debugstatus = "True";
+        }
+        else
+        {
+            debugstatus = "False";
+        }
+
+        throw runtime_error("Current Debug State: " + debugstatus + " Categories: " + boost::join(mapMultiArgs["-debug"], ",") + "\n"
+                            "Usage:\n"
+                            "debug 0|1\n"
+                            "|addrman|alert|core|db|rand|rpc|coincontrol|mempool"
+                            "|net|socks|darksend|wallet|masternode|firewall|stealth|protocol|uint|stakemodifier|kernel|util|daemon|socks|smessage|gui|qt|mining|coinage|spork|"
+                            "Change debug category on the fly."
+                            "Specify single category or use comma to specify many.\n"
+                            "Special note: phcd must be run with -debug option and"
+                            "then can be disabled or renabled, pr configured using this rpc command\n"
+                            "\nExamples:\n"
+                            + HelpExampleCli("debug", "0")
+                            + HelpExampleCli("debug", "1")
+                            + HelpExampleRpc("debug", "netbase,net,alert")
+        );
+
+    }
+
+    std::string strMode = params[0].get_str();
+
+    mapMultiArgs["-debug"].clear();
+
+    boost::split(mapMultiArgs["-debug"], strMode, boost::is_any_of(","));
+    mapArgs["-debug"] = mapMultiArgs["-debug"][mapMultiArgs["-debug"].size() - 1];
+
+    if (strMode == "1")
+    {
+        fDebug = true;
+
+        return fDebug;
+    }
+    
+    if (strMode == "0")
+    {
+        fDebug = false;
+
+        return fDebug;
+    }
+
+    return "Debug: " + strMode;
+}
+
+
 //
 // Call Table
 //
@@ -288,6 +346,7 @@ static const CRPCCommand vRPCCommands[] =
   //  ------------------------                          -----------------------                     ---------- ---------- ---------
     { "help",                                           &help,                                          true,      true,      false },
     { "stop",                                           &stop,                                          true,      true,      false },
+    { "debug",                                          &debug,                                         true,      true,      false },
     { "getbestblockhash",                               &getbestblockhash,                              true,      false,     false },
     { "getblockcount",                                  &getblockcount,                                 true,      false,     false },
     { "getconnectioncount",                             &getconnectioncount,                            true,      false,     false },
@@ -720,7 +779,7 @@ void StartRPCThreads()
         {
             if (fDebug)
             {
-                LogPrint("rpc", "% -- ERROR: missing server certificate file %s\n", __func__, pathCertFile.string());
+                LogPrint("rpc", "% -- : ERROR: missing server certificate file %s\n", __func__, pathCertFile.string());
             }
         }
 
@@ -739,7 +798,7 @@ void StartRPCThreads()
         {
             if (fDebug)
             {
-                LogPrint("rpc", "% -- ERROR: missing server private key file %s\n", __func__, pathPKFile.string());
+                LogPrint("rpc", "% -- : ERROR: missing server private key file %s\n", __func__, pathPKFile.string());
             }
         } 
 
@@ -916,7 +975,7 @@ void JSONRequest::parse(const Value& valRequest)
     {
         if (fDebug)
         {
-            LogPrint("rpc", "% -- method=%s\n", __func__, strMethod);
+            LogPrint("rpc", "% -- : method=%s\n", __func__, strMethod);
         }
     }
 
@@ -1016,7 +1075,7 @@ void ServiceConnection(AcceptedConnection *conn)
         {
             if (fDebug)
             {
-                LogPrint("rpc", "% -- incorrect password attempt from %s\n", __func__, conn->peer_address_to_string());
+                LogPrint("rpc", "% -- : incorrect password attempt from %s\n", __func__, conn->peer_address_to_string());
             }
 
             /* Deter brute-forcing short passwords.

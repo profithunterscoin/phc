@@ -46,7 +46,7 @@ static int noui_ThreadSafeMessageBox(const std::string& message, const std::stri
 
     if (fDebug)
     {
-        LogPrint("daemon", "% -- %s: %s\n", __func__, caption, message);
+        LogPrint("daemon", "% -- : %s: %s\n", __func__, caption, message);
     }
 
     fprintf(stderr, "%s: %s\n", strCaption.c_str(), message.c_str());
@@ -63,7 +63,7 @@ static void noui_InitMessage(const std::string &message)
 {
     if (fDebug)
     {
-        LogPrint("daemon", "% -- init message: %s\n", __func__, message);
+        LogPrint("daemon", "% -- : init message: %s\n", __func__, message);
     }
 }
 

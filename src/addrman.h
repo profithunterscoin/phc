@@ -460,7 +460,7 @@ class CAddrMan
                 {
                     if (fDebug)
                     {
-                        LogPrint("addrman", "% -- ADDRMAN CONSISTENCY CHECK FAILED!!! err=%i\n", __func__, err);
+                        LogPrint("addrman", "% -- : ADDRMAN CONSISTENCY CHECK FAILED!!! err=%i\n", __func__, err);
                     }
                 }
             }
@@ -486,7 +486,7 @@ class CAddrMan
             {
                 if (fDebug)
                 {
-                    LogPrint("addrman", "% -- Added %s from %s: %i tried, %i new\n", __func__, addr.ToStringIPPort(), source.ToString(), nTried, nNew);
+                    LogPrint("addrman", "% -- : Added %s from %s: %i tried, %i new\n", __func__, addr.ToStringIPPort(), source.ToString(), nTried, nNew);
                 }
             }
 
@@ -517,7 +517,7 @@ class CAddrMan
             {
                 if (fDebug)
                 {
-                    LogPrint("addrman", "% -- Added %i addresses from %s: %i tried, %i new\n", __func__, nAdd, source.ToString(), nTried, nNew);
+                    LogPrint("addrman", "% -- : Added %i addresses from %s: %i tried, %i new\n", __func__, nAdd, source.ToString(), nTried, nNew);
                 }
             }
 

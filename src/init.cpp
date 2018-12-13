@@ -118,7 +118,7 @@ void Shutdown()
     
     if (fDebug)
     {
-        LogPrint("init", "% -- Shutdown : In progress...\n", __func__);
+        LogPrint("init", "% -- : Shutdown : In progress...\n", __func__);
     }
 
     static CCriticalSection cs_Shutdown;
@@ -188,7 +188,7 @@ void Shutdown()
 
     if (fDebug)
     {
-        LogPrint("init", "% -- Shutdown : done\n", __func__);
+        LogPrint("init", "% -- : Shutdown : done\n", __func__);
     }
 }
 
@@ -483,7 +483,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         {
             if (fDebug)
             {
-                LogPrint("init", "% -- AppInit2 : parameter interaction: -bind set -> setting -listen=1\n", __func__);
+                LogPrint("init", "% -- : AppInit2 : parameter interaction: -bind set -> setting -listen=1\n", __func__);
             }
         }
     }
@@ -498,7 +498,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         {
             if (fDebug)
             {
-                LogPrint("init", "% -- AppInit2 : parameter interaction: -connect set -> setting -dnsseed=0\n", __func__);
+                LogPrint("init", "% -- : AppInit2 : parameter interaction: -connect set -> setting -dnsseed=0\n", __func__);
             }
         }
 
@@ -506,7 +506,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         {
             if (fDebug)
             {
-                LogPrint("init", "% -- AppInit2 : parameter interaction: -connect set -> setting -listen=0\n", __func__);
+                LogPrint("init", "% -- : AppInit2 : parameter interaction: -connect set -> setting -listen=0\n", __func__);
             }
         }
     }
@@ -518,7 +518,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         {
             if (fDebug)
             {
-                LogPrint("init", "AppInit2 : parameter interaction: -proxy set -> setting -listen=0\n", __func__);
+                LogPrint("init", "% -- : AppInit2 : parameter interaction: -proxy set -> setting -listen=0\n", __func__);
             }
         }
 
@@ -528,7 +528,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         {
             if (fDebug)
             {
-                LogPrint("init", "AppInit2 : parameter interaction: -proxy set -> setting -upnp=0\n", __func__);
+                LogPrint("init", "% -- : AppInit2 : parameter interaction: -proxy set -> setting -upnp=0\n", __func__);
             }
         }
 
@@ -537,7 +537,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         {
             if (fDebug)
             {
-                LogPrint("init", "% -- AppInit2 : parameter interaction: -proxy set -> setting -discover=0\n", __func__);
+                LogPrint("init", "% -- : AppInit2 : parameter interaction: -proxy set -> setting -discover=0\n", __func__);
             }
         }
     }
@@ -549,7 +549,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         {
             if (fDebug)
             {
-                LogPrint("init", "AppInit2 : parameter interaction: -listen=0 -> setting -upnp=0\n", __func__);
+                LogPrint("init", "% -- : AppInit2 : parameter interaction: -listen=0 -> setting -upnp=0\n", __func__);
             }
         }
 
@@ -557,7 +557,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         {
             if (fDebug)
             {
-                LogPrint("init", "AppInit2 : parameter interaction: -listen=0 -> setting -discover=0\n", __func__);
+                LogPrint("init", "% -- : AppInit2 : parameter interaction: -listen=0 -> setting -discover=0\n", __func__);
             }
         }
     }
@@ -569,7 +569,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         {
             if (fDebug)
             {
-                LogPrint("init", "% -- AppInit2 : parameter interaction: -externalip set -> setting -discover=0\n", __func__);
+                LogPrint("init", "% -- : AppInit2 : parameter interaction: -externalip set -> setting -discover=0\n", __func__);
             }
         }
     }
@@ -581,7 +581,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         {
             if (fDebug)
             {
-                LogPrint("init", "% -- AppInit2 : parameter interaction: -salvagewallet=1 -> setting -rescan=1\n", __func__);
+                LogPrint("init", "% -- : AppInit2 : parameter interaction: -salvagewallet=1 -> setting -rescan=1\n", __func__);
             }
         }
     }
@@ -725,22 +725,22 @@ bool AppInit2(boost::thread_group& threadGroup)
     if (fDebug)
     {
         LogPrint("init", "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-        LogPrint("init", "% -- PHC version %s (%s)\n", __func__, FormatFullVersion(), CLIENT_DATE);
-        LogPrint("init", "% -- Using OpenSSL version %s\n", __func__, SSLeay_version(SSLEAY_VERSION));
+        LogPrint("init", "% -- : PHC version %s (%s)\n", __func__, FormatFullVersion(), CLIENT_DATE);
+        LogPrint("init", "% -- : Using OpenSSL version %s\n", __func__, SSLeay_version(SSLEAY_VERSION));
     }
 
     if (!fLogTimestamps)
     {
         if (fDebug)
         {
-            LogPrint("init", "% -- Startup time: %s\n", __func__, DateTimeStrFormat("%x %H:%M:%S", GetTime()));
+            LogPrint("init", "% -- : Startup time: %s\n", __func__, DateTimeStrFormat("%x %H:%M:%S", GetTime()));
         }
     }
 
     if (fDebug)
     {
-        LogPrint("init", "% -- Default data directory %s\n", __func__, GetDefaultDataDir().string());
-        LogPrint("init", "% -- Used data directory %s\n", __func__, strDataDir);
+        LogPrint("init", "% -- : Default data directory %s\n", __func__, GetDefaultDataDir().string());
+        LogPrint("init", "% -- : Used data directory %s\n", __func__, strDataDir);
     }
 
     std::ostringstream strErrors;
@@ -810,14 +810,14 @@ bool AppInit2(boost::thread_group& threadGroup)
                     
                     if (fDebug)
                     {
-                        LogPrint("init", "% -- Creating backup of %s -> %s\n", __func__, sourceFile, backupFile);
+                        LogPrint("init", "% -- : Creating backup of %s -> %s\n", __func__, sourceFile, backupFile);
                     }
                 }
                 catch(boost::filesystem::filesystem_error &error)
                 {
                     if (fDebug)
                     {
-                        LogPrint("init", "% -- Failed to create backup %s\n", __func__, error.what());
+                        LogPrint("init", "% -- : Failed to create backup %s\n", __func__, error.what());
                     }
                 }
 
@@ -865,14 +865,14 @@ bool AppInit2(boost::thread_group& threadGroup)
 
                             if (fDebug)
                             {
-                                LogPrint("init", "% -- Old backup deleted: %s\n", __func__, file.second);
+                                LogPrint("init", "% -- : Old backup deleted: %s\n", __func__, file.second);
                             }
                         }
                         catch(boost::filesystem::filesystem_error &error)
                         {
                             if (fDebug)
                             {
-                                LogPrint("init", "% -- Failed to delete backup %s\n", __func__, error.what());
+                                LogPrint("init", "% -- : Failed to delete backup %s\n", __func__, error.what());
                             }
                         }
                     }
@@ -894,7 +894,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
                 if (fDebug)
                 {
-                    LogPrint("init", "% -- Moved old %s to %s. Retrying.\n", __func__, pathDatabase.string(), pathDatabaseBak.string());
+                    LogPrint("init", "% -- : Moved old %s to %s. Retrying.\n", __func__, pathDatabase.string(), pathDatabaseBak.string());
                 }
             }
             catch(boost::filesystem::filesystem_error &error)
@@ -1149,7 +1149,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     {
         if (fDebug)
         {
-            LogPrint("init", "% -- Shutdown requested. Exiting.\n", __func__);
+            LogPrint("init", "% -- : Shutdown requested. Exiting.\n", __func__);
         }
 
         return false;
@@ -1157,7 +1157,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     if (fDebug)
     {
-        LogPrint("init", "% -- block index %15dms\n", __func__, GetTimeMillis() - nStart);
+        LogPrint("init", "% -- : block index %15dms\n", __func__, GetTimeMillis() - nStart);
     }
 
     if (GetBoolArg("-printblockindex", false) || GetBoolArg("-printblocktree", false))
@@ -1188,7 +1188,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
                 if (fDebug)
                 {
-                    LogPrint("init", "% -- %s\n", __func__, block.ToString());
+                    LogPrint("init", "% -- : %s\n", __func__, block.ToString());
                 }
 
                 nFound++;
@@ -1199,7 +1199,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         {
             if (fDebug)
             {
-                LogPrint("init", "% -- No blocks matching %s were found\n", __func__, strMatch);
+                LogPrint("init", "% -- : No blocks matching %s were found\n", __func__, strMatch);
             }
         }
 
@@ -1214,7 +1214,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
         if (fDebug)
         {
-            LogPrint("init", "% -- Wallet disabled!\n", __func__);
+            LogPrint("init", "% -- : Wallet disabled!\n", __func__);
         }
     }
     else
@@ -1250,7 +1250,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
                 if (fDebug)
                 {
-                    LogPrint("init", "% -- %s", __func__, strErrors.str());
+                    LogPrint("init", "% -- : %s", __func__, strErrors.str());
                 }
 
                 return InitError(strErrors.str());
@@ -1269,7 +1269,7 @@ bool AppInit2(boost::thread_group& threadGroup)
             {
                 if (fDebug)
                 {
-                    LogPrint("init", "% -- Performing wallet upgrade to %i\n", __func__, FEATURE_LATEST);
+                    LogPrint("init", "% -- : Performing wallet upgrade to %i\n", __func__, FEATURE_LATEST);
                 }
 
                 nMaxVersion = CLIENT_VERSION;
@@ -1279,7 +1279,7 @@ bool AppInit2(boost::thread_group& threadGroup)
             {
                 if (fDebug)
                 {
-                    LogPrint("init", "% -- Allowing wallet upgrade up to %i\n", __func__, nMaxVersion);
+                    LogPrint("init", "% -- : Allowing wallet upgrade up to %i\n", __func__, nMaxVersion);
                 }
             }
 
@@ -1312,8 +1312,8 @@ bool AppInit2(boost::thread_group& threadGroup)
 
         if (fDebug)
         {
-            LogPrint("init", "% -- %s", __func__, strErrors.str());
-            LogPrint("init", "% --  wallet      %15dms\n", __func__, GetTimeMillis() - nStart);
+            LogPrint("init", "% -- : %s", __func__, strErrors.str());
+            LogPrint("init", "% -- :  wallet      %15dms\n", __func__, GetTimeMillis() - nStart);
         }
 
         RegisterWallet(pwalletMain);
@@ -1346,7 +1346,7 @@ bool AppInit2(boost::thread_group& threadGroup)
             
             if (fDebug)
             {
-                LogPrint("init", "% -- Rescanning last %i blocks (from block %i)...\n", __func__, pindexBest->nHeight - pindexRescan->nHeight, pindexRescan->nHeight);
+                LogPrint("init", "% -- : Rescanning last %i blocks (from block %i)...\n", __func__, pindexBest->nHeight - pindexRescan->nHeight, pindexRescan->nHeight);
             }
 
             nStart = GetTimeMillis();
@@ -1354,7 +1354,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
             if (fDebug)
             {
-                LogPrint("init", "% -- rescan      %15dms\n", __func__, GetTimeMillis() - nStart);
+                LogPrint("init", "% -- : rescan      %15dms\n", __func__, GetTimeMillis() - nStart);
             }
 
             pwalletMain->SetBestChain(CBlockLocator(pindexBest));
@@ -1365,7 +1365,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 #else // ENABLE_WALLET
     if (fDebug)
     {
-        LogPrint("init", "% -- No wallet compiled in!\n", __func__);
+        LogPrint("init", "% -- : No wallet compiled in!\n", __func__);
     }
 #endif // !ENABLE_WALLET
     // ********************************************************* Step 9: import blocks
@@ -1395,7 +1395,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         {
             if (fDebug)
             {
-                LogPrint("init", "% -- Invalid or missing peers.dat; recreating\n", __func__);
+                LogPrint("init", "% -- : Invalid or missing peers.dat; recreating\n", __func__);
             }
         }
     }
@@ -1403,7 +1403,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     if (fDebug)
     {
-        LogPrint("init", "% -- Loaded %i addresses from peers.dat  %dms\n", __func__, addrman.size(), GetTimeMillis() - nStart);
+        LogPrint("init", "% -- : Loaded %i addresses from peers.dat  %dms\n", __func__, addrman.size(), GetTimeMillis() - nStart);
     }
 
     // ********************************************************* Step 10.1: startup secure messaging
@@ -1431,28 +1431,28 @@ bool AppInit2(boost::thread_group& threadGroup)
     {
         if (fDebug)
         {
-            LogPrint("init", "% -- Missing masternode cache file - mncache.dat, will try to recreate\n", __func__);
+            LogPrint("init", "% -- : Missing masternode cache file - mncache.dat, will try to recreate\n", __func__);
         }
     }
     else if (readResult != CMasternodeDB::Ok)
     {
         if (fDebug)
         {
-            LogPrint("init", "% -- Error reading mncache.dat: ", __func__);
+            LogPrint("init", "% -- : Error reading mncache.dat: ", __func__);
         }
 
         if(readResult == CMasternodeDB::IncorrectFormat)
         {
             if (fDebug)
             {
-                LogPrint("init", "% -- magic is ok but data has invalid format, will try to recreate\n", __func__);
+                LogPrint("init", "% -- : magic is ok but data has invalid format, will try to recreate\n", __func__);
             }
         }
         else
         {
             if (fDebug)
             {
-                LogPrint("init", "% -- file format is unknown or invalid, please fix it manually\n", __func__);
+                LogPrint("init", "% -- : file format is unknown or invalid, please fix it manually\n", __func__);
             }
         }
     }
@@ -1463,14 +1463,14 @@ bool AppInit2(boost::thread_group& threadGroup)
     {
         if (fDebug)
         {
-            LogPrint("init", "% -- IS DARKSEND MASTER NODE\n", __func__);
+            LogPrint("init", "% -- : IS DARKSEND MASTER NODE\n", __func__);
         }
 
         strMasterNodeAddr = GetArg("-masternodeaddr", "");
 
         if (fDebug)
         {
-            LogPrint("init", "% --  addr %s\n", __func__, strMasterNodeAddr.c_str());
+            LogPrint("init", "% -- :  addr %s\n", __func__, strMasterNodeAddr.c_str());
         }
 
         if(!strMasterNodeAddr.empty())
@@ -1512,7 +1512,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     {
         if (fDebug)
         {
-            LogPrint("init", "% -- Locking Masternodes:\n", __func__);
+            LogPrint("init", "% -- : Locking Masternodes:\n", __func__);
         }
 
         uint256 mnTxHash;
@@ -1521,7 +1521,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         {
             if (fDebug)
             {
-                LogPrint("init", "% -- %s %s\n", __func__, mne.getTxHash(), mne.getOutputIndex());
+                LogPrint("init", "% -- : %s %s\n", __func__, mne.getTxHash(), mne.getOutputIndex());
             }
 
             mnTxHash.SetHex(mne.getTxHash());
@@ -1581,10 +1581,10 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     if (fDebug)
     {
-        LogPrint("init", "% -- fLiteMode %d\n", __func__, fLiteMode);
-        LogPrint("init", "% -- nInstantXDepth %d\n", __func__, nInstantXDepth);
-        LogPrint("init", "% -- Darksend rounds %d\n", __func__, nDarksendRounds);
-        LogPrint("init", "% -- Anonymize PHC Amount %d\n", __func__, nAnonymizePHCAmount);
+        LogPrint("init", "% -- : fLiteMode %d\n", __func__, fLiteMode);
+        LogPrint("init", "% -- : nInstantXDepth %d\n", __func__, nInstantXDepth);
+        LogPrint("init", "% -- : Darksend rounds %d\n", __func__, nDarksendRounds);
+        LogPrint("init", "% -- : Anonymize PHC Amount %d\n", __func__, nAnonymizePHCAmount);
     }
 
     /* Denominations
@@ -1639,12 +1639,12 @@ bool AppInit2(boost::thread_group& threadGroup)
     if (fDebug)
     {
         //// debug print
-        LogPrint("init", "% -- mapBlockIndex.size() = %u\n", __func__,   mapBlockIndex.size());
-        LogPrint("init", "% -- nBestHeight = %d\n", __func__,            nBestHeight);
+        LogPrint("init", "% -- : mapBlockIndex.size() = %u\n", __func__,   mapBlockIndex.size());
+        LogPrint("init", "% -- : nBestHeight = %d\n", __func__,            nBestHeight);
 #ifdef ENABLE_WALLET
-        LogPrint("init", "% -- setKeyPool.size() = %u\n", __func__,      pwalletMain ? pwalletMain->setKeyPool.size() : 0);
-        LogPrint("init", "% -- mapWallet.size() = %u\n", __func__,       pwalletMain ? pwalletMain->mapWallet.size() : 0);
-        LogPrint("init", "% -- mapAddressBook.size() = %u\n", __func__,  pwalletMain ? pwalletMain->mapAddressBook.size() : 0);
+        LogPrint("init", "% -- : setKeyPool.size() = %u\n", __func__,      pwalletMain ? pwalletMain->setKeyPool.size() : 0);
+        LogPrint("init", "% -- : mapWallet.size() = %u\n", __func__,       pwalletMain ? pwalletMain->mapWallet.size() : 0);
+        LogPrint("init", "% -- : mapAddressBook.size() = %u\n", __func__,  pwalletMain ? pwalletMain->mapAddressBook.size() : 0);
 #endif
     }
 
@@ -1664,7 +1664,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     {
         if (fDebug)
         {
-            LogPrint("init", "% -- Staking disabled\n", __func__); 
+            LogPrint("init", "% -- : Staking disabled\n", __func__); 
         }
     }
     else if (pwalletMain)

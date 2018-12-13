@@ -811,7 +811,7 @@ class CBlock
 
             if (fDebug)
             {
-                LogPrint("stakemodifier", "% -- GetStakeEntropyBit: hashBlock=%s nEntropyBit=%u\n", __func__, GetHash().ToString(), nEntropyBit);
+                LogPrint("stakemodifier", "% -- : GetStakeEntropyBit: hashBlock=%s nEntropyBit=%u\n", __func__, GetHash().ToString(), nEntropyBit);
             }
             
             return nEntropyBit;

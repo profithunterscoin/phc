@@ -15,8 +15,8 @@ void PrintLockContention(const char* pszName, const char* pszFile, int nLine)
 {
     if (fDebug)
     {
-        LogPrint("sync", "% -- LOCKCONTENTION: %s\n", __func__, pszName);
-        LogPrint("sync", "% -- Locker: %s:%d\n", __func__, pszFile, nLine);
+        LogPrint("sync", "% -- : LOCKCONTENTION: %s\n", __func__, pszName);
+        LogPrint("sync", "% -- : Locker: %s:%d\n", __func__, pszFile, nLine);
     }
 }
 #endif /* DEBUG_LOCKCONTENTION */
@@ -71,9 +71,9 @@ static void potential_deadlock_detected(const std::pair<void*, void*>& mismatch,
 {
     if (fDebug)
     {
-        LogPrint("sync", "% -- POTENTIAL DEADLOCK DETECTED\n", __func__);
+        LogPrint("sync", "% -- : POTENTIAL DEADLOCK DETECTED\n", __func__);
         
-        LogPrint("sync", "% -- Previous lock order was:\n", __func__);
+        LogPrint("sync", "% -- : Previous lock order was:\n", __func__);
     }
 
     BOOST_FOREACH(const PAIRTYPE(void*, CLockLocation)& i, s2)
@@ -82,7 +82,7 @@ static void potential_deadlock_detected(const std::pair<void*, void*>& mismatch,
         {
             if (fDebug)
             {
-                LogPrint("sync", "% --  (1)", __func__);
+                LogPrint("sync", "% -- :  (1)", __func__);
             }
         }
 
@@ -90,19 +90,19 @@ static void potential_deadlock_detected(const std::pair<void*, void*>& mismatch,
         {
             if (fDebug)
             {
-                LogPrint("sync", "% --  (2)", __func__)
+                LogPrint("sync", "% -- :  (2)", __func__)
             }
         }
 
         if (fDebug)
         {
-            LogPrint("sync", "% --  %s\n", __func__, i.second.ToString());
+            LogPrint("sync", "% -- :  %s\n", __func__, i.second.ToString());
         }
     }
     
     if (fDebug)
     {
-        LogPrint("sync", "% -- Current lock order is:\n", __func__);
+        LogPrint("sync", "% -- : Current lock order is:\n", __func__);
     }
 
     BOOST_FOREACH(const PAIRTYPE(void*, CLockLocation)& i, s1)
@@ -111,7 +111,7 @@ static void potential_deadlock_detected(const std::pair<void*, void*>& mismatch,
         {
             if (fDebug)
             {
-                LogPrint("sync", "% --  (1)", __func__);
+                LogPrint("sync", "% -- :  (1)", __func__);
             }
         }
 
@@ -119,13 +119,13 @@ static void potential_deadlock_detected(const std::pair<void*, void*>& mismatch,
         {
             if (fDebug)
             {
-                LogPrint("sync", "% --  (2)", __func__);
+                LogPrint("sync", "% -- :  (2)", __func__);
             }
         }
 
         if (fDebug)
         {
-            LogPrint("sync", "% --  %s\n", __func__, i.second.ToString());
+            LogPrint("sync", "% -- :  %s\n", __func__, i.second.ToString());
         }
     }
 }
@@ -140,7 +140,7 @@ static void push_lock(void* c, const CLockLocation& locklocation, bool fTry)
 
     if (fDebug)
     {
-        LogPrint("lock", "% -- Locking: %s\n", __func__, locklocation.ToString());
+        LogPrint("lock", "% -- : Locking: %s\n", __func__, locklocation.ToString());
     }
 
     dd_mutex.lock();
@@ -185,7 +185,7 @@ static void pop_lock()
     {
         const CLockLocation& locklocation = (*lockstack).rbegin()->second;
 
-        LogPrint("lock", "% -- Unlocked: %s\n", __func__, locklocation.ToString());
+        LogPrint("lock", "% -- : Unlocked: %s\n", __func__, locklocation.ToString());
     }
 
     dd_mutex.lock();
@@ -231,7 +231,7 @@ void AssertLockHeldInternal(const char *pszName, const char* pszFile, int nLine,
 
     if (fDebug)
     {
-        fprintf(stderr, "% -- Assertion failed: lock %s not held in %s:%i; locks held:\n%s", __func__, pszName, pszFile, nLine, LocksHeld().c_str());
+        fprintf(stderr, "% -- : Assertion failed: lock %s not held in %s:%i; locks held:\n%s", __func__, pszName, pszFile, nLine, LocksHeld().c_str());
     }
     
     abort();

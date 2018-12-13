@@ -96,7 +96,7 @@ bool CMessageHeader::IsValid() const
     {
         if (fDebug)
         {
-            LogPrint("protocol", "% -- (%s, %u bytes) nMessageSize > MAX_SIZE\n", __func__, GetCommand(), nMessageSize);
+            LogPrint("protocol", "% -- : (%s, %u bytes) nMessageSize > MAX_SIZE\n", __func__, GetCommand(), nMessageSize);
         }
 
         return false;
@@ -156,7 +156,7 @@ CInv::CInv(const std::string& strType, const uint256& hashIn)
 
     if (i == ARRAYLEN(ppszTypeName))
     {
-        throw std::out_of_range(strprintf("% -- unknown type '%s'", __func__, strType));
+        throw std::out_of_range(strprintf("% -- : unknown type '%s'", __func__, strType));
     }
 
     hash = hashIn;
@@ -179,7 +179,7 @@ const char* CInv::GetCommand() const
 {
     if (!IsKnownType())
     {
-        throw std::out_of_range(strprintf("% -- type=%d unknown type", __func__, type));
+        throw std::out_of_range(strprintf("% -- : type=%d unknown type", __func__, type));
     }
 
     return ppszTypeName[type];

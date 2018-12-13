@@ -22,8 +22,13 @@
 #include <stdint.h>
 
 #include <boost/assign/list_of.hpp>
+#include <boost/algorithm/string.hpp>
+
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
+
+#include <vector>
+#include <string>
 
 using namespace std;
 using namespace boost;
@@ -98,7 +103,6 @@ Value getinfo(const Array& params, bool fHelp)
     
     return obj;
 }
-
 
 #ifdef ENABLE_WALLET
 class DescribeAddressVisitor : public boost::static_visitor<Object>

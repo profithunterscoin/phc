@@ -381,7 +381,7 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
         {
             if (fDebug)
             {
-                LogPrint("wallet", "% -- nFeeRequired: %d -- InsaneFee: %d\n", __func__, nFeeRequired, insanefee);
+                LogPrint("wallet", "% -- : nFeeRequired: %d -- InsaneFee: %d\n", __func__, nFeeRequired, insanefee);
             }
 
             return InsaneFee;
@@ -441,7 +441,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
                     {
                         if (fDebug)
                         {
-                            LogPrint("wallet", "% -- GenerateRandomSecret failed.\n", __func__);
+                            LogPrint("wallet", "% -- : GenerateRandomSecret failed.\n", __func__);
                         }
 
                         return Aborted;
@@ -451,7 +451,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
                     {
                         if (fDebug)
                         {
-                            LogPrint("wallet", "% -- Could not generate receiving public key.\n", __func__);
+                            LogPrint("wallet", "% -- : Could not generate receiving public key.\n", __func__);
                         }
 
                         return Aborted;
@@ -462,7 +462,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
                     {
                         if (fDebug)
                         {
-                            LogPrint("wallet", "% -- Invalid public key generated.\n", __func__);
+                            LogPrint("wallet", "% -- : Invalid public key generated.\n", __func__);
                         }
 
                         return Aborted;
@@ -476,7 +476,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
                     {
                         if (fDebug)
                         {
-                            LogPrint("wallet", "% -- Could not generate ephem public key.\n", __func__);
+                            LogPrint("wallet", "% -- : Could not generate ephem public key.\n", __func__);
                         }
 
                         return Aborted;
@@ -484,9 +484,9 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
 
                     if (fDebug)
                     {
-                        LogPrint("wallet", "% -- Stealth send to generated pubkey %: %s\n", __func__, pkSendTo.size(), HexStr(pkSendTo).c_str());
-                        LogPrint("wallet", "% -- hash %s\n", __func__, addrTo.ToString().c_str());
-                        LogPrint("wallet", "% -- ephem_pubkey %: %s\n", __func__, ephem_pubkey.size(), HexStr(ephem_pubkey).c_str());
+                        LogPrint("wallet", "% -- : Stealth send to generated pubkey %: %s\n", __func__, pkSendTo.size(), HexStr(pkSendTo).c_str());
+                        LogPrint("wallet", "% -- : hash %s\n", __func__, addrTo.ToString().c_str());
+                        LogPrint("wallet", "% -- : ephem_pubkey %: %s\n", __func__, ephem_pubkey.size(), HexStr(ephem_pubkey).c_str());
                     }
 
                     CScript scriptPubKey;
@@ -519,7 +519,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
                         {
                             if (fDebug)
                             {
-                                LogPrint("wallet", "% -- Narration encryption failed.\n", __func__);
+                                LogPrint("wallet", "% -- : Narration encryption failed.\n", __func__);
                             }
 
                             return Aborted;
@@ -529,7 +529,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
                         {
                             if (fDebug)
                             {
-                                LogPrint("wallet", "% -- Encrypted narration is too long.\n", __func__);
+                                LogPrint("wallet", "% -- : Encrypted narration is too long.\n", __func__);
                             }
 
                             return Aborted;
@@ -552,7 +552,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
                 {
                     if (fDebug)
                     {
-                        LogPrint("wallet", "% -- Couldn't parse stealth address!\n", __func__);
+                        LogPrint("wallet", "% -- : Couldn't parse stealth address!\n", __func__);
                     }
 
                     return Aborted;
@@ -571,7 +571,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
                 {
                     if (fDebug)
                     {
-                        LogPrint("wallet", "% -- Narration is too long.\n", __func__);
+                        LogPrint("wallet", "% -- : Narration is too long.\n", __func__);
                     }
 
                     return NarrationTooLong;
@@ -617,7 +617,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
             {
                 if (fDebug)
                 {
-                    LogPrint("wallet", "% -- Error creating narration key.", __func__);
+                    LogPrint("wallet", "% -- : Error creating narration key.", __func__);
                 }
 
                 continue;
@@ -807,7 +807,7 @@ static void NotifyAddressBookChanged(WalletModel *walletmodel, CWallet *wallet, 
 
         if (fDebug)
         {
-            LogPrint("wallet", "% -- %s %s isMine=%i status=%i\n", __func__, enc.c_str(), label.c_str(), isMine, status);
+            LogPrint("wallet", "% -- : %s %s isMine=%i status=%i\n", __func__, enc.c_str(), label.c_str(), isMine, status);
         }
 
         QMetaObject::invokeMethod(walletmodel, "updateAddressBook", Qt::QueuedConnection, Q_ARG(QString, QString::fromStdString(enc)), Q_ARG(QString, QString::fromStdString(label)), Q_ARG(bool, isMine), Q_ARG(int, status));
