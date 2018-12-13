@@ -225,7 +225,7 @@ void CoinControlDialog::buttonSelectAllClicked()
     
     if (fDebug)
     {
-        LogPrint("coincontrol", "% -- CoinControlDialog::updateLabels) - Time elapsed: %f \n", __func__, t);
+        LogPrint("coincontrol", "% -- : CoinControlDialog::updateLabels) - Time elapsed: %f \n", __func__, t);
     }
 }
 
@@ -822,7 +822,7 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog* dialog)
     
     if (fDebug)
     {
-        LogPrint("coincontrol", "% -- Time elapsed: %f \n", __func__, t);
+        LogPrint("coincontrol", "% -- : Time elapsed: %f \n", __func__, t);
     }
 }
 
@@ -1046,6 +1046,6 @@ void CoinControlDialog::updateView()
     
     if (fDebug)
     {
-        LogPrint("coincontrol", "% -- Time elapsed: %f \n", __func__, t);
+        LogPrint("coincontrol", "% -- : Time elapsed: %f \n", __func__, t);
     }
 }

@@ -259,6 +259,7 @@ void MasternodeManager::on_createButton_clicked()
 {
     AddEditAdrenalineNode* aenode = new AddEditAdrenalineNode();
     aenode->exec();
+    MasternodeManager::on_UpdateButton_clicked();
 }
 
 

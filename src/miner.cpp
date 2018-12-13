@@ -241,7 +241,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
                     {
                         if (fDebug)
                         {
-                            LogPrint("mempool", "% -- ERROR: mempool transaction missing input\n", __func__);
+                            LogPrint("mempool", "% -- : ERROR: mempool transaction missing input\n", __func__);
 
                             assert("mempool transaction missing input" == 0);
                         }
@@ -425,7 +425,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
 
         if (fDebug && GetBoolArg("-printpriority", false))
         {
-            LogPrint("miner", "% -- total size %u\n", __func__, nBlockSize);
+            LogPrint("miner", "% -- : total size %u\n", __func__, nBlockSize);
         }
         
         // >PHC<
@@ -537,20 +537,20 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
 
     if(!pblock->IsProofOfWork())
     {
-        return error("% -- %s is not a proof-of-work block", __func__, hashBlock.GetHex());
+        return error("% -- : %s is not a proof-of-work block", __func__, hashBlock.GetHex());
     }
 
     if (hashProof > hashTarget)
     {
-        return error("% -- proof-of-work not meeting target", __func__);
+        return error("% -- : proof-of-work not meeting target", __func__);
     }
 
     if (fDebug)
     {
         //// debug print
-        LogPrint("miner", "% -- new proof-of-work block found  \n  proof hash: %s  \ntarget: %s\n",  __func__, hashProof.GetHex(), hashTarget.GetHex());
-        LogPrint("miner", "% -- %s\n", __func__, pblock->ToString());
-        LogPrint("miner", "% -- generated %s\n", __func__, FormatMoney(pblock->vtx[0].vout[0].nValue));
+        LogPrint("miner", "% -- : new proof-of-work block found  \n  proof hash: %s  \ntarget: %s\n",  __func__, hashProof.GetHex(), hashTarget.GetHex());
+        LogPrint("miner", "% -- : %s\n", __func__, pblock->ToString());
+        LogPrint("miner", "% -- : generated %s\n", __func__, FormatMoney(pblock->vtx[0].vout[0].nValue));
     }
 
     // Global Namespace Start
@@ -561,7 +561,7 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
 
         if (pblock->hashPrevBlock != hashBestChain)
         {
-            return error("% -- generated block is stale", __func__);
+            return error("% -- : generated block is stale", __func__);
         }
 
         // Remove key from key pool
@@ -579,7 +579,7 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
         // Process this block the same as if we had received it from another node
         if (!ProcessBlock(NULL, pblock))
         {
-            return error("% -- ProcessBlock, block not accepted", __func__);
+            return error("% -- : ProcessBlock, block not accepted", __func__);
         }
     }
     // Global Namespace End
@@ -594,21 +594,21 @@ bool CheckStake(CBlock* pblock, CWallet& wallet)
 
     if(!pblock->IsProofOfStake())
     {
-        return error("% -- %s is not a proof-of-stake block", __func__, hashBlock.GetHex());
+        return error("% -- : %s is not a proof-of-stake block", __func__, hashBlock.GetHex());
     }
 
     // verify hash target and signature of coinstake tx
     if (!CheckProofOfStake(mapBlockIndex[pblock->hashPrevBlock], pblock->vtx[1], pblock->nBits, proofHash, hashTarget))
     {
-        return error("% -- proof-of-stake checking failed", __func__);
+        return error("% -- : proof-of-stake checking failed", __func__);
     }
 
     if (fDebug)
     {
         //// debug print
-        LogPrint("coinstake", "% -- new proof-of-stake block found  \n  hash: %s \nproofhash: %s  \ntarget: %s\n", __func__, hashBlock.GetHex(), proofHash.GetHex(), hashTarget.GetHex());
-        LogPrint("coinstake", "% -- %s\n", __func__, pblock->ToString());
-        LogPrint("coinstake", "% -- out %s\n", __func__, FormatMoney(pblock->vtx[1].GetValueOut()));
+        LogPrint("coinstake", "% -- : new proof-of-stake block found  \n  hash: %s \nproofhash: %s  \ntarget: %s\n", __func__, hashBlock.GetHex(), proofHash.GetHex(), hashTarget.GetHex());
+        LogPrint("coinstake", "% -- : %s\n", __func__, pblock->ToString());
+        LogPrint("coinstake", "% -- : out %s\n", __func__, FormatMoney(pblock->vtx[1].GetValueOut()));
     }
 
     // Global Namespace Start
@@ -618,7 +618,7 @@ bool CheckStake(CBlock* pblock, CWallet& wallet)
         LOCK(cs_main);
         if (pblock->hashPrevBlock != hashBestChain)
         {
-            return error("% -- generated block is stale", __func__);
+            return error("% -- : generated block is stale", __func__);
         }
 
         // Global Namespace Start
@@ -632,7 +632,7 @@ bool CheckStake(CBlock* pblock, CWallet& wallet)
         // Process this block the same as if we had received it from another node
         if (!ProcessBlock(NULL, pblock))
         {
-            return error("% -- ProcessBlock, block not accepted", __func__);
+            return error("% -- : ProcessBlock, block not accepted", __func__);
         }
         else
         {
@@ -646,7 +646,7 @@ bool CheckStake(CBlock* pblock, CWallet& wallet)
             {
                 if (fDebug)
                 {
-                    LogPrint("coinstake", "% -- PoS mismatched spent coins = %d and balance affects = %d \n", __func__, nMismatchSpent, nBalanceInQuestion);
+                    LogPrint("coinstake", "% -- : PoS mismatched spent coins = %d and balance affects = %d \n", __func__, nMismatchSpent, nBalanceInQuestion);
                 }
             }
         }
@@ -689,7 +689,7 @@ void ThreadStakeMiner(CWallet *pwallet)
         if (fTryToSync)
         {
             fTryToSync = false;
-            if (vNodes.size() < 3 || pindexBest->GetBlockTime() < GetTime() - 10 * 60)
+            if (vNodes.size() < 8 || pindexBest->GetBlockTime() < GetTime() - 10 * 60)
             {
                 MilliSleep(10000);
             

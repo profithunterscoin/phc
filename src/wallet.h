@@ -1355,7 +1355,7 @@ class COutput
         {
             if (fDebug)
             {
-                LogPrint("wallet", "% -- %s\n", __func__, ToString().c_str());
+                LogPrint("wallet", "% -- : %s\n", __func__, ToString().c_str());
             }
 
         }

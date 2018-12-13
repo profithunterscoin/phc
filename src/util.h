@@ -691,7 +691,7 @@ template <typename Callable> void LoopForever(const char* name,  Callable func, 
     
     if (fDebug)
     {
-        LogPrint("util", "% -- %s thread start\n", __func__, name);
+        LogPrint("util", "% -- : %s thread start\n", __func__, name);
     }
 
     try
@@ -707,7 +707,7 @@ template <typename Callable> void LoopForever(const char* name,  Callable func, 
     {
         if (fDebug)
         {
-            LogPrint("util", "% -- %s thread stop\n", __func__, name);
+            LogPrint("util", "% -- : %s thread stop\n", __func__, name);
         }
 
         throw;
@@ -734,21 +734,21 @@ template <typename Callable> void TraceThread(const char* name,  Callable func)
     {
         if (fDebug)
         {
-            LogPrint("util", "% -- %s thread start\n", __func__, name);
+            LogPrint("util", "% -- : %s thread start\n", __func__, name);
         }
 
         func();
         
         if (fDebug)
         {
-            LogPrint("util", "% -- %s thread exit\n", __func__, name);
+            LogPrint("util", "% -- : %s thread exit\n", __func__, name);
         }
     }
     catch (boost::thread_interrupted)
     {
         if (fDebug)
         {
-            LogPrint("util", "% -- %s thread interrupt\n", __func__, name);
+            LogPrint("util", "% -- : %s thread interrupt\n", __func__, name);
         }
 
         throw;

@@ -106,7 +106,7 @@ CPubKey CWallet::GenerateNewKey()
 
     if (!AddKeyPubKey(secret, pubkey))
     {
-        throw std::runtime_error(strprintf("% -- AddKey failed", __func__));
+        throw std::runtime_error(strprintf("% -- : AddKey failed", __func__));
     }
 
     return pubkey;
@@ -229,7 +229,7 @@ bool CWallet::LoadCScript(const CScript& redeemScript)
 
         if (fDebug)
         {
-            LogPrint("wallet", "% -- Warning: This wallet contains a redeemScript of size %u which exceeds maximum size %i thus can never be redeemed. Do not use address %s.\n",
+            LogPrint("wallet", "% -- : Warning: This wallet contains a redeemScript of size %u which exceeds maximum size %i thus can never be redeemed. Do not use address %s.\n",
                     __func__, redeemScript.size(), MAX_SCRIPT_ELEMENT_SIZE, strAddr);
         }
 
@@ -299,7 +299,7 @@ bool CWallet::Lock()
 
     if (fDebug)
     {
-       LogPrint("wallet", "% -- Locking wallet.\n", __func__);
+       LogPrint("wallet", "% -- : Locking wallet.\n", __func__);
     }
 
     // Global Namespace Start
@@ -323,7 +323,7 @@ bool CWallet::Lock()
 
             if (fDebug)
             {
-                LogPrint("wallet", "% -- Recrypting stealth key %s\n", __func__, sxAddr.Encoded().c_str());
+                LogPrint("wallet", "% -- : Recrypting stealth key %s\n", __func__, sxAddr.Encoded().c_str());
             }
 
             sxAddrTemp.scan_pubkey = sxAddr.scan_pubkey;
@@ -331,7 +331,7 @@ bool CWallet::Lock()
             {
                 if (fDebug)
                 {
-                    LogPrint("wallet", "% -- Error: Failed to read stealth key from db %s\n", __func__, sxAddr.Encoded().c_str());
+                    LogPrint("wallet", "% -- : Error: Failed to read stealth key from db %s\n", __func__, sxAddr.Encoded().c_str());
                 }
 
                 continue;
@@ -446,7 +446,7 @@ bool CWallet::ChangeWalletPassphrase(const SecureString& strOldWalletPassphrase,
 
                 if (fDebug)
                 {
-                    LogPrint("wallet", "% -- Wallet passphrase changed to an nDeriveIterations of %i\n", __func__, pMasterKey.second.nDeriveIterations);
+                    LogPrint("wallet", "% -- : Wallet passphrase changed to an nDeriveIterations of %i\n", __func__, pMasterKey.second.nDeriveIterations);
                 }
 
                 if (!crypter.SetKeyFromPassphrase(strNewWalletPassphrase, pMasterKey.second.vchSalt, pMasterKey.second.nDeriveIterations, pMasterKey.second.nDerivationMethod))
@@ -715,7 +715,7 @@ bool CWallet::EncryptWallet(const SecureString& strWalletPassphrase)
 
     if (fDebug)
     {
-        LogPrint("wallet", "% -- Encrypting Wallet with an nDeriveIterations of %i\n", __func__, kMasterKey.nDeriveIterations);
+        LogPrint("wallet", "% -- : Encrypting Wallet with an nDeriveIterations of %i\n", __func__, kMasterKey.nDeriveIterations);
     }
 
     if (!crypter.SetKeyFromPassphrase(strWalletPassphrase, kMasterKey.vchSalt, kMasterKey.nDeriveIterations, kMasterKey.nDerivationMethod))
@@ -766,7 +766,7 @@ bool CWallet::EncryptWallet(const SecureString& strWalletPassphrase)
 
             if (fDebug)
             {
-               LogPrint("wallet", "% -- Encrypting stealth key %s\n", __func__, sxAddr.Encoded().c_str());
+               LogPrint("wallet", "% -- : Encrypting stealth key %s\n", __func__, sxAddr.Encoded().c_str());
             }
 
             std::vector<unsigned char> vchCryptedSecret;
@@ -781,7 +781,7 @@ bool CWallet::EncryptWallet(const SecureString& strWalletPassphrase)
             {
                 if (fDebug)
                 {
-                    LogPrint("wallet", "% -- Error: Failed encrypting stealth key %s\n", __func__, sxAddr.Encoded().c_str());
+                    LogPrint("wallet", "% -- : Error: Failed encrypting stealth key %s\n", __func__, sxAddr.Encoded().c_str());
                 }
 
                 continue;
@@ -941,7 +941,7 @@ bool CWallet::AddToWallet(const CWalletTx& wtxIn, bool fFromLoadWallet)
                 {
                     if (fDebug)
                     {
-                        LogPrint("wallet", "% -- found %s in block %s not in index\n", __func__, wtxIn.GetHash().ToString(), wtxIn.hashBlock.ToString());
+                        LogPrint("wallet", "% -- : found %s in block %s not in index\n", __func__, wtxIn.GetHash().ToString(), wtxIn.hashBlock.ToString());
                     }
                 }
             }
@@ -976,7 +976,7 @@ bool CWallet::AddToWallet(const CWalletTx& wtxIn, bool fFromLoadWallet)
         //// debug print
         if (fDebug)
         {
-            LogPrint("wallet", "% -- %s  %s%s\n", __func__, wtxIn.GetHash().ToString(), (fInsertedNew ? "new" : ""), (fUpdated ? "update" : ""));
+            LogPrint("wallet", "% -- : %s  %s%s\n", __func__, wtxIn.GetHash().ToString(), (fInsertedNew ? "new" : ""), (fUpdated ? "update" : ""));
         }
 
         // Write to disk
@@ -1180,7 +1180,7 @@ int CWallet::GetRealInputDarksendRounds(CTxIn in, int rounds) const
             // not known yet, let's add it
             if (fDebug)
             {
-                LogPrint("darksend", "% -- INSERTING %s\n", __func__, hash.ToString());
+                LogPrint("darksend", "% -- : INSERTING %s\n", __func__, hash.ToString());
             }
 
             mDenomWtxes[hash] = CTransaction(*wtx);
@@ -1197,7 +1197,7 @@ int CWallet::GetRealInputDarksendRounds(CTxIn in, int rounds) const
             if (fDebug)
             {
                 // should never actually hit this
-                LogPrint("darksend", "% -- UPDATED   %s %3d %3d\n", __func__, hash.ToString(), nout, -4);
+                LogPrint("darksend", "% -- : UPDATED   %s %3d %3d\n", __func__, hash.ToString(), nout, -4);
             }
 
             return -4;
@@ -1209,7 +1209,7 @@ int CWallet::GetRealInputDarksendRounds(CTxIn in, int rounds) const
 
             if (fDebug)
             {
-                LogPrint("darksend", "% -- UPDATED   %s %3d %3d\n", __func__, hash.ToString(), nout, mDenomWtxes[hash].vout[nout].nRounds);
+                LogPrint("darksend", "% -- : UPDATED   %s %3d %3d\n", __func__, hash.ToString(), nout, mDenomWtxes[hash].vout[nout].nRounds);
             }
 
             return mDenomWtxes[hash].vout[nout].nRounds;
@@ -1222,7 +1222,7 @@ int CWallet::GetRealInputDarksendRounds(CTxIn in, int rounds) const
 
             if (fDebug)
             {
-                LogPrint("darksend", "% -- UPDATED   %s %3d %3d\n", __func__, hash.ToString(), nout, mDenomWtxes[hash].vout[nout].nRounds);
+                LogPrint("darksend", "% -- : UPDATED   %s %3d %3d\n", __func__, hash.ToString(), nout, mDenomWtxes[hash].vout[nout].nRounds);
             }
 
             return mDenomWtxes[hash].vout[nout].nRounds;
@@ -1242,7 +1242,7 @@ int CWallet::GetRealInputDarksendRounds(CTxIn in, int rounds) const
 
             if (fDebug)
             {
-                LogPrint("darksend", "% -- UPDATED   %s %3d %3d\n", __func__, hash.ToString(), nout, mDenomWtxes[hash].vout[nout].nRounds);
+                LogPrint("darksend", "% -- : UPDATED   %s %3d %3d\n", __func__, hash.ToString(), nout, mDenomWtxes[hash].vout[nout].nRounds);
             }
 
             return mDenomWtxes[hash].vout[nout].nRounds;
@@ -1273,7 +1273,7 @@ int CWallet::GetRealInputDarksendRounds(CTxIn in, int rounds) const
 
         if (fDebug)
         {
-            LogPrint("darksend", "% -- UPDATED   %s %3d %3d\n", __func__, hash.ToString(), nout, mDenomWtxes[hash].vout[nout].nRounds);
+            LogPrint("darksend", "% -- : UPDATED   %s %3d %3d\n", __func__, hash.ToString(), nout, mDenomWtxes[hash].vout[nout].nRounds);
         }
 
         return mDenomWtxes[hash].vout[nout].nRounds;
@@ -1468,7 +1468,7 @@ void CWalletTx::GetAmounts(list<pair<CTxDestination, int64_t> >& listReceived, l
         {
             if (fDebug)
             {
-                LogPrint("wallet", "% -- Unknown transaction type found, txid %s\n", __func__, this->GetHash().ToString());
+                LogPrint("wallet", "% -- : Unknown transaction type found, txid %s\n", __func__, this->GetHash().ToString());
             }
 
             address = CNoDestination();
@@ -1592,7 +1592,7 @@ void CWalletTx::AddSupportingTransactions(CTxDB& txdb)
                 {
                     if (fDebug)
                     {
-                        LogPrint("wallet", "% -- ERROR: AddSupportingTransactions() : unsupported transaction\n", __func__);
+                        LogPrint("wallet", "% -- : ERROR: AddSupportingTransactions() : unsupported transaction\n", __func__);
                     }
 
                     continue;
@@ -1709,7 +1709,7 @@ void CWallet::ReacceptWalletTransactions()
                 {
                     if (fDebug)
                     {
-                        LogPrint("wallet", "% -- ERROR: ReacceptWalletTransactions() : txindex.vSpent.size() %u != wtx.vout.size() %u\n", __func__, txindex.vSpent.size(), wtx.vout.size());
+                        LogPrint("wallet", "% -- : ERROR: ReacceptWalletTransactions() : txindex.vSpent.size() %u != wtx.vout.size() %u\n", __func__, txindex.vSpent.size(), wtx.vout.size());
                     }
 
                     continue;
@@ -1735,7 +1735,7 @@ void CWallet::ReacceptWalletTransactions()
                 {
                     if (fDebug)
                     {
-                        LogPrint("wallet", "% -- ReacceptWalletTransactions found spent coin %s PHC %s\n", __func__, FormatMoney(wtx.GetCredit(ISMINE_ALL)), wtx.GetHash().ToString());
+                        LogPrint("wallet", "% -- : ReacceptWalletTransactions found spent coin %s PHC %s\n", __func__, FormatMoney(wtx.GetCredit(ISMINE_ALL)), wtx.GetHash().ToString());
                     }
 
                     wtx.MarkDirty();
@@ -1776,7 +1776,7 @@ void CWalletTx::RelayWalletTransaction(CTxDB& txdb, std::string strCommand)
             {
                 if (fDebug)
                 {
-                    LogPrint("wallet", "% -- Relaying txlreq %s\n", __func__, hash.ToString());
+                    LogPrint("wallet", "% -- : Relaying txlreq %s\n", __func__, hash.ToString());
                 }
 
                 mapTxLockReq.insert(make_pair(hash, ((CTransaction)*this)));
@@ -1789,7 +1789,7 @@ void CWalletTx::RelayWalletTransaction(CTxDB& txdb, std::string strCommand)
             {
                 if (fDebug)
                 {
-                    LogPrint("wallet", "% -- Relaying wtx %s\n", __func__, hash.ToString());
+                    LogPrint("wallet", "% -- : Relaying wtx %s\n", __func__, hash.ToString());
                 }
 
                 RelayTransaction((CTransaction)*this, hash);
@@ -1858,7 +1858,7 @@ void CWallet::ResendWalletTransactions(bool fForce)
     // Rebroadcast any of our txes that aren't in a block yet
     if (fDebug)
     {
-        LogPrint("wallet", "% -- \n", __func__);
+        LogPrint("wallet", "% -- : \n", __func__);
     }
 
     CTxDB txdb("r");
@@ -2500,7 +2500,7 @@ void CWallet::AvailableCoinsForStaking(vector<COutput>& vCoins, unsigned int nSp
 
                     if (fDebug)
                     {
-                        LogPrint("wallet", "% -- Found denominated amounts.\n", __func__);
+                        LogPrint("wallet", "% -- : Found denominated amounts.\n", __func__);
                     }
 
                     found = true;
@@ -2512,7 +2512,7 @@ void CWallet::AvailableCoinsForStaking(vector<COutput>& vCoins, unsigned int nSp
                 {
                     if (fDebug)
                     {
-                        LogPrint("wallet", "% -- Found Masternode collateral.\n", __func__);
+                        LogPrint("wallet", "% -- : Found Masternode collateral.\n", __func__);
                     }
 
                     found = true;
@@ -2525,7 +2525,7 @@ void CWallet::AvailableCoinsForStaking(vector<COutput>& vCoins, unsigned int nSp
 
                     if (fDebug)
                     {
-                        LogPrint("wallet", "% -- Found Collateral amount.\n", __func__);
+                        LogPrint("wallet", "% -- : Found Collateral amount.\n", __func__);
                     }
 
                     found = true;
@@ -2657,7 +2657,7 @@ bool CWallet::SelectCoinsMinConf(int64_t nTargetValue, unsigned int nSpendTime, 
     {
         if (fDebug) 
         {
-               LogPrint("wallet", "% -- tryDenom: %d\n", __func__, tryDenom);
+               LogPrint("wallet", "% -- : tryDenom: %d\n", __func__, tryDenom);
         }
 
         vValue.clear();
@@ -2768,17 +2768,17 @@ bool CWallet::SelectCoinsMinConf(int64_t nTargetValue, unsigned int nSpendTime, 
 
         if (fDebug)
         {
-            LogPrint("wallet", "% -- SelectCoins() best subset: ", __func__);
+            LogPrint("wallet", "% -- : SelectCoins() best subset: ", __func__);
 
             for (unsigned int i = 0; i < vValue.size(); i++)
             {
                 if (vfBest[i])
                 {
-                    LogPrint("wallet", "% -- %s ", __func__, FormatMoney(vValue[i].first));
+                    LogPrint("wallet", "% -- : %s ", __func__, FormatMoney(vValue[i].first));
                 }
             }
 
-            LogPrint("wallet", "% -- total %s\n", __func__, FormatMoney(nBest));
+            LogPrint("wallet", "% -- : total %s\n", __func__, FormatMoney(nBest));
         }
     }
 
@@ -3304,7 +3304,7 @@ bool CWallet::CreateCollateralTransaction(CTransaction& txCollateral, std::strin
                 UnlockCoin(v.prevout);
             }
 
-            strReason = "% -- Unable to sign collateral transaction! \n";
+            strReason = "% -- : Unable to sign collateral transaction! \n";
 
             return false;
         }
@@ -3333,7 +3333,7 @@ bool CWallet::ConvertList(std::vector<CTxIn> vCoins, std::vector<int64_t>& vecAm
         {
             if (fDebug)
             {
-                LogPrint("wallet", "% -- Couldn't find transaction\n", __func__);
+                LogPrint("wallet", "% -- : Couldn't find transaction\n", __func__);
             }
         }
     }
@@ -3642,7 +3642,7 @@ bool CWallet::CreateTransaction(CScript scriptPubKey, int64_t nValue, std::strin
     {
         if (fDebug)
         {
-            LogPrint("wallet", "% -- ERROR: %s\n", __func__, strFailReason);
+            LogPrint("wallet", "% -- : ERROR: %s\n", __func__, strFailReason);
         }
 
         return false;
@@ -3664,7 +3664,7 @@ bool CWallet::NewStealthAddress(std::string& sError, std::string& sLabel, CSteal
 
         if (fDebug)
         {
-            LogPrint("wallet", "% -- %s\n", __func__, sError.c_str());
+            LogPrint("wallet", "% -- : %s\n", __func__, sError.c_str());
         }
 
         return false;
@@ -3678,7 +3678,7 @@ bool CWallet::NewStealthAddress(std::string& sError, std::string& sLabel, CSteal
 
         if (fDebug)
         {
-            LogPrint("wallet", "% -- %s\n", __func__, sError.c_str());
+            LogPrint("wallet", "% -- : %s\n", __func__, sError.c_str());
         }
 
         return false;
@@ -3690,7 +3690,7 @@ bool CWallet::NewStealthAddress(std::string& sError, std::string& sLabel, CSteal
         
         if (fDebug)
         {
-            LogPrint("wallet", "% -- %s\n", __func__, sError.c_str());
+            LogPrint("wallet", "% -- : %s\n", __func__, sError.c_str());
         }
 
         return false;
@@ -3698,23 +3698,23 @@ bool CWallet::NewStealthAddress(std::string& sError, std::string& sLabel, CSteal
 
     if (fDebug)
     {
-        LogPrint("wallet", "% -- getnewstealthaddress: ", __func__);
-        LogPrint("wallet", "% -- scan_pubkey ", __func__);
+        LogPrint("wallet", "% -- : getnewstealthaddress: ", __func__);
+        LogPrint("wallet", "% -- : scan_pubkey ", __func__);
 
         for (uint32_t i = 0; i < scan_pubkey.size(); ++i)
         {
-            LogPrint("wallet", "% -- %02x", __func__, scan_pubkey[i]);
+            LogPrint("wallet", "% -- : %02x", __func__, scan_pubkey[i]);
         }
         
-        LogPrint("wallet", "% -- \n", __func__);
-        LogPrint("wallet", "% -- spend_pubkey ", __func__);
+        LogPrint("wallet", "% -- : \n", __func__);
+        LogPrint("wallet", "% -- : spend_pubkey ", __func__);
 
         for (uint32_t i = 0; i < spend_pubkey.size(); ++i)
         {
-            LogPrint("wallet", "% -- %02x", __func__, spend_pubkey[i]);
+            LogPrint("wallet", "% -- : %02x", __func__, spend_pubkey[i]);
         }
         
-        LogPrint("wallet", "% -- \n", __func__);
+        LogPrint("wallet", "% -- : \n", __func__);
     };
 
 
@@ -3748,7 +3748,7 @@ bool CWallet::AddStealthAddress(CStealthAddress& sxAddr)
         {
             if (fDebug)
             {
-                LogPrint("wallet", "% -- Error: CWallet::AddStealthAddress wallet must be unlocked.\n", __func__);
+                LogPrint("wallet", "% -- : Error: CWallet::AddStealthAddress wallet must be unlocked.\n", __func__);
             }
 
             stealthAddresses.erase(sxAddr);
@@ -3770,7 +3770,7 @@ bool CWallet::AddStealthAddress(CStealthAddress& sxAddr)
             {
                 if (fDebug)
                 {
-                    LogPrint("wallet", "% -- Error: Failed encrypting stealth key %s\n", __func__, sxAddr.Encoded().c_str());
+                    LogPrint("wallet", "% -- : Error: Failed encrypting stealth key %s\n", __func__, sxAddr.Encoded().c_str());
                 }
 
                 stealthAddresses.erase(sxAddr);
@@ -3810,7 +3810,7 @@ bool CWallet::UnlockStealthAddresses(const CKeyingMaterial& vMasterKeyIn)
 
         if (fDebug)
         {
-           LogPrint("wallet", "% -- Decrypting stealth key %s\n", __func__, sxAddr.Encoded().c_str());
+           LogPrint("wallet", "% -- : Decrypting stealth key %s\n", __func__, sxAddr.Encoded().c_str());
         }
 
         CSecret vchSecret;
@@ -3820,7 +3820,7 @@ bool CWallet::UnlockStealthAddresses(const CKeyingMaterial& vMasterKeyIn)
         {
             if (fDebug)
             {
-                LogPrint("wallet", "% -- Error: Failed decrypting stealth key %s\n", __func__, sxAddr.Encoded().c_str());
+                LogPrint("wallet", "% -- : Error: Failed decrypting stealth key %s\n", __func__, sxAddr.Encoded().c_str());
             }
 
             continue;
@@ -3834,7 +3834,7 @@ bool CWallet::UnlockStealthAddresses(const CKeyingMaterial& vMasterKeyIn)
         {
             if (fDebug)
             {
-                LogPrint("wallet", "% -- Error: Failed decrypting stealth key, public key mismatch %s\n", __func__, sxAddr.Encoded().c_str());
+                LogPrint("wallet", "% -- : Error: Failed decrypting stealth key, public key mismatch %s\n", __func__, sxAddr.Encoded().c_str());
             }
 
             continue;
@@ -3863,7 +3863,7 @@ bool CWallet::UnlockStealthAddresses(const CKeyingMaterial& vMasterKeyIn)
         {
             if (fDebug)
             {
-                LogPrint("wallet", "% -- Error: No metadata found to add secret for %s\n", __func__, addr.ToString().c_str());
+                LogPrint("wallet", "% -- : Error: No metadata found to add secret for %s\n", __func__, addr.ToString().c_str());
             }
 
             continue;
@@ -3879,7 +3879,7 @@ bool CWallet::UnlockStealthAddresses(const CKeyingMaterial& vMasterKeyIn)
         {
             if (fDebug)
             {
-                LogPrint("wallet", "% -- No stealth key found to add secret for %s\n", __func__, addr.ToString().c_str());
+                LogPrint("wallet", "% -- : No stealth key found to add secret for %s\n", __func__, addr.ToString().c_str());
             }
 
             continue;
@@ -3887,7 +3887,7 @@ bool CWallet::UnlockStealthAddresses(const CKeyingMaterial& vMasterKeyIn)
 
         if (fDebug)
         {
-           LogPrint("wallet", "% -- Expanding secret for %s\n", __func__, addr.ToString().c_str());
+           LogPrint("wallet", "% -- : Expanding secret for %s\n", __func__, addr.ToString().c_str());
         }
 
         ec_secret sSpendR;
@@ -3898,7 +3898,7 @@ bool CWallet::UnlockStealthAddresses(const CKeyingMaterial& vMasterKeyIn)
         {
             if (fDebug)
             {
-                LogPrint("wallet", "% -- Stealth address has no secret key for %s\n", __func__, addr.ToString().c_str());
+                LogPrint("wallet", "% -- : Stealth address has no secret key for %s\n", __func__, addr.ToString().c_str());
             }
 
             continue;
@@ -3912,7 +3912,7 @@ bool CWallet::UnlockStealthAddresses(const CKeyingMaterial& vMasterKeyIn)
         {
             if (fDebug)
             {
-                LogPrint("wallet", "% -- StealthSecretSpend() failed.\n", __func__);
+                LogPrint("wallet", "% -- : StealthSecretSpend() failed.\n", __func__);
             }
 
             continue;
@@ -3924,7 +3924,7 @@ bool CWallet::UnlockStealthAddresses(const CKeyingMaterial& vMasterKeyIn)
         {
             if (fDebug)
             {
-                LogPrint("wallet", "% -- SecretToPublicKey() failed.\n", __func__);
+                LogPrint("wallet", "% -- : SecretToPublicKey() failed.\n", __func__);
             }
 
             continue;
@@ -3945,7 +3945,7 @@ bool CWallet::UnlockStealthAddresses(const CKeyingMaterial& vMasterKeyIn)
         {
             if (fDebug)
             {
-                LogPrint("wallet", "% -- ckey.SetSecret() threw: %s.\n", __func__, e.what());
+                LogPrint("wallet", "% -- : ckey.SetSecret() threw: %s.\n", __func__, e.what());
             }
 
             continue;
@@ -3957,7 +3957,7 @@ bool CWallet::UnlockStealthAddresses(const CKeyingMaterial& vMasterKeyIn)
         {
             if (fDebug)
             {
-                LogPrint("wallet", "% -- cpkT is invalid.\n", __func__);
+                LogPrint("wallet", "% -- : cpkT is invalid.\n", __func__);
             }
 
             continue;
@@ -3967,7 +3967,7 @@ bool CWallet::UnlockStealthAddresses(const CKeyingMaterial& vMasterKeyIn)
         {
             if (fDebug)
             {
-                LogPrint("wallet", "% -- Error: Generated secret does not match.\n", __func__);
+                LogPrint("wallet", "% -- : Error: Generated secret does not match.\n", __func__);
             }
 
             continue;
@@ -3977,7 +3977,7 @@ bool CWallet::UnlockStealthAddresses(const CKeyingMaterial& vMasterKeyIn)
         {
             if (fDebug)
             {
-                LogPrint("wallet", "% -- Reconstructed key is invalid.\n", __func__);
+                LogPrint("wallet", "% -- : Reconstructed key is invalid.\n", __func__);
             }
 
             continue;
@@ -3988,14 +3988,14 @@ bool CWallet::UnlockStealthAddresses(const CKeyingMaterial& vMasterKeyIn)
             CKeyID keyID = cpkT.GetID();
             CPHCcoinAddress coinAddress(keyID);
 
-            LogPrint("wallet", "% -- Adding secret to key %s.\n", __func__, coinAddress.ToString().c_str());
+            LogPrint("wallet", "% -- : Adding secret to key %s.\n", __func__, coinAddress.ToString().c_str());
         }
 
         if (!AddKey(ckey))
         {
             if (fDebug)
             {
-                LogPrint("wallet", "% -- AddKey failed.\n", __func__);
+                LogPrint("wallet", "% -- : AddKey failed.\n", __func__);
             }
 
             continue;
@@ -4005,7 +4005,7 @@ bool CWallet::UnlockStealthAddresses(const CKeyingMaterial& vMasterKeyIn)
         {
             if (fDebug)
             {
-                LogPrint("wallet", "% -- EraseStealthKeyMeta failed for %s\n", __func__, addr.ToString().c_str());
+                LogPrint("wallet", "% -- : EraseStealthKeyMeta failed for %s\n", __func__, addr.ToString().c_str());
             }
         }
 
@@ -4019,7 +4019,7 @@ bool CWallet::UpdateStealthAddress(std::string &addr, std::string &label, bool a
 {
     if (fDebug)
     {
-       LogPrint("wallet", "% -- %s\n", __func__, addr.c_str());
+       LogPrint("wallet", "% -- : %s\n", __func__, addr.c_str());
     }
 
     CStealthAddress sxAddr;
@@ -4048,7 +4048,7 @@ bool CWallet::UpdateStealthAddress(std::string &addr, std::string &label, bool a
         {
             if (fDebug)
             {
-                LogPrint("wallet", "% -- %s, not in set\n", __func__, addr.c_str());
+                LogPrint("wallet", "% -- : %s, not in set\n", __func__, addr.c_str());
             }
 
             return false;
@@ -4070,7 +4070,7 @@ bool CWallet::UpdateStealthAddress(std::string &addr, std::string &label, bool a
         {
             if (fDebug)
             {
-                LogPrint("wallet", "% -- todo - update owned stealth address.\n", __func__);
+                LogPrint("wallet", "% -- : todo - update owned stealth address.\n", __func__);
             }
 
             return false;
@@ -4083,7 +4083,7 @@ bool CWallet::UpdateStealthAddress(std::string &addr, std::string &label, bool a
     {
         if (fDebug)
         {
-            LogPrint("wallet", "% -- (%s) Write to db failed.\n", __func__, addr.c_str());
+            LogPrint("wallet", "% -- : (%s) Write to db failed.\n", __func__, addr.c_str());
         }
 
         return false;
@@ -4123,7 +4123,7 @@ bool CWallet::CreateStealthTransaction(CScript scriptPubKey, int64_t nValue, std
     {
         if (fDebug)
         {
-            LogPrint("wallet", "% -- %s\n", __func__, strFailReason);
+            LogPrint("wallet", "% -- : %s\n", __func__, strFailReason);
         }
     }
 
@@ -4143,7 +4143,7 @@ bool CWallet::CreateStealthTransaction(CScript scriptPubKey, int64_t nValue, std
             {
                 if (fDebug)
                 {
-                    LogPrint("wallet", "% -- Error creating narration key.", __func__);
+                    LogPrint("wallet", "% -- : Error creating narration key.", __func__);
                 }
 
                 break;
@@ -4170,7 +4170,7 @@ string CWallet::SendStealthMoney(CScript scriptPubKey, int64_t nValue, std::vect
 
         if (fDebug)
         {
-            LogPrint("wallet", "% -- %s\n", __func__, strError.c_str());
+            LogPrint("wallet", "% -- : %s\n", __func__, strError.c_str());
         }
 
         return strError;
@@ -4182,7 +4182,7 @@ string CWallet::SendStealthMoney(CScript scriptPubKey, int64_t nValue, std::vect
 
         if (fDebug)
         {
-            LogPrint("wallet", "% -- %s\n", __func__, strError.c_str());
+            LogPrint("wallet", "% -- : %s\n", __func__, strError.c_str());
         }
 
         return strError;
@@ -4203,7 +4203,7 @@ string CWallet::SendStealthMoney(CScript scriptPubKey, int64_t nValue, std::vect
 
         if (fDebug)
         {
-            LogPrint("wallet", "% -- %s\n", __func__, strError.c_str());
+            LogPrint("wallet", "% -- : %s\n", __func__, strError.c_str());
         }
 
         return strError;
@@ -4281,9 +4281,9 @@ bool CWallet::SendStealthMoneyToDestination(CStealthAddress& sxAddress, int64_t 
 
     if (fDebug)
     {
-        LogPrint("wallet", "% -- Stealth send to generated pubkey %" PRIszu": %s\n", __func__, pkSendTo.size(), HexStr(pkSendTo).c_str());
-        LogPrint("wallet", "% -- hash %s\n", __func__, addrTo.ToString().c_str());
-        LogPrint("wallet", "% -- ephem_pubkey %" PRIszu": %s\n", __func__, ephem_pubkey.size(), HexStr(ephem_pubkey).c_str());
+        LogPrint("wallet", "% -- : Stealth send to generated pubkey %" PRIszu": %s\n", __func__, pkSendTo.size(), HexStr(pkSendTo).c_str());
+        LogPrint("wallet", "% -- : hash %s\n", __func__, addrTo.ToString().c_str());
+        LogPrint("wallet", "% -- : ephem_pubkey %" PRIszu": %s\n", __func__, ephem_pubkey.size(), HexStr(ephem_pubkey).c_str());
     }
 
     std::vector<unsigned char> vchNarr;
@@ -4325,7 +4325,7 @@ bool CWallet::FindStealthTransactions(const CTransaction& tx, mapValue_t& mapNar
 {
     if (fDebug)
     {
-        LogPrint("wallet", "% -- tx: %s\n", __func__, tx.GetHash().GetHex().c_str());
+        LogPrint("wallet", "% -- : tx: %s\n", __func__, tx.GetHash().GetHex().c_str());
     }
 
     mapNarr.clear();
@@ -4378,7 +4378,7 @@ bool CWallet::FindStealthTransactions(const CTransaction& tx, mapValue_t& mapNar
                     {
                         if (fDebug)
                         {
-                            LogPrint("wallet", "% -- Warning: FindStealthTransactions() tx: %s, Could not extract plaintext narration.\n", __func__, tx.GetHash().GetHex().c_str());
+                            LogPrint("wallet", "% -- : Warning: FindStealthTransactions() tx: %s, Could not extract plaintext narration.\n", __func__, tx.GetHash().GetHex().c_str());
                         }
                     }
                 }
@@ -4439,7 +4439,7 @@ bool CWallet::FindStealthTransactions(const CTransaction& tx, mapValue_t& mapNar
                 {
                     if (fDebug)
                     {
-                        LogPrint("wallet", "% -- StealthSecret failed.\n", __func__);
+                        LogPrint("wallet", "% -- : StealthSecret failed.\n", __func__);
                     }
 
                     continue;
@@ -4463,14 +4463,14 @@ bool CWallet::FindStealthTransactions(const CTransaction& tx, mapValue_t& mapNar
 
                 if (fDebug)
                 {
-                   LogPrint("wallet", "% -- Found stealth txn to address %s\n", __func__, it->Encoded().c_str());
+                   LogPrint("wallet", "% -- : Found stealth txn to address %s\n", __func__, it->Encoded().c_str());
                 }
 
                 if (IsLocked())
                 {
                     if (fDebug)
                     {
-                       LogPrint("wallet", "% -- Wallet is locked, adding key without secret.\n", __func__);
+                       LogPrint("wallet", "% -- : Wallet is locked, adding key without secret.\n", __func__);
                     }
 
                     // -- add key without secret
@@ -4494,7 +4494,7 @@ bool CWallet::FindStealthTransactions(const CTransaction& tx, mapValue_t& mapNar
                     {
                         if (fDebug)
                         {
-                            LogPrint("wallet", "% -- WriteStealthKeyMeta failed for %s\n", __func__, coinAddress.ToString().c_str());
+                            LogPrint("wallet", "% -- : WriteStealthKeyMeta failed for %s\n", __func__, coinAddress.ToString().c_str());
                         }
                     }
 
@@ -4514,7 +4514,7 @@ bool CWallet::FindStealthTransactions(const CTransaction& tx, mapValue_t& mapNar
                     {
                         if (fDebug)
                         {
-                            LogPrint("wallet", "% -- StealthSharedToSecretSpend() failed.\n", __func__);
+                            LogPrint("wallet", "% -- : StealthSharedToSecretSpend() failed.\n", __func__);
                         }
 
                         continue;
@@ -4525,7 +4525,7 @@ bool CWallet::FindStealthTransactions(const CTransaction& tx, mapValue_t& mapNar
                     {
                         if (fDebug)
                         {
-                            LogPrint("wallet", "% -- SecretToPublicKey() failed.\n", __func__);
+                            LogPrint("wallet", "% -- : SecretToPublicKey() failed.\n", __func__);
                         }
 
                         continue;
@@ -4546,7 +4546,7 @@ bool CWallet::FindStealthTransactions(const CTransaction& tx, mapValue_t& mapNar
                     {
                         if (fDebug)
                         {
-                            LogPrint("wallet", "% -- ckey.SetSecret() threw: %s.\n", __func__, e.what());
+                            LogPrint("wallet", "% -- : ckey.SetSecret() threw: %s.\n", __func__, e.what());
                         }
 
                         continue;
@@ -4557,7 +4557,7 @@ bool CWallet::FindStealthTransactions(const CTransaction& tx, mapValue_t& mapNar
                     {
                         if (fDebug)
                         {
-                            LogPrint("wallet", "% -- cpkT is invalid.\n", __func__);
+                            LogPrint("wallet", "% -- : cpkT is invalid.\n", __func__);
                         }
 
                         continue;
@@ -4567,7 +4567,7 @@ bool CWallet::FindStealthTransactions(const CTransaction& tx, mapValue_t& mapNar
                     {
                         if (fDebug)
                         {
-                            LogPrint("wallet", "% -- Reconstructed key is invalid.\n", __func__);
+                            LogPrint("wallet", "% -- : Reconstructed key is invalid.\n", __func__);
                         }
 
                         continue;
@@ -4580,7 +4580,7 @@ bool CWallet::FindStealthTransactions(const CTransaction& tx, mapValue_t& mapNar
 
                         if (fDebug)
                         {
-                            LogPrint("wallet", "% -- Adding key %s.\n", __func__, coinAddress.ToString().c_str());
+                            LogPrint("wallet", "% -- : Adding key %s.\n", __func__, coinAddress.ToString().c_str());
                         }
                     }
 
@@ -4588,7 +4588,7 @@ bool CWallet::FindStealthTransactions(const CTransaction& tx, mapValue_t& mapNar
                     {
                         if (fDebug)
                         {
-                            LogPrint("wallet", "% -- AddKey failed.\n", __func__);
+                            LogPrint("wallet", "% -- : AddKey failed.\n", __func__);
                         }
 
                         continue;
@@ -4611,7 +4611,7 @@ bool CWallet::FindStealthTransactions(const CTransaction& tx, mapValue_t& mapNar
                     {
                         if (fDebug)
                         {
-                            LogPrint("wallet", "% -- Decrypt narration failed.\n", __func__);
+                            LogPrint("wallet", "% -- : Decrypt narration failed.\n", __func__);
                         }
                         
                         continue;
@@ -4755,7 +4755,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                 if (fDebug)
                 {
                     // Found a kernel
-                    LogPrint("coinstake", "% -- kernel found\n", __func__);
+                    LogPrint("coinstake", "% -- : kernel found\n", __func__);
                 }
 
                 vector<valtype> vSolutions;
@@ -4767,7 +4767,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                 {
                     if (fDebug)
                     {
-                        LogPrint("coinstake", "% -- failed to parse kernel\n", __func__);
+                        LogPrint("coinstake", "% -- : failed to parse kernel\n", __func__);
                     }
 
                     break;
@@ -4775,14 +4775,14 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 
                 if (fDebug)
                 {
-                    LogPrint("coinstake", "% -- parsed kernel type=%d\n", __func__, whichType);
+                    LogPrint("coinstake", "% -- : parsed kernel type=%d\n", __func__, whichType);
                 }
 
                 if (whichType != TX_PUBKEY && whichType != TX_PUBKEYHASH)
                 {
                     if (fDebug)
                     {
-                        LogPrint("coinstake", "% -- no support for kernel type=%d\n", __func__, whichType);
+                        LogPrint("coinstake", "% -- : no support for kernel type=%d\n", __func__, whichType);
                     }
 
                     break;  // only support pay to public key and pay to address
@@ -4795,7 +4795,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                     {
                         if (fDebug)
                         {
-                            LogPrint("coinstake", "% -- failed to get key for kernel type=%d\n", __func__, whichType);
+                            LogPrint("coinstake", "% -- : failed to get key for kernel type=%d\n", __func__, whichType);
                         }
 
                         break;  // unable to find corresponding public key
@@ -4811,7 +4811,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                     {
                         if (fDebug)
                         {
-                            LogPrint("coinstake", "% -- failed to get key for kernel type=%d\n", __func__, whichType);
+                            LogPrint("coinstake", "% -- : failed to get key for kernel type=%d\n", __func__, whichType);
                         }
 
                         break;  // unable to find corresponding public key
@@ -4821,7 +4821,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                     {
                         if (fDebug)
                         {
-                            LogPrint("coinstake", "% -- invalid key for kernel type=%d\n", __func__, whichType);
+                            LogPrint("coinstake", "% -- : invalid key for kernel type=%d\n", __func__, whichType);
                         }
 
                         break; // keys mismatch
@@ -4844,7 +4844,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 
                 if (fDebug)
                 {
-                    LogPrint("coinstake", "% -- added kernel type=%d\n", __func__, whichType);
+                    LogPrint("coinstake", "% -- : added kernel type=%d\n", __func__, whichType);
                 }
 
                 fKernelFound = true;
@@ -4922,7 +4922,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 
         if (!txNew.GetCoinAge(txdb, pindexPrev, nCoinAge))
         {
-            return error("% -- failed to calculate coin age", __func__);
+            return error("% -- : failed to calculate coin age", __func__);
         }
 
         nReward = GetProofOfStakeReward(pindexPrev, nCoinAge, nFees);
@@ -4981,7 +4981,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             }
             else
             {
-                return error("% -- Failed to detect masternode to pay\n", __func__);
+                return error("% -- : Failed to detect masternode to pay\n", __func__);
             }
         }
     }
@@ -5003,7 +5003,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 
         if (fDebug)
         {
-            LogPrint("wallet", "% -- Masternode payment to %s\n", __func__, address2.ToString().c_str());
+            LogPrint("wallet", "% -- : Masternode payment to %s\n", __func__, address2.ToString().c_str());
         }
     }
 
@@ -5024,7 +5024,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 
         if (fDebug)
         {
-            LogPrint("wallet", "% -- Masternode payment to %s\n", __func__, address2.ToString().c_str());
+            LogPrint("wallet", "% -- : Masternode payment to %s\n", __func__, address2.ToString().c_str());
         }
     }
 
@@ -5052,7 +5052,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 
         if (fDebug)
         {
-            LogPrint("wallet", "% -- Masternode payment to %s\n", __func__, address2.ToString().c_str());
+            LogPrint("wallet", "% -- : Masternode payment to %s\n", __func__, address2.ToString().c_str());
         }
     }
     
@@ -5100,7 +5100,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     {
         if (!SignSignature(*this, *pcoin, txNew, nIn++))
         {
-            return error("% -- failed to sign coinstake", __func__);
+            return error("% -- : failed to sign coinstake", __func__);
         }
     }
 
@@ -5109,7 +5109,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 
     if (nBytes >= MAX_BLOCK_SIZE_GEN/5)
     {
-        return error("% -- exceeded coinstake size limit", __func__);
+        return error("% -- : exceeded coinstake size limit", __func__);
     }
 
     // Successfully generated coinstake
@@ -5138,7 +5138,7 @@ bool CWallet::CommitTransaction(CWalletTx& wtxNew, CReserveKey& reservekey, std:
 
         if (fDebug)
         {
-            LogPrint("wallet", "% -- CommitTransaction:\n%s", __func__, wtxNew.ToString());
+            LogPrint("wallet", "% -- : CommitTransaction:\n%s", __func__, wtxNew.ToString());
         }
 
         // Global Namespace Start
@@ -5184,7 +5184,7 @@ bool CWallet::CommitTransaction(CWalletTx& wtxNew, CReserveKey& reservekey, std:
             if (fDebug)
             {
                 // This must not fail. The transaction has already been signed and recorded.
-                LogPrint("wallet", "% -- Error: Transaction not valid\n", __func__);
+                LogPrint("wallet", "% -- : Error: Transaction not valid\n", __func__);
             }
 
             return false;
@@ -5225,7 +5225,7 @@ string CWallet::SendMoney(CScript scriptPubKey, int64_t nValue, std::string& sNa
 
         if (fDebug)
         {
-            LogPrint("wallet", "% -- %s", __func__, strError);
+            LogPrint("wallet", "% -- : %s", __func__, strError);
         }
 
         return strError;
@@ -5237,7 +5237,7 @@ string CWallet::SendMoney(CScript scriptPubKey, int64_t nValue, std::string& sNa
 
         if (fDebug)
         {
-            LogPrint("wallet", "% -- %s", __func__, strError);
+            LogPrint("wallet", "% -- : %s", __func__, strError);
         }
 
         return strError;
@@ -5263,7 +5263,7 @@ string CWallet::SendMoney(CScript scriptPubKey, int64_t nValue, std::string& sNa
 
         if (fDebug)
         {
-            LogPrint("wallet", "% -- %s\n", __func__, strError);
+            LogPrint("wallet", "% -- : %s\n", __func__, strError);
         }
 
         return strError;
@@ -5320,7 +5320,7 @@ int64_t CWallet::GetTotalValue(std::vector<CTxIn> vCoins)
         {
             if (fDebug)
             {
-                LogPrint("wallet", "% -- Couldn't find transaction\n", __func__);
+                LogPrint("wallet", "% -- : Couldn't find transaction\n", __func__);
             }
         }
     }
@@ -5368,7 +5368,7 @@ string CWallet::PrepareDarksendDenominate(int minRounds, int maxRounds)
 
     if (fDebug)
     {
-        LogPrint("wallet", "% -- preparing darksend denominate . Got: %d \n", __func__, nValueIn);
+        LogPrint("wallet", "% -- : preparing darksend denominate . Got: %d \n", __func__, nValueIn);
     }
 
     // Global Namespce Start
@@ -5685,7 +5685,7 @@ bool CWallet::NewKeyPool()
 
         if (fDebug)
         {
-            LogPrint("wallet", "% -- wrote %d new keys\n", __func__, nKeys);
+            LogPrint("wallet", "% -- : wrote %d new keys\n", __func__, nKeys);
         }
     }
     // Global Namespace End
@@ -5736,14 +5736,14 @@ bool CWallet::TopUpKeyPool(unsigned int nSize)
 
             if (!walletdb.WritePool(nEnd, CKeyPool(GenerateNewKey())))
             {
-                throw runtime_error(strprintf("% -- writing generated key failed", __func__));
+                throw runtime_error(strprintf("% -- : writing generated key failed", __func__));
             }
 
             setKeyPool.insert(nEnd);
 
             if (fDebug)
             {
-                LogPrint("wallet", "% -- keypool added key %d, size=%u\n", __func__, nEnd, setKeyPool.size());
+                LogPrint("wallet", "% -- : keypool added key %d, size=%u\n", __func__, nEnd, setKeyPool.size());
             }
 
             double dProgress = 100.f * nEnd / (nTargetSize + 1);
@@ -5785,19 +5785,19 @@ void CWallet::ReserveKeyFromKeyPool(int64_t& nIndex, CKeyPool& keypool)
 
         if (!walletdb.ReadPool(nIndex, keypool))
         {
-            throw runtime_error(strprintf("% -- read failed", __func__));
+            throw runtime_error(strprintf("% -- : read failed", __func__));
         }
         
         if (!HaveKey(keypool.vchPubKey.GetID()))
         {
-            throw runtime_error(strprintf("% -- unknown key in key pool", __func__));
+            throw runtime_error(strprintf("% -- : unknown key in key pool", __func__));
         }
 
         assert(keypool.vchPubKey.IsValid());
 
         if (fDebug)
         {
-            LogPrint("wallet", "% -- keypool reserve %d\n", __func__, nIndex);
+            LogPrint("wallet", "% -- : keypool reserve %d\n", __func__, nIndex);
         }
     }
     // Global Namespace End
@@ -5816,7 +5816,7 @@ int64_t CWallet::AddReserveKey(const CKeyPool& keypool)
 
         if (!walletdb.WritePool(nIndex, keypool))
         {
-            throw runtime_error(strprintf("% -- writing added key failed", __func__));
+            throw runtime_error(strprintf("% -- : writing added key failed", __func__));
         }
 
         setKeyPool.insert(nIndex);
@@ -5841,7 +5841,7 @@ void CWallet::KeepKey(int64_t nIndex)
 
     if (fDebug)
     {
-        LogPrint("wallet", "% -- keypool keep %d\n", __func__, nIndex);
+        LogPrint("wallet", "% -- : keypool keep %d\n", __func__, nIndex);
     }
 }
 
@@ -5860,7 +5860,7 @@ void CWallet::ReturnKey(int64_t nIndex)
 
     if (fDebug)
     {
-        LogPrint("wallet", "% -- keypool return %d\n", __func__, nIndex);
+        LogPrint("wallet", "% -- : keypool return %d\n", __func__, nIndex);
     }
 }
 
@@ -6142,7 +6142,7 @@ void CWallet::FixSpentCoins(int& nMismatchFound, int64_t& nBalanceInQuestion, bo
             {
                 if (fDebug)
                 {
-                    LogPrint("wallet", "% -- found lost coin %s PHC %s[%d], %s\n", __func__, FormatMoney(pcoin->vout[n].nValue), pcoin->GetHash().ToString(), n, fCheckOnly? "repair not attempted" : "repairing");
+                    LogPrint("wallet", "% -- : found lost coin %s PHC %s[%d], %s\n", __func__, FormatMoney(pcoin->vout[n].nValue), pcoin->GetHash().ToString(), n, fCheckOnly? "repair not attempted" : "repairing");
                 }
 
                 nMismatchFound++;
@@ -6158,7 +6158,7 @@ void CWallet::FixSpentCoins(int& nMismatchFound, int64_t& nBalanceInQuestion, bo
             {
                 if (fDebug)
                 {
-                    LogPrint("wallet", "% -- found spent coin %s PHC %s[%d], %s\n", __func__, FormatMoney(pcoin->vout[n].nValue), pcoin->GetHash().ToString(), n, fCheckOnly? "repair not attempted" : "repairing");
+                    LogPrint("wallet", "% -- : found spent coin %s PHC %s[%d], %s\n", __func__, FormatMoney(pcoin->vout[n].nValue), pcoin->GetHash().ToString(), n, fCheckOnly? "repair not attempted" : "repairing");
                 }
 
                 nMismatchFound++;
@@ -6220,7 +6220,7 @@ bool CReserveKey::GetReservedKey(CPubKey& pubkey)
             {
                 if (fDebug)
                 {
-                    LogPrint("wallet", "% -- Warning: Using default key instead of a new key, top up your keypool!", __func__);
+                    LogPrint("wallet", "% -- : Warning: Using default key instead of a new key, top up your keypool!", __func__);
                 }
                 
                 vchPubKey = pwallet->vchDefaultKey;
@@ -6277,7 +6277,7 @@ void CWallet::GetAllReserveKeys(set<CKeyID>& setAddress) const
         CKeyPool keypool;
         if (!walletdb.ReadPool(id, keypool))
         {
-            throw runtime_error(strprintf("% -- read failed", __func__));
+            throw runtime_error(strprintf("% -- : read failed", __func__));
         }
 
         assert(keypool.vchPubKey.IsValid());
@@ -6286,7 +6286,7 @@ void CWallet::GetAllReserveKeys(set<CKeyID>& setAddress) const
 
         if (!HaveKey(keyID))
         {
-            throw runtime_error(strprintf("% -- unknown key in key pool", __func__));
+            throw runtime_error(strprintf("% -- : unknown key in key pool", __func__));
         }
 
         setAddress.insert(keyID);
