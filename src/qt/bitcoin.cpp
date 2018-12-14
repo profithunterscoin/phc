@@ -64,7 +64,7 @@ static void ThreadSafeMessageBox(const std::string& message, const std::string& 
     {
         if (fDebug)
         {
-            LogPrint("qt", "% -- : %s: %s\n", __func__, caption, message);
+            LogPrint("qt", "%s() : %s: %s\n", __PRETTY_FUNCTION__, caption, message);
         }
 
         //fprintf(stderr, "%s: %s\n", caption.c_str(), message.c_str());
@@ -103,7 +103,7 @@ static void InitMessage(const std::string &message)
 
     if (fDebug)
     {
-        LogPrint("qt", "% -- : init message: %s\n", __func__, message);
+        LogPrint("qt", "%s() : init message: %s\n", __PRETTY_FUNCTION__, message);
     }
 }
 
@@ -135,7 +135,7 @@ void DebugMessageHandler(QtMsgType type, const char * msg)
 {
     const char *category = (type == QtDebugMsg) ? "qt" : NULL;
     
-    LogPrint(category, "% -- : GUI: %s\n", __func__, msg);
+    LogPrint(category, "%s() : GUI: %s\n", __PRETTY_FUNCTION__, msg);
 }
 #else
 
@@ -143,7 +143,7 @@ void DebugMessageHandler(QtMsgType type, const QMessageLogContext& context, cons
 {
     const char *category = (type == QtDebugMsg) ? "qt" : NULL;
     
-    LogPrint(category, "% -- : GUI: %s\n", __func__, msg.toStdString());
+    LogPrint(category, "%s() : GUI: %s\n", __PRETTY_FUNCTION__, msg.toStdString());
 }
 #endif
 

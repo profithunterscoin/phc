@@ -792,7 +792,7 @@ class CNode
 
             if (fDebug)
             {
-                LogPrint("net", "% -- : askfor %s   %d (%s)\n", __func__, inv.ToString().c_str(), nRequestTime, DateTimeStrFormat("%H:%M:%S", nRequestTime/1000000).c_str());
+                LogPrint("net", "%s() : askfor %s   %d (%s)\n", __PRETTY_FUNCTION__, inv.ToString().c_str(), nRequestTime, DateTimeStrFormat("%H:%M:%S", nRequestTime/1000000).c_str());
             }
 
             // Make sure not to reuse time indexes to keep things in the same order
@@ -834,7 +834,7 @@ class CNode
  
             if (fDebug)
             {
-                LogPrint("net", "% -- : sending: %s ", __func__, pszCommand);
+                LogPrint("net", "%s() : sending: %s ", __PRETTY_FUNCTION__, pszCommand);
             }
         }
 
@@ -847,7 +847,7 @@ class CNode
 
             if (fDebug)
             {
-                LogPrint("net", "% -- : (aborted)\n", __func__);
+                LogPrint("net", "%s() : (aborted)\n", __PRETTY_FUNCTION__);
             }
         }
 
@@ -861,7 +861,7 @@ class CNode
             {
                 if (fDebug)
                 {
-                    LogPrint("net", "% -- : dropmessages DROPPING SEND MESSAGE\n", __func__);
+                    LogPrint("net", "%s() : dropmessages DROPPING SEND MESSAGE\n", __PRETTY_FUNCTION__);
                 }
 
                 AbortMessage();
@@ -887,7 +887,7 @@ class CNode
 
             if (fDebug)
             {
-                LogPrint("net", "% -- : (%d bytes)\n", __func__, nSize);
+                LogPrint("net", "%s() : (%d bytes)\n", __PRETTY_FUNCTION__, nSize);
             }
             
             std::deque<CSerializeData>::iterator it = vSendMsg.insert(vSendMsg.end(), CSerializeData());
