@@ -244,7 +244,7 @@ class CMasternode
         {
             if (fDebug)
             {
-                LogPrint("masternode", "% -- : %d, %d --  %d \n", __func__, GetAdjustedTime(), lastTimeSeen, (GetAdjustedTime() - lastTimeSeen) < seconds);
+                LogPrint("masternode", "%s() : %d, %d --  %d \n", __PRETTY_FUNCTION__, GetAdjustedTime(), lastTimeSeen, (GetAdjustedTime() - lastTimeSeen) < seconds);
             }
 
             return (GetAdjustedTime() - lastTimeSeen) < seconds;

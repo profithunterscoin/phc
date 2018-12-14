@@ -222,7 +222,7 @@ bool EncryptAES256(const SecureString& sKey, const SecureString& sPlaintext, con
     {
         if (fDebug)
         {
-            LogPrint("crypter", "% -- : crypter EncryptAES256 - Invalid key or block size: Key: %d sIV:%d\n", __func__, sKey.size(), sIV.size());
+            LogPrint("crypter", "%s() : crypter EncryptAES256 - Invalid key or block size: Key: %d sIV:%d\n", __PRETTY_FUNCTION__, sKey.size(), sIV.size());
         }
 
         return false;
@@ -278,7 +278,7 @@ bool DecryptAES256(const SecureString& sKey, const std::string& sCiphertext, con
     {
         if (fDebug)
         {
-            LogPrint("crypter", "% -- : crypter DecryptAES256 - Invalid key or block size\n", __func__);
+            LogPrint("crypter", "%s() : crypter DecryptAES256 - Invalid key or block size\n", __PRETTY_FUNCTION__);
         }
         
         return false;

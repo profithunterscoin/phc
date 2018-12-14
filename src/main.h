@@ -386,7 +386,7 @@ class CTransaction
                 nValueOut += txout.nValue;
                 if (!MoneyRange(txout.nValue) || !MoneyRange(nValueOut))
                 {
-                    throw std::runtime_error("CTransaction::GetValueOut() : value out of range");
+                    throw std::runtime_error(strprintf("%s() : value out of range", __PRETTY_FUNCTION__));
                 }
 
             }
@@ -409,13 +409,13 @@ class CTransaction
             CAutoFile filein = CAutoFile(OpenBlockFile(pos.nFile, 0, pfileRet ? "rb+" : "rb"), SER_DISK, CLIENT_VERSION);
             if (filein.IsNull())
             {
-                return error("CTransaction::ReadFromDisk() : OpenBlockFile failed");
+                return error("%s() : OpenBlockFile failed", __PRETTY_FUNCTION__);
             }
 
             // Read transaction
             if (fseek(filein.Get(), pos.nTxPos, SEEK_SET) != 0)
             {
-                return error("CTransaction::ReadFromDisk() : fseek failed");
+                return error("%s() : fseek failed", __PRETTY_FUNCTION__);
             }
 
             try
@@ -432,7 +432,7 @@ class CTransaction
             {
                 if (fseek(filein.Get(), pos.nTxPos, SEEK_SET) != 0)
                 {
-                    return error("CTransaction::ReadFromDisk() : second fseek failed");
+                    return error("%s() : second fseek failed", __PRETTY_FUNCTION__);
                 }
 
                 *pfileRet = filein.release();
@@ -665,7 +665,10 @@ class CTxIndex
         IMPLEMENT_SERIALIZE
         (
             if (!(nType & SER_GETHASH))
+            {
                 READWRITE(nVersion);
+            }
+
             READWRITE(pos);
             READWRITE(vSpent);
         )
@@ -811,7 +814,7 @@ class CBlock
 
             if (fDebug)
             {
-                LogPrint("stakemodifier", "% -- : GetStakeEntropyBit: hashBlock=%s nEntropyBit=%u\n", __func__, GetHash().ToString(), nEntropyBit);
+                LogPrint("stakemodifier", "%s() : GetStakeEntropyBit: hashBlock=%s nEntropyBit=%u\n", __PRETTY_FUNCTION__, GetHash().ToString(), nEntropyBit);
             }
             
             return nEntropyBit;
@@ -919,7 +922,7 @@ class CBlock
             CAutoFile fileout = CAutoFile(AppendBlockFile(nFileRet), SER_DISK, CLIENT_VERSION);
             if (fileout.IsNull())
             {
-                return error("CBlock::WriteToDisk() : AppendBlockFile failed");
+                return error("%s() : AppendBlockFile failed", __PRETTY_FUNCTION__);
             }
 
             // Write index header
@@ -930,7 +933,7 @@ class CBlock
             long fileOutPos = ftell(fileout.Get());
             if (fileOutPos < 0)
             {
-                return error("CBlock::WriteToDisk() : ftell failed");
+                return error("%s() : ftell failed", __PRETTY_FUNCTION__);
             }
 
             nBlockPosRet = fileOutPos;
@@ -954,7 +957,7 @@ class CBlock
             CAutoFile filein = CAutoFile(OpenBlockFile(nFile, nBlockPos, "rb"), SER_DISK, CLIENT_VERSION);
             if (filein.IsNull())
             {
-                return error("CBlock::ReadFromDisk() : OpenBlockFile failed");
+                return error("%s() : OpenBlockFile failed", __PRETTY_FUNCTION__);
             }
 
             if (!fReadTransactions)
@@ -975,7 +978,7 @@ class CBlock
             // Check the header
             if (fReadTransactions && IsProofOfWork() && !CheckProofOfWork(GetPoWHash(), nBits))
             {
-                return error("CBlock::ReadFromDisk() : errors in block header");
+                return error("%s() : errors in block header", __PRETTY_FUNCTION__);
             }
 
             return true;
@@ -1003,7 +1006,7 @@ class CBlock
             
             return s.str();
         }
-
+        
         bool DisconnectBlock(CTxDB& txdb, CBlockIndex* pindex);
         bool ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck=false);
         bool ReadFromDisk(const CBlockIndex* pindex, bool fReadTransactions=true);

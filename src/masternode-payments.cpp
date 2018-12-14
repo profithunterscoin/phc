@@ -46,7 +46,7 @@ void ProcessMessageMasternodePayments(CNode* pfrom, std::string& strCommand, CDa
         {
             if (fDebug)
             {
-                LogPrint("masternode", "% -- : mnget - peer already asked me for the list\n", __func__);
+                LogPrint("masternode", "%s() : mnget - peer already asked me for the list\n", __PRETTY_FUNCTION__);
             }
 
             Misbehaving(pfrom->GetId(), 20);
@@ -60,7 +60,7 @@ void ProcessMessageMasternodePayments(CNode* pfrom, std::string& strCommand, CDa
 
         if (fDebug)
         {
-            LogPrint("masternode", "% -- : Sent Masternode winners to %s\n", __func__, pfrom->addr.ToString().c_str());
+            LogPrint("masternode", "%s() : Sent Masternode winners to %s\n", __PRETTY_FUNCTION__, pfrom->addr.ToString().c_str());
         }
     }
     else if (strCommand == "mnw")
@@ -89,7 +89,7 @@ void ProcessMessageMasternodePayments(CNode* pfrom, std::string& strCommand, CDa
         {
             if(fDebug)
             {
-                LogPrint("masternode", "% -- : Seen vote %s Addr %s Height %d bestHeight %d\n", __func__, hash.ToString().c_str(), address2.ToString().c_str(), winner.nBlockHeight, pindexBest->nHeight);
+                LogPrint("masternode", "%s() : Seen vote %s Addr %s Height %d bestHeight %d\n", __PRETTY_FUNCTION__, hash.ToString().c_str(), address2.ToString().c_str(), winner.nBlockHeight, pindexBest->nHeight);
             }
 
             return;
@@ -99,7 +99,7 @@ void ProcessMessageMasternodePayments(CNode* pfrom, std::string& strCommand, CDa
         {
             if (fDebug)
             {
-                LogPrint("masternode", "% -- : Winner out of range %s Addr %s Height %d bestHeight %d\n", __func__, winner.vin.ToString().c_str(), address2.ToString().c_str(), winner.nBlockHeight, pindexBest->nHeight);
+                LogPrint("masternode", "%s() : Winner out of range %s Addr %s Height %d bestHeight %d\n", __PRETTY_FUNCTION__, winner.vin.ToString().c_str(), address2.ToString().c_str(), winner.nBlockHeight, pindexBest->nHeight);
             }
 
             return;
@@ -109,7 +109,7 @@ void ProcessMessageMasternodePayments(CNode* pfrom, std::string& strCommand, CDa
         {
             if (fDebug)
             {
-                LogPrint("masternode", "% -- : Invalid nSequence\n");
+                LogPrint("masternode", "%s() : Invalid nSequence\n");
             }
 
             Misbehaving(pfrom->GetId(), 100);
@@ -119,14 +119,14 @@ void ProcessMessageMasternodePayments(CNode* pfrom, std::string& strCommand, CDa
 
         if (fDebug)
         {
-            LogPrint("masternode", "% -- : Winning vote - Vin %s Addr %s Height %d bestHeight %d\n", __func__, winner.vin.ToString().c_str(), address2.ToString().c_str(), winner.nBlockHeight, pindexBest->nHeight);
+            LogPrint("masternode", "%s() : Winning vote - Vin %s Addr %s Height %d bestHeight %d\n", __PRETTY_FUNCTION__, winner.vin.ToString().c_str(), address2.ToString().c_str(), winner.nBlockHeight, pindexBest->nHeight);
         }
 
         if(!masternodePayments.CheckSignature(winner))
         {
             if (fDebug)
             {
-                LogPrint("masternode", "% -- : Invalid signature\n", __func__);
+                LogPrint("masternode", "%s() : Invalid signature\n", __PRETTY_FUNCTION__);
             }
 
             Misbehaving(pfrom->GetId(), 100);
@@ -175,7 +175,7 @@ bool CMasternodePayments::Sign(CMasternodePaymentWinner& winner)
     {
         if (fDebug)
         {
-            LogPrint("masternode", "% -- : ERROR: Invalid Masternodeprivkey: '%s'\n", __func__, errorMessage.c_str());
+            LogPrint("masternode", "%s() : ERROR: Invalid Masternodeprivkey: '%s'\n", __PRETTY_FUNCTION__, errorMessage.c_str());
         }
 
         return false;
@@ -185,7 +185,7 @@ bool CMasternodePayments::Sign(CMasternodePaymentWinner& winner)
     {
         if (fDebug)
         {
-            LogPrint("masternode", "% -- :  Sign message failed", __func__);
+            LogPrint("masternode", "%s() :  Sign message failed", __PRETTY_FUNCTION__);
         }
 
         return false;
@@ -195,7 +195,7 @@ bool CMasternodePayments::Sign(CMasternodePaymentWinner& winner)
     {
         if (fDebug)
         {
-            LogPrint("masternode", "% -- :  Verify message failed", __func__);
+            LogPrint("masternode", "%s() :  Verify message failed", __PRETTY_FUNCTION__);
         }
 
         return false;
@@ -319,7 +319,7 @@ void CMasternodePayments::CleanPaymentList()
         {
             if(fDebug)
             {
-                LogPrint("masternode", "% -- :  Removing old Masternode payment - block %d\n", __func__, (*it).nBlockHeight);
+                LogPrint("masternode", "%s() :  Removing old Masternode payment - block %d\n", __PRETTY_FUNCTION__, (*it).nBlockHeight);
             }
 
             vWinning.erase(it);
@@ -363,7 +363,7 @@ bool CMasternodePayments::ProcessBlock(int nBlockHeight)
 
     if (fDebug)
     {
-        LogPrint("masternode", "% -- :  ProcessBlock Start nHeight %d - vin %s. \n", __func__, nBlockHeight, activeMasternode.vin.ToString().c_str());
+        LogPrint("masternode", "%s() :  ProcessBlock Start nHeight %d - vin %s. \n", __PRETTY_FUNCTION__, nBlockHeight, activeMasternode.vin.ToString().c_str());
     }
 
     std::vector<CTxIn> vecLastPayments;
@@ -385,7 +385,7 @@ bool CMasternodePayments::ProcessBlock(int nBlockHeight)
     {
         if (fDebug)
         {
-            LogPrint("masternode", "% -- :  Found by FindOldestNotInVec \n", __func__);
+            LogPrint("masternode", "%s() :  Found by FindOldestNotInVec \n", __PRETTY_FUNCTION__);
         }
 
         newWinner.score = 0;
@@ -409,7 +409,7 @@ bool CMasternodePayments::ProcessBlock(int nBlockHeight)
     {
         if (fDebug)
         {
-            LogPrint("masternode", "% -- :  Find by reverse \n", __func__);
+            LogPrint("masternode", "%s() :  Find by reverse \n", __PRETTY_FUNCTION__);
         }
 
         BOOST_REVERSE_FOREACH(CTxIn& vinLP, vecLastPayments)
@@ -458,7 +458,7 @@ bool CMasternodePayments::ProcessBlock(int nBlockHeight)
 
     if (fDebug)
     {
-        LogPrint("masternode", "% -- : Winner payee %s nHeight %d vin source %s. \n", __func__, address2.ToString().c_str(), newWinner.nBlockHeight, address4.ToString().c_str());
+        LogPrint("masternode", "%s() : Winner payee %s nHeight %d vin source %s. \n", __PRETTY_FUNCTION__, address2.ToString().c_str(), newWinner.nBlockHeight, address4.ToString().c_str());
     }
 
     if(Sign(newWinner))
@@ -521,7 +521,7 @@ bool CMasternodePayments::SetPrivKey(std::string strPrivKey)
     {
         if (fDebug)
         {
-            LogPrint("masternode", "% -- : Successfully initialized as Masternode payments master\n", __func__);
+            LogPrint("masternode", "%s() : Successfully initialized as Masternode payments master\n", __PRETTY_FUNCTION__);
         }
 
         enabled = true;

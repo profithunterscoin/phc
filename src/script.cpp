@@ -2861,7 +2861,7 @@ uint256 SignatureHash(CScript scriptCode, const CTransaction& txTo, unsigned int
     {
         if (fDebug)
         {
-            LogPrint("script", "% -- : ERROR: SignatureHash() : nIn=%d out of range\n", __func__, nIn);
+            LogPrint("script", "%s() : ERROR: SignatureHash() : nIn=%d out of range\n", __PRETTY_FUNCTION__, nIn);
         }
 
         return 1;
@@ -2906,7 +2906,7 @@ uint256 SignatureHash(CScript scriptCode, const CTransaction& txTo, unsigned int
         {
             if (fDebug)
             {
-                LogPrint("script", "% -- : ERROR: SignatureHash() : nOut=%d out of range\n", __func__, nOut);
+                LogPrint("script", "%s() : ERROR: SignatureHash() : nOut=%d out of range\n", __PRETTY_FUNCTION__, nOut);
             }
 
             return 1;

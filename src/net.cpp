@@ -1204,7 +1204,7 @@ bool FireWall(CNode *pnode, string FromFunction)
 
     if (FIREWALL_CLEAR_BANS == true)
     {
-        if (FIREWALL_CLEARBANS_MINNODES <= (int)vNodes.size())
+        if ((int)vNodes.size() <= FIREWALL_CLEARBANS_MINNODES)
         {
             pnode->ClearBanned();
             int TmpBlackListCount;
@@ -1376,7 +1376,7 @@ bool RecvLine(SOCKET hSocket, string& strLine)
                 // socket closed
                 if (fDebug)
                 {
-                    LogPrint("net", "% -- : socket closed\n", __func__);
+                    LogPrint("net", "%s() : socket closed\n", __PRETTY_FUNCTION__);
                 }
 
                 return false;
@@ -1388,7 +1388,7 @@ bool RecvLine(SOCKET hSocket, string& strLine)
 
                 if (fDebug)
                 {
-                    LogPrint("net", "% -- : recv failed: %s\n", __func__, nErr);
+                    LogPrint("net", "%s() : recv failed: %s\n", __PRETTY_FUNCTION__, nErr);
                 }
 
                 return false;
@@ -1468,7 +1468,7 @@ bool AddLocal(const CService& addr, int nScore)
 
     if (fDebug)
     {
-        LogPrint("net", "% -- : (%s,%i)\n", __func__, addr.ToString(), nScore);
+        LogPrint("net", "%s() : (%s,%i)\n", __PRETTY_FUNCTION__, addr.ToString(), nScore);
     }
 
     // Global Namespace Start
@@ -1662,7 +1662,7 @@ bool CheckNode(CAddress addrConnect)
     {
         if (fDebug)
         {
-            LogPrint("net", "% -- : connected masternode %s\n", __func__, addrConnect.ToString());
+            LogPrint("net", "%s() : connected masternode %s\n", __PRETTY_FUNCTION__, addrConnect.ToString());
         }
 
         closesocket(hSocket);
@@ -1674,7 +1674,7 @@ bool CheckNode(CAddress addrConnect)
         {
             if (fDebug)
             {
-                LogPrint("net", "% -- : ioctlsocket non-blocking setting failed, error %d\n", __func__, WSAGetLastError());
+                LogPrint("net", "%s() : ioctlsocket non-blocking setting failed, error %d\n", __PRETTY_FUNCTION__, WSAGetLastError());
             }
         }
 
@@ -1683,7 +1683,7 @@ bool CheckNode(CAddress addrConnect)
         {
             if (fDebug)
             {
-                LogPrint("net", "% -- : fcntl non-blocking setting failed, error %d\n", __func__, errno);
+                LogPrint("net", "%s() : fcntl non-blocking setting failed, error %d\n", __PRETTY_FUNCTION__, errno);
             }
         }
 
@@ -1697,7 +1697,7 @@ bool CheckNode(CAddress addrConnect)
 
     if (fDebug)
     {
-        LogPrint("net", "% -- : connecting to masternode %s failed\n", __func__, addrConnect.ToString());
+        LogPrint("net", "%s() : connecting to masternode %s failed\n", __PRETTY_FUNCTION__, addrConnect.ToString());
     }
 
     return false;
@@ -1731,7 +1731,7 @@ CNode* ConnectNode(CAddress addrConnect, const char *pszDest, bool darkSendMaste
     /// debug print
     if (fDebug)
     {
-        LogPrint("net", "% -- : trying connection %s lastseen=%.1fhrs\n", __func__, pszDest ? pszDest : addrConnect.ToString(), pszDest ? 0 : (double)(GetAdjustedTime() - addrConnect.nTime)/3600.0);
+        LogPrint("net", "%s() : trying connection %s lastseen=%.1fhrs\n", __PRETTY_FUNCTION__, pszDest ? pszDest : addrConnect.ToString(), pszDest ? 0 : (double)(GetAdjustedTime() - addrConnect.nTime)/3600.0);
     }
 
     // Connect
@@ -1742,7 +1742,7 @@ CNode* ConnectNode(CAddress addrConnect, const char *pszDest, bool darkSendMaste
 
         if (fDebug)
         {
-            LogPrint("net", "% -- : connected %s\n", __func__, pszDest ? pszDest : addrConnect.ToString());
+            LogPrint("net", "%s() : connected %s\n", __PRETTY_FUNCTION__, pszDest ? pszDest : addrConnect.ToString());
         }
 
         // Set to non-blocking
@@ -1753,7 +1753,7 @@ CNode* ConnectNode(CAddress addrConnect, const char *pszDest, bool darkSendMaste
         {
             if (fDebug)
             {
-                LogPrint("net", "% -- : ioctlsocket non-blocking setting failed, error %d\n", __func__, WSAGetLastError());
+                LogPrint("net", "%s() : ioctlsocket non-blocking setting failed, error %d\n", __PRETTY_FUNCTION__, WSAGetLastError());
             }
         }
 
@@ -1762,7 +1762,7 @@ CNode* ConnectNode(CAddress addrConnect, const char *pszDest, bool darkSendMaste
         {
             if (fDebug)
             {
-                LogPrint("net", "% -- : fcntl non-blocking setting failed, error %d\n", __func__, errno);
+                LogPrint("net", "%s() : fcntl non-blocking setting failed, error %d\n", __PRETTY_FUNCTION__, errno);
             }
         }
 
@@ -1799,7 +1799,7 @@ void CNode::CloseSocketDisconnect()
     {
         if (fDebug)
         {
-            LogPrint("net", "% -- : disconnecting node %s\n", __func__, addrName);
+            LogPrint("net", "%s() : disconnecting node %s\n", __PRETTY_FUNCTION__, addrName);
         }
 
         closesocket(hSocket);
@@ -1835,7 +1835,7 @@ void CNode::PushVersion()
     
     if (fDebug)
     {
-        LogPrint("net", "% -- : send version message: version %d, blocks=%d, us=%s, them=%s, peer=%s\n", __func__, PROTOCOL_VERSION, nBestHeight, addrMe.ToString(), addrYou.ToString(), addr.ToString());
+        LogPrint("net", "%s() : send version message: version %d, blocks=%d, us=%s, them=%s, peer=%s\n", __PRETTY_FUNCTION__, PROTOCOL_VERSION, nBestHeight, addrMe.ToString(), addrYou.ToString(), addr.ToString());
     }
 
     PushMessage("version", PROTOCOL_VERSION, nLocalServices, nTime, addrYou, addrMe, nLocalHostNonce, strSubVersion, nBestHeight);
@@ -2211,14 +2211,14 @@ void RefreshRecentConnections(int RefreshMinutes)
                 {
                     if (fDebug)
                     {
-                        LogPrint("net", "% -- : Invalid or missing peers.dat; recreating\n", __func__);
+                        LogPrint("net", "%s() : Invalid or missing peers.dat; recreating\n", __PRETTY_FUNCTION__);
                     }
                 }
             }
 
             if (fDebug)
             {
-                LogPrint("net", "% -- : Loaded %i addresses from peers.dat  %dms\n", __func__, addrman.size(), GetTimeMillis() - nStart);
+                LogPrint("net", "%s() : Loaded %i addresses from peers.dat  %dms\n", __PRETTY_FUNCTION__, addrman.size(), GetTimeMillis() - nStart);
             }
 
             const vector<CDNSSeedData> &vSeeds = Params().DNSSeeds();
@@ -2226,7 +2226,7 @@ void RefreshRecentConnections(int RefreshMinutes)
 
             if (fDebug)
             {
-                LogPrint("net", "% -- : Loading addresses from DNS seeds (could take a while)\n", __func__);
+                LogPrint("net", "%s() : Loading addresses from DNS seeds (could take a while)\n", __PRETTY_FUNCTION__);
             }
 
             BOOST_FOREACH(const CDNSSeedData &seed, vSeeds)
@@ -2260,7 +2260,7 @@ void RefreshRecentConnections(int RefreshMinutes)
 
             if (fDebug)
             {
-                LogPrint("net", "% -- : %d addresses found from DNS seeds\n", __func__, found);
+                LogPrint("net", "%s() : %d addresses found from DNS seeds\n", __PRETTY_FUNCTION__, found);
             }
 
             //DumpAddresses();
@@ -2377,7 +2377,7 @@ void SocketSendData(CNode *pnode)
                 if (fDebug)
                 {
                     // could not send full message; stop sending more
-                    LogPrint("net", "% -- : socket send error: interruption\n", __func__);
+                    LogPrint("net", "%s() : socket send error: interruption\n", __PRETTY_FUNCTION__);
                 }
 
                 // Disconnect node/peer if send/recv data becomes idle
@@ -2389,7 +2389,7 @@ void SocketSendData(CNode *pnode)
                         {
                             if (fDebug)
                             {
-                                LogPrint("net", "% -- : Error: Unexpected idle interruption %s\n", __func__, pnode->addrName);
+                                LogPrint("net", "%s() : Error: Unexpected idle interruption %s\n", __PRETTY_FUNCTION__, pnode->addrName);
                             }
 
                             pnode->CloseSocketDisconnect();
@@ -2411,7 +2411,7 @@ void SocketSendData(CNode *pnode)
                 {
                     if (fDebug)
                     {
-                        LogPrint("net", "% -- : socket send error %d\n", __func__, nErr);
+                        LogPrint("net", "%s() : socket send error %d\n", __PRETTY_FUNCTION__, nErr);
                     }
 
                     // Disconnect node/peer if send/recv data becomes idle
@@ -2423,7 +2423,7 @@ void SocketSendData(CNode *pnode)
                             {
                                 if (fDebug)
                                 {
-                                    LogPrint("net", "% -- : Error: Unexpected idle interruption %s\n", __func__, pnode->addrName);
+                                    LogPrint("net", "%s() : Error: Unexpected idle interruption %s\n", __PRETTY_FUNCTION__, pnode->addrName);
                                 }
 
                                 pnode->CloseSocketDisconnect();
@@ -2437,7 +2437,7 @@ void SocketSendData(CNode *pnode)
             if (fDebug)
             {
                 // couldn't send anything at all
-                LogPrint("net", "% -- : socket send error: data failure\n", __func__);
+                LogPrint("net", "%s() : socket send error: data failure\n", __PRETTY_FUNCTION__);
             }
 
             // Disconnect node/peer if send/recv data becomes idle
@@ -2449,7 +2449,7 @@ void SocketSendData(CNode *pnode)
                         {
                             if (fDebug)
                             {
-                                LogPrint("net", "% -- : Error: Unexpected idle interruption %s\n", __func__, pnode->addrName);
+                                LogPrint("net", "%s() : Error: Unexpected idle interruption %s\n", __PRETTY_FUNCTION__, pnode->addrName);
                             }
 
                             pnode->CloseSocketDisconnect();
@@ -2658,7 +2658,7 @@ void ThreadSocketHandler()
 
                 if (fDebug)
                 {
-                    LogPrint("net", "% -- : socket select error %d\n", __func__, nErr);
+                    LogPrint("net", "%s() : socket select error %d\n", __PRETTY_FUNCTION__, nErr);
                 }
 
                 for (unsigned int i = 0; i <= hSocketMax; i++)
@@ -2696,7 +2696,7 @@ void ThreadSocketHandler()
                     {
                         if (fDebug)
                         {
-                            LogPrint("net", "% -- : Warning: Unknown socket family\n", __func__);
+                            LogPrint("net", "%s() : Warning: Unknown socket family\n", __PRETTY_FUNCTION__);
                         }
                     }
                 }
@@ -2724,7 +2724,7 @@ void ThreadSocketHandler()
                     {
                         if (fDebug)
                         {
-                            LogPrint("net", "% -- : socket error accept failed: %d\n", __func__, nErr);
+                            LogPrint("net", "%s() : socket error accept failed: %d\n", __PRETTY_FUNCTION__, nErr);
                         }
                     }
                 }
@@ -2736,7 +2736,7 @@ void ThreadSocketHandler()
                 {
                     if (fDebug)
                     {
-                        LogPrint("net", "% -- : connection from %s dropped (banned)\n", __func__, addr.ToString());
+                        LogPrint("net", "%s() : connection from %s dropped (banned)\n", __PRETTY_FUNCTION__, addr.ToString());
                     }
 
                     closesocket(hSocket);
@@ -2754,7 +2754,7 @@ void ThreadSocketHandler()
 
                     if (fDebug)
                     {
-                        LogPrint("net", "% -- : accepted connection %s\n", __func__, addr.ToString());
+                        LogPrint("net", "%s() : accepted connection %s\n", __PRETTY_FUNCTION__, addr.ToString());
                     }
 
                     CNode* pnode = new CNode(hSocket, addr, "", true);
@@ -2809,7 +2809,7 @@ void ThreadSocketHandler()
                         {
                             if (fDebug)
                             {
-                                LogPrint("net", "% -- : socket recv flood control disconnect (%u bytes)\n", __func__, pnode->GetTotalRecvSize());
+                                LogPrint("net", "%s() : socket recv flood control disconnect (%u bytes)\n", __PRETTY_FUNCTION__, pnode->GetTotalRecvSize());
                             }
                         }
 
@@ -2839,7 +2839,7 @@ void ThreadSocketHandler()
                             {
                                 if (fDebug)
                                 {
-                                    LogPrint("net", "% -- : socket closed\n", __func__);
+                                    LogPrint("net", "%s() : socket closed\n", __PRETTY_FUNCTION__);
                                 }
                             }
 
@@ -2855,7 +2855,7 @@ void ThreadSocketHandler()
                                 {
                                     if (fDebug)
                                     {
-                                        LogPrint("net", "% -- : socket recv error %d\n", __func__, nErr);
+                                        LogPrint("net", "%s() : socket recv error %d\n", __PRETTY_FUNCTION__, nErr);
                                     }
                                 }
 
@@ -2898,7 +2898,7 @@ void ThreadSocketHandler()
                 {
                     if (fDebug)
                     {
-                        LogPrint("net", "% -- : socket no message in timeout, %d %d\n", __func__, pnode->nLastRecv != 0, pnode->nLastSend != 0);
+                        LogPrint("net", "%s() : socket no message in timeout, %d %d\n", __PRETTY_FUNCTION__, pnode->nLastRecv != 0, pnode->nLastSend != 0);
                     }
 
                     pnode->fDisconnect = true;
@@ -2908,7 +2908,7 @@ void ThreadSocketHandler()
                 {
                     if (fDebug)
                     {
-                        LogPrint("net", "% -- : socket not sending\n", __func__);
+                        LogPrint("net", "%s() : socket not sending\n", __PRETTY_FUNCTION__);
                     }
 
                     pnode->fDisconnect = true;
@@ -2918,7 +2918,7 @@ void ThreadSocketHandler()
                 {
                     if (fDebug)
                     {
-                        LogPrint("net", "% -- : socket inactivity timeout\n", __func__);
+                        LogPrint("net", "%s() : socket inactivity timeout\n", __PRETTY_FUNCTION__);
                     }
 
                     pnode->fDisconnect = true;
@@ -2982,7 +2982,7 @@ void ThreadMapPort()
             {
                 if (fDebug)
                 {
-                    LogPrint("net", "% -- : UPnP: GetExternalIPAddress() returned %d\n", __func__, r);
+                    LogPrint("net", "%s() : UPnP: GetExternalIPAddress() returned %d\n", __PRETTY_FUNCTION__, r);
                 }
             }
             else
@@ -2991,7 +2991,7 @@ void ThreadMapPort()
                 {
                     if (fDebug)
                     {
-                        LogPrint("net", "% -- : UPnP: ExternalIPAddress = %s\n", __func__, externalIPAddress);
+                        LogPrint("net", "%s() : UPnP: ExternalIPAddress = %s\n", __PRETTY_FUNCTION__, externalIPAddress);
                     }
 
                     AddLocal(CNetAddr(externalIPAddress), LOCAL_UPNP);
@@ -3000,7 +3000,7 @@ void ThreadMapPort()
                 {
                     if (fDebug)
                     {
-                        LogPrint("net", "% -- : UPnP: GetExternalIPAddress failed.\n", __func__);
+                        LogPrint("net", "%s() : UPnP: GetExternalIPAddress failed.\n", __PRETTY_FUNCTION__);
                     }
                 }
             }
@@ -3028,14 +3028,14 @@ void ThreadMapPort()
                 {
                     if (fDebug)
                     {
-                        LogPrint("net", "% -- : (%s, %s, %s) failed with code %d (%s)\n", __func__, port, port, lanaddr, r, strupnperror(r));
+                        LogPrint("net", "%s() : (%s, %s, %s) failed with code %d (%s)\n", __PRETTY_FUNCTION__, port, port, lanaddr, r, strupnperror(r));
                     }
                 }
                 else
                 {
                     if (fDebug)
                     {
-                        LogPrint("net", "% -- : UPnP Port Mapping successful.\n", __func__);;
+                        LogPrint("net", "%s() : UPnP Port Mapping successful.\n", __PRETTY_FUNCTION__);;
                     }
                 }
 
@@ -3048,7 +3048,7 @@ void ThreadMapPort()
 
             if (fDebug)
             {
-                LogPrint("net", "% -- : UPNP_DeletePortMapping() returned : %d\n", __func__, r);
+                LogPrint("net", "%s() : UPNP_DeletePortMapping() returned : %d\n", __PRETTY_FUNCTION__, r);
             }
 
             freeUPNPDevlist(devlist); devlist = 0;
@@ -3061,7 +3061,7 @@ void ThreadMapPort()
     {
         if (fDebug)
         {
-            LogPrint("net", "% -- : No valid UPnP IGDs found\n", __func__);
+            LogPrint("net", "%s() : No valid UPnP IGDs found\n", __PRETTY_FUNCTION__);
         }
 
         freeUPNPDevlist(devlist); devlist = 0;
@@ -3122,7 +3122,7 @@ void ThreadDNSAddressSeed()
         {
             if (fDebug)
             {
-                LogPrint("net", "% -- : P2P peers available. Skipped DNS seeding.\n", __func__);
+                LogPrint("net", "%s() : P2P peers available. Skipped DNS seeding.\n", __PRETTY_FUNCTION__);
             }
 
             return;
@@ -3135,7 +3135,7 @@ void ThreadDNSAddressSeed()
 
     if (fDebug)
     {
-        LogPrint("net", "% -- : Loading addresses from DNS seeds (could take a while)\n", __func__);
+        LogPrint("net", "%s() : Loading addresses from DNS seeds (could take a while)\n", __PRETTY_FUNCTION__);
     }
 
     BOOST_FOREACH(const CDNSSeedData &seed, vSeeds)
@@ -3169,7 +3169,7 @@ void ThreadDNSAddressSeed()
 
     if (fDebug)
     {
-        LogPrint("net", "% -- : %d addresses found from DNS seeds\n", __func__, found);
+        LogPrint("net", "%s() : %d addresses found from DNS seeds\n", __PRETTY_FUNCTION__, found);
     }
 }
 
@@ -3182,7 +3182,7 @@ void DumpAddresses()
 
     if (fDebug)
     {
-        LogPrint("net", "% -- : Flushed %d addresses to peers.dat  %dms\n", __func__, addrman.size(), GetTimeMillis() - nStart);
+        LogPrint("net", "%s() : Flushed %d addresses to peers.dat  %dms\n", __PRETTY_FUNCTION__, addrman.size(), GetTimeMillis() - nStart);
     }
 }
 
@@ -3269,7 +3269,7 @@ void ThreadOpenConnections()
             {
                 if (fDebug)
                 {
-                    LogPrint("net", "% -- : Adding fixed seed nodes as DNS doesn't seem to be available.\n", __func__);
+                    LogPrint("net", "%s() : Adding fixed seed nodes as DNS doesn't seem to be available.\n", __PRETTY_FUNCTION__);
                 }
 
                 addrman.Add(Params().FixedSeeds(), CNetAddr("127.0.0.1"));
@@ -3622,7 +3622,7 @@ void ThreadMessageHandler()
                             {
                                 if (fDebug)
                                 {
-                                    LogPrint("net", "% -- : Error: Unexpected idle interruption %s\n", __func__, pnode->addrName);
+                                    LogPrint("net", "%s() : Error: Unexpected idle interruption %s\n", __PRETTY_FUNCTION__, pnode->addrName);
                                 }
 
                                 pnode->CloseSocketDisconnect();
@@ -3694,7 +3694,7 @@ bool BindListenPort(const CService &addrBind, string& strError)
         if (fDebug)
         {
             strError = strprintf("Error: TCP/IP socket library failed to start (WSAStartup returned error %d)", ret);
-            LogPrint("net", "% -- : %s\n", __func__, strError);
+            LogPrint("net", "%s() : %s\n", __PRETTY_FUNCTION__, strError);
         }
 
         return false;
@@ -3710,7 +3710,7 @@ bool BindListenPort(const CService &addrBind, string& strError)
         if (fDebug)
         {
             strError = strprintf("Error: bind address family for %s not supported", addrBind.ToString());
-            LogPrint("net", "% -- : %s\n", __func__, strError);
+            LogPrint("net", "%s() : %s\n", __PRETTY_FUNCTION__, strError);
         }
 
         return false;
@@ -3722,7 +3722,7 @@ bool BindListenPort(const CService &addrBind, string& strError)
         if (fDebug)
         {
             strError = strprintf("Error: Couldn't open socket for incoming connections (socket returned error %d)", WSAGetLastError());
-            LogPrint("net", "% -- : %s\n", __func__, strError);
+            LogPrint("net", "%s() : %s\n", __PRETTY_FUNCTION__, strError);
         }
 
         return false;
@@ -3755,7 +3755,7 @@ bool BindListenPort(const CService &addrBind, string& strError)
         if (fDebug)
         {
             strError = strprintf("Error: Couldn't set properties on socket for incoming connections (error %d)", WSAGetLastError());
-            LogPrint("net", "% -- : %s\n", __func__, strError);
+            LogPrint("net", "%s() : %s\n", __PRETTY_FUNCTION__, strError);
         }
 
         return false;
@@ -3797,7 +3797,7 @@ bool BindListenPort(const CService &addrBind, string& strError)
                 strError = strprintf(_("Unable to bind to %s on this computer (bind returned error %d, %s)"), addrBind.ToString(), nErr, strerror(nErr));
             }
 
-            LogPrint("net", "% -- : %s\n", __func__, strError);
+            LogPrint("net", "%s() : %s\n", __PRETTY_FUNCTION__, strError);
         }
 
         return false;
@@ -3805,7 +3805,7 @@ bool BindListenPort(const CService &addrBind, string& strError)
 
     if (fDebug)
     {
-        LogPrint("net", "% -- : Bound to %s\n", __func__, addrBind.ToString());
+        LogPrint("net", "%s() : Bound to %s\n", __PRETTY_FUNCTION__, addrBind.ToString());
     }
 
     // Listen for incoming connections
@@ -3814,7 +3814,7 @@ bool BindListenPort(const CService &addrBind, string& strError)
         if (fDebug)
         {
             strError = strprintf("Error: Listening for incoming connections failed (listen returned error %d)", WSAGetLastError());
-            LogPrint("net", "% -- : %s\n", __func__, strError);
+            LogPrint("net", "%s() : %s\n", __PRETTY_FUNCTION__, strError);
         }
 
         return false;
@@ -3888,7 +3888,7 @@ void static Discover(boost::thread_group& threadGroup)
                 {
                     if (fDebug)
                     {
-                        LogPrint("net", "% -- : IPv4 %s: %s\n", __func__, ifa->ifa_name, addr.ToString());
+                        LogPrint("net", "%s() : IPv4 %s: %s\n", __PRETTY_FUNCTION__, ifa->ifa_name, addr.ToString());
                     }
                 }
             }
@@ -3901,7 +3901,7 @@ void static Discover(boost::thread_group& threadGroup)
                 {
                     if (fDebug)
                     {
-                        LogPrint("net", "% -- : IPv6 %s: %s\n", __func__, ifa->ifa_name, addr.ToString());
+                        LogPrint("net", "%s() : IPv6 %s: %s\n", __PRETTY_FUNCTION__, ifa->ifa_name, addr.ToString());
                     }
                 }
 
@@ -3927,7 +3927,7 @@ void StartNode(boost::thread_group& threadGroup)
     {
         if (fDebug)
         {
-            LogPrint("net", "% -- : Invalid or missing banlist.dat; recreating\n", __func__);
+            LogPrint("net", "%s() : Invalid or missing banlist.dat; recreating\n", __PRETTY_FUNCTION__);
         }
     }
 
@@ -3957,7 +3957,7 @@ void StartNode(boost::thread_group& threadGroup)
     {
         if (fDebug)
         {
-            LogPrint("net", "% -- : DNS seeding disabled\n", __func__);
+            LogPrint("net", "%s() : DNS seeding disabled\n", __PRETTY_FUNCTION__);
         }
     }
     else
@@ -3991,7 +3991,7 @@ bool StopNode()
 {
     if (fDebug)
     {
-        LogPrint("net", "% -- : StopNode()\n", __func__);
+        LogPrint("net", "%s() : StopNode()\n", __PRETTY_FUNCTION__);
     }
 
     MapPort(false);
@@ -4042,7 +4042,7 @@ class CNetCleanup
                     {
                         if (fDebug)
                         {
-                            LogPrint("net", "% -- : closesocket(hListenSocket) failed with error %d\n", __func__, WSAGetLastError());
+                            LogPrint("net", "%s() : closesocket(hListenSocket) failed with error %d\n", __PRETTY_FUNCTION__, WSAGetLastError());
                         }
                     }
                 }
@@ -4188,7 +4188,7 @@ bool CAddrDB::Write(const CAddrMan& addr)
 
     if (fileout.IsNull())
     {
-        return error("% -- : open failed", __func__);
+        return error("%s() : open failed", __PRETTY_FUNCTION__);
     }
 
     // Write and commit header, data
@@ -4198,7 +4198,7 @@ bool CAddrDB::Write(const CAddrMan& addr)
     }
     catch (std::exception &e)
     {
-        return error("% -- : I/O error", __func__);
+        return error("%s() : I/O error", __PRETTY_FUNCTION__);
     }
 
     FileCommit(fileout.Get());
@@ -4207,7 +4207,7 @@ bool CAddrDB::Write(const CAddrMan& addr)
     // replace existing peers.dat, if any, with new peers.dat.XXXX
     if (!RenameOver(pathTmp, pathAddr))
     {
-        return error("% -- : Rename-into-place failed", __func__);
+        return error("%s() : Rename-into-place failed", __PRETTY_FUNCTION__);
     }
 
     return true;
@@ -4221,7 +4221,7 @@ bool CAddrDB::Read(CAddrMan& addr)
     CAutoFile filein = CAutoFile(file, SER_DISK, CLIENT_VERSION);
     if (filein.IsNull())
     {
-        return error("% -- : open failed", __func__);
+        return error("%s() : open failed", __PRETTY_FUNCTION__);
     }
 
     // use file size to size memory buffer
@@ -4251,7 +4251,7 @@ bool CAddrDB::Read(CAddrMan& addr)
     }
     catch (std::exception &e)
     {
-        return error("% -- : 2 : I/O error or stream data corrupted", __func__);
+        return error("%s() : 2 : I/O error or stream data corrupted", __PRETTY_FUNCTION__);
     }
     filein.fclose();
 
@@ -4261,7 +4261,7 @@ bool CAddrDB::Read(CAddrMan& addr)
     uint256 hashTmp = Hash(ssPeers.begin(), ssPeers.end());
     if (hashIn != hashTmp)
     {
-        return error("% -- : checksum mismatch; data corrupted", __func__);
+        return error("%s() : checksum mismatch; data corrupted", __PRETTY_FUNCTION__);
     }
 
     unsigned char pchMsgTmp[4];
@@ -4273,7 +4273,7 @@ bool CAddrDB::Read(CAddrMan& addr)
         // ... verify the network matches ours
         if (memcmp(pchMsgTmp, Params().MessageStart(), sizeof(pchMsgTmp)))
         {
-            return error("% -- : invalid network magic number", __func__);
+            return error("%s() : invalid network magic number", __PRETTY_FUNCTION__);
         }
 
         // de-serialize address data into one CAddrMan object
@@ -4281,7 +4281,7 @@ bool CAddrDB::Read(CAddrMan& addr)
     }
     catch (std::exception &e)
     {
-        return error("% -- : I/O error or stream data corrupted", __func__);
+        return error("%s() : I/O error or stream data corrupted", __PRETTY_FUNCTION__);
     }
 
     return true;
@@ -4318,7 +4318,7 @@ bool CBanDB::Write(const banmap_t& banSet)
     CAutoFile fileout(file, SER_DISK, CLIENT_VERSION);
     if (fileout.IsNull())
     {
-        return error("%s: Failed to open file %s", __func__, pathTmp.string());
+        return error("%s: Failed to open file %s", __PRETTY_FUNCTION__, pathTmp.string());
     }
 
     // Write and commit header, data
@@ -4328,7 +4328,7 @@ bool CBanDB::Write(const banmap_t& banSet)
     }
     catch (const std::exception& e)
     {
-        return error("%s: Serialize or I/O error - %s", __func__, e.what());
+        return error("%s: Serialize or I/O error - %s", __PRETTY_FUNCTION__, e.what());
     }
     FileCommit(fileout.Get());
     fileout.fclose();
@@ -4336,7 +4336,7 @@ bool CBanDB::Write(const banmap_t& banSet)
     // replace existing banlist.dat, if any, with new banlist.dat.XXXX
     if (!RenameOver(pathTmp, pathBanlist))
     {
-        return error("%s: Rename-into-place failed", __func__);
+        return error("%s: Rename-into-place failed", __PRETTY_FUNCTION__);
     }
 
     return true;
@@ -4351,7 +4351,7 @@ bool CBanDB::Read(banmap_t& banSet)
 
     if (filein.IsNull())
     {
-        return error("%s: Failed to open file %s", __func__, pathBanlist.string());
+        return error("%s: Failed to open file %s", __PRETTY_FUNCTION__, pathBanlist.string());
     }
 
     // use file size to size memory buffer
@@ -4376,7 +4376,7 @@ bool CBanDB::Read(banmap_t& banSet)
     }
     catch (const std::exception& e)
     {
-        return error("%s: Deserialize or I/O error - %s", __func__, e.what());
+        return error("%s: Deserialize or I/O error - %s", __PRETTY_FUNCTION__, e.what());
     }
     filein.fclose();
 
@@ -4386,7 +4386,7 @@ bool CBanDB::Read(banmap_t& banSet)
     uint256 hashTmp = Hash(ssBanlist.begin(), ssBanlist.end());
     if (hashIn != hashTmp)
     {
-        return error("%s: Checksum mismatch, data corrupted", __func__);
+        return error("%s: Checksum mismatch, data corrupted", __PRETTY_FUNCTION__);
     }
 
     unsigned char pchMsgTmp[4];
@@ -4398,7 +4398,7 @@ bool CBanDB::Read(banmap_t& banSet)
         // ... verify the network matches ours
         if (memcmp(pchMsgTmp, Params().MessageStart(), sizeof(pchMsgTmp)))
         {
-            return error("%s: Invalid network magic number", __func__);
+            return error("%s: Invalid network magic number", __PRETTY_FUNCTION__);
         }
 
         // de-serialize address data into one CAddrMan object
@@ -4406,7 +4406,7 @@ bool CBanDB::Read(banmap_t& banSet)
     }
     catch (const std::exception& e)
     {
-        return error("%s: Deserialize or I/O error - %s", __func__, e.what());
+        return error("%s: Deserialize or I/O error - %s", __PRETTY_FUNCTION__, e.what());
     }
 
     return true;
@@ -4428,7 +4428,7 @@ void DumpBanlist()
 
     if (fDebug)
     {
-        LogPrint("net", "% -- : Flushed %d banned node ips/subnets to banlist.dat  %dms\n", __func__, banmap.size(), GetTimeMillis() - nStart);
+        LogPrint("net", "%s() : Flushed %d banned node ips/subnets to banlist.dat  %dms\n", __PRETTY_FUNCTION__, banmap.size(), GetTimeMillis() - nStart);
     }
 }
 
