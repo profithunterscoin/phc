@@ -73,7 +73,7 @@ void init_blockindex(leveldb::Options& options, bool fRemoveOld = false)
     
     if (fDebug)
     {
-        LogPrint("db", "%s() : Opening LevelDB in %s\n", __PRETTY_FUNCTION__, directory.string());
+        LogPrint("db", "%s : Opening LevelDB in %s\n", __PRETTY_FUNCTION__, directory.string());
     }
 
     leveldb::Status status = leveldb::DB::Open(options, directory.string(), &txdb);
@@ -118,14 +118,14 @@ CTxDB::CTxDB(const char* pszMode)
         
         if (fDebug)
         {
-            LogPrint("db", "%s() : Transaction index version is %d\n", __PRETTY_FUNCTION__, nVersion);
+            LogPrint("db", "%s : Transaction index version is %d\n", __PRETTY_FUNCTION__, nVersion);
         }
 
         if (nVersion < DATABASE_VERSION)
         {
             if (fDebug)
             {
-                LogPrint("db", "%s() : Required index version is %d, removing old database\n", __PRETTY_FUNCTION__, DATABASE_VERSION);
+                LogPrint("db", "%s : Required index version is %d, removing old database\n", __PRETTY_FUNCTION__, DATABASE_VERSION);
             }
 
             // Leveldb instance destruction
@@ -163,7 +163,7 @@ CTxDB::CTxDB(const char* pszMode)
 
     if (fDebug)
     {
-        LogPrint("db", "%s() : Opened LevelDB successfully\n", __PRETTY_FUNCTION__);
+        LogPrint("db", "%s : Opened LevelDB successfully\n", __PRETTY_FUNCTION__);
     }
 }
 
@@ -209,7 +209,7 @@ bool CTxDB::TxnCommit()
     {
         if (fDebug)
         {
-            LogPrint("db", "%s() : LevelDB batch commit failure: %s\n", __PRETTY_FUNCTION__, status.ToString());
+            LogPrint("db", "%s : LevelDB batch commit failure: %s\n", __PRETTY_FUNCTION__, status.ToString());
         }
 
         return false;
@@ -526,7 +526,7 @@ bool CTxDB::LoadBlockIndex()
         {
             delete iterator;
         
-            return error("%s() : CheckIndex failed at %d", __PRETTY_FUNCTION__, pindexNew->nHeight);
+            return error("%s : CheckIndex failed at %d", __PRETTY_FUNCTION__, pindexNew->nHeight);
         }
 
         // NovaCoin: build setStakeSeen
@@ -568,12 +568,12 @@ bool CTxDB::LoadBlockIndex()
             return true;
         }
 
-        return error("%s() : hashBestChain not loaded", __PRETTY_FUNCTION__);
+        return error("%s : hashBestChain not loaded", __PRETTY_FUNCTION__);
     }
 
     if (!mapBlockIndex.count(hashBestChain))
     {
-        return error("%s() : hashBestChain not found in the block index", __PRETTY_FUNCTION__);
+        return error("%s : hashBestChain not found in the block index", __PRETTY_FUNCTION__);
     }
     
     pindexBest = mapBlockIndex[hashBestChain];
@@ -582,7 +582,7 @@ bool CTxDB::LoadBlockIndex()
 
     if (fDebug)
     {
-        LogPrint("db", "%s() : hashBestChain=%s  height=%d  trust=%s  date=%s\n", __PRETTY_FUNCTION__, hashBestChain.ToString(), nBestHeight, CBigNum(nBestChainTrust).ToString(), DateTimeStrFormat("%x %H:%M:%S", pindexBest->GetBlockTime()));
+        LogPrint("db", "%s : hashBestChain=%s  height=%d  trust=%s  date=%s\n", __PRETTY_FUNCTION__, hashBestChain.ToString(), nBestHeight, CBigNum(nBestChainTrust).ToString(), DateTimeStrFormat("%x %H:%M:%S", pindexBest->GetBlockTime()));
     }
 
     // Load bnBestInvalidTrust, OK if it doesn't exist
@@ -608,7 +608,7 @@ bool CTxDB::LoadBlockIndex()
     
     if (fDebug)
     {
-        LogPrint("db", "%s() : Verifying last %i blocks at level %i\n", __PRETTY_FUNCTION__, nCheckDepth, nCheckLevel);
+        LogPrint("db", "%s : Verifying last %i blocks at level %i\n", __PRETTY_FUNCTION__, nCheckDepth, nCheckLevel);
     }
 
     CBlockIndex* pindexFork = NULL;
@@ -628,7 +628,7 @@ bool CTxDB::LoadBlockIndex()
 
         if (!block.ReadFromDisk(pindex))
         {
-            return error("%s() : block.ReadFromDisk failed", __PRETTY_FUNCTION__);
+            return error("%s : block.ReadFromDisk failed", __PRETTY_FUNCTION__);
         }
         
         // check level 1: verify block validity
@@ -637,7 +637,7 @@ bool CTxDB::LoadBlockIndex()
         {
             if (fDebug)
             {
-                LogPrint("db", "%s() : *** found bad block at %d, hash=%s\n", __PRETTY_FUNCTION__, pindex->nHeight, pindex->GetBlockHash().ToString());
+                LogPrint("db", "%s : *** found bad block at %d, hash=%s\n", __PRETTY_FUNCTION__, pindex->nHeight, pindex->GetBlockHash().ToString());
             }
 
             pindexFork = pindex->pprev;
@@ -666,7 +666,7 @@ bool CTxDB::LoadBlockIndex()
                         {
                             if (fDebug)
                             {
-                                LogPrint("db", "%s() : *** cannot read mislocated transaction %s\n", __PRETTY_FUNCTION__, hashTx.ToString());
+                                LogPrint("db", "%s : *** cannot read mislocated transaction %s\n", __PRETTY_FUNCTION__, hashTx.ToString());
                             }
 
                             pindexFork = pindex->pprev;
@@ -677,7 +677,7 @@ bool CTxDB::LoadBlockIndex()
                             {
                                 if (fDebug)
                                 {
-                                    LogPrint("db", "%s() : *** invalid tx position for %s\n", __PRETTY_FUNCTION__, hashTx.ToString());
+                                    LogPrint("db", "%s : *** invalid tx position for %s\n", __PRETTY_FUNCTION__, hashTx.ToString());
                                 }
 
                                 pindexFork = pindex->pprev;
@@ -700,7 +700,7 @@ bool CTxDB::LoadBlockIndex()
                                 {
                                     if (fDebug)
                                     {
-                                        LogPrint("db", "%s() : *** found bad spend at %d, hashBlock=%s, hashTx=%s\n", __PRETTY_FUNCTION__, pindex->nHeight, pindex->GetBlockHash().ToString(), hashTx.ToString());
+                                        LogPrint("db", "%s : *** found bad spend at %d, hashBlock=%s, hashTx=%s\n", __PRETTY_FUNCTION__, pindex->nHeight, pindex->GetBlockHash().ToString(), hashTx.ToString());
                                     }
 
                                     pindexFork = pindex->pprev;
@@ -715,7 +715,7 @@ bool CTxDB::LoadBlockIndex()
                                     {
                                         if (fDebug)
                                         {
-                                            LogPrint("db", "%s() : *** cannot read spending transaction of %s:%i from disk\n", __PRETTY_FUNCTION__, hashTx.ToString(), nOutput);
+                                            LogPrint("db", "%s : *** cannot read spending transaction of %s:%i from disk\n", __PRETTY_FUNCTION__, hashTx.ToString(), nOutput);
                                         }
 
                                         pindexFork = pindex->pprev;
@@ -724,7 +724,7 @@ bool CTxDB::LoadBlockIndex()
                                     {
                                         if (fDebug)
                                         {
-                                            LogPrint("db", "%s() : *** spending transaction of %s:%i is invalid\n", __PRETTY_FUNCTION__, hashTx.ToString(), nOutput);
+                                            LogPrint("db", "%s : *** spending transaction of %s:%i is invalid\n", __PRETTY_FUNCTION__, hashTx.ToString(), nOutput);
                                         }
 
                                         pindexFork = pindex->pprev;
@@ -745,7 +745,7 @@ bool CTxDB::LoadBlockIndex()
                                         {
                                             if (fDebug)
                                             {
-                                                LogPrint("db", "%s() : *** spending transaction of %s:%i does not spend it\n", __PRETTY_FUNCTION__, hashTx.ToString(), nOutput);
+                                                LogPrint("db", "%s : *** spending transaction of %s:%i does not spend it\n", __PRETTY_FUNCTION__, hashTx.ToString(), nOutput);
                                             }
 
                                             pindexFork = pindex->pprev;
@@ -771,7 +771,7 @@ bool CTxDB::LoadBlockIndex()
                             if (txindex.vSpent.size()-1 < txin.prevout.n || txindex.vSpent[txin.prevout.n].IsNull())
                             {
                                 
-                                LogPrint("db", "%s() : *** found unspent prevout %s:%i in %s\n", __PRETTY_FUNCTION__, txin.prevout.hash.ToString(), txin.prevout.n, hashTx.ToString());
+                                LogPrint("db", "%s : *** found unspent prevout %s:%i in %s\n", __PRETTY_FUNCTION__, txin.prevout.hash.ToString(), txin.prevout.n, hashTx.ToString());
                                 
                                 pindexFork = pindex->pprev;
                             }
@@ -789,13 +789,13 @@ bool CTxDB::LoadBlockIndex()
         // Reorg back to the fork
         if (fDebug)
         {
-            LogPrint("db", "%s() : *** moving best chain pointer back to block %d\n", __PRETTY_FUNCTION__, pindexFork->nHeight);
+            LogPrint("db", "%s : *** moving best chain pointer back to block %d\n", __PRETTY_FUNCTION__, pindexFork->nHeight);
         }
 
         CBlock block;
         if (!block.ReadFromDisk(pindexFork))
         {
-            return error("%s() : block.ReadFromDisk failed", __PRETTY_FUNCTION__);
+            return error("%s : block.ReadFromDisk failed", __PRETTY_FUNCTION__);
         }
         
         CTxDB txdb;

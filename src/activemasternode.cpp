@@ -21,7 +21,7 @@ void CActiveMasternode::ManageStatus()
 
     if (fDebug)
     {
-        LogPrint("masternode", "%s() : Begin\n", __PRETTY_FUNCTION__);
+        LogPrint("masternode", "%s : Begin\n", __PRETTY_FUNCTION__);
     }
 
     if(!fMasterNode)
@@ -38,7 +38,7 @@ void CActiveMasternode::ManageStatus()
 
         if (fDebug)
         {
-            LogPrint("masternode", "%s() : Sync in progress. Must wait until sync is complete to start masternode.\n", __PRETTY_FUNCTION__);
+            LogPrint("masternode", "%s : Sync in progress. Must wait until sync is complete to start masternode.\n", __PRETTY_FUNCTION__);
         }
 
         return;
@@ -60,7 +60,7 @@ void CActiveMasternode::ManageStatus()
 
                 if (fDebug)
                 {
-                    LogPrint("masternode", "%s() : not capable: %s\n", __PRETTY_FUNCTION__, notCapableReason.c_str());
+                    LogPrint("masternode", "%s : not capable: %s\n", __PRETTY_FUNCTION__, notCapableReason.c_str());
                 }
 
                 return;
@@ -73,7 +73,7 @@ void CActiveMasternode::ManageStatus()
 
         if (fDebug)
         {
-            LogPrint("masternode", "%s() : Checking inbound connection to '%s'\n", __PRETTY_FUNCTION__, service.ToString().c_str());
+            LogPrint("masternode", "%s : Checking inbound connection to '%s'\n", __PRETTY_FUNCTION__, service.ToString().c_str());
         }
             
         if(!ConnectNode((CAddress)service, service.ToString().c_str()))
@@ -83,7 +83,7 @@ void CActiveMasternode::ManageStatus()
         
             if (fDebug)
             {
-                LogPrint("masternode", "%s() : not capable: %s\n", __PRETTY_FUNCTION__, notCapableReason.c_str());
+                LogPrint("masternode", "%s : not capable: %s\n", __PRETTY_FUNCTION__, notCapableReason.c_str());
             }
 
             return;
@@ -96,7 +96,7 @@ void CActiveMasternode::ManageStatus()
 
             if (fDebug)
             {
-                LogPrint("masternode", "%s() : not capable: %s\n", __PRETTY_FUNCTION__, notCapableReason.c_str());
+                LogPrint("masternode", "%s : not capable: %s\n", __PRETTY_FUNCTION__, notCapableReason.c_str());
             }
 
             return;
@@ -122,7 +122,7 @@ void CActiveMasternode::ManageStatus()
 
                     if (fDebug)
                     {
-                        LogPrint("masternode", "%s() : %s\n", __PRETTY_FUNCTION__, notCapableReason.c_str());
+                        LogPrint("masternode", "%s : %s\n", __PRETTY_FUNCTION__, notCapableReason.c_str());
                     }
 
                     status = MASTERNODE_INPUT_TOO_NEW;
@@ -132,7 +132,7 @@ void CActiveMasternode::ManageStatus()
 
                 if (fDebug)
                 {
-                    LogPrint("masternode", "%s() : Is capable master node!\n", __PRETTY_FUNCTION__);
+                    LogPrint("masternode", "%s : Is capable master node!\n", __PRETTY_FUNCTION__);
                 }
 
                 status = MASTERNODE_IS_CAPABLE;
@@ -148,7 +148,7 @@ void CActiveMasternode::ManageStatus()
                 {
                     if (fDebug)
                     {
-                        LogPrint("masternode", "%s() : Error upon calling SetKey: %s\n", __PRETTY_FUNCTION__, errorMessage.c_str());
+                        LogPrint("masternode", "%s : Error upon calling SetKey: %s\n", __PRETTY_FUNCTION__, errorMessage.c_str());
                     }
 
                     return;
@@ -162,7 +162,7 @@ void CActiveMasternode::ManageStatus()
                 {
                     if (fDebug)
                     {
-                        LogPrint("masternode", "%s() : Error on Register: %s\n", __PRETTY_FUNCTION__, errorMessage.c_str());
+                        LogPrint("masternode", "%s : Error on Register: %s\n", __PRETTY_FUNCTION__, errorMessage.c_str());
                     }
                 }
 
@@ -174,7 +174,7 @@ void CActiveMasternode::ManageStatus()
                 
                 if (fDebug)
                 {    
-                    LogPrint("masternode", "%s() : Could not find suitable coins!\n", __PRETTY_FUNCTION__);
+                    LogPrint("masternode", "%s : Could not find suitable coins!\n", __PRETTY_FUNCTION__);
                 }
             }
         }
@@ -185,7 +185,7 @@ void CActiveMasternode::ManageStatus()
     {
         if (fDebug)
         {
-    	    LogPrint("masternode", "%s() : Error on Ping: %s\n", __PRETTY_FUNCTION__, errorMessage.c_str());
+    	    LogPrint("masternode", "%s : Error on Ping: %s\n", __PRETTY_FUNCTION__, errorMessage.c_str());
         }
     }
 }
@@ -202,7 +202,7 @@ bool CActiveMasternode::StopMasterNode(std::string strService, std::string strKe
     {
         if (fDebug)
         {
-    	    LogPrint("masternode", "%s() : Error: %s\n", __PRETTY_FUNCTION__, errorMessage.c_str());
+    	    LogPrint("masternode", "%s : Error: %s\n", __PRETTY_FUNCTION__, errorMessage.c_str());
         }
 
 		return false;
@@ -212,7 +212,7 @@ bool CActiveMasternode::StopMasterNode(std::string strService, std::string strKe
     {
         if (fDebug)
         {
-            LogPrint("masternode", "%s() : VinFound: %s\n", __PRETTY_FUNCTION__, vin.ToString());
+            LogPrint("masternode", "%s : VinFound: %s\n", __PRETTY_FUNCTION__, vin.ToString());
         }
     }
 
@@ -229,7 +229,7 @@ bool CActiveMasternode::StopMasterNode(std::string& errorMessage)
         
         if (fDebug)
         {
-    	    LogPrint("masternode", "%s() : Error: %s\n", __PRETTY_FUNCTION__, errorMessage.c_str());
+    	    LogPrint("masternode", "%s : Error: %s\n", __PRETTY_FUNCTION__, errorMessage.c_str());
         }
 
 		return false;
@@ -244,7 +244,7 @@ bool CActiveMasternode::StopMasterNode(std::string& errorMessage)
     {
         if (fDebug)
         {
-    	    LogPrint("masternode", "%s() : ManageStatus() - Error upon calling SetKey: %s\n", __PRETTY_FUNCTION__, errorMessage.c_str());
+    	    LogPrint("masternode", "%s : ManageStatus() - Error upon calling SetKey: %s\n", __PRETTY_FUNCTION__, errorMessage.c_str());
         }
 
     	return false;
@@ -271,7 +271,7 @@ bool CActiveMasternode::Dseep(std::string& errorMessage)
 
         if (fDebug)
         {
-    	    LogPrint("masternode", "%s() : Error: %s\n", __PRETTY_FUNCTION__, errorMessage.c_str());
+    	    LogPrint("masternode", "%s : Error: %s\n", __PRETTY_FUNCTION__, errorMessage.c_str());
         }
 
 		return false;
@@ -284,7 +284,7 @@ bool CActiveMasternode::Dseep(std::string& errorMessage)
     {
         if (fDebug)
         {
-    	    LogPrint("masternode", "%s() : Error upon calling SetKey: %s\n", __PRETTY_FUNCTION__, errorMessage.c_str());
+    	    LogPrint("masternode", "%s : Error upon calling SetKey: %s\n", __PRETTY_FUNCTION__, errorMessage.c_str());
         }
 
     	return false;
@@ -310,7 +310,7 @@ bool CActiveMasternode::Dseep(CTxIn vin, CService service, CKey keyMasternode, C
     	
         if (fDebug)
         {
-            LogPrint("masternode", "%s() : Error: %s\n", __PRETTY_FUNCTION__, retErrorMessage.c_str());
+            LogPrint("masternode", "%s : Error: %s\n", __PRETTY_FUNCTION__, retErrorMessage.c_str());
         }
 
         return false;
@@ -322,7 +322,7 @@ bool CActiveMasternode::Dseep(CTxIn vin, CService service, CKey keyMasternode, C
     	
         if (fDebug)
         {
-            LogPrint("masternode", "%s() : Error: %s\n", __PRETTY_FUNCTION__, retErrorMessage.c_str());
+            LogPrint("masternode", "%s : Error: %s\n", __PRETTY_FUNCTION__, retErrorMessage.c_str());
         }
 
         return false;
@@ -349,7 +349,7 @@ bool CActiveMasternode::Dseep(CTxIn vin, CService service, CKey keyMasternode, C
     	
         if (fDebug)
         {
-            LogPrint("masternode", "%s() : Error: %s\n", __PRETTY_FUNCTION__, retErrorMessage.c_str());
+            LogPrint("masternode", "%s : Error: %s\n", __PRETTY_FUNCTION__, retErrorMessage.c_str());
         }
 
         status = MASTERNODE_NOT_CAPABLE;
@@ -361,7 +361,7 @@ bool CActiveMasternode::Dseep(CTxIn vin, CService service, CKey keyMasternode, C
     //send to all peers
     if (fDebug)
     {
-        LogPrint("masternode", "%s() : RelayMasternodeEntryPing vin = %s\n", __PRETTY_FUNCTION__, vin.ToString().c_str());
+        LogPrint("masternode", "%s : RelayMasternodeEntryPing vin = %s\n", __PRETTY_FUNCTION__, vin.ToString().c_str());
     }
 
     mnodeman.RelayMasternodeEntryPing(vin, vchMasterNodeSignature, masterNodeSignatureTime, stop);
@@ -385,7 +385,7 @@ bool CActiveMasternode::Register(std::string strService, std::string strKeyMaste
     {
         if (fDebug)
         {
-            LogPrint("masternode", "%s() : Error upon calling SetKey: %s\n", __PRETTY_FUNCTION__, errorMessage.c_str());
+            LogPrint("masternode", "%s : Error upon calling SetKey: %s\n", __PRETTY_FUNCTION__, errorMessage.c_str());
         }
 
         return false;
@@ -397,7 +397,7 @@ bool CActiveMasternode::Register(std::string strService, std::string strKeyMaste
         
         if (fDebug)
         {
-            LogPrint("masternode", "%s() : Error: %s\n", __PRETTY_FUNCTION__, errorMessage.c_str());
+            LogPrint("masternode", "%s : Error: %s\n", __PRETTY_FUNCTION__, errorMessage.c_str());
         }
 
         return false;
@@ -411,7 +411,7 @@ bool CActiveMasternode::Register(std::string strService, std::string strKeyMaste
         {
             if (fDebug)
             {
-                LogPrint("masternode", "%s() : Invalid Reward Address\n", __PRETTY_FUNCTION__);
+                LogPrint("masternode", "%s : Invalid Reward Address\n", __PRETTY_FUNCTION__);
             }
 
             return false;
@@ -427,7 +427,7 @@ bool CActiveMasternode::Register(std::string strService, std::string strKeyMaste
         {
             if (fDebug)
             {
-                LogPrint("masternode", "%s() : Invalid Reward Percentage (Couldn't cast)\n", __PRETTY_FUNCTION__);
+                LogPrint("masternode", "%s : Invalid Reward Percentage (Couldn't cast)\n", __PRETTY_FUNCTION__);
             }
 
             return false;
@@ -437,7 +437,7 @@ bool CActiveMasternode::Register(std::string strService, std::string strKeyMaste
         {
             if (fDebug)
             {
-                LogPrint("masternode", "%s() : Reward Percentage Out Of Range\n", __PRETTY_FUNCTION__);
+                LogPrint("masternode", "%s : Reward Percentage Out Of Range\n", __PRETTY_FUNCTION__);
             }
 
             return false;
@@ -467,7 +467,7 @@ bool CActiveMasternode::Register(CTxIn vin, CService service, CKey keyCollateral
 		
         if (fDebug)
         {
-            LogPrint("masternode", "%s() : Error: %s\n", __PRETTY_FUNCTION__, retErrorMessage.c_str());
+            LogPrint("masternode", "%s : Error: %s\n", __PRETTY_FUNCTION__, retErrorMessage.c_str());
         }
 
 		return false;
@@ -479,7 +479,7 @@ bool CActiveMasternode::Register(CTxIn vin, CService service, CKey keyCollateral
 		
         if (fDebug)
         {
-            LogPrint("masternode", "%s() : Error: %s\n", __PRETTY_FUNCTION__, retErrorMessage.c_str());
+            LogPrint("masternode", "%s : Error: %s\n", __PRETTY_FUNCTION__, retErrorMessage.c_str());
         }
 
 		return false;
@@ -490,7 +490,7 @@ bool CActiveMasternode::Register(CTxIn vin, CService service, CKey keyCollateral
     {
         if (fDebug)
         {
-            LogPrint("masternode", "%s() : Adding to masternode list service: %s - vin: %s\n", __PRETTY_FUNCTION__, service.ToString().c_str(), vin.ToString().c_str());
+            LogPrint("masternode", "%s : Adding to masternode list service: %s - vin: %s\n", __PRETTY_FUNCTION__, service.ToString().c_str(), vin.ToString().c_str());
         }
 
         CMasternode mn(service, vin, pubKeyCollateralAddress, vchMasterNodeSignature, masterNodeSignatureTime, pubKeyMasternode, PROTOCOL_VERSION, rewardAddress, rewardPercentage); 
@@ -503,7 +503,7 @@ bool CActiveMasternode::Register(CTxIn vin, CService service, CKey keyCollateral
     //send to all peers
     if (fDebug)
     {
-        LogPrint("masternode", "%s() : RelayElectionEntry vin = %s\n", __PRETTY_FUNCTION__, vin.ToString().c_str());
+        LogPrint("masternode", "%s : RelayElectionEntry vin = %s\n", __PRETTY_FUNCTION__, vin.ToString().c_str());
     }
 
     mnodeman.RelayMasternodeEntry(vin, service, vchMasterNodeSignature, masterNodeSignatureTime, pubKeyCollateralAddress, pubKeyMasternode, -1, -1, masterNodeSignatureTime, PROTOCOL_VERSION, rewardAddress, rewardPercentage);
@@ -550,7 +550,7 @@ bool CActiveMasternode::GetMasterNodeVin(CTxIn& vin, CPubKey& pubkey, CKey& secr
         {
             if (fDebug)
             {
-			    LogPrint("masternode", "%s() : Could not locate valid vin\n", __PRETTY_FUNCTION__);
+			    LogPrint("masternode", "%s : Could not locate valid vin\n", __PRETTY_FUNCTION__);
             }
 
 			return false;
@@ -567,7 +567,7 @@ bool CActiveMasternode::GetMasterNodeVin(CTxIn& vin, CPubKey& pubkey, CKey& secr
         {
             if (fDebug)
             {
-			    LogPrint("masternode", "%s() : Could not locate specified vin from possible list\n", __PRETTY_FUNCTION__);
+			    LogPrint("masternode", "%s : Could not locate specified vin from possible list\n", __PRETTY_FUNCTION__);
             }
 
             return false;
@@ -617,7 +617,7 @@ bool CActiveMasternode::GetMasterNodeVinForPubKey(std::string collateralAddress,
         {
             if (fDebug)
             {
-			    LogPrint("masternode", "%s() : Could not locate valid vin\n", __PRETTY_FUNCTION__);
+			    LogPrint("masternode", "%s : Could not locate valid vin\n", __PRETTY_FUNCTION__);
             }
 
 			return false;
@@ -634,7 +634,7 @@ bool CActiveMasternode::GetMasterNodeVinForPubKey(std::string collateralAddress,
         {
             if (fDebug)
             {
-			    LogPrint("masternode", "%s() : Could not locate specified vin from possible list\n", __PRETTY_FUNCTION__);
+			    LogPrint("masternode", "%s : Could not locate specified vin from possible list\n", __PRETTY_FUNCTION__);
             }
 
 			return false;
@@ -665,7 +665,7 @@ bool CActiveMasternode::GetVinFromOutput(COutput out, CTxIn& vin, CPubKey& pubke
     {
         if (fDebug)
         {
-            LogPrint("masternode", "%s() : Address does not refer to a key\n", __PRETTY_FUNCTION__);
+            LogPrint("masternode", "%s : Address does not refer to a key\n", __PRETTY_FUNCTION__);
         }
 
         return false;
@@ -675,7 +675,7 @@ bool CActiveMasternode::GetVinFromOutput(COutput out, CTxIn& vin, CPubKey& pubke
     {
         if (fDebug)
         {
-            LogPrint("masternode", "%s() : Private key for address is not known\n", __PRETTY_FUNCTION__);
+            LogPrint("masternode", "%s : Private key for address is not known\n", __PRETTY_FUNCTION__);
         }
 
         return false;
@@ -753,7 +753,7 @@ bool CActiveMasternode::EnableHotColdMasterNode(CTxIn& newVin, CService& newServ
 
     if (fDebug)
     {
-        LogPrint("masternode", "%s() : Enabled! You may shut down the cold daemon.\n", __PRETTY_FUNCTION__);
+        LogPrint("masternode", "%s : Enabled! You may shut down the cold daemon.\n", __PRETTY_FUNCTION__);
     }
 
     return true;
