@@ -2893,7 +2893,7 @@ bool static Reorganize(CTxDB& txdb, CBlockIndex* pindexNew)
 {
     if (fDebug)
     {
-        LogPrint("core", "REORGANIZE\n");
+        LogPrint("core", "%s() : REORGANIZE\n", __PRETTY_FUNCTION__);
     }
 
     // Find the fork
@@ -3663,6 +3663,10 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
     return true;
 }
 
+bool CBlock::BlockShield()
+{
+    // Not implemented yet
+}
 
 bool CBlock::AcceptBlock()
 {
@@ -4884,7 +4888,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
     if(fDebug)
     {
-        LogPrint("net", "received: %s (%u bytes)\n", __PRETTY_FUNCTION__, strCommand, vRecv.size());
+        LogPrint("net", "%s() : received: %s (%u bytes)\n", __PRETTY_FUNCTION__, strCommand, vRecv.size());
     }
 
     if (mapArgs.count("-dropmessagestest") && GetRand(atoi(mapArgs["-dropmessagestest"])) == 0)
