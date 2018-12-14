@@ -69,7 +69,7 @@ void ProcessMessageInstantX(CNode* pfrom, std::string& strCommand, CDataStream& 
     {
         if (fDebug)
         {
-            LogPrint("instantx", "%s() : \n", __PRETTY_FUNCTION__);
+            LogPrint("instantx", "%s : \n", __PRETTY_FUNCTION__);
         }
 
         CDataStream vMsg(vRecv);
@@ -95,7 +95,7 @@ void ProcessMessageInstantX(CNode* pfrom, std::string& strCommand, CDataStream& 
             {
                 if (fDebug)
                 {
-                    LogPrint("instantx", "%s() : Invalid Script %s\n", __PRETTY_FUNCTION__, tx.ToString().c_str());
+                    LogPrint("instantx", "%s : Invalid Script %s\n", __PRETTY_FUNCTION__, tx.ToString().c_str());
                 }
 
                 return;
@@ -127,7 +127,7 @@ void ProcessMessageInstantX(CNode* pfrom, std::string& strCommand, CDataStream& 
 
             if (fDebug)
             {
-                LogPrint("instantx", "%s() : Transaction Lock Request: %s %s : accepted %s\n", __PRETTY_FUNCTION__, pfrom->addr.ToString().c_str(), pfrom->cleanSubVer.c_str(), tx.GetHash().ToString().c_str());
+                LogPrint("instantx", "%s : Transaction Lock Request: %s %s : accepted %s\n", __PRETTY_FUNCTION__, pfrom->addr.ToString().c_str(), pfrom->cleanSubVer.c_str(), tx.GetHash().ToString().c_str());
             }
 
             return;
@@ -141,7 +141,7 @@ void ProcessMessageInstantX(CNode* pfrom, std::string& strCommand, CDataStream& 
 
             if (fDebug)
             {
-                LogPrint("instantx", "%s() : Transaction Lock Request: %s %s : rejected %s\n", __PRETTY_FUNCTION__, pfrom->addr.ToString().c_str(), pfrom->cleanSubVer.c_str(), tx.GetHash().ToString().c_str());
+                LogPrint("instantx", "%s : Transaction Lock Request: %s %s : rejected %s\n", __PRETTY_FUNCTION__, pfrom->addr.ToString().c_str(), pfrom->cleanSubVer.c_str(), tx.GetHash().ToString().c_str());
             }
 
             BOOST_FOREACH(const CTxIn& in, tx.vin)
@@ -162,7 +162,7 @@ void ProcessMessageInstantX(CNode* pfrom, std::string& strCommand, CDataStream& 
                 {
                     if(!CheckForConflictingLocks(tx))
                     {
-                        LogPrint("instantx", "%s() : Found Existing Complete IX Lock\n", __PRETTY_FUNCTION__);
+                        LogPrint("instantx", "%s : Found Existing Complete IX Lock\n", __PRETTY_FUNCTION__);
 
                         //reprocess the last 15 blocks
                         block.DisconnectBlock(txdb, pindex);
@@ -208,7 +208,7 @@ void ProcessMessageInstantX(CNode* pfrom, std::string& strCommand, CDataStream& 
                 {
                     if (fDebug)
                     {
-                        LogPrint("instantx", "%s() : masternode is spamming transaction votes: %s %s\n", __PRETTY_FUNCTION__, ctx.vinMasternode.ToString().c_str(), ctx.txHash.ToString().c_str());
+                        LogPrint("instantx", "%s : masternode is spamming transaction votes: %s %s\n", __PRETTY_FUNCTION__, ctx.vinMasternode.ToString().c_str(), ctx.txHash.ToString().c_str());
                     }
 
                     return;
@@ -270,7 +270,7 @@ bool IsIXTXValid(const CTransaction& txCollateral)
     {
         if (fDebug)
         {
-            LogPrint("instantx", "%s() : Transaction value too high - %s\n", __PRETTY_FUNCTION__, txCollateral.ToString().c_str());
+            LogPrint("instantx", "%s : Transaction value too high - %s\n", __PRETTY_FUNCTION__, txCollateral.ToString().c_str());
         }
 
         return false;
@@ -280,7 +280,7 @@ bool IsIXTXValid(const CTransaction& txCollateral)
     {
         if (fDebug)
         {
-            LogPrint("instantx", "%s() : Unknown inputs in IX transaction - %s\n", __PRETTY_FUNCTION__, txCollateral.ToString().c_str());
+            LogPrint("instantx", "%s : Unknown inputs in IX transaction - %s\n", __PRETTY_FUNCTION__, txCollateral.ToString().c_str());
         }
 
         /*
@@ -295,7 +295,7 @@ bool IsIXTXValid(const CTransaction& txCollateral)
     {
         if (fDebug)
         {
-            LogPrint("instantx", "%s() : did not include enough fees in transaction %d\n%s\n", __PRETTY_FUNCTION__, nValueOut-nValueIn, txCollateral.ToString().c_str());
+            LogPrint("instantx", "%s : did not include enough fees in transaction %d\n%s\n", __PRETTY_FUNCTION__, nValueOut-nValueIn, txCollateral.ToString().c_str());
         }
 
         return false;
@@ -317,7 +317,7 @@ int64_t CreateNewLock(CTransaction tx)
         {
             if (fDebug)
             {
-                LogPrint("instantx", "%s() : Transaction not found / too new: %d / %s\n", __PRETTY_FUNCTION__, nTxAge, tx.GetHash().ToString().c_str());
+                LogPrint("instantx", "%s : Transaction not found / too new: %d / %s\n", __PRETTY_FUNCTION__, nTxAge, tx.GetHash().ToString().c_str());
             }
 
             return 0;
@@ -335,7 +335,7 @@ int64_t CreateNewLock(CTransaction tx)
     {
         if (fDebug)
         {
-            LogPrint("instantx", "%s() : New Transaction Lock %s !\n", __PRETTY_FUNCTION__, tx.GetHash().ToString().c_str());
+            LogPrint("instantx", "%s : New Transaction Lock %s !\n", __PRETTY_FUNCTION__, tx.GetHash().ToString().c_str());
         }
 
         CTransactionLock newLock;
@@ -351,7 +351,7 @@ int64_t CreateNewLock(CTransaction tx)
 
         if (fDebug)
         {
-            LogPrint("instantx", "%s() : Transaction Lock Exists %s !\n", __PRETTY_FUNCTION__, tx.GetHash().ToString().c_str());
+            LogPrint("instantx", "%s : Transaction Lock Exists %s !\n", __PRETTY_FUNCTION__, tx.GetHash().ToString().c_str());
         }
     }
 
@@ -373,7 +373,7 @@ void DoConsensusVote(CTransaction& tx, int64_t nBlockHeight)
     {
         if (fDebug)
         {
-            LogPrint("instantx", "%s() : Unknown Masternode\n", __PRETTY_FUNCTION__);
+            LogPrint("instantx", "%s : Unknown Masternode\n", __PRETTY_FUNCTION__);
         }
 
         return;
@@ -383,7 +383,7 @@ void DoConsensusVote(CTransaction& tx, int64_t nBlockHeight)
     {
         if (fDebug)
         {
-            LogPrint("instantx", "%s() : Masternode not in the top %d (%d)\n", __PRETTY_FUNCTION__, INSTANTX_SIGNATURES_TOTAL, n);
+            LogPrint("instantx", "%s : Masternode not in the top %d (%d)\n", __PRETTY_FUNCTION__, INSTANTX_SIGNATURES_TOTAL, n);
         }
 
         return;
@@ -394,7 +394,7 @@ void DoConsensusVote(CTransaction& tx, int64_t nBlockHeight)
 
     if (fDebug)
     {
-        LogPrint("instantx", "%s() : In the top %d (%d)\n", __PRETTY_FUNCTION__, INSTANTX_SIGNATURES_TOTAL, n);
+        LogPrint("instantx", "%s : In the top %d (%d)\n", __PRETTY_FUNCTION__, INSTANTX_SIGNATURES_TOTAL, n);
     }
 
     CConsensusVote ctx;
@@ -406,7 +406,7 @@ void DoConsensusVote(CTransaction& tx, int64_t nBlockHeight)
     {
         if (fDebug)
         {
-            LogPrint("instantx", "%s() : Failed to sign consensus vote\n", __PRETTY_FUNCTION__);
+            LogPrint("instantx", "%s : Failed to sign consensus vote\n", __PRETTY_FUNCTION__);
         }
 
         return;
@@ -416,7 +416,7 @@ void DoConsensusVote(CTransaction& tx, int64_t nBlockHeight)
     {
         if (fDebug)
         {
-            LogPrint("instantx", "%s() : Signature invalid\n", __PRETTY_FUNCTION__);
+            LogPrint("instantx", "%s : Signature invalid\n", __PRETTY_FUNCTION__);
         }
 
         return;
@@ -442,7 +442,7 @@ bool ProcessConsensusVote(CNode* pnode, CConsensusVote& ctx)
     {
         if (fDebug)
         {
-            LogPrint("instantx", "%s() : Masternode ADDR %s %d\n", __PRETTY_FUNCTION__, pmn->addr.ToString().c_str(), n);
+            LogPrint("instantx", "%s : Masternode ADDR %s %d\n", __PRETTY_FUNCTION__, pmn->addr.ToString().c_str(), n);
         }
     }
 
@@ -451,7 +451,7 @@ bool ProcessConsensusVote(CNode* pnode, CConsensusVote& ctx)
         if (fDebug)
         {
             //can be caused by past versions trying to vote with an invalid protocol
-            LogPrint("instantx", "%s() : Unknown Masternode\n", __PRETTY_FUNCTION__);
+            LogPrint("instantx", "%s : Unknown Masternode\n", __PRETTY_FUNCTION__);
         }
 
         mnodeman.AskForMN(pnode, ctx.vinMasternode);
@@ -463,7 +463,7 @@ bool ProcessConsensusVote(CNode* pnode, CConsensusVote& ctx)
     {
         if (fDebug)
         {
-            LogPrint("instantx", "%s() : Masternode not in the top %d (%d) - %s\n", __PRETTY_FUNCTION__, INSTANTX_SIGNATURES_TOTAL, n, ctx.GetHash().ToString().c_str());
+            LogPrint("instantx", "%s : Masternode not in the top %d (%d) - %s\n", __PRETTY_FUNCTION__, INSTANTX_SIGNATURES_TOTAL, n, ctx.GetHash().ToString().c_str());
         }
 
         return false;
@@ -473,7 +473,7 @@ bool ProcessConsensusVote(CNode* pnode, CConsensusVote& ctx)
     {
         if (fDebug)
         {
-            LogPrint("instantx", "%s() : Signature invalid\n", __PRETTY_FUNCTION__);
+            LogPrint("instantx", "%s : Signature invalid\n", __PRETTY_FUNCTION__);
         }
 
         //don't ban, it could just be a non-synced masternode
@@ -486,7 +486,7 @@ bool ProcessConsensusVote(CNode* pnode, CConsensusVote& ctx)
     {
         if (fDebug)
         {
-            LogPrint("instantx", "%s() : New Transaction Lock %s !\n", __PRETTY_FUNCTION__, ctx.txHash.ToString().c_str());
+            LogPrint("instantx", "%s : New Transaction Lock %s !\n", __PRETTY_FUNCTION__, ctx.txHash.ToString().c_str());
         }
 
         CTransactionLock newLock;
@@ -500,7 +500,7 @@ bool ProcessConsensusVote(CNode* pnode, CConsensusVote& ctx)
     {
         if (fDebug)
         {
-            LogPrint("instantx", "%s() : Transaction Lock Exists %s !\n", __PRETTY_FUNCTION__, ctx.txHash.ToString().c_str());
+            LogPrint("instantx", "%s : Transaction Lock Exists %s !\n", __PRETTY_FUNCTION__, ctx.txHash.ToString().c_str());
         }
     }
 
@@ -527,14 +527,14 @@ bool ProcessConsensusVote(CNode* pnode, CConsensusVote& ctx)
 
         if (fDebug)
         {
-            LogPrint("instantx", "%s() : Transaction Lock Votes %d - %s !\n", __PRETTY_FUNCTION__, (*i).second.CountSignatures(), ctx.GetHash().ToString().c_str());
+            LogPrint("instantx", "%s : Transaction Lock Votes %d - %s !\n", __PRETTY_FUNCTION__, (*i).second.CountSignatures(), ctx.GetHash().ToString().c_str());
         }
 
         if((*i).second.CountSignatures() >= INSTANTX_SIGNATURES_REQUIRED)
         {
             if (fDebug)
             {
-                LogPrint("instantx", "%s() : Transaction Lock Is Complete %s !\n", __PRETTY_FUNCTION__, (*i).second.GetHash().ToString().c_str());
+                LogPrint("instantx", "%s : Transaction Lock Is Complete %s !\n", __PRETTY_FUNCTION__, (*i).second.GetHash().ToString().c_str());
             }
 
             CTransaction& tx = mapTxLockReq[ctx.txHash];
@@ -599,7 +599,7 @@ bool CheckForConflictingLocks(CTransaction& tx)
             {
                 if (fDebug)
                 {
-                    LogPrint("instantx", "%s() : found two complete conflicting locks - removing both. %s %s", __PRETTY_FUNCTION__, tx.GetHash().ToString().c_str(), mapLockedInputs[in.prevout].ToString().c_str());
+                    LogPrint("instantx", "%s : found two complete conflicting locks - removing both. %s %s", __PRETTY_FUNCTION__, tx.GetHash().ToString().c_str(), mapLockedInputs[in.prevout].ToString().c_str());
                 }
 
                 if(mapTxLocks.count(tx.GetHash()))
@@ -656,7 +656,7 @@ void CleanTransactionLocksList()
 
             if (fDebug)
             {
-                LogPrint("instantx", "%s() : Removing old transaction lock %s\n", __PRETTY_FUNCTION__, it->second.txHash.ToString().c_str());
+                LogPrint("instantx", "%s : Removing old transaction lock %s\n", __PRETTY_FUNCTION__, it->second.txHash.ToString().c_str());
             }
 
             if(mapTxLockReq.count(it->second.txHash))
@@ -702,7 +702,7 @@ bool CConsensusVote::SignatureValid()
 
     if (fDebug)
     {
-        LogPrint("instantx", "%s() : verify strMessage %s \n", __PRETTY_FUNCTION__, strMessage.c_str());
+        LogPrint("instantx", "%s : verify strMessage %s \n", __PRETTY_FUNCTION__, strMessage.c_str());
     }
 
     CMasternode* pmn = mnodeman.Find(vinMasternode);
@@ -711,7 +711,7 @@ bool CConsensusVote::SignatureValid()
     {
         if (fDebug)
         {
-            LogPrint("instantx", "%s() : Unknown Masternode\n", __PRETTY_FUNCTION__);
+            LogPrint("instantx", "%s : Unknown Masternode\n", __PRETTY_FUNCTION__);
         }
 
         return false;
@@ -721,7 +721,7 @@ bool CConsensusVote::SignatureValid()
     {
         if (fDebug)
         {
-            LogPrint("instantx", "%s() : Verify message failed\n", __PRETTY_FUNCTION__);
+            LogPrint("instantx", "%s : Verify message failed\n", __PRETTY_FUNCTION__);
         }
 
         return false;
@@ -741,16 +741,16 @@ bool CConsensusVote::Sign()
 
     if (fDebug)
     {
-        LogPrint("instantx", "%s() : signing strMessage %s \n", __PRETTY_FUNCTION__, strMessage.c_str());
+        LogPrint("instantx", "%s : signing strMessage %s \n", __PRETTY_FUNCTION__, strMessage.c_str());
     
-        LogPrint("instantx", "%s() : signing privkey %s \n", __PRETTY_FUNCTION__, strMasterNodePrivKey.c_str());
+        LogPrint("instantx", "%s : signing privkey %s \n", __PRETTY_FUNCTION__, strMasterNodePrivKey.c_str());
     }
 
     if(!darkSendSigner.SetKey(strMasterNodePrivKey, errorMessage, key2, pubkey2))
     {
         if (fDebug)
         {
-            LogPrint("instantx", "%s() : ERROR: Invalid masternodeprivkey: '%s'\n", __PRETTY_FUNCTION__, errorMessage.c_str());
+            LogPrint("instantx", "%s : ERROR: Invalid masternodeprivkey: '%s'\n", __PRETTY_FUNCTION__, errorMessage.c_str());
         }
 
         return false;
@@ -760,7 +760,7 @@ bool CConsensusVote::Sign()
     {
         if (fDebug)
         {
-            LogPrint("instantx", "%s() : Sign message failed", __PRETTY_FUNCTION__);
+            LogPrint("instantx", "%s : Sign message failed", __PRETTY_FUNCTION__);
         }
 
         return false;
@@ -770,7 +770,7 @@ bool CConsensusVote::Sign()
     {
         if (fDebug)
         {
-            LogPrint("instantx", "%s() : Verify message failed", __PRETTY_FUNCTION__);
+            LogPrint("instantx", "%s : Verify message failed", __PRETTY_FUNCTION__);
         }
 
         return false;
@@ -791,7 +791,7 @@ bool CTransactionLock::SignaturesValid()
         {
             if (fDebug)
             {
-                LogPrint("instantx", "%s() : Unknown Masternode\n", __PRETTY_FUNCTION__);
+                LogPrint("instantx", "%s : Unknown Masternode\n", __PRETTY_FUNCTION__);
             }
 
             return false;
@@ -801,7 +801,7 @@ bool CTransactionLock::SignaturesValid()
         {
             if (fDebug)
             {
-                LogPrint("instantx", "%s() : Masternode not in the top %s\n", __PRETTY_FUNCTION__, INSTANTX_SIGNATURES_TOTAL);
+                LogPrint("instantx", "%s : Masternode not in the top %s\n", __PRETTY_FUNCTION__, INSTANTX_SIGNATURES_TOTAL);
             }
 
             return false;
@@ -811,7 +811,7 @@ bool CTransactionLock::SignaturesValid()
         {
             if (fDebug)
             {
-                LogPrint("instantx", "%s() : Signature not valid\n", __PRETTY_FUNCTION__);
+                LogPrint("instantx", "%s : Signature not valid\n", __PRETTY_FUNCTION__);
             }
             
             return false;

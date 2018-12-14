@@ -186,7 +186,7 @@ bool GetRandBytes(unsigned char *buf, int num)
     {
         if (fDebug)
         {
-            LogPrint("rand", "%s() : OpenSSL RAND_bytes() failed with error: %s\n", __PRETTY_FUNCTION__, ERR_error_string(ERR_get_error(), NULL));
+            LogPrint("rand", "%s : OpenSSL RAND_bytes() failed with error: %s\n", __PRETTY_FUNCTION__, ERR_error_string(ERR_get_error(), NULL));
         }
 
         return false;
@@ -240,7 +240,7 @@ void RandAddSeedPerfmon()
         
         if (fDebug)
         {
-            LogPrint("rand", "%s() : %lu bytes\n", __PRETTY_FUNCTION__, nSize);
+            LogPrint("rand", "%s : %lu bytes\n", __PRETTY_FUNCTION__, nSize);
         }
     }
 #endif
@@ -1844,7 +1844,7 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime)
     
     if (fDebug)
     {
-        LogPrint("util", "%s() : Added time data, samples %d, offset %+d (%+d minutes)\n", __PRETTY_FUNCTION__, vTimeOffsets.size(), nOffsetSample, nOffsetSample/60);
+        LogPrint("util", "%s : Added time data, samples %d, offset %+d (%+d minutes)\n", __PRETTY_FUNCTION__, vTimeOffsets.size(), nOffsetSample, nOffsetSample/60);
     }
 
     if (vTimeOffsets.size() >= 5 && vTimeOffsets.size() % 2 == 1)
@@ -1886,7 +1886,7 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime)
                     
                     if (fDebug)
                     {
-                        LogPrint("util", "%s() : *** %s\n", __PRETTY_FUNCTION__, strMessage);
+                        LogPrint("util", "%s : *** %s\n", __PRETTY_FUNCTION__, strMessage);
                     }
 
                     uiInterface.ThreadSafeMessageBox(strMessage, "", CClientUIInterface::MSG_WARNING);
@@ -1898,12 +1898,12 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime)
         {
             BOOST_FOREACH(int64_t n, vSorted)
             {
-                LogPrint("util", "%s() : %+d  ", __PRETTY_FUNCTION__, n);
+                LogPrint("util", "%s : %+d  ", __PRETTY_FUNCTION__, n);
             }
 
-            LogPrint("util", "%s() : |  ", __PRETTY_FUNCTION__);
+            LogPrint("util", "%s : |  ", __PRETTY_FUNCTION__);
         
-            LogPrint("util", "%s() : nTimeOffset = %+d  (%+d minutes)\n", __PRETTY_FUNCTION__, nTimeOffset, nTimeOffset/60);
+            LogPrint("util", "%s : nTimeOffset = %+d  (%+d minutes)\n", __PRETTY_FUNCTION__, nTimeOffset, nTimeOffset/60);
         }
 
     }
@@ -1992,7 +1992,7 @@ boost::filesystem::path GetSpecialFolderPath(int nFolder, bool fCreate)
 
     if (fDebug)
     {
-        LogPrint("util", "%s() : failed, could not obtain requested path.\n", __PRETTY_FUNCTION__);
+        LogPrint("util", "%s : failed, could not obtain requested path.\n", __PRETTY_FUNCTION__);
     }
     
     return fs::path("");
@@ -2008,7 +2008,7 @@ void runCommand(std::string strCommand)
     {
         if (fDebug)
         {
-            LogPrint("util", "%s() : runCommand error: system(%s) returned %d\n", __PRETTY_FUNCTION__, strCommand, nErr);
+            LogPrint("util", "%s : runCommand error: system(%s) returned %d\n", __PRETTY_FUNCTION__, strCommand, nErr);
         }
     }
 

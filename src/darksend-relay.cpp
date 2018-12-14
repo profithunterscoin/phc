@@ -57,7 +57,7 @@ bool CDarkSendRelay::Sign(std::string strSharedKey)
     {
         if (fDebug)
         {
-            LogPrint("darksend", "%s() :  ERROR: Invalid shared key: '%s'\n", __PRETTY_FUNCTION__, errorMessage.c_str());
+            LogPrint("darksend", "%s :  ERROR: Invalid shared key: '%s'\n", __PRETTY_FUNCTION__, errorMessage.c_str());
         }
 
         return false;
@@ -67,7 +67,7 @@ bool CDarkSendRelay::Sign(std::string strSharedKey)
     {
         if (fDebug)
         {
-            LogPrint("darksend", "%s() :  Sign message failed\n", __PRETTY_FUNCTION__);
+            LogPrint("darksend", "%s :  Sign message failed\n", __PRETTY_FUNCTION__);
         }
 
         return false;
@@ -77,7 +77,7 @@ bool CDarkSendRelay::Sign(std::string strSharedKey)
     {
         if (fDebug)
         {
-            LogPrint("darksend", "%s() :  Verify message failed\n", __PRETTY_FUNCTION__);
+            LogPrint("darksend", "%s :  Verify message failed\n", __PRETTY_FUNCTION__);
         }
 
         return false;
@@ -99,7 +99,7 @@ bool CDarkSendRelay::VerifyMessage(std::string strSharedKey)
     {
         if (fDebug)
         {
-            LogPrint("darksend", "%s() :  ERROR: Invalid shared key: '%s'\n", __PRETTY_FUNCTION__, errorMessage.c_str());
+            LogPrint("darksend", "%s :  ERROR: Invalid shared key: '%s'\n", __PRETTY_FUNCTION__, errorMessage.c_str());
         }
 
         return false;
@@ -109,7 +109,7 @@ bool CDarkSendRelay::VerifyMessage(std::string strSharedKey)
     {
         if (fDebug)
         {
-            LogPrint("darksend", "%s() :  Verify message failed\n", __PRETTY_FUNCTION__);
+            LogPrint("darksend", "%s :  Verify message failed\n", __PRETTY_FUNCTION__);
         }
         
         return false;

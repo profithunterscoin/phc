@@ -22,7 +22,7 @@ bool CStealthAddress::SetEncoded(const std::string& encodedAddress)
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : DecodeBase58 falied.\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : DecodeBase58 falied.\n", __PRETTY_FUNCTION__);
         }
 
         return false;
@@ -32,7 +32,7 @@ bool CStealthAddress::SetEncoded(const std::string& encodedAddress)
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : verify_checksum falied.\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : verify_checksum falied.\n", __PRETTY_FUNCTION__);
         }
 
         return false;
@@ -42,7 +42,7 @@ bool CStealthAddress::SetEncoded(const std::string& encodedAddress)
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : too few bytes provided.\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : too few bytes provided.\n", __PRETTY_FUNCTION__);
         }
 
         return false;
@@ -56,7 +56,7 @@ bool CStealthAddress::SetEncoded(const std::string& encodedAddress)
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : version mismatch 0x%x != 0x%x.\n", __PRETTY_FUNCTION__, version, stealth_version_byte);
+            LogPrint("stealth", "%s : version mismatch 0x%x != 0x%x.\n", __PRETTY_FUNCTION__, version, stealth_version_byte);
         }
 
         return false;
@@ -185,7 +185,7 @@ int GenerateRandomSecret(ec_secret& out)
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : Error: failed to generate a valid key.\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : Error: failed to generate a valid key.\n", __PRETTY_FUNCTION__);
         }
 
         return 1;
@@ -206,7 +206,7 @@ int SecretToPublicKey(const ec_secret& secret, ec_point& out)
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : EC_GROUP_new_by_curve_name failed.\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : EC_GROUP_new_by_curve_name failed.\n", __PRETTY_FUNCTION__);
         }
 
         return 1;
@@ -219,7 +219,7 @@ int SecretToPublicKey(const ec_secret& secret, ec_point& out)
 
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : BN_bin2bn failed\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : BN_bin2bn failed\n", __PRETTY_FUNCTION__);
         }
 
         return 1;
@@ -234,7 +234,7 @@ int SecretToPublicKey(const ec_secret& secret, ec_point& out)
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : point2bn failed\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : point2bn failed\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -246,7 +246,7 @@ int SecretToPublicKey(const ec_secret& secret, ec_point& out)
         {
                 if (fDebug)
                 {
-                    LogPrint("stealth", "%s() : bnOut incorrect length.\n", __PRETTY_FUNCTION__);
+                    LogPrint("stealth", "%s : bnOut incorrect length.\n", __PRETTY_FUNCTION__);
                 }
 
             rv = 1;
@@ -317,7 +317,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : EC_GROUP_new_by_curve_name failed.\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : EC_GROUP_new_by_curve_name failed.\n", __PRETTY_FUNCTION__);
         }
 
         return 1;
@@ -327,7 +327,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : BN_CTX_new failed.\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : BN_CTX_new failed.\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -338,7 +338,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : bnEphem BN_bin2bn failed.\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : bnEphem BN_bin2bn failed.\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -349,7 +349,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : bnQ BN_bin2bn failed\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : bnQ BN_bin2bn failed\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -360,7 +360,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : Q EC_POINT_bn2point failed\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : Q EC_POINT_bn2point failed\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -374,7 +374,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : eQ EC_POINT_mul failed\n");
+            LogPrint("stealth", "%s : eQ EC_POINT_mul failed\n");
         }
 
         rv = 1;
@@ -385,7 +385,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : Q EC_POINT_bn2point failed\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : Q EC_POINT_bn2point failed\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -398,7 +398,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : bnOutQ incorrect length.\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : bnOutQ incorrect length.\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -411,7 +411,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : BN_bin2bn failed\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : BN_bin2bn failed\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -423,7 +423,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : C EC_POINT_new failed\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : C EC_POINT_new failed\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -434,7 +434,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : C EC_POINT_mul failed\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : C EC_POINT_mul failed\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -445,7 +445,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : bnR BN_bin2bn failed\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : bnR BN_bin2bn failed\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -457,7 +457,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : R EC_POINT_bn2point failed\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : R EC_POINT_bn2point failed\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -468,7 +468,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : C EC_POINT_mul failed\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : C EC_POINT_mul failed\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -479,7 +479,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : Rout EC_POINT_new failed\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : Rout EC_POINT_new failed\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -490,7 +490,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : Rout EC_POINT_add failed\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : Rout EC_POINT_add failed\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -501,7 +501,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : Rout EC_POINT_bn2point failed\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : Rout EC_POINT_bn2point failed\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -514,7 +514,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : pkOut incorrect length.\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : pkOut incorrect length.\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -613,7 +613,7 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : EC_GROUP_new_by_curve_name failed.\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : EC_GROUP_new_by_curve_name failed.\n", __PRETTY_FUNCTION__);
         }
 
         return 1;
@@ -623,7 +623,7 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : BN_CTX_new failed.\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : BN_CTX_new failed.\n", __PRETTY_FUNCTION__);
         }
         
         rv = 1;
@@ -634,7 +634,7 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : bnScanSecret BN_bin2bn failed.\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : bnScanSecret BN_bin2bn failed.\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -645,7 +645,7 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : bnP BN_bin2bn failed\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : bnP BN_bin2bn failed\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -656,7 +656,7 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : P EC_POINT_bn2point failed\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : P EC_POINT_bn2point failed\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -668,7 +668,7 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : dP EC_POINT_mul failed\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : dP EC_POINT_mul failed\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -679,7 +679,7 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : P EC_POINT_bn2point failed\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : P EC_POINT_bn2point failed\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -692,7 +692,7 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : bnOutP incorrect length.\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : bnOutP incorrect length.\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -707,7 +707,7 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : BN_bin2bn failed\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : BN_bin2bn failed\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -718,7 +718,7 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : EC_GROUP_get_order failed\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : EC_GROUP_get_order failed\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -729,7 +729,7 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : bnSpend BN_bin2bn failed.\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : bnSpend BN_bin2bn failed.\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -742,7 +742,7 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : bnSpend BN_mod_add failed.\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : bnSpend BN_mod_add failed.\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -753,7 +753,7 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : bnSpend is zero.\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : bnSpend is zero.\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -767,7 +767,7 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : bnSpend incorrect length.\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : bnSpend incorrect length.\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -839,7 +839,7 @@ int StealthSharedToSecretSpend(ec_secret& sharedS, ec_secret& spendSecret, ec_se
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : EC_GROUP_new_by_curve_name failed.\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : EC_GROUP_new_by_curve_name failed.\n", __PRETTY_FUNCTION__);
         }
 
         return 1;
@@ -849,7 +849,7 @@ int StealthSharedToSecretSpend(ec_secret& sharedS, ec_secret& spendSecret, ec_se
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : BN_CTX_new failed.\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : BN_CTX_new failed.\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -860,7 +860,7 @@ int StealthSharedToSecretSpend(ec_secret& sharedS, ec_secret& spendSecret, ec_se
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : BN_bin2bn failed\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : BN_bin2bn failed\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -871,7 +871,7 @@ int StealthSharedToSecretSpend(ec_secret& sharedS, ec_secret& spendSecret, ec_se
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : EC_GROUP_get_order failed\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : EC_GROUP_get_order failed\n", __PRETTY_FUNCTION__);
         }
         
         rv = 1;
@@ -882,7 +882,7 @@ int StealthSharedToSecretSpend(ec_secret& sharedS, ec_secret& spendSecret, ec_se
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : bnSpend BN_bin2bn failed.\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : bnSpend BN_bin2bn failed.\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -895,7 +895,7 @@ int StealthSharedToSecretSpend(ec_secret& sharedS, ec_secret& spendSecret, ec_se
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : bnSpend BN_mod_add failed.\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : bnSpend BN_mod_add failed.\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -906,7 +906,7 @@ int StealthSharedToSecretSpend(ec_secret& sharedS, ec_secret& spendSecret, ec_se
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : bnSpend is zero.\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : bnSpend is zero.\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -920,7 +920,7 @@ int StealthSharedToSecretSpend(ec_secret& sharedS, ec_secret& spendSecret, ec_se
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : bnSpend incorrect length.\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : bnSpend incorrect length.\n", __PRETTY_FUNCTION__);
         }
 
         rv = 1;
@@ -962,7 +962,7 @@ bool IsStealthAddress(const std::string& encodedAddress)
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : DecodeBase58 falied.\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : DecodeBase58 falied.\n", __PRETTY_FUNCTION__);
         }
 
         return false;
@@ -972,7 +972,7 @@ bool IsStealthAddress(const std::string& encodedAddress)
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : verify_checksum falied.\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : verify_checksum falied.\n", __PRETTY_FUNCTION__);
         }
 
         return false;
@@ -982,7 +982,7 @@ bool IsStealthAddress(const std::string& encodedAddress)
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : too few bytes provided.\n", __PRETTY_FUNCTION__);
+            LogPrint("stealth", "%s : too few bytes provided.\n", __PRETTY_FUNCTION__);
         }
 
         return false;
@@ -996,7 +996,7 @@ bool IsStealthAddress(const std::string& encodedAddress)
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s() : version mismatch 0x%x != 0x%x.\n", __PRETTY_FUNCTION__, version, stealth_version_byte);
+            LogPrint("stealth", "%s : version mismatch 0x%x != 0x%x.\n", __PRETTY_FUNCTION__, version, stealth_version_byte);
         }
 
         return false;

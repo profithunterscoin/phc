@@ -54,7 +54,7 @@ bool CMasternodeConfig::read(boost::filesystem::path path)
             {
                 if (fDebug)
                 {
-                    LogPrint("masternode", "%s() : Could not parse masternode.conf line: %s\n", __PRETTY_FUNCTION__, line.c_str());
+                    LogPrint("masternode", "%s : Could not parse masternode.conf line: %s\n", __PRETTY_FUNCTION__, line.c_str());
                 }
 
                 streamConfig.close();
@@ -84,7 +84,7 @@ bool CMasternodeConfig::read(boost::filesystem::path path)
             {
                 if (fDebug)
                 {
-                    LogPrint("masternode", "%s() : Invalid TX address in masternode.conf line: %s\n", __PRETTY_FUNCTION__, line.c_str());
+                    LogPrint("masternode", "%s : Invalid TX address in masternode.conf line: %s\n", __PRETTY_FUNCTION__, line.c_str());
                 }
 
                 streamConfig.close();

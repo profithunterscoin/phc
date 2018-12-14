@@ -945,71 +945,71 @@ inline int Testuint256AdHoc(std::vector<std::string> vArg)
 
     if (fDebug)
     {
-        LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, g.ToString());
+        LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, g.ToString());
     }
 
     g--;
 
     if (fDebug)
     {
-        LogPrint("uint", "%s() : g--\n", __PRETTY_FUNCTION__);
-        LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, g.ToString());
+        LogPrint("uint", "%s : g--\n", __PRETTY_FUNCTION__);
+        LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, g.ToString());
     }
 
     g--;
 
     if (fDebug)
     {
-        LogPrint("uint", "%s() : g--\n", __PRETTY_FUNCTION__);
-        LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, g.ToString());
+        LogPrint("uint", "%s : g--\n", __PRETTY_FUNCTION__);
+        LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, g.ToString());
     }
 
     g++;
 
     if (fDebug)
     {
-        LogPrint("uint", "%s() : g++\n", __PRETTY_FUNCTION__);
-        LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, g.ToString());
-    }
-    
-    g++;
-
-    if (fDebug)
-    {
-        LogPrint("uint", "%s() : g++\n", __PRETTY_FUNCTION__);
-        LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, g.ToString());
+        LogPrint("uint", "%s : g++\n", __PRETTY_FUNCTION__);
+        LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, g.ToString());
     }
     
     g++;
 
     if (fDebug)
     {
-        LogPrint("uint", "%s() : g++\n", __PRETTY_FUNCTION__);
-        LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, g.ToString());
+        LogPrint("uint", "%s : g++\n", __PRETTY_FUNCTION__);
+        LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, g.ToString());
     }
     
     g++;
 
     if (fDebug)
     {
-        LogPrint("uint", "%s() : g++\n", __PRETTY_FUNCTION__);
-        LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, g.ToString());
+        LogPrint("uint", "%s : g++\n", __PRETTY_FUNCTION__);
+        LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, g.ToString());
+    }
+    
+    g++;
+
+    if (fDebug)
+    {
+        LogPrint("uint", "%s : g++\n", __PRETTY_FUNCTION__);
+        LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, g.ToString());
     }
 
     uint256 a(7);
     
     if (fDebug)
     {
-        LogPrint("uint", "%s() : a=7\n", __PRETTY_FUNCTION__);
-        LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, a.ToString());
+        LogPrint("uint", "%s : a=7\n", __PRETTY_FUNCTION__);
+        LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, a.ToString());
     }
 
     uint256 b;
     
     if (fDebug)
     {
-        LogPrint("uint", "%s() : b undefined\n", __PRETTY_FUNCTION__);
-        LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, b.ToString());
+        LogPrint("uint", "%s : b undefined\n", __PRETTY_FUNCTION__);
+        LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, b.ToString());
     }
     
     int c = 3;
@@ -1019,7 +1019,7 @@ inline int Testuint256AdHoc(std::vector<std::string> vArg)
     
     if (fDebug)
     {
-        LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, a.ToString());
+        LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, a.ToString());
     }
     
     uint256 k(c);
@@ -1029,7 +1029,7 @@ inline int Testuint256AdHoc(std::vector<std::string> vArg)
 
     if (fDebug)
     {  
-        LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, a.ToString());
+        LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, a.ToString());
     }
 
     b = 1;
@@ -1041,15 +1041,15 @@ inline int Testuint256AdHoc(std::vector<std::string> vArg)
 
     if (fDebug)
     {
-        LogPrint("uint", "%s() : a %s\n", __PRETTY_FUNCTION__, a.ToString());
+        LogPrint("uint", "%s : a %s\n", __PRETTY_FUNCTION__, a.ToString());
     }
 
     a = a | b | (uint256)0x1000;
 
     if (fDebug)
     {
-        LogPrint("uint", "%s() : a %s\n", __PRETTY_FUNCTION__, a.ToString());
-        LogPrint("uint", "%s() : b %s\n", __PRETTY_FUNCTION__, b.ToString());
+        LogPrint("uint", "%s : a %s\n", __PRETTY_FUNCTION__, a.ToString());
+        LogPrint("uint", "%s : b %s\n", __PRETTY_FUNCTION__, b.ToString());
     }
 
     a = 0xfffffffe;
@@ -1057,90 +1057,90 @@ inline int Testuint256AdHoc(std::vector<std::string> vArg)
 
     if (fDebug)
     {
-        LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, a.ToString());
+        LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, a.ToString());
     }
 
     a++;
 
     if (fDebug)
     {
-        LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, a.ToString());
+        LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, a.ToString());
     }
 
     a++;
 
     if (fDebug)
     {
-        LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, a.ToString());
+        LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, a.ToString());
     }
 
     a++;
 
     if (fDebug)
     {
-        LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, a.ToString());
+        LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, a.ToString());
     }
 
     a++;
 
     if (fDebug)
     {
-        LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, a.ToString());
+        LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, a.ToString());
     }
 
     a--;
 
     if (fDebug)
     {
-        LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, a.ToString());
+        LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, a.ToString());
     }
 
     a--;
     
     if (fDebug)
     {
-        LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, a.ToString());
+        LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, a.ToString());
     }
 
     a--;
 
     if (fDebug)
     {
-        LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, a.ToString());
+        LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, a.ToString());
     }
 
     uint256 d = a--;
 
     if (fDebug)
     {
-        LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, d.ToString());
-        LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, a.ToString());
+        LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, d.ToString());
+        LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, a.ToString());
     }
 
     a--;
 
     if (fDebug)
     {
-        LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, a.ToString());
+        LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, a.ToString());
     }
 
     a--;
 
     if (fDebug)
     {
-        LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, a.ToString());
+        LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, a.ToString());
     }
 
     d = a;
 
     if (fDebug)
     {
-        LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, d.ToString());
+        LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, d.ToString());
 
         for (int i = uint256::WIDTH-1; i >= 0; i--)
         {
-            LogPrint("uint", "%s() : %08x", __PRETTY_FUNCTION__, d.pn[i]);
-            LogPrint("uint", "%s() : \n", __PRETTY_FUNCTION__);
+            LogPrint("uint", "%s : %08x", __PRETTY_FUNCTION__, d.pn[i]);
+            LogPrint("uint", "%s : \n", __PRETTY_FUNCTION__);
         }
     }
 
@@ -1149,18 +1149,18 @@ inline int Testuint256AdHoc(std::vector<std::string> vArg)
 
     if (fDebug)
     {
-        LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, neg.ToString());
+        LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, neg.ToString());
     }
 
     uint256 e = uint256("0xABCDEF123abcdef12345678909832180000011111111");
 
     if (fDebug)
     {
-        LogPrint("uint", "%s() : \n",  __PRETTY_FUNCTION__);
+        LogPrint("uint", "%s : \n",  __PRETTY_FUNCTION__);
 
-        LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, e.ToString());
+        LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, e.ToString());
 
-        LogPrint("uint", "%s() : \n",  __PRETTY_FUNCTION__);
+        LogPrint("uint", "%s : \n",  __PRETTY_FUNCTION__);
     }
 
     uint256 x1 = uint256("0xABCDEF123abcdef12345678909832180000011111111");
@@ -1168,7 +1168,7 @@ inline int Testuint256AdHoc(std::vector<std::string> vArg)
 
     if (fDebug)
     {
-        LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, x1.ToString());
+        LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, x1.ToString());
     }
 
     for (int i = 0; i < 270; i += 4)
@@ -1177,15 +1177,15 @@ inline int Testuint256AdHoc(std::vector<std::string> vArg)
 
         if (fDebug)
         {
-            LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, x2.ToString());
+            LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, x2.ToString());
         }
     }
 
     if (fDebug)
     {
-        LogPrint("uint", "%s() : \n", __PRETTY_FUNCTION__,);
+        LogPrint("uint", "%s : \n", __PRETTY_FUNCTION__,);
 
-        LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, x1.ToString());
+        LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, x1.ToString());
     }
 
     for (int i = 0; i < 270; i += 4)
@@ -1195,7 +1195,7 @@ inline int Testuint256AdHoc(std::vector<std::string> vArg)
         
         if (fDebug)
         {
-            LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, x2.ToString());
+            LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, x2.ToString());
         }
     }
 
@@ -1205,7 +1205,7 @@ inline int Testuint256AdHoc(std::vector<std::string> vArg)
         
         if (fDebug)
         {
-            LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, k.ToString());
+            LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, k.ToString());
         }
     }
 
@@ -1215,7 +1215,7 @@ inline int Testuint256AdHoc(std::vector<std::string> vArg)
         
         if (fDebug)
         {
-            LogPrint("uint", "%s() : %s\n", __PRETTY_FUNCTION__, k.ToString());
+            LogPrint("uint", "%s : %s\n", __PRETTY_FUNCTION__, k.ToString());
         }
     }
 
