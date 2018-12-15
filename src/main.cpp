@@ -56,6 +56,11 @@ unsigned int nModifierInterval = 8 * 60; // time to elapse before new modifier i
 // TargetTimespan increased to prevent stalled blocks during development testing
 static int64_t nTargetTimespan = 120; // 2 minutes
 
+// Block Shield
+CAmount StakeRewardAverage;
+int BlockShieldCounter;
+std::string BlockShieldLogCache;
+
 int nCoinbaseMaturity = 100;
 
 CBlockIndex* pindexGenesisBlock = NULL;
@@ -3546,8 +3551,11 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
 
                     CScript payee;
                     CTxIn vin;
+
                     if(!masternodePayments.GetBlockPayee(pindexBest->nHeight+1, payee, vin) || payee == CScript())
                     {
+                        /* PHC FIX: Do not allow blank payments
+
                         foundPayee = true; //doesn't require a specific payee
                         foundPaymentAmount = true;
                         foundPaymentAndPayee = true;
@@ -3555,6 +3563,12 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                         if(fDebug)
                         {
                             LogPrint("core", "%s : Using non-specific masternode payments %d\n", __FUNCTION__, pindexBest->nHeight+1);
+                        }
+                        */
+
+                        if(fDebug)
+                        {
+                            LogPrint("core", "%s : detected non-specific masternode payments %d\n", __FUNCTION__, pindexBest->nHeight+1);
                         }
                     }
 

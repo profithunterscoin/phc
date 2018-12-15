@@ -21,6 +21,7 @@ v1.0.0.7 (Pre-release)
  * FIX: Removed peer banning ProcessBlock, upgraded some Misbehaving calls in main.cpp
  * Installed: Retarget Hard Fork (TimeFrame changed from 120 to 60 seconds) (Mainnet: Inactive, Testnet: Block # 338250)
  * Installed: Block Shield 1.2.1 (Mainnet: Inactive, Testnet: Block # 338250)
+ * FIX: Blank Masternode Payee in CBlock::AddToBlockIndex()
 
 v1.0.0.6
 --------
