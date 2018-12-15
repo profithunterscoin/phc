@@ -763,10 +763,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     if (fDaemon)
     {
-        if (fDebug)
-        {
-            fprintf(stdout, "PHC server starting\n");
-        }
+        fprintf(stdout, "PHC server starting\n");
     }
 
     int64_t nStart;

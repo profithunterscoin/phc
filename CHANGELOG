@@ -18,6 +18,7 @@ v1.0.0.7 (Pre-release)
  * OpenSSL 1.1 Support
  * FIX: Excessive CPU use during mining
  * Upgrade: Debug to Logfile (Disabled by default, Added Categories and Function Names)
+ * FIX: Removed peer banning ProcessBlock, upgraded some Misbehaving calls in main.cpp
 
 v1.0.0.6
 --------

@@ -3908,7 +3908,7 @@ void Misbehaving(NodeId pnode, int howmuch)
     {
         if(fDebug)
         {
-            LogPrint("net", "%s : Misbehaving: %s (%d -> %d) BAN THRESHOLD EXCEEDED\n", __FUNCTION__, state->name.c_str(), state->nMisbehavior-howmuch, state->nMisbehavior);
+            LogPrint("net", "%s : %s (%d -> %d) BAN THRESHOLD EXCEEDED\n", __FUNCTION__, state->name.c_str(), state->nMisbehavior-howmuch, state->nMisbehavior);
         }
 
         state->fShouldBan = true;
@@ -3917,7 +3917,7 @@ void Misbehaving(NodeId pnode, int howmuch)
     {
         if(fDebug)
         {
-            LogPrint("net", "%s : Misbehaving: %s (%d -> %d)\n", __FUNCTION__, state->name.c_str(), state->nMisbehavior-howmuch, state->nMisbehavior);
+            LogPrint("net", "%s : %s (%d -> %d)\n", __FUNCTION__, state->name.c_str(), state->nMisbehavior-howmuch, state->nMisbehavior);
         }
     }
         
@@ -4937,6 +4937,11 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         {
             Misbehaving(pfrom->GetId(), 1);
 
+            if (fDebug)
+            {
+                LogPrint("net", "%s : peer %s banned for sending version command after received version %i; disconnecting\n", __FUNCTION__, pfrom->addr.ToString(), pfrom->nVersion);
+            }
+
             return false;
         }
 
@@ -5078,6 +5083,11 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
     {
         // Must have a version message before anything else
         Misbehaving(pfrom->GetId(), 1);
+
+        if(fDebug)
+        {
+            LogPrint("net", "%s : failed to receive version message from peer: %s (banned)\n", __FUNCTION__, pfrom->addr.ToString());
+        }
 
         return false;
     }
@@ -5439,6 +5449,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
                 std::string strMessage = tx.GetHash().ToString() + boost::lexical_cast<std::string>(sigTime);
 
                 std::string errorMessage = "";
+                
                 if(!darkSendSigner.VerifyMessage(pmn->pubkey2, vchSig, strMessage, errorMessage))
                 {
                     if(fDebug)
@@ -5446,7 +5457,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
                         LogPrint("masternode", "%s : Got bad masternode address signature %s \n", __FUNCTION__, vin.ToString().c_str());
                     }
 
-                    //Misbehaving(pfrom->GetId(), 20);
+                    Misbehaving(pfrom->GetId(), 20);
+                    
                     return false;
                 }
 
@@ -5579,10 +5591,13 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             mapAlreadyAskedFor.erase(inv);
         }
 
+        // PHC FIX: Do not ban peer for invalid processed block let firewall handle it
+        /*
         if (block.nDoS)
         {
             Misbehaving(pfrom->GetId(), block.nDoS);
         }
+        */
 
         if (fSecMsgEnabled)
         {
