@@ -40,7 +40,7 @@ void ProcessSpork(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
     {
         if (fDebug)
         {
-            LogPrint("spork", "%s : \n", __PRETTY_FUNCTION__);
+            LogPrint("spork", "%s : \n", __FUNCTION__);
         }
 
         CDataStream vMsg(vRecv);
@@ -60,7 +60,7 @@ void ProcessSpork(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
             {
                 if(fDebug)
                 {
-                    LogPrint("spork", "%s : seen %s block %d \n", __PRETTY_FUNCTION__, hash.ToString().c_str(), pindexBest->nHeight);
+                    LogPrint("spork", "%s : seen %s block %d \n", __FUNCTION__, hash.ToString().c_str(), pindexBest->nHeight);
                 }
 
                 return;
@@ -69,21 +69,21 @@ void ProcessSpork(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
             {
                 if(fDebug)
                 {
-                    LogPrint("spork", "%s : got updated spork %s block %d \n", __PRETTY_FUNCTION__, hash.ToString().c_str(), pindexBest->nHeight);
+                    LogPrint("spork", "%s : got updated spork %s block %d \n", __FUNCTION__, hash.ToString().c_str(), pindexBest->nHeight);
                 }
             }
         }
 
         if (fDebug)
         {
-            LogPrint("spork", "%s : new %s ID %d Time %d bestHeight %d\n", __PRETTY_FUNCTION__, hash.ToString().c_str(), spork.nSporkID, spork.nValue, pindexBest->nHeight);
+            LogPrint("spork", "%s : new %s ID %d Time %d bestHeight %d\n", __FUNCTION__, hash.ToString().c_str(), spork.nSporkID, spork.nValue, pindexBest->nHeight);
         }
 
         if(!sporkManager.CheckSignature(spork))
         {
             if (fDebug)
             {
-                LogPrint("spork", "%s : invalid signature\n", __PRETTY_FUNCTION__);
+                LogPrint("spork", "%s : invalid signature\n", __FUNCTION__);
             }
 
             Misbehaving(pfrom->GetId(), 100);
@@ -188,7 +188,7 @@ bool IsSporkActive(int nSporkID)
         {
             if (fDebug)
             {
-                LogPrint("spork", "%s : Spork %d\n", __PRETTY_FUNCTION__, nSporkID);
+                LogPrint("spork", "%s : Spork %d\n", __FUNCTION__, nSporkID);
             }
         }
     }
@@ -277,7 +277,7 @@ int64_t GetSporkValue(int nSporkID)
         {
             if (fDebug)
             {
-                LogPrint("spork", "%s : Spork %d\n", __PRETTY_FUNCTION__, nSporkID);
+                LogPrint("spork", "%s : Spork %d\n", __FUNCTION__, nSporkID);
             }
         }
     }
@@ -304,7 +304,7 @@ void ExecuteSpork(int nSporkID, int nValue)
                 
                 if (fDebug)
                 {
-                    LogPrint("spork", "%s : ReprocessBlocks - %s\n", __PRETTY_FUNCTION__, (*it).first.ToString());
+                    LogPrint("spork", "%s : ReprocessBlocks - %s\n", __FUNCTION__, (*it).first.ToString());
                 }
 
                 CValidationState state;
@@ -358,7 +358,7 @@ bool CSporkManager::Sign(CSporkMessage& spork)
     {
         if (fDebug)
         {
-            LogPrint("spork", "%s : ERROR: Invalid masternodeprivkey: '%s'\n", __PRETTY_FUNCTION__, errorMessage.c_str());
+            LogPrint("spork", "%s : ERROR: Invalid masternodeprivkey: '%s'\n", __FUNCTION__, errorMessage.c_str());
         }
 
         return false;
@@ -368,7 +368,7 @@ bool CSporkManager::Sign(CSporkMessage& spork)
     {
         if (fDebug)
         {
-            LogPrint("spork", "%s : Sign message failed", __PRETTY_FUNCTION__);
+            LogPrint("spork", "%s : Sign message failed", __FUNCTION__);
         }
 
         return false;
@@ -378,7 +378,7 @@ bool CSporkManager::Sign(CSporkMessage& spork)
     {
         if (fDebug)
         {
-            LogPrint("spork", "%s : Verify message failed", __PRETTY_FUNCTION__);
+            LogPrint("spork", "%s : Verify message failed", __FUNCTION__);
         }
 
         return false;
@@ -432,7 +432,7 @@ bool CSporkManager::SetPrivKey(std::string strPrivKey)
     {
         if (fDebug)
         {
-            LogPrint("spork", "%s : Successfully initialized as spork signer\n", __PRETTY_FUNCTION__);
+            LogPrint("spork", "%s : Successfully initialized as spork signer\n", __FUNCTION__);
         }
         
         return true;

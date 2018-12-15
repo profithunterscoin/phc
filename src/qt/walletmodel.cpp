@@ -381,7 +381,7 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
         {
             if (fDebug)
             {
-                LogPrint("wallet", "%s : nFeeRequired: %d -- InsaneFee: %d\n", __PRETTY_FUNCTION__, nFeeRequired, insanefee);
+                LogPrint("wallet", "%s : nFeeRequired: %d -- InsaneFee: %d\n", __FUNCTION__, nFeeRequired, insanefee);
             }
 
             return InsaneFee;
@@ -441,7 +441,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
                     {
                         if (fDebug)
                         {
-                            LogPrint("wallet", "%s : GenerateRandomSecret failed.\n", __PRETTY_FUNCTION__);
+                            LogPrint("wallet", "%s : GenerateRandomSecret failed.\n", __FUNCTION__);
                         }
 
                         return Aborted;
@@ -451,7 +451,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
                     {
                         if (fDebug)
                         {
-                            LogPrint("wallet", "%s : Could not generate receiving public key.\n", __PRETTY_FUNCTION__);
+                            LogPrint("wallet", "%s : Could not generate receiving public key.\n", __FUNCTION__);
                         }
 
                         return Aborted;
@@ -462,7 +462,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
                     {
                         if (fDebug)
                         {
-                            LogPrint("wallet", "%s : Invalid public key generated.\n", __PRETTY_FUNCTION__);
+                            LogPrint("wallet", "%s : Invalid public key generated.\n", __FUNCTION__);
                         }
 
                         return Aborted;
@@ -476,7 +476,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
                     {
                         if (fDebug)
                         {
-                            LogPrint("wallet", "%s : Could not generate ephem public key.\n", __PRETTY_FUNCTION__);
+                            LogPrint("wallet", "%s : Could not generate ephem public key.\n", __FUNCTION__);
                         }
 
                         return Aborted;
@@ -484,9 +484,9 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
 
                     if (fDebug)
                     {
-                        LogPrint("wallet", "%s : Stealth send to generated pubkey %: %s\n", __PRETTY_FUNCTION__, pkSendTo.size(), HexStr(pkSendTo).c_str());
-                        LogPrint("wallet", "%s : hash %s\n", __PRETTY_FUNCTION__, addrTo.ToString().c_str());
-                        LogPrint("wallet", "%s : ephem_pubkey %: %s\n", __PRETTY_FUNCTION__, ephem_pubkey.size(), HexStr(ephem_pubkey).c_str());
+                        LogPrint("wallet", "%s : Stealth send to generated pubkey %: %s\n", __FUNCTION__, pkSendTo.size(), HexStr(pkSendTo).c_str());
+                        LogPrint("wallet", "%s : hash %s\n", __FUNCTION__, addrTo.ToString().c_str());
+                        LogPrint("wallet", "%s : ephem_pubkey %: %s\n", __FUNCTION__, ephem_pubkey.size(), HexStr(ephem_pubkey).c_str());
                     }
 
                     CScript scriptPubKey;
@@ -504,7 +504,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
                         {
                             if (fDebug)
                             {
-                                LogPrint("wallet", "%s : Narration is too long.\n",  __PRETTY_FUNCTION__);
+                                LogPrint("wallet", "%s : Narration is too long.\n",  __FUNCTION__);
                             }
 
                             return NarrationTooLong;
@@ -519,7 +519,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
                         {
                             if (fDebug)
                             {
-                                LogPrint("wallet", "%s : Narration encryption failed.\n", __PRETTY_FUNCTION__);
+                                LogPrint("wallet", "%s : Narration encryption failed.\n", __FUNCTION__);
                             }
 
                             return Aborted;
@@ -529,7 +529,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
                         {
                             if (fDebug)
                             {
-                                LogPrint("wallet", "%s : Encrypted narration is too long.\n", __PRETTY_FUNCTION__);
+                                LogPrint("wallet", "%s : Encrypted narration is too long.\n", __FUNCTION__);
                             }
 
                             return Aborted;
@@ -552,7 +552,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
                 {
                     if (fDebug)
                     {
-                        LogPrint("wallet", "%s : Couldn't parse stealth address!\n", __PRETTY_FUNCTION__);
+                        LogPrint("wallet", "%s : Couldn't parse stealth address!\n", __FUNCTION__);
                     }
 
                     return Aborted;
@@ -571,7 +571,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
                 {
                     if (fDebug)
                     {
-                        LogPrint("wallet", "%s : Narration is too long.\n", __PRETTY_FUNCTION__);
+                        LogPrint("wallet", "%s : Narration is too long.\n", __FUNCTION__);
                     }
 
                     return NarrationTooLong;
@@ -617,7 +617,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
             {
                 if (fDebug)
                 {
-                    LogPrint("wallet", "%s : Error creating narration key.", __PRETTY_FUNCTION__);
+                    LogPrint("wallet", "%s : Error creating narration key.", __FUNCTION__);
                 }
 
                 continue;
@@ -807,7 +807,7 @@ static void NotifyAddressBookChanged(WalletModel *walletmodel, CWallet *wallet, 
 
         if (fDebug)
         {
-            LogPrint("wallet", "%s : %s %s isMine=%i status=%i\n", __PRETTY_FUNCTION__, enc.c_str(), label.c_str(), isMine, status);
+            LogPrint("wallet", "%s : %s %s isMine=%i status=%i\n", __FUNCTION__, enc.c_str(), label.c_str(), isMine, status);
         }
 
         QMetaObject::invokeMethod(walletmodel, "updateAddressBook", Qt::QueuedConnection, Q_ARG(QString, QString::fromStdString(enc)), Q_ARG(QString, QString::fromStdString(label)), Q_ARG(bool, isMine), Q_ARG(int, status));

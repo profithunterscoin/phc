@@ -569,7 +569,7 @@ void OverviewPage::darkSendStatus()
     {
         if (fDebug)
         {
-            LogPrint("darksend", "%s : Last Darksend message: %s\n", __PRETTY_FUNCTION__, strStatus.toStdString());
+            LogPrint("darksend", "%s : Last Darksend message: %s\n", __FUNCTION__, strStatus.toStdString());
         }
     }
 
@@ -654,7 +654,7 @@ void OverviewPage::toggleDarksend()
                 
                 if (fDebug)
                 {
-                    LogPrint("wallet", "%s : Wallet is locked and user declined to unlock. Disabling Darksend.\n", __PRETTY_FUNCTION__);
+                    LogPrint("wallet", "%s : Wallet is locked and user declined to unlock. Disabling Darksend.\n", __FUNCTION__);
                 }
                 
                 return;
