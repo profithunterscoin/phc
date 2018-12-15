@@ -3413,16 +3413,6 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos, const u
 }
 
 
-bool CBlock::BlockShield() const
-{
-    // Not implemented yet
-
-
-    // Passed all checks
-    return true;
-}
-
-
 bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) const
 {
     // These are checks that are independent of context
@@ -3689,13 +3679,274 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
         return DoS(100, error("%s : hashMerkleRoot mismatch", __FUNCTION__));
     }
 
-    // BlockShield
-    if (!BlockShield())
+    return true;
+}
+
+
+bool CBlock::BlockShield(int Block_nHeight) const
+{
+    // BLOCK SHIELD 1.2.1 - Profit Hunters Coin Version
+
+    int ActivationHeight = 1; // Block #1 (Default)
+
+    bool LogGeneralStats = false;
+    double BlockSpaceMin = 1; // Minutes
+    double Compare1;
+    double Compare2;
+    double Compare3;
+    std::string TempLogCache;
+
+    // 1.0.0.7 Hardfork
+    if (!TestNet())
     {
-        return DoS(100, error("%s : Block Shield failed", __FUNCTION__));
+        ActivationHeight = 1000000000; // Activation @ Mainnet Block 1000000000 (undecided)
+    }
+    else
+    {
+        ActivationHeight = 338250; // Activation @ Testnet Block 338250
     }
 
-    return true;
+    if (Block_nHeight >= ActivationHeight)
+    {
+        // Increment Block check counter
+        BlockShieldCounter++;
+
+        ////////////////////
+        // Proof of Work Checks Only
+        //
+        if (IsProofOfWork())
+        {
+            // Not implemented
+        }
+        //
+        ////////////////////
+
+        ////////////////////
+        // Proof of Stake Checks Only
+        //
+        if (IsProofOfStake())
+        {
+            // **********************************************
+            // ** POS RULE #1: INFLATED MN + POS REWARD
+            // **
+
+            CAmount STAKEVOUT_TOTAL = 0;
+            
+            // Calculate PoS + MN Rewards total
+            for (int i = vtx[1].vout.size(); i--> 0; )
+            {
+                STAKEVOUT_TOTAL +=  vtx[1].vout[i].nValue;
+
+                // TODO 1.0.0.8: Keep log of MN + Stake addresses and make sure they don't repeat too often (POS Rule #2)
+            }
+
+            // Check for inflated rewards after 1000 blocks to get proper average
+            if (BlockShieldCounter > 1000)
+            {
+                if (StakeRewardAverage > 0)
+                {
+                    if (STAKEVOUT_TOTAL > (StakeRewardAverage * 0.01) + StakeRewardAverage)
+                    {
+                        if (fDebug)
+                        {
+                            // Verify Logfile flooding before outputing debug
+                            TempLogCache = "failed" + std::to_string(Block_nHeight) + std::to_string(STAKEVOUT_TOTAL) + std::to_string(StakeRewardAverage);
+
+                            if (BlockShieldLogCache != TempLogCache)
+                            {
+                                LogPrint("blockshield", "%s : Rule #1 FAILED @ Block #: %d, StakeVoutTotal: %d VoutAverage: %d\n", __FUNCTION__, Block_nHeight, FormatMoney(STAKEVOUT_TOTAL), FormatMoney(StakeRewardAverage));
+                            
+                                BlockShieldLogCache = TempLogCache;
+                            }
+                        }
+
+                        // Failed test
+                        return true;
+                    }
+                }
+            }
+
+            // General Stats
+            if (LogGeneralStats)
+            {
+                if (fDebug)
+                {
+                    // Verify Logfile flooding before outputing debug
+                    TempLogCache = "general" + std::to_string(Block_nHeight) + std::to_string(STAKEVOUT_TOTAL) + std::to_string(StakeRewardAverage);
+
+                    if (BlockShieldLogCache != TempLogCache)
+                    {
+                        LogPrint("blockshield", "%s : Block #: %d, StakeVoutTotal: %d VoutAverage: %d\n", __FUNCTION__, Block_nHeight, FormatMoney(STAKEVOUT_TOTAL), FormatMoney(StakeRewardAverage));
+                    
+                        BlockShieldLogCache = TempLogCache;
+                    }
+                }
+            }
+
+            // Modify Global Average
+            if (STAKEVOUT_TOTAL > 0)
+            {   
+                if (STAKEVOUT_TOTAL > StakeRewardAverage)
+                {
+                    StakeRewardAverage = (StakeRewardAverage + STAKEVOUT_TOTAL) / 2;
+                }
+            }
+
+            // **
+            // **********************************************
+        }
+        //
+        ////////////////////
+
+        ////////////////////
+        // PoW & PoS Checks (C) 2018 Crypostle - Block_Shield 1.2
+        //
+
+            // **********************************************
+            // ** HYBRID RULE #1: BlockTime Space Minimum
+            // **
+            // Do not allow current block to be accepted if last block was before minimum time space
+            //
+            Compare1 = GetBlockTime() - pindexBest->GetBlockTime();
+            Compare2 = BlockSpaceMin * 60;
+
+            if (Compare1 < Compare2)
+            {
+                if (fDebug)
+                {
+                    // Verify Logfile flooding before outputing debug
+                    TempLogCache = "hybrid-1"  + std::to_string(Block_nHeight) + std::to_string(Compare1) + std::to_string(Compare2);
+
+                    if (BlockShieldLogCache != TempLogCache)
+                    {                       
+                        LogPrint("blockshield", "%s : Block #: %d, Previous block space %d below %d seconds\n", __FUNCTION__, Block_nHeight, Compare1, Compare2);
+
+                        BlockShieldLogCache = TempLogCache;
+                    }
+                }
+
+                return true;
+            }
+            // **
+            // **********************************************
+
+            // **********************************************
+            // ** HYBRID RULE #2: BlockTime Future Maximum
+            // **
+            // Do not allow current block to be accepted if it's in the future above time spacing
+            //
+            Compare1 = GetBlockTime();
+            Compare2 = BlockSpaceMin * 60 + GetTime();
+
+            if (Compare1 > Compare2)
+            {
+                if (fDebug)
+                {
+                    // Verify Logfile flooding before outputing debug
+                    TempLogCache = "hybrid-2"  + std::to_string(Block_nHeight) + std::to_string(Compare1) + std::to_string(Compare2);
+
+                    if (BlockShieldLogCache != TempLogCache)
+                    {
+                        LogPrint("blockshield", "%s : Block #: %d, Current block age: %d above %d minutes\n", __FUNCTION__, Block_nHeight, Compare1, Compare2);
+                
+                        BlockShieldLogCache = TempLogCache;
+                    }
+                }
+
+                return true;
+            }
+
+            // **
+            // **********************************************
+
+            // **********************************************
+            // ** HYBRID RULE #3: BlockTime Minimum With Delay
+            // **
+            // Do not allow Last block and current block spacing to be below minimum
+            //
+            Compare1 = GetTime() - pindexBest->GetBlockTime();
+            Compare2 = BlockSpaceMin * 60;
+            Compare3 = GetTime() - GetBlockTime();
+
+            if (Compare1 < Compare2 && Compare3 < Compare2)
+            {
+                if (fDebug)
+                {
+                    // Verify Logfile flooding before outputing debug
+                    TempLogCache = "hybrid-3"  + std::to_string(Block_nHeight) + std::to_string(Compare1) + std::to_string(Compare2) + std::to_string(Compare3);
+
+                    if (BlockShieldLogCache != TempLogCache)
+                    {
+                        LogPrint("blockshield", "%s : Block #: %d, last block: %d & current block: %d spacing below %d minutes\n", __FUNCTION__, Block_nHeight, Compare1, Compare2, Compare3);
+                    
+                        BlockShieldLogCache = TempLogCache;
+                    }
+                }
+
+                return true;
+            }
+
+            // **********************************************
+            // ** HYBRID RULE #4: BlockTime Spoofing
+            // **
+            // Do not allow Last block and current block time to be equal
+            //
+            Compare1 = pindexBest->GetBlockTime();
+            Compare2 = GetBlockTime();
+
+            if (Compare1 == Compare2)
+            {
+                if (fDebug)
+                {
+                    // Verify Logfile flooding before outputing debug
+                    TempLogCache = "hybrid-4"  + std::to_string(Block_nHeight) + std::to_string(Compare1) + std::to_string(Compare2);
+
+                    if (BlockShieldLogCache != TempLogCache)
+                    { 
+                        LogPrint("blockshield", "%s : Block #: %d, last block: %d & current block: %d are both equal\n", __FUNCTION__, Block_nHeight, Compare1, Compare2);
+
+                        BlockShieldLogCache = TempLogCache;
+                    }
+                }
+
+                return true;
+            }
+
+            // **********************************************
+            // ** HYBRID RULE #5: BlockTime Shitfting Attack
+            // **
+            // Do not allow block time-shifting
+            //
+            Compare1 = pindexBest->GetBlockTime();
+            Compare2 = GetBlockTime();
+
+            if (Compare1 > Compare2)
+            {
+                if (fDebug)
+                {
+                    // Verify Logfile flooding before outputing debug
+                    TempLogCache = "hybrid-5"  + std::to_string(Block_nHeight) + std::to_string(Compare1) + std::to_string(Compare2);
+
+                    if (BlockShieldLogCache != TempLogCache)
+                    {
+                        LogPrint("blockshield", "%s : Block #: %d, time-shifting detected: Previous Block: %d & Current Block: %d\n", __FUNCTION__, Block_nHeight, Compare1, Compare2);
+                        
+                        BlockShieldLogCache = TempLogCache;
+                    }
+                }
+
+                return true;
+            }
+            
+            // **
+            // **********************************************
+        //
+        ////////////////////
+    }
+
+
+    // Passed all checks
+    return false;
 }
 
 
@@ -3743,6 +3994,12 @@ bool CBlock::AcceptBlock()
     if (IsProofOfStake() && nHeight < Params().POSStartBlock())
     {
         return DoS(100, error("%s : reject proof-of-stake at height <= %d", __FUNCTION__, nHeight));
+    }
+
+    // BlockShield
+    if (BlockShield(nHeight))
+    {
+        return DoS(100, error("%s : Block Shield test failed", __FUNCTION__));
     }
 
     // Check coinbase timestamp
