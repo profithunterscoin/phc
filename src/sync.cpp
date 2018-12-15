@@ -15,8 +15,8 @@ void PrintLockContention(const char* pszName, const char* pszFile, int nLine)
 {
     if (fDebug)
     {
-        LogPrint("sync", "%s : LOCKCONTENTION: %s\n", __PRETTY_FUNCTION__, pszName);
-        LogPrint("sync", "%s : Locker: %s:%d\n", __PRETTY_FUNCTION__, pszFile, nLine);
+        LogPrint("sync", "%s : LOCKCONTENTION: %s\n", __FUNCTION__, pszName);
+        LogPrint("sync", "%s : Locker: %s:%d\n", __FUNCTION__, pszFile, nLine);
     }
 }
 #endif /* DEBUG_LOCKCONTENTION */
@@ -71,9 +71,9 @@ static void potential_deadlock_detected(const std::pair<void*, void*>& mismatch,
 {
     if (fDebug)
     {
-        LogPrint("sync", "%s : POTENTIAL DEADLOCK DETECTED\n", __PRETTY_FUNCTION__);
+        LogPrint("sync", "%s : POTENTIAL DEADLOCK DETECTED\n", __FUNCTION__);
         
-        LogPrint("sync", "%s : Previous lock order was:\n", __PRETTY_FUNCTION__);
+        LogPrint("sync", "%s : Previous lock order was:\n", __FUNCTION__);
     }
 
     BOOST_FOREACH(const PAIRTYPE(void*, CLockLocation)& i, s2)
@@ -82,7 +82,7 @@ static void potential_deadlock_detected(const std::pair<void*, void*>& mismatch,
         {
             if (fDebug)
             {
-                LogPrint("sync", "%s :  (1)", __PRETTY_FUNCTION__);
+                LogPrint("sync", "%s :  (1)", __FUNCTION__);
             }
         }
 
@@ -90,19 +90,19 @@ static void potential_deadlock_detected(const std::pair<void*, void*>& mismatch,
         {
             if (fDebug)
             {
-                LogPrint("sync", "%s :  (2)", __PRETTY_FUNCTION__)
+                LogPrint("sync", "%s :  (2)", __FUNCTION__)
             }
         }
 
         if (fDebug)
         {
-            LogPrint("sync", "%s :  %s\n", __PRETTY_FUNCTION__, i.second.ToString());
+            LogPrint("sync", "%s :  %s\n", __FUNCTION__, i.second.ToString());
         }
     }
     
     if (fDebug)
     {
-        LogPrint("sync", "%s : Current lock order is:\n", __PRETTY_FUNCTION__);
+        LogPrint("sync", "%s : Current lock order is:\n", __FUNCTION__);
     }
 
     BOOST_FOREACH(const PAIRTYPE(void*, CLockLocation)& i, s1)
@@ -111,7 +111,7 @@ static void potential_deadlock_detected(const std::pair<void*, void*>& mismatch,
         {
             if (fDebug)
             {
-                LogPrint("sync", "%s :  (1)", __PRETTY_FUNCTION__);
+                LogPrint("sync", "%s :  (1)", __FUNCTION__);
             }
         }
 
@@ -119,13 +119,13 @@ static void potential_deadlock_detected(const std::pair<void*, void*>& mismatch,
         {
             if (fDebug)
             {
-                LogPrint("sync", "%s :  (2)", __PRETTY_FUNCTION__);
+                LogPrint("sync", "%s :  (2)", __FUNCTION__);
             }
         }
 
         if (fDebug)
         {
-            LogPrint("sync", "%s :  %s\n", __PRETTY_FUNCTION__, i.second.ToString());
+            LogPrint("sync", "%s :  %s\n", __FUNCTION__, i.second.ToString());
         }
     }
 }
@@ -140,7 +140,7 @@ static void push_lock(void* c, const CLockLocation& locklocation, bool fTry)
 
     if (fDebug)
     {
-        LogPrint("lock", "%s : Locking: %s\n", __PRETTY_FUNCTION__, locklocation.ToString());
+        LogPrint("lock", "%s : Locking: %s\n", __FUNCTION__, locklocation.ToString());
     }
 
     dd_mutex.lock();
@@ -185,7 +185,7 @@ static void pop_lock()
     {
         const CLockLocation& locklocation = (*lockstack).rbegin()->second;
 
-        LogPrint("lock", "%s : Unlocked: %s\n", __PRETTY_FUNCTION__, locklocation.ToString());
+        LogPrint("lock", "%s : Unlocked: %s\n", __FUNCTION__, locklocation.ToString());
     }
 
     dd_mutex.lock();
@@ -231,7 +231,7 @@ void AssertLockHeldInternal(const char *pszName, const char* pszFile, int nLine,
 
     if (fDebug)
     {
-        fprintf(stderr, "%s : Assertion failed: lock %s not held in %s:%i; locks held:\n%s", __PRETTY_FUNCTION__, pszName, pszFile, nLine, LocksHeld().c_str());
+        fprintf(stderr, "%s : Assertion failed: lock %s not held in %s:%i; locks held:\n%s", __FUNCTION__, pszName, pszFile, nLine, LocksHeld().c_str());
     }
     
     abort();

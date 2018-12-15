@@ -387,7 +387,7 @@ class CTransaction
                 nValueOut += txout.nValue;
                 if (!MoneyRange(txout.nValue) || !MoneyRange(nValueOut))
                 {
-                    throw std::runtime_error(strprintf("%s : value out of range", __PRETTY_FUNCTION__));
+                    throw std::runtime_error(strprintf("%s : value out of range", __FUNCTION__));
                 }
 
             }
@@ -410,13 +410,13 @@ class CTransaction
             CAutoFile filein = CAutoFile(OpenBlockFile(pos.nFile, 0, pfileRet ? "rb+" : "rb"), SER_DISK, CLIENT_VERSION);
             if (filein.IsNull())
             {
-                return error("%s : OpenBlockFile failed", __PRETTY_FUNCTION__);
+                return error("%s : OpenBlockFile failed", __FUNCTION__);
             }
 
             // Read transaction
             if (fseek(filein.Get(), pos.nTxPos, SEEK_SET) != 0)
             {
-                return error("%s : fseek failed", __PRETTY_FUNCTION__);
+                return error("%s : fseek failed", __FUNCTION__);
             }
 
             try
@@ -425,7 +425,7 @@ class CTransaction
             }
             catch (std::exception &e)
             {
-                return error("%s : deserialize or I/O error", __PRETTY_FUNCTION__);
+                return error("%s : deserialize or I/O error", __FUNCTION__);
             }
 
             // Return file pointer
@@ -433,7 +433,7 @@ class CTransaction
             {
                 if (fseek(filein.Get(), pos.nTxPos, SEEK_SET) != 0)
                 {
-                    return error("%s : second fseek failed", __PRETTY_FUNCTION__);
+                    return error("%s : second fseek failed", __FUNCTION__);
                 }
 
                 *pfileRet = filein.release();
@@ -815,7 +815,7 @@ class CBlock
 
             if (fDebug)
             {
-                LogPrint("stakemodifier", "%s : GetStakeEntropyBit: hashBlock=%s nEntropyBit=%u\n", __PRETTY_FUNCTION__, GetHash().ToString(), nEntropyBit);
+                LogPrint("stakemodifier", "%s : GetStakeEntropyBit: hashBlock=%s nEntropyBit=%u\n", __FUNCTION__, GetHash().ToString(), nEntropyBit);
             }
             
             return nEntropyBit;
@@ -923,7 +923,7 @@ class CBlock
             CAutoFile fileout = CAutoFile(AppendBlockFile(nFileRet), SER_DISK, CLIENT_VERSION);
             if (fileout.IsNull())
             {
-                return error("%s : AppendBlockFile failed", __PRETTY_FUNCTION__);
+                return error("%s : AppendBlockFile failed", __FUNCTION__);
             }
 
             // Write index header
@@ -934,7 +934,7 @@ class CBlock
             long fileOutPos = ftell(fileout.Get());
             if (fileOutPos < 0)
             {
-                return error("%s : ftell failed", __PRETTY_FUNCTION__);
+                return error("%s : ftell failed", __FUNCTION__);
             }
 
             nBlockPosRet = fileOutPos;
@@ -958,7 +958,7 @@ class CBlock
             CAutoFile filein = CAutoFile(OpenBlockFile(nFile, nBlockPos, "rb"), SER_DISK, CLIENT_VERSION);
             if (filein.IsNull())
             {
-                return error("%s : OpenBlockFile failed", __PRETTY_FUNCTION__);
+                return error("%s : OpenBlockFile failed", __FUNCTION__);
             }
 
             if (!fReadTransactions)
@@ -973,13 +973,13 @@ class CBlock
             }
             catch (std::exception &e)
             {
-                return error("%s : deserialize or I/O error", __PRETTY_FUNCTION__);
+                return error("%s : deserialize or I/O error", __FUNCTION__);
             }
 
             // Check the header
             if (fReadTransactions && IsProofOfWork() && !CheckProofOfWork(GetPoWHash(), nBits))
             {
-                return error("%s : errors in block header", __PRETTY_FUNCTION__);
+                return error("%s : errors in block header", __FUNCTION__);
             }
 
             return true;
@@ -1013,8 +1013,8 @@ class CBlock
         bool ReadFromDisk(const CBlockIndex* pindex, bool fReadTransactions=true);
         bool SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew);
         bool AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos, const uint256& hashProof);
-        bool CheckBlock(bool fCheckPOW=true, bool fCheckMerkleRoot=true, bool fCheckSig=true) const;
         bool BlockShield() const;
+        bool CheckBlock(bool fCheckPOW=true, bool fCheckMerkleRoot=true, bool fCheckSig=true) const;
         bool AcceptBlock();
         bool SignBlock(CWallet& keystore, int64_t nFees);
         bool CheckBlockSignature() const;

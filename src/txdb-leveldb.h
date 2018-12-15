@@ -101,7 +101,7 @@ class CTxDB
                     if (fDebug)
                     {
                         // Some unexpected error.
-                        LogPrint("db", "%s : LevelDB read failure: %s\n", __PRETTY_FUNCTION__, status.ToString());
+                        LogPrint("db", "%s : LevelDB read failure: %s\n", __FUNCTION__, status.ToString());
                     }
 
                     return false;
@@ -150,7 +150,7 @@ class CTxDB
             {
                 if (fDebug)
                 {
-                    LogPrint("db", "%s : LevelDB write failure: %s\n", __PRETTY_FUNCTION__, status.ToString());
+                    LogPrint("db", "%s : LevelDB write failure: %s\n", __FUNCTION__, status.ToString());
                 }
 
                 return false;

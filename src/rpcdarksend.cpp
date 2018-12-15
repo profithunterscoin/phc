@@ -52,7 +52,7 @@ Value SendMoney(const CTxDestination &address, CAmount nValue, CWalletTx& wtxNew
         
         if (fDebug)
         {
-            LogPrint("darksend", "%s : %s", __PRETTY_FUNCTION__, strError);
+            LogPrint("darksend", "%s : %s", __FUNCTION__, strError);
         }
 
         throw JSONRPCError(RPC_WALLET_ERROR, strError);
@@ -78,7 +78,7 @@ Value SendMoney(const CTxDestination &address, CAmount nValue, CWalletTx& wtxNew
 
             if (fDebug)
             {
-                LogPrint("darksend", "%s : %s\n", __PRETTY_FUNCTION__, strError);
+                LogPrint("darksend", "%s : %s\n", __FUNCTION__, strError);
             }
 
             throw JSONRPCError(RPC_WALLET_ERROR, strError);
@@ -93,7 +93,7 @@ Value SendMoney(const CTxDestination &address, CAmount nValue, CWalletTx& wtxNew
 
         if (fDebug)
         {
-            LogPrint("darksend", "%s : %s\n", __PRETTY_FUNCTION__, strError);
+            LogPrint("darksend", "%s : %s\n", __FUNCTION__, strError);
         }
         
         throw JSONRPCError(RPC_WALLET_ERROR, strError);

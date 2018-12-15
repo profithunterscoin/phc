@@ -241,7 +241,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
                     {
                         if (fDebug)
                         {
-                            LogPrint("mempool", "%s : ERROR: mempool transaction missing input\n", __PRETTY_FUNCTION__);
+                            LogPrint("mempool", "%s : ERROR: mempool transaction missing input\n", __FUNCTION__);
 
                             assert("mempool transaction missing input" == 0);
                         }
@@ -398,7 +398,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
 
             if (fDebug && GetBoolArg("-printpriority", false))
             {
-                LogPrint("miner", "%s : priority %.1f feeperkb %.1f txid %s\n", __PRETTY_FUNCTION__, dPriority, dFeePerKb, tx.GetHash().ToString());
+                LogPrint("miner", "%s : priority %.1f feeperkb %.1f txid %s\n", __FUNCTION__, dPriority, dFeePerKb, tx.GetHash().ToString());
             }
 
             // Add transactions that depend on this one to the priority queue
@@ -425,7 +425,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
 
         if (fDebug && GetBoolArg("-printpriority", false))
         {
-            LogPrint("miner", "%s : total size %u\n", __PRETTY_FUNCTION__, nBlockSize);
+            LogPrint("miner", "%s : total size %u\n", __FUNCTION__, nBlockSize);
         }
         
         // >PHC<
@@ -537,20 +537,20 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
 
     if(!pblock->IsProofOfWork())
     {
-        return error("%s : %s is not a proof-of-work block", __PRETTY_FUNCTION__, hashBlock.GetHex());
+        return error("%s : %s is not a proof-of-work block", __FUNCTION__, hashBlock.GetHex());
     }
 
     if (hashProof > hashTarget)
     {
-        return error("%s : proof-of-work not meeting target", __PRETTY_FUNCTION__);
+        return error("%s : proof-of-work not meeting target", __FUNCTION__);
     }
 
     if (fDebug)
     {
         //// debug print
-        LogPrint("miner", "%s : new proof-of-work block found  \n  proof hash: %s  \ntarget: %s\n",  __PRETTY_FUNCTION__, hashProof.GetHex(), hashTarget.GetHex());
-        LogPrint("miner", "%s : %s\n", __PRETTY_FUNCTION__, pblock->ToString());
-        LogPrint("miner", "%s : generated %s\n", __PRETTY_FUNCTION__, FormatMoney(pblock->vtx[0].vout[0].nValue));
+        LogPrint("miner", "%s : new proof-of-work block found  \n  proof hash: %s  \ntarget: %s\n",  __FUNCTION__, hashProof.GetHex(), hashTarget.GetHex());
+        LogPrint("miner", "%s : %s\n", __FUNCTION__, pblock->ToString());
+        LogPrint("miner", "%s : generated %s\n", __FUNCTION__, FormatMoney(pblock->vtx[0].vout[0].nValue));
     }
 
     // Global Namespace Start
@@ -561,7 +561,7 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
 
         if (pblock->hashPrevBlock != hashBestChain)
         {
-            return error("%s : generated block is stale", __PRETTY_FUNCTION__);
+            return error("%s : generated block is stale", __FUNCTION__);
         }
 
         // Remove key from key pool
@@ -579,7 +579,7 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
         // Process this block the same as if we had received it from another node
         if (!ProcessBlock(NULL, pblock))
         {
-            return error("%s : ProcessBlock, block not accepted", __PRETTY_FUNCTION__);
+            return error("%s : ProcessBlock, block not accepted", __FUNCTION__);
         }
     }
     // Global Namespace End
@@ -594,21 +594,21 @@ bool CheckStake(CBlock* pblock, CWallet& wallet)
 
     if(!pblock->IsProofOfStake())
     {
-        return error("%s : %s is not a proof-of-stake block", __PRETTY_FUNCTION__, hashBlock.GetHex());
+        return error("%s : %s is not a proof-of-stake block", __FUNCTION__, hashBlock.GetHex());
     }
 
     // verify hash target and signature of coinstake tx
     if (!CheckProofOfStake(mapBlockIndex[pblock->hashPrevBlock], pblock->vtx[1], pblock->nBits, proofHash, hashTarget))
     {
-        return error("%s : proof-of-stake checking failed", __PRETTY_FUNCTION__);
+        return error("%s : proof-of-stake checking failed", __FUNCTION__);
     }
 
     if (fDebug)
     {
         //// debug print
-        LogPrint("coinstake", "%s : new proof-of-stake block found  \n  hash: %s \nproofhash: %s  \ntarget: %s\n", __PRETTY_FUNCTION__, hashBlock.GetHex(), proofHash.GetHex(), hashTarget.GetHex());
-        LogPrint("coinstake", "%s : %s\n", __PRETTY_FUNCTION__, pblock->ToString());
-        LogPrint("coinstake", "%s : out %s\n", __PRETTY_FUNCTION__, FormatMoney(pblock->vtx[1].GetValueOut()));
+        LogPrint("coinstake", "%s : new proof-of-stake block found  \n  hash: %s \nproofhash: %s  \ntarget: %s\n", __FUNCTION__, hashBlock.GetHex(), proofHash.GetHex(), hashTarget.GetHex());
+        LogPrint("coinstake", "%s : %s\n", __FUNCTION__, pblock->ToString());
+        LogPrint("coinstake", "%s : out %s\n", __FUNCTION__, FormatMoney(pblock->vtx[1].GetValueOut()));
     }
 
     // Global Namespace Start
@@ -618,7 +618,7 @@ bool CheckStake(CBlock* pblock, CWallet& wallet)
         LOCK(cs_main);
         if (pblock->hashPrevBlock != hashBestChain)
         {
-            return error("%s : generated block is stale", __PRETTY_FUNCTION__);
+            return error("%s : generated block is stale", __FUNCTION__);
         }
 
         // Global Namespace Start
@@ -632,7 +632,7 @@ bool CheckStake(CBlock* pblock, CWallet& wallet)
         // Process this block the same as if we had received it from another node
         if (!ProcessBlock(NULL, pblock))
         {
-            return error("%s : ProcessBlock, block not accepted", __PRETTY_FUNCTION__);
+            return error("%s : ProcessBlock, block not accepted", __FUNCTION__);
         }
         else
         {
@@ -646,7 +646,7 @@ bool CheckStake(CBlock* pblock, CWallet& wallet)
             {
                 if (fDebug)
                 {
-                    LogPrint("coinstake", "%s : PoS mismatched spent coins = %d and balance affects = %d \n", __PRETTY_FUNCTION__, nMismatchSpent, nBalanceInQuestion);
+                    LogPrint("coinstake", "%s : PoS mismatched spent coins = %d and balance affects = %d \n", __FUNCTION__, nMismatchSpent, nBalanceInQuestion);
                 }
             }
         }

@@ -779,7 +779,7 @@ void StartRPCThreads()
         {
             if (fDebug)
             {
-                LogPrint("rpc", "%s : ERROR: missing server certificate file %s\n", __PRETTY_FUNCTION__, pathCertFile.string());
+                LogPrint("rpc", "%s : ERROR: missing server certificate file %s\n", __FUNCTION__, pathCertFile.string());
             }
         }
 
@@ -798,7 +798,7 @@ void StartRPCThreads()
         {
             if (fDebug)
             {
-                LogPrint("rpc", "%s : ERROR: missing server private key file %s\n", __PRETTY_FUNCTION__, pathPKFile.string());
+                LogPrint("rpc", "%s : ERROR: missing server private key file %s\n", __FUNCTION__, pathPKFile.string());
             }
         } 
 
@@ -975,7 +975,7 @@ void JSONRequest::parse(const Value& valRequest)
     {
         if (fDebug)
         {
-            LogPrint("rpc", "%s : method=%s\n", __PRETTY_FUNCTION__, strMethod);
+            LogPrint("rpc", "%s : method=%s\n", __FUNCTION__, strMethod);
         }
     }
 
@@ -1075,7 +1075,7 @@ void ServiceConnection(AcceptedConnection *conn)
         {
             if (fDebug)
             {
-                LogPrint("rpc", "%s : incorrect password attempt from %s\n", __PRETTY_FUNCTION__, conn->peer_address_to_string());
+                LogPrint("rpc", "%s : incorrect password attempt from %s\n", __FUNCTION__, conn->peer_address_to_string());
             }
 
             /* Deter brute-forcing short passwords.

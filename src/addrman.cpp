@@ -413,7 +413,7 @@ void CAddrMan::Good_(const CService &addr, int64_t nTime)
 
     if (fDebug)
     {
-        LogPrint("addrman", "%s : Moving %s to tried\n", __PRETTY_FUNCTION__, addr.ToString());
+        LogPrint("addrman", "%s : Moving %s to tried\n", __FUNCTION__, addr.ToString());
     }
     
     // move nId to the tried tables
