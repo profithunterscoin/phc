@@ -4378,7 +4378,7 @@ bool CWallet::FindStealthTransactions(const CTransaction& tx, mapValue_t& mapNar
                     {
                         if (fDebug)
                         {
-                            LogPrint("wallet", "%s : Warning: FindStealthTransactions() tx: %s, Could not extract plaintext narration.\n", __FUNCTION__, tx.GetHash().GetHex().c_str());
+                            LogPrint("wallet", "%s : Warning: tx: %s, Could not extract plaintext narration.\n", __FUNCTION__, tx.GetHash().GetHex().c_str());
                         }
                     }
                 }
