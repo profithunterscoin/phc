@@ -2014,8 +2014,10 @@ const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfSta
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake)
 {
     // TargetTimespan correction after development testing
+    // 1.0.0.7 Hardfork
+
     if (!TestNet())
-    {   // Hardfork @ Mainnet Block #
+    {   // Mainnet Block #100000000 (undecided)
         if (nBestHeight >= 100000000)
         {
             nTargetTimespan = 60; // 1 Minute
@@ -2023,8 +2025,8 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     }
     else
     {
-        // Hardfork @ Testnet Block #
-        if (nBestHeight >= 100000000)
+        // Testnet Block #338,250
+        if (nBestHeight >= 338250)
         {
             nTargetTimespan = 60; // 1 Minute
         }
@@ -5449,7 +5451,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
                 std::string strMessage = tx.GetHash().ToString() + boost::lexical_cast<std::string>(sigTime);
 
                 std::string errorMessage = "";
-                
+
                 if(!darkSendSigner.VerifyMessage(pmn->pubkey2, vchSig, strMessage, errorMessage))
                 {
                     if(fDebug)

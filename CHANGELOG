@@ -19,6 +19,8 @@ v1.0.0.7 (Pre-release)
  * FIX: Excessive CPU use during mining
  * Upgrade: Debug to Logfile (Disabled by default, Added Categories and Function Names)
  * FIX: Removed peer banning ProcessBlock, upgraded some Misbehaving calls in main.cpp
+ * Installed: Retarget Hard Fork (TimeFrame changed from 120 to 60 seconds) (Mainnet: Inactive, Testnet: Block # 338250)
+
 
 v1.0.0.6
 --------
