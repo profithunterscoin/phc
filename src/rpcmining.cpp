@@ -16,6 +16,8 @@
 
 #include <boost/assign/list_of.hpp>
 
+#include <string>     // std::string, std::stoi
+
 using namespace json_spirit;
 using namespace std;
 using namespace boost::assign;
@@ -97,6 +99,88 @@ Value getstakesubsidy(const Array& params, bool fHelp)
 }
 
 
+Value getgenerate(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 0)
+        throw runtime_error(
+            "getgenerate\n"
+            "Returns true or false.");
+
+    if (!pMiningKey)
+        return false;
+
+    return GetBoolArg("-gen", false);
+}
+
+
+Value setgenerate(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() < 1 || params.size() > 3)
+        throw runtime_error(
+            "setgenerate <generate> [genproclimit] <debugtoconsole>\n"
+            "<generate> is true or false to turn generation on or off.\n"
+            "[genproclimit] CPU threads to use for mining\n"
+            "<debugtoconsole> optional to display live debug to unix/dos console"
+            "Generation is limited to [genproclimit] processors, -1 is unlimited.");
+
+    bool fGenerate = true;
+    bool fDebugConsoleOutputMining = false;
+    
+    if (params.size() > 0)
+    {
+        if (params[0].get_str() == "true")
+        {
+            fGenerate = true;
+        }
+        else
+        {
+            fGenerate = false;
+        }
+    }
+    
+    if (params.size() > 1)
+    {
+        int nGenProcLimit = std::stoi(params[1].get_str());
+
+        mapArgs["-genproclimit"] = itostr(nGenProcLimit);
+
+        if (nGenProcLimit == 0)
+        {
+            fGenerate = false;
+        }
+    }
+
+    if (params.size() > 2)
+    {
+        if (params[2].get_str() == "true")
+        {
+            fDebugConsoleOutputMining = true;
+        }
+    }
+
+    mapArgs["-gen"] = (fGenerate ? "1" : "0");
+
+    assert(pwalletMain != NULL);
+    
+    GeneratePoWcoins(fGenerate, pwalletMain, fDebugConsoleOutputMining);
+
+    return Value::null;
+}
+
+/*
+Value gethashespersec(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 0)
+        throw runtime_error(
+            "gethashespersec\n"
+            "Returns a recent hashes per second performance measurement while generating.");
+
+    if (GetTimeMillis() - nHPSTimerStart > 8000)
+        return (boost::int64_t)0;
+    return (boost::int64_t)dHashesPerSec;
+}
+*/
+
 Value getmininginfo(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
@@ -123,6 +207,10 @@ Value getmininginfo(const Array& params, bool fHelp)
     diff.push_back(Pair("search-interval",      (int)nLastCoinStakeSearchInterval));
     obj.push_back(Pair("difficulty",            GetDifficulty(GetLastBlockIndex(pindexBest, true))));
 
+    obj.push_back(Pair("generate",              GetBoolArg("-gen", false)));
+    obj.push_back(Pair("genproclimit",          (int)GetArg("-genproclimit", -1)));
+    //obj.push_back(Pair("hashespersec",        gethashespersec(params, false)));
+
     obj.push_back(Pair("blockvalue",            (int64_t)GetProofOfStakeReward(pindexBest->pprev, 0, 0)));
     obj.push_back(Pair("netmhashps",            GetPoWMHashPS()));
     obj.push_back(Pair("netstakeweight",        GetPoSKernelPS()));
@@ -134,7 +222,7 @@ Value getmininginfo(const Array& params, bool fHelp)
     weight.push_back(Pair("combined",           (uint64_t)nWeight));
     obj.push_back(Pair("stakeweight",           weight));
 
-    obj.push_back(Pair("testnet",       TestNet()));
+    obj.push_back(Pair("testnet",               TestNet()));
     
     return obj;
 }
@@ -456,7 +544,7 @@ Value getworkex(const Array& params, bool fHelp)
 
         assert(pwalletMain != NULL);
 
-        return CheckWork(pblock, *pwalletMain, *pMiningKey);
+        return ProcessBlockFound(pblock, *pwalletMain, *pMiningKey);
     }
 }
 
@@ -600,7 +688,7 @@ Value getwork(const Array& params, bool fHelp)
 
         assert(pwalletMain != NULL);
         
-        return CheckWork(pblock, *pwalletMain, *pMiningKey);
+        return ProcessBlockFound(pblock, *pwalletMain, *pMiningKey);
     }
 }
 

@@ -147,6 +147,8 @@ void Shutdown()
         bitdb.Flush(false);
     }
 
+    GeneratePoWcoins(false, NULL, false);
+
 #endif
 
     StopNode();
@@ -247,6 +249,7 @@ std::string HelpMessage()
     string strUsage = _("Options:") + "\n";
     strUsage += "  -?                     " + _("This help message") + "\n";
     strUsage += "  -conf=<file>           " + _("Specify configuration file (default: phc.conf)") + "\n";
+    strUsage += "  -gen                   " + _("Generate coins (default: 0)") + "\n" +
     strUsage += "  -pid=<file>            " + _("Specify pid file (default: phcd.pid)") + "\n";
     strUsage += "  -datadir=<dir>         " + _("Specify data directory") + "\n";
     strUsage += "  -wallet=<dir>          " + _("Specify wallet file (within data directory)") + "\n";
@@ -1669,6 +1672,11 @@ bool AppInit2(boost::thread_group& threadGroup)
         threadGroup.create_thread(boost::bind(&ThreadStakeMiner, pwalletMain));
     }
 
+    // Generate coins using internal miner
+    if (pwalletMain)
+    {
+        GeneratePoWcoins(GetBoolArg("-gen", false), pwalletMain, false);
+    }
 #endif
 
     // ********************************************************* Step 12: finished

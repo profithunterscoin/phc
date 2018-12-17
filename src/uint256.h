@@ -796,6 +796,31 @@ inline const uint256 operator+(const uint256& a, const uint256& b)      { return
 inline const uint256 operator-(const uint256& a, const uint256& b)      { return (base_uint256)a -  (base_uint256)b; }
 
 
+
+/* uint256 from const char *.
+ * This is a separate function because the constructor uint256(const char*) can result
+ * in dangerously catching uint256(0).
+ */
+inline uint256 uint256S(const char *str)
+{
+    uint256 rv;
+    rv.SetHex(str);
+
+    return rv;
+}
+
+/* uint256 from std::string.
+ * This is a separate function because the constructor uint256(const std::string &str) can result
+ * in dangerously catching uint256(0) via std::string(const char*).
+ */
+inline uint256 uint256S(const std::string& str)
+{
+    uint256 rv;
+    rv.SetHex(str);
+    
+    return rv;
+}
+
 //////////////////////////////////////////////////////////////////////////////
 //
 // uint512
@@ -805,6 +830,7 @@ inline const uint256 operator-(const uint256& a, const uint256& b)      { return
 class uint512 : public base_uint512
 {
     public:
+    
         typedef base_uint512 basetype;
 
         uint512()
@@ -1225,3 +1251,5 @@ inline int Testuint256AdHoc(std::vector<std::string> vArg)
 #endif
 
 #endif
+
+

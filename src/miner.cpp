@@ -11,11 +11,25 @@
 #include "masternodeman.h"
 #include "masternode-payments.h"
 
+#include "arith_uint256.h"
+
+#include <string>
+
 using namespace std;
+
+unsigned int nTransactionsUpdated = 0;
+
+double dHashesPerSec = 0.0;
+
+int64_t nHPSTimerStart = 0;
+
+bool fDebugConsoleOutputMining = false;
+
+std::string MinerLogCache;
 
 //////////////////////////////////////////////////////////////////////////////
 //
-// BitcoinMiner
+// Miner Functions
 //
 
 extern unsigned int nMinerSleep;
@@ -529,65 +543,7 @@ void FormatHashBuffers(CBlock* pblock, char* pmidstate, char* pdata, char* phash
 }
 
 
-bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
-{
-    uint256 hashBlock = pblock->GetHash();
-    uint256 hashProof = pblock->GetPoWHash();
-    uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
-
-    if(!pblock->IsProofOfWork())
-    {
-        return error("%s : %s is not a proof-of-work block", __FUNCTION__, hashBlock.GetHex());
-    }
-
-    if (hashProof > hashTarget)
-    {
-        return error("%s : proof-of-work not meeting target", __FUNCTION__);
-    }
-
-    if (fDebug)
-    {
-        //// debug print
-        LogPrint("miner", "%s : new proof-of-work block found  \n  proof hash: %s  \ntarget: %s\n",  __FUNCTION__, hashProof.GetHex(), hashTarget.GetHex());
-        LogPrint("miner", "%s : %s\n", __FUNCTION__, pblock->ToString());
-        LogPrint("miner", "%s : generated %s\n", __FUNCTION__, FormatMoney(pblock->vtx[0].vout[0].nValue));
-    }
-
-    // Global Namespace Start
-    {
-        // Found a solution
-
-        LOCK(cs_main);
-
-        if (pblock->hashPrevBlock != hashBestChain)
-        {
-            return error("%s : generated block is stale", __FUNCTION__);
-        }
-
-        // Remove key from key pool
-        reservekey.KeepKey();
-
-        // Global Namespace Start
-        {
-            // Track how many getdata requests this block gets
-
-            LOCK(wallet.cs_wallet);
-            wallet.mapRequestCount[hashBlock] = 0;
-        }
-        // Global Namespace End
-
-        // Process this block the same as if we had received it from another node
-        if (!ProcessBlock(NULL, pblock))
-        {
-            return error("%s : ProcessBlock, block not accepted", __FUNCTION__);
-        }
-    }
-    // Global Namespace End
-
-    return true;
-}
-
-bool CheckStake(CBlock* pblock, CWallet& wallet)
+bool ProcessBlockStake(CBlock* pblock, CWallet& wallet)
 {
     uint256 proofHash = 0, hashTarget = 0;
     uint256 hashBlock = pblock->GetHash();
@@ -712,7 +668,7 @@ void ThreadStakeMiner(CWallet *pwallet)
         {
             SetThreadPriority(THREAD_PRIORITY_NORMAL);
 
-            CheckStake(pblock.get(), *pwallet);
+            ProcessBlockStake(pblock.get(), *pwallet);
             
             SetThreadPriority(THREAD_PRIORITY_LOWEST);
             
@@ -723,5 +679,341 @@ void ThreadStakeMiner(CWallet *pwallet)
             MilliSleep(nMinerSleep);
         }
 
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+//
+// 
+// Internal Coin Miner
+//
+
+
+bool ProcessBlockFound(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
+{
+    uint256 hashBlock = pblock->GetHash();
+    uint256 hashProof = pblock->GetPoWHash();
+    uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
+
+    if(!pblock->IsProofOfWork())
+    {
+        return error("%s : %s is not a proof-of-work block", __FUNCTION__, hashBlock.GetHex());
+    }
+
+    if (hashProof > hashTarget)
+    {
+        return error("%s : proof-of-work not meeting target", __FUNCTION__);
+    }
+
+    if (fDebug)
+    {
+        //// debug print
+        LogPrint("miner", "%s : new proof-of-work block found  \n  proof hash: %s  \ntarget: %s\n",  __FUNCTION__, hashProof.GetHex(), hashTarget.GetHex());
+        LogPrint("miner", "%s : %s\n", __FUNCTION__, pblock->ToString());
+        LogPrint("miner", "%s : generated %s\n", __FUNCTION__, FormatMoney(pblock->vtx[0].vout[0].nValue));
+    }
+
+    // Global Namespace Start
+    {
+        // Found a solution
+
+        LOCK(cs_main);
+
+        if (pblock->hashPrevBlock != hashBestChain)
+        {
+            return error("%s : generated block is stale", __FUNCTION__);
+        }
+
+        // Remove key from key pool
+        reservekey.KeepKey();
+
+        // Global Namespace Start
+        {
+            // Track how many getdata requests this block gets
+
+            LOCK(wallet.cs_wallet);
+
+            wallet.mapRequestCount[hashBlock] = 0;
+        }
+        // Global Namespace End
+
+        // Process this block the same as if we had received it from another node
+        if (!ProcessBlock(NULL, pblock))
+        {
+            return error("%s : ProcessBlock, block not accepted", __FUNCTION__);
+        }
+    }
+    // Global Namespace End
+
+    return true;
+}
+
+void static InternalcoinMiner(CWallet *pwallet)
+{
+    if (fDebugConsoleOutputMining)
+    {
+        printf("PHC-PoW-Miner - Started!\n");
+    }
+
+    SetThreadPriority(THREAD_PRIORITY_LOWEST);
+
+    RenameThread("phc-pow-miner");
+
+    std::string TempMinerLogCache;
+
+    // Each thread has its own key and counter
+    CReserveKey reservekey(pwallet);
+
+    unsigned int nExtraNonce = 0;
+
+    try
+    {
+        do
+        {
+            // Busy-wait for the network to come online so we don't waste time mining
+            // on an obsolete chain. In regtest mode we expect to fly solo.
+            do
+            {
+                MilliSleep(100);
+            }
+            while (vNodes.empty());
+
+            //
+            // Create new block
+            //
+            unsigned int nTransactionsUpdatedLast = nTransactionsUpdated;
+
+            CBlockIndex* pindexPrev = pindexBest;
+
+            int64_t nFees;
+            auto_ptr<CBlock> pblock(CreateNewBlock(reservekey, true, &nFees));
+            
+            if (!pblock.get())
+            {
+                if (fDebug)
+                {
+                    LogPrint("%s : Can't create block template\n", __FUNCTION__);
+                }
+
+                return;
+            }
+           
+            IncrementExtraNonce(pblock.get(), pindexPrev, nExtraNonce);
+
+            if (fDebugConsoleOutputMining)
+            {
+                //printf("Running LitecoinMiner with %"PRIszu" transactions in block (%u bytes)\n", pblock->vtx.size(),
+                //    ::GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION));
+            }
+
+            //
+            // Pre-build hash buffers
+            //
+            char pmidstatebuf[32+16]; char* pmidstate = alignup<16>(pmidstatebuf);
+            char pdatabuf[128+16];    char* pdata     = alignup<16>(pdatabuf);
+            char phash1buf[64+16];    char* phash1    = alignup<16>(phash1buf);
+            FormatHashBuffers(pblock.get(), pmidstate, pdata, phash1);
+            unsigned int& nBlockTime = *(unsigned int*)(pdata + 64 + 4);
+            unsigned int& nBlockBits = *(unsigned int*)(pdata + 64 + 8);
+            //unsigned int& nBlockNonce = *(unsigned int*)(pdata + 64 + 12);
+
+
+            //
+            // Search
+            //
+            int64_t nStart = GetTime();
+
+            arith_uint256 hashTarget = arith_uint256().SetCompact(pblock->nBits);
+
+            do
+            {
+                unsigned int nHashesDone = 0;
+
+                uint256 thash;
+
+                do
+                {
+                    thash = pblock->GetHash();
+
+                    // Found a solution
+                    if (UintToArith256(thash) <= hashTarget)
+                    {
+                        SetThreadPriority(THREAD_PRIORITY_NORMAL);
+
+                        TempMinerLogCache = "found:" + thash.GetHex();
+
+                        if (MinerLogCache != TempMinerLogCache)
+                        {
+                            if (fDebug)
+                            {
+                                LogPrint("%s : PoW Found Hash: %s\n", __FUNCTION__, thash.GetHex().c_str());
+                            }
+
+                            if (fDebugConsoleOutputMining)
+                            {
+                                printf("%s : PoW Found Hash: %s\n", __FUNCTION__, thash.GetHex().c_str());
+                            }
+
+                            MinerLogCache = "found:" + thash.GetHex();
+                        }
+
+                        ProcessBlockFound(pblock.get(), *pwallet, reservekey);
+                        
+                        SetThreadPriority(THREAD_PRIORITY_LOWEST);
+
+                        reservekey.KeepKey();
+
+                        break;
+                    }
+
+                    pblock->nNonce += 1;
+                    nHashesDone += 1;
+
+                    if ((pblock->nNonce & 0xFF) == 0)
+                    {
+                        break;
+                    }
+
+                }
+                while (true);
+
+                // Process Block Found
+                // Meter hashes/sec
+                static int64_t nHashCounter;
+
+                if (nHPSTimerStart == 0)
+                {
+                    nHPSTimerStart = GetTimeMillis();
+                    nHashCounter = 0;
+                }
+                else
+                {
+                    nHashCounter += nHashesDone;
+                }
+
+                if (GetTimeMillis() - nHPSTimerStart > 4000)
+                {
+                    static CCriticalSection cs;
+
+                    // Global Namespace Start
+                    {
+                        LOCK(cs);
+
+                        if (GetTimeMillis() - nHPSTimerStart > 4000)
+                        {
+                            dHashesPerSec = 1000.0 * nHashCounter / (GetTimeMillis() - nHPSTimerStart);
+                            nHPSTimerStart = GetTimeMillis();
+                            nHashCounter = 0;
+
+                            static int64_t nLogTime;
+                            
+                            if (GetTime() - nLogTime > 30 * 60)
+                            {
+                                nLogTime = GetTime();
+
+                                double HashRate = dHashesPerSec/1000.0;
+                                
+                                TempMinerLogCache = "rejected:" + std::to_string(HashRate);
+
+                                if (MinerLogCache != TempMinerLogCache)
+                                {
+                                    if (fDebugConsoleOutputMining)
+                                    {
+                                        printf("%s : Hashrate %6.0f kh/s\n", __FUNCTION__, HashRate);
+                                    }
+                                    
+                                    MinerLogCache = "rejected:" + std::to_string(HashRate);
+                                }
+                            }
+                        }
+                    }
+                    // Global Namespace End
+                }
+
+                // Check for stop or if block needs to be rebuilt
+                boost::this_thread::interruption_point();
+
+                if (vNodes.empty())
+                {
+                    break;
+                }
+
+                if (pblock->nNonce >= 0xffff0000)
+                {
+                    break;
+                }
+
+                if (nTransactionsUpdated != nTransactionsUpdatedLast && GetTime() - nStart > 60)
+                {
+                    break;
+                }
+
+                if (pindexPrev != pindexBest)
+                {
+                    break;
+                }
+
+                // Update nTime every few seconds
+                pblock->UpdateTime(pindexPrev);
+                nBlockTime = ByteReverse(pblock->nTime);
+
+                if (TestNet())
+                {
+                    // Changing pblock->nTime can change work required on testnet:
+                    nBlockBits = ByteReverse(pblock->nBits);
+                    hashTarget = arith_uint256().SetCompact(pblock->nBits);
+                }
+            }
+            while (true);
+        }
+        while (true);
+    }
+    catch (boost::thread_interrupted)
+    {
+        if (fDebugConsoleOutputMining)
+        {
+            printf("InternalcoinMiner terminated\n");
+        }
+
+        throw;
+    }
+}
+
+void GeneratePoWcoins(bool fGenerate, CWallet* pwallet, bool fDebugToConsole)
+{
+    if (fDebugToConsole)
+    {
+        fDebugConsoleOutputMining = fDebugToConsole;
+    }
+
+    static boost::thread_group* minerThreads = NULL;
+
+    int nThreads = GetArg("-genproclimit", -1);
+
+    if (nThreads < 0)
+    {
+        nThreads = boost::thread::hardware_concurrency();
+    }
+
+    if (minerThreads != NULL)
+    {
+        minerThreads->interrupt_all();
+
+        delete minerThreads;
+
+        minerThreads = NULL;
+    }
+
+    if (nThreads == 0 || !fGenerate)
+    {
+        return;
+    }
+
+    minerThreads = new boost::thread_group();
+
+    for (int i = 0; i < nThreads; i++)
+    {
+        minerThreads->create_thread(boost::bind(&InternalcoinMiner, pwallet));
     }
 }

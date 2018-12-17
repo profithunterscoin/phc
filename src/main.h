@@ -14,7 +14,6 @@
 #include "net.h"
 #include "script.h"
 #include "scrypt.h"
-
 #include <list>
 
 class CValidationState;
@@ -165,40 +164,61 @@ void UnregisterNodeSignals(CNodeSignals& nodeSignals);
 
 void PushGetBlocks(CNode* pnode, CBlockIndex* pindexBegin, uint256 hashEnd);
 
+/** Process an incoming block */
 bool ProcessBlock(CNode* pfrom, CBlock* pblock);
+
+/** Check whether enough disk space is available for an incoming block */
 bool CheckDiskSpace(uint64_t nAdditionalBytes=0);
 
+/** Open a block file (blk?????.dat) */
 FILE* OpenBlockFile(unsigned int nFile, unsigned int nBlockPos, const char* pszMode="rb");
+
 FILE* AppendBlockFile(unsigned int& nFileRet);
 
+/** Load the block tree and coins database from disk */
 bool LoadBlockIndex(bool fAllowNew=true);
 
+/** Print the loaded block tree */
 void PrintBlockTree();
 
+/** Find a block by height in the currently-connected chain */
 CBlockIndex* FindBlockByHeight(int nHeight);
 
+/** Process protocol messages received from a given node */
 bool ProcessMessages(CNode* pfrom);
+
+/** Send queued protocol messages to be sent to a give node */
 bool SendMessages(CNode* pto, bool fSendTrickle);
 
 void ThreadImport(std::vector<boost::filesystem::path> vImportFiles);
 
+/** Check whether a block hash satisfies the proof-of-work requirement specified by nBits */
 bool CheckProofOfWork(uint256 hash, unsigned int nBits);
 
+/** Calculate the minimum amount of work a received block needs, without knowing its direct parent */
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake);
+
+/** Run the internal miner threads */
+void GeneratePoWcoins(bool fGenerate, CWallet* pwallet, bool fDebugConsoleOutputMining);
 
 int64_t GetProofOfWorkReward(int nHeight, int64_t nFees);
 int64_t GetProofOfStakeReward(const CBlockIndex* pindexPrev, int64_t nCoinAge, int64_t nFees);
 
+/** Check whether we are doing an initial block download (synchronizing from disk or network) */
 bool IsInitialBlockDownload();
+
 bool IsConfirmedInNPrevBlocks(const CTxIndex& txindex, const CBlockIndex* pindexFrom, int nMaxDepth, int& nActualDepth);
 
+/** Format a string that describes several potential problems detected by the core */
 std::string GetWarnings(std::string strFor);
 
+/** Retrieve a transaction (from memory pool, or from disk, if possible) */
 bool GetTransaction(const uint256 &hash, CTransaction &tx, uint256 &hashBlock);
 
 uint256 WantedByOrphan(const COrphanBlock* pblockOrphan);
 
 const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfStake);
+
 void ThreadStakeMiner(CWallet *pwallet);
 
 /** (try to) add transaction to memory pool **/

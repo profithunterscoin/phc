@@ -1,8 +1,22 @@
-# -*- mode: Makefile; -*-
-# Copyright (c) 2011 Bitcoin Developers
+# *****************************************************
+# PHC (DAEMON WALLET) (Bitcoin Core 8)
+#
+# Copyright (c) 2009-2010 Satoshi Nakamoto
+# Copyright (c) 2009-2012 The Bitcoin developers
+# Copyright (c) 2018 Profit Hunters Coin
+#
 # Distributed under the MIT/X11 software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
+# *****************************************************
 
+# *****************************************************
+USE_UPNP:=1
+USE_WALLET:=1
+USE_LOWMEM:=0
+LIBS= -dead_strip
+# *****************************************************
+
+# *****************************************************
 # Mac OS X makefile for phc
 # Originally by Laszlo Hanyecz (solar@heliacal.net)
 
@@ -23,13 +37,9 @@ LIBPATHS= \
  -L"$(DEPSDIR)/Cellar/boost/1.59.0/lib" \
  -L"$(DEPSDIR)/Cellar/berkeley-db4/4.8.30/lib" \
  -L"$(DEPSDIR)/openssl-1.0.1p/lib"
+# *****************************************************
 
-USE_UPNP:=1
-USE_WALLET:=1
-USE_LOWMEM:=0
-
-LIBS= -dead_strip
-
+# *****************************************************
 ifdef STATIC
 # Build STATIC if you are redistributing the phcd binary
 LIBS += \
@@ -52,7 +62,9 @@ LIBS += \
  -l crypto \
  -l z
 endif
+# *****************************************************
 
+# *****************************************************
 DEFS=-DMAC_OSX -DMSG_NOSIGNAL=0 -DBOOST_SPIRIT_THREADSAFE
 
 ifdef RELEASE
@@ -63,12 +75,17 @@ CFLAGS = -mmacosx-version-min=10.8 -arch x86_64 -O3
 else
 DEBUGFLAGS = -g
 endif
+# *****************************************************
 
+# *****************************************************
 # ppc doesn't work because we don't support big-endian
 CFLAGS += -Wall -Wextra -Wformat -Wno-ignored-qualifiers -Wformat-security -Wno-unused-parameter -Wunused-function -Wunused-variable -fpermissive -Wconversion-null -Wno-deprecated-declarations\
     $(DEBUGFLAGS) $(DEFS) $(INCLUDEPATHS)
+# *****************************************************
 
+# *****************************************************
 OBJS= \
+    obj/arith_uint256.o \
     obj/alert.o \
     obj/allocators.o \
     obj/version.o \
@@ -136,10 +153,15 @@ ifeq (${USE_WALLET}, 1)
         obj/wallet.o \
         obj/walletdb.o
 endif
+# *****************************************************
 
+# *****************************************************
 ifndef USE_UPNP
 	override USE_UPNP = -
 endif
+# *****************************************************
+
+# *****************************************************
 ifneq (${USE_UPNP}, -)
 	DEFS += -DUSE_UPNP=$(USE_UPNP)
 ifdef STATIC
@@ -148,19 +170,23 @@ else
 	LIBS += -lminiupnpc
 endif
 endif
+# *****************************************************
 
+# *****************************************************
 ifeq (${USE_LOWMEM}, 1)
     DEFS += -DLOWMEM
 endif
+# *****************************************************
 
-all: phcd
-
+# *****************************************************
 # build secp256k1
 DEFS += $(addprefix -I,$(CURDIR)/secp256k1/include)
 secp256k1/src/libsecp256k1_la-secp256k1.o:
 	@echo "Building Secp256k1 ..."; cd secp256k1; chmod 755 *; ./autogen.sh; ./configure --enable-module-recovery; make; cd ..;
 phcd: secp256k1/src/libsecp256k1_la-secp256k1.o
+# *****************************************************
 
+# *****************************************************
 # build leveldb
 LIBS += $(CURDIR)/leveldb/libleveldb.a $(CURDIR)/leveldb/libmemenv.a
 DEFS += $(addprefix -I,$(CURDIR)/leveldb/include)
@@ -169,7 +195,13 @@ OBJS += obj/txdb-leveldb.o
 leveldb/libleveldb.a:
 	@echo "Building LevelDB ..."; cd leveldb; chmod 755 *; make libleveldb.a libmemenv.a; cd ..
 obj/txdb-leveldb.o: leveldb/libleveldb.a
+# *****************************************************
 
+# *****************************************************
+all: phcd
+# *****************************************************
+
+# *****************************************************
 # auto-generated dependencies:
 -include obj/*.P
 
@@ -190,10 +222,16 @@ obj/%.o: %.c
 phcd: $(OBJS:obj/%=obj/%)
 	$(CXX) $(CFLAGS) -o $@ $(LIBPATHS) $^ $(LIBS)
 
+# *****************************************************
+
+# *****************************************************
 clean:
 	-rm -f phcd
 	-rm -f obj/*.o
 	-rm -f obj/*.P
 	-rm -f obj/build.h
+# *****************************************************
 
+# *****************************************************
 FORCE:
+# *****************************************************
