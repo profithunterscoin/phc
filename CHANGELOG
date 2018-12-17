@@ -22,6 +22,7 @@ v1.0.0.7 (Pre-release)
  * Installed: Retarget Hard Fork (TimeFrame changed from 120 to 60 seconds) (Mainnet: Inactive, Testnet: Block # 338250)
  * Installed: Block Shield 1.2.1 (Mainnet: Inactive, Testnet: Block # 338250)
  * FIX: Blank Masternode Payee in CBlock::AddToBlockIndex()
+ * Install Internal PoW Miner (setgenerate)
 
 v1.0.0.6
 --------

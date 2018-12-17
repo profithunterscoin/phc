@@ -1,7 +1,15 @@
+# *****************************************************
+# PHC (DAEMON WALLET) (Bitcoin Core 8)
+#
 # Copyright (c) 2009-2010 Satoshi Nakamoto
+# Copyright (c) 2009-2012 The Bitcoin developers
+# Copyright (c) 2018 Profit Hunters Coin
+#
 # Distributed under the MIT/X11 software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
+# *****************************************************
 
+# *****************************************************
 USE_UPNP:=0
 USE_WALLET:=1
 USE_LOWMEM:=0
@@ -13,6 +21,7 @@ DEFS=-DBOOST_SPIRIT_THREADSAFE
 DEFS += $(addprefix -I,$(CURDIR) $(CURDIR)/obj $(BOOST_INCLUDE_PATH) $(BDB_INCLUDE_PATH) $(OPENSSL_INCLUDE_PATH))
 LIBS = $(addprefix -L,$(BOOST_LIB_PATH) $(BDB_LIB_PATH) $(OPENSSL_LIB_PATH))
 
+
 LMODE = dynamic
 LMODE2 = dynamic
 ifdef STATIC
@@ -21,7 +30,9 @@ ifdef STATIC
 		LMODE2 = static
 	endif
 endif
+# *****************************************************
 
+# *****************************************************
 # for boost 1.37, add -mt to the boost libraries
 LIBS += \
  -Wl,-B$(LMODE) \
@@ -33,7 +44,9 @@ LIBS += \
    -l ssl \
    -l crypto \
    -l execinfo
+# *****************************************************
 
+# *****************************************************
 ifndef USE_UPNP
 	override USE_UPNP = -
 endif
@@ -41,18 +54,23 @@ ifneq (${USE_UPNP}, -)
 	LIBS += -l miniupnpc
 	DEFS += -DUSE_UPNP=$(USE_UPNP)
 endif
+# *****************************************************
 
+# *****************************************************
 ifeq (${USE_LOWMEM}, 1)
     DEFS += -DLOWMEM
 endif
+# *****************************************************
 
+# *****************************************************
 LIBS+= \
  -Wl,-B$(LMODE2) \
    -l z \
    -l dl \
    -l pthread
+# *****************************************************
 
-
+# *****************************************************
 # Hardening
 # Make some classes of vulnerabilities unexploitable in case one is discovered.
 #
@@ -85,20 +103,28 @@ LIBS+= \
     # the source such overflowing a statically defined buffer.
     HARDENING+=-D_FORTIFY_SOURCE=2
 #
+# *****************************************************
 
-
+# *****************************************************
 DEBUGFLAGS=-g
+# *****************************************************
 
+# *****************************************************
 # CXXFLAGS can be specified on the make command line, so we use xCXXFLAGS that only
 # adds some defaults in front. Unfortunately, CXXFLAGS=... $(CXXFLAGS) does not work.
 xCXXFLAGS=-O0 -msse2 -pthread -Wall -Wextra -Wno-ignored-qualifiers -Wformat -Wformat-security -Wno-unused-parameter \
     $(DEBUGFLAGS) $(DEFS) $(HARDENING) $(CXXFLAGS)
+# *****************************************************
 
+# *****************************************************
 # LDFLAGS can be specified on the make command line, so we use xLDFLAGS that only
 # adds some defaults in front. Unfortunately, LDFLAGS=... $(LDFLAGS) does not work.
 xLDFLAGS=$(LDHARDENING) $(LDFLAGS)
+# *****************************************************
 
+# *****************************************************
 OBJS= \
+    obj/arith_uint256.o \
     obj/alert.o \
     obj/version.o \
     obj/checkpoints.o \
@@ -142,9 +168,13 @@ ifeq (${USE_WALLET}, 1)
         obj/wallet.o \
         obj/walletdb.o
 endif
+# *****************************************************
 
+# *****************************************************
 all: phcd
+# *****************************************************
 
+# *****************************************************
 LIBS += $(CURDIR)/leveldb/libleveldb.a $(CURDIR)/leveldb/libmemenv.a
 DEFS += $(addprefix -I,$(CURDIR)/leveldb/include)
 DEFS += $(addprefix -I,$(CURDIR)/leveldb/helpers)
@@ -152,7 +182,9 @@ OBJS += obj/txdb-leveldb.o
 leveldb/libleveldb.a:
 	@echo "Building LevelDB ..."; cd leveldb; make libleveldb.a libmemenv.a; cd ..;
 obj/txdb-leveldb.o: leveldb/libleveldb.a
+# *****************************************************
 
+# *****************************************************
 # auto-generated dependencies:
 -include obj/*.P
 
@@ -165,11 +197,16 @@ obj/%.o: %.cpp
 
 phcd: $(OBJS:obj/%=obj/%)
 	$(LINK) $(xCXXFLAGS) -o $@ $^ $(xLDFLAGS) $(LIBS)
+# *****************************************************
 
+# *****************************************************
 clean:
 	-rm -f phcd
 	-rm -f obj/*.o
 	-rm -f obj/*.P
 	-rm -f obj/build.h
+# *****************************************************
 
+# *****************************************************
 FORCE:
+# *****************************************************

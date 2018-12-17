@@ -1,7 +1,15 @@
+# *****************************************************
+# PHC (DAEMON WALLET) (Bitcoin Core 8)
+#
 # Copyright (c) 2009-2010 Satoshi Nakamoto
+# Copyright (c) 2009-2012 The Bitcoin developers
+# Copyright (c) 2018 Profit Hunters Coin
+#
 # Distributed under the MIT/X11 software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
+# *****************************************************
 
+# *****************************************************
 USE_UPNP:=-
 USE_WALLET:=1
 USE_LOWMEM:=0
@@ -32,14 +40,17 @@ LIBS= \
  -l ssl \
  -l secp256k1 \
  -l crypto
+ # *****************************************************
 
+# *****************************************************
 DEFS=-DWIN32 -D_WINDOWS -DBOOST_THREAD_USE_LIB -DBOOST_SPIRIT_THREADSAFE
 DEBUGFLAGS=-g
 CFLAGS=-mthreads -O2 -w -Wall -Wextra -Wno-ignored-qualifiers -Wformat -Wformat-security -Wno-unused-parameter -fpermissive $(DEBUGFLAGS) $(DEFS) $(INCLUDEPATHS)
 LDFLAGS=-Wl,--dynamicbase -Wl,--nxcompat -Wl,--large-address-aware -static
-
 TESTDEFS = -DTEST_DATA_DIR=$(abspath test/data)
+# *****************************************************
 
+# *****************************************************
 ifndef USE_UPNP
         override USE_UPNP = -
 endif
@@ -47,17 +58,25 @@ ifneq (${USE_UPNP}, -)
  LIBS += -l miniupnpc -l iphlpapi
  DEFS += -DMINIUPNP_STATICLIB -DUSE_UPNP=$(USE_UPNP)
 endif
+# *****************************************************
 
+# *****************************************************
 ifeq (${USE_LOWMEM}, 1)
     DEFS += -DLOWMEM
 endif
+# *****************************************************
 
+# *****************************************************
 LIBS += -l mingwthrd -l kernel32 -l user32 -l gdi32 -l comdlg32 -l winspool -l winmm -l shell32 -l comctl32 -l ole32 -l oleaut32 -l uuid -l rpcrt4 -l advapi32 -l ws2_32 -l mswsock
+# *****************************************************
 
+# *****************************************************
 # TODO: make the mingw builds smarter about dependencies, like the linux/osx builds are
+
 HEADERS = $(wildcard *.h)
 
 OBJS= \
+    obj/arith_uint256.o \
     obj/alert.o \
     obj/allocators.o \
     obj/support/cleanse.o \
@@ -125,9 +144,13 @@ ifeq (${USE_WALLET}, 1)
         obj/wallet.o \
         obj/walletdb.o
 endif
+# *****************************************************
 
+# *****************************************************
 all: phcd.exe
+# *****************************************************
 
+# *****************************************************
 LIBS += $(CURDIR)/leveldb/libleveldb.a $(CURDIR)/leveldb/libmemenv.a -l shlwapi
 DEFS += $(addprefix -I,$(CURDIR)/leveldb/include)
 DEFS += $(addprefix -I,$(CURDIR)/leveldb/helpers)
@@ -144,11 +167,16 @@ obj/%.o: %.c $(HEADERS)
 
 phcd.exe: $(OBJS:obj/%=obj/%)
 	g++ $(CFLAGS) $(LDFLAGS) -o $@ $(LIBPATHS) $^ $(LIBS)
+# *****************************************************
 
+# *****************************************************
 clean:
 	-rm -f obj/*.o
 	-rm -f phcd.exe
 	-rm -f obj/build.h
 	cd leveldb && TARGET_OS=NATIVE_WINDOWS $(MAKE) clean && cd ..
+# *****************************************************
 
+# *****************************************************
 FORCE:
+# *****************************************************
