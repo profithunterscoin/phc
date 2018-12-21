@@ -998,7 +998,7 @@ void ThreadSecureMsgPow()
                     LogPrint("smessage", "%s : *** RGP >>> ThreadSecureMsgPow dbOutbox.Open Debug 003\n", __FUNCTION__);
                 }
 
-                //MilliSleep(500); // RGP added
+                //MilliSleep(500); // Thanks to Jimmy (Robert)
                 
                 continue;
             }
@@ -1089,6 +1089,10 @@ void ThreadSecureMsgPow()
             if (SecureMsgScanMessage(pHeader, pPayload, psmsg->nPayload, true) != 0)
             {
                 // message recipient is not this node (or failed)
+                if (fDebug)
+                {
+                    LogPrint("smessage", "%s : *** RGP*** ThreadSecureMsgPow SecureMsgScanMessage error... Debug 003\n", __FUNCTION__);
+                }
             }
 
             if (fDebug)
@@ -1097,7 +1101,7 @@ void ThreadSecureMsgPow()
             }
 
             /* RGP, Added as smsg-po was using 100% cpu time? */
-            MilliSleep(500); // Thanks to Jimmy (Robert)
+            MilliSleep(50); // Thanks to Jimmy (Robert)
         }
 
         delete it;
@@ -3679,7 +3683,7 @@ int SecureMsgWalletKeyChanged(std::string sAddress, std::string sLabel, ChangeTy
             {
                 // Do nothing
             }
-                break;
+            break;
         }
 
     }

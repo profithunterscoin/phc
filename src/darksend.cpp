@@ -3873,6 +3873,11 @@ void ThreadCheckDarkSendPool()
         return; 
     }
 
+    if (IsInitialBlockDownload())
+    {
+        return;
+    }
+
     // Make this thread recognisable as the wallet flushing thread
     RenameThread("PHC-darksend");
 
@@ -3880,16 +3885,10 @@ void ThreadCheckDarkSendPool()
 
     while (true)
     {
-        MilliSleep(1000);
-        
-        if (fDebug)
-        {
-            LogPrint("darksend", "%s : timeout\n", __FUNCTION__);
-        }
+        MilliSleep(100);
 
         // try to sync from all available nodes, one step at a time
         //masternodeSync.Process();
-
 
         if(darkSendPool.IsBlockchainSynced())
         {
