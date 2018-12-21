@@ -2346,6 +2346,26 @@ void RefreshRecentConnections(int RefreshMinutes)
 }
 
 
+void IdleNodeCheck(CNode *pnode)
+{
+    // Disconnect node/peer if send/recv data becomes idle
+    if (GetTime() - pnode->nTimeConnected > 60)
+    {
+        if (GetTime() - pnode->nLastRecv > 60)
+        {
+            if (GetTime() - pnode->nLastSend < 60)
+            {
+                if (fDebug)
+                {
+                    LogPrint("net", "%s : Error: Unexpected idle interruption %s\n", __FUNCTION__, pnode->addrName);
+                }
+
+                pnode->CloseSocketDisconnect();
+            }
+        }
+    }
+}
+
 // requires LOCK(cs_vSend)
 void SocketSendData(CNode *pnode)
 {
@@ -2356,7 +2376,9 @@ void SocketSendData(CNode *pnode)
         FireWall(pnode, "SendData");
 
         const CSerializeData &data = *it;
+
         assert(data.size() > pnode->nSendOffset);
+        
         int nBytes = send(pnode->hSocket, &data[pnode->nSendOffset], data.size() - pnode->nSendOffset, MSG_NOSIGNAL | MSG_DONTWAIT);
         
         if (nBytes > 0)
@@ -2380,22 +2402,7 @@ void SocketSendData(CNode *pnode)
                     LogPrint("net", "%s : socket send error: interruption\n", __FUNCTION__);
                 }
 
-                // Disconnect node/peer if send/recv data becomes idle
-                if (GetTime() - pnode->nTimeConnected > 60)
-                {
-                    if (GetTime() - pnode->nLastRecv > 60)
-                    {
-                        if (GetTime() - pnode->nLastSend < 60)
-                        {
-                            if (fDebug)
-                            {
-                                LogPrint("net", "%s : Error: Unexpected idle interruption %s\n", __FUNCTION__, pnode->addrName);
-                            }
-
-                            pnode->CloseSocketDisconnect();
-                        }
-                    }
-                }
+                IdleNodeCheck(pnode);
 
                 break;
             }
@@ -2414,23 +2421,7 @@ void SocketSendData(CNode *pnode)
                         LogPrint("net", "%s : socket send error %d\n", __FUNCTION__, nErr);
                     }
 
-                    // Disconnect node/peer if send/recv data becomes idle
-                    if (GetTime() - pnode->nTimeConnected > 90)
-                    {
-                        if (GetTime() - pnode->nLastRecv > 60)
-                        {
-                            if (GetTime() - pnode->nLastSend < 30)
-                            {
-                                if (fDebug)
-                                {
-                                    LogPrint("net", "%s : Error: Unexpected idle interruption %s\n", __FUNCTION__, pnode->addrName);
-                                }
-
-                                pnode->CloseSocketDisconnect();
-                            }
-                        }
-                    }
-
+                    IdleNodeCheck(pnode);
                 }
             }
 
@@ -2440,22 +2431,7 @@ void SocketSendData(CNode *pnode)
                 LogPrint("net", "%s : socket send error: data failure\n", __FUNCTION__);
             }
 
-            // Disconnect node/peer if send/recv data becomes idle
-                if (GetTime() - pnode->nTimeConnected > 90)
-                {
-                    if (GetTime() - pnode->nLastRecv > 60)
-                    {
-                        if (GetTime() - pnode->nLastSend < 30)
-                        {
-                            if (fDebug)
-                            {
-                                LogPrint("net", "%s : Error: Unexpected idle interruption %s\n", __FUNCTION__, pnode->addrName);
-                            }
-
-                            pnode->CloseSocketDisconnect();
-                        }
-                    }
-                }
+            IdleNodeCheck(pnode);
 
             break;
         }
@@ -3613,22 +3589,7 @@ void ThreadMessageHandler()
                         pnode->CloseSocketDisconnect();
                     }
 
-                    // Disconnect node/peer if send/recv data becomes idle
-                    if (GetTime() - pnode->nTimeConnected > 90)
-                    {
-                        if (GetTime() - pnode->nLastRecv > 60)
-                        {
-                            if (GetTime() - pnode->nLastSend < 30)
-                            {
-                                if (fDebug)
-                                {
-                                    LogPrint("net", "%s : Error: Unexpected idle interruption %s\n", __FUNCTION__, pnode->addrName);
-                                }
-
-                                pnode->CloseSocketDisconnect();
-                            }
-                        }
-                    }
+                    IdleNodeCheck(pnode);
 
                     if (pnode->nSendSize < SendBufferSize())
                     {

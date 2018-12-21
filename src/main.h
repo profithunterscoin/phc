@@ -141,6 +141,9 @@ class CTxIndex;
 class CWalletInterface;
 struct CNodeStateStats;
 
+/** Prune Orphan blocks from index */
+void PruneOrphanBlocks();
+
 /** Register a wallet to receive updates from core */
 void RegisterWallet(CWalletInterface* pwalletIn);
 

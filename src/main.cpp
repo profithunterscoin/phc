@@ -292,9 +292,8 @@ bool AbortNode(const std::string &strMessage, const std::string &userMessage)
         LogPrintf("net", "*** %s\n", strMessage);
     }
 
-    uiInterface.ThreadSafeMessageBox(
-        userMessage.empty() ? _("Error: A fatal internal error occured, see debug.log for details") : userMessage,
-        "", CClientUIInterface::MSG_ERROR);
+    uiInterface.ThreadSafeMessageBox(userMessage.empty() ? _("Error: A fatal internal error occured, see debug.log for details") : userMessage, "", CClientUIInterface::MSG_ERROR);
+    
     StartShutdown();
 
     return false;
@@ -405,6 +404,7 @@ unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans)
 bool CTransaction::ReadFromDisk(CTxDB& txdb, const uint256& hash, CTxIndex& txindexRet)
 {
     SetNull();
+    
     if (!txdb.ReadTxIndex(hash, txindexRet))
     {
         return false;
@@ -1779,7 +1779,7 @@ uint256 WantedByOrphan(const COrphanBlock* pblockOrphan)
 
 
 // Remove a random orphan block (which does not have any dependent orphans).
-void static PruneOrphanBlocks()
+void PruneOrphanBlocks()
 {
     if (mapOrphanBlocksByPrev.size() <= (size_t)std::max((int64_t)0, GetArg("-maxorphanblocks", DEFAULT_MAX_ORPHAN_BLOCKS)))
     {
@@ -3404,7 +3404,7 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos, const u
             return false;
         }
     }
-
+    
     if (pindexNew == pindexBest)
     {
         // Notify UI to display prev block's coinbase if it was ours
@@ -3426,32 +3426,32 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
     // Size limits
     if (vtx.empty() || vtx.size() > MAX_BLOCK_SIZE || ::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
     {
-        return DoS(100, error("%s : size limits failed", __FUNCTION__));
+        return DoS(100, error("CheckBlock() : size limits failed"));
     }
 
     // Check proof of work matches claimed amount
     if (fCheckPOW && IsProofOfWork() && !CheckProofOfWork(GetPoWHash(), nBits))
     {
-        return DoS(50, error("%s : proof of work failed", __FUNCTION__));
+        return DoS(50, error("CheckBlock() : proof of work failed"));
     }
 
     // Check timestamp
     if (GetBlockTime() > FutureDrift(GetAdjustedTime()))
     {
-        return error("%s : block timestamp too far in the future", __FUNCTION__);
+        return error("CheckBlock() : block timestamp too far in the future");
     }
 
     // First transaction must be coinbase, the rest must not be
     if (vtx.empty() || !vtx[0].IsCoinBase())
     {
-        return DoS(100, error("%s : first tx is not coinbase", __FUNCTION__));
+        return DoS(100, error("CheckBlock() : first tx is not coinbase"));
     }
 
     for (unsigned int i = 1; i < vtx.size(); i++)
     {
         if (vtx[i].IsCoinBase())
         {
-            return DoS(100, error("%s : more than one coinbase", __FUNCTION__));
+            return DoS(100, error("CheckBlock() : more than one coinbase"));
         }
     }
 
@@ -3460,32 +3460,33 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
         // Coinbase output should be empty if proof-of-stake block
         if (vtx[0].vout.size() != 1 || !vtx[0].vout[0].IsEmpty())
         {
-            return DoS(100, error("%s : coinbase output not empty for proof-of-stake block", __FUNCTION__));
+            return DoS(100, error("CheckBlock() : coinbase output not empty for proof-of-stake block"));
         }
 
         // Second transaction must be coinstake, the rest must not be
         if (vtx.empty() || !vtx[1].IsCoinStake())
         {
-            return DoS(100, error("%s : second tx is not coinstake", __FUNCTION__));
+            return DoS(100, error("CheckBlock() : second tx is not coinstake"));
         }
 
         for (unsigned int i = 2; i < vtx.size(); i++)
         {
             if (vtx[i].IsCoinStake())
             {
-                return DoS(100, error("%s : more than one coinstake", __FUNCTION__));
+                return DoS(100, error("CheckBlock() : more than one coinstake"));
             }
         }
-
     }
 
     // Check proof-of-stake block signature
     if (fCheckSig && !CheckBlockSignature())
     {
-        return DoS(100, error("%s : bad proof-of-stake block signature", __FUNCTION__));
+        return DoS(100, error("CheckBlock() : bad proof-of-stake block signature"));
     }
 
-    // ----------- instantX transaction scanning Start -----------
+
+    // ----------- instantX transaction scanning -----------
+
     if(IsSporkActive(SPORK_3_INSTANTX_BLOCK_FILTERING))
     {
         BOOST_FOREACH(const CTransaction& tx, vtx)
@@ -3503,8 +3504,8 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                             {
                                 LogPrint("core", "%s : found conflicting transaction with transaction lock %s %s\n", __FUNCTION__, mapLockedInputs[in.prevout].ToString().c_str(), tx.GetHash().ToString().c_str());
                             }
-
-                            return DoS(0, error("%s : found conflicting transaction with transaction lock", __FUNCTION__));
+                            
+                            return DoS(0, error("CheckBlock() : found conflicting transaction with transaction lock"));
                         }
                     }
                 }
@@ -3518,13 +3519,17 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
             LogPrint("core", "%s : skipping transaction locking checks\n", __FUNCTION__);
         }
     }
-    // ----------- instantX transaction scanning End -----------
 
-    // ----------- masternode payments Start -----------
+    // ----------- masternode payments -----------
+
     bool MasternodePayments = false;
     bool fIsInitialDownload = IsInitialBlockDownload();
 
-    if(nTime > START_MASTERNODE_PAYMENTS) MasternodePayments = true;
+    if(nTime > START_MASTERNODE_PAYMENTS)
+    {
+        MasternodePayments = true;
+    }
+
     if (!fIsInitialDownload)
     {
         if(MasternodePayments)
@@ -3532,6 +3537,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
             LOCK2(cs_main, mempool.cs);
 
             CBlockIndex *pindex = pindexBest;
+
             if(IsProofOfStake() && pindex != NULL)
             {
                 if(pindex->GetBlockHash() == hashPrevBlock)
@@ -3554,32 +3560,47 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
 
                     if(!masternodePayments.GetBlockPayee(pindexBest->nHeight+1, payee, vin) || payee == CScript())
                     {
-                        /* PHC FIX: Do not allow blank payments
+                        int DeActivationHeight = 1;
 
-                        foundPayee = true; //doesn't require a specific payee
-                        foundPaymentAmount = true;
-                        foundPaymentAndPayee = true;
-
-                        if(fDebug)
+                        // 1.0.0.7 Hardfork
+                        //* PHC FIX: Do not allow blank payments
+                        
+                        if (!TestNet())
                         {
-                            LogPrint("core", "%s : Using non-specific masternode payments %d\n", __FUNCTION__, pindexBest->nHeight+1);
+                            DeActivationHeight = 1000000000; // Activation @ Mainnet Block 1000000000 (undecided)
                         }
-                        */
+                        else
+                        {
+                            DeActivationHeight = 338250; // Activation @ Testnet Block 338250
+                        }
+
+                        if (pindexBest->nHeight+1 >= DeActivationHeight)
+                        {
+                            foundPayee = true; //doesn't require a specific payee
+                            foundPaymentAmount = true;
+                            foundPaymentAndPayee = true;
+                        }
+                        else
+                        {
+                            foundPayee = true; //doesn't require a specific payee
+                            foundPaymentAmount = true;
+                            foundPaymentAndPayee = true;
+                        }
 
                         if(fDebug)
                         {
-                            LogPrint("core", "%s : detected non-specific masternode payments %d\n", __FUNCTION__, pindexBest->nHeight+1);
+                            LogPrint("blockshield", "%s : detected non-specific masternode payments %d\n", __FUNCTION__, pindexBest->nHeight+1);
                         }
                     }
 
                     for (unsigned int i = 0; i < vtx[1].vout.size(); i++)
                     {
-                        if(vtx[1].vout[i].nValue == masternodePaymentAmount)
+                        if(vtx[1].vout[i].nValue == masternodePaymentAmount )
                         {
                             foundPaymentAmount = true;
                         }
 
-                        if(vtx[1].vout[i].scriptPubKey == payee)
+                        if(vtx[1].vout[i].scriptPubKey == payee )
                         {
                             foundPayee = true;
                         }
@@ -3600,13 +3621,13 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                         {
                             LogPrint("core", "%s : Couldn't find masternode payment(%d|%d) or payee(%d|%s) nHeight %d. \n", __FUNCTION__, foundPaymentAmount, masternodePaymentAmount, foundPayee, address2.ToString().c_str(), pindexBest->nHeight+1);
                         }
-
-                        return DoS(100, error("%s : Couldn't find masternode payment or payee", __FUNCTION__));
+                        
+                        return DoS(100, error("CheckBlock() : Couldn't find masternode payment or payee"));
                     }
                     else
                     {
                         if(fDebug)
-                        {
+                        { 
                             LogPrint("core", "%s : Found payment(%d|%d) or payee(%d|%s) nHeight %d. \n", __FUNCTION__, foundPaymentAmount, masternodePaymentAmount, foundPayee, address2.ToString().c_str(), pindexBest->nHeight+1);
                         }
                     }
@@ -3642,29 +3663,26 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
             LogPrint("core", "%s : Is initial download, skipping masternode payment check %d\n", __FUNCTION__, pindexBest->nHeight+1);
         }
     }
-    // ----------- masternode payments End -----------
 
-    // ----------- Check transactions Start -----------
+    // Check transactions
     BOOST_FOREACH(const CTransaction& tx, vtx)
     {
         if (!tx.CheckTransaction())
         {
-            return DoS(tx.nDoS, error("%s : CheckTransaction failed", __FUNCTION__));
+            return DoS(tx.nDoS, error("CheckBlock() : CheckTransaction failed"));
         }
 
         // ppcoin: check transaction timestamp
         if (GetBlockTime() < (int64_t)tx.nTime)
         {
-            return DoS(50, error("%s : block timestamp earlier than transaction timestamp", __FUNCTION__));
+            return DoS(50, error("CheckBlock() : block timestamp earlier than transaction timestamp"));
         }
-
     }
-    // ----------- Check transactions End -----------
 
-    // ----------- Duplicate transactions Start -----------
     // Check for duplicate txids. This is caught by ConnectInputs(),
     // but catching it earlier avoids a potential DoS attack:
     set<uint256> uniqueTx;
+
     BOOST_FOREACH(const CTransaction& tx, vtx)
     {
         uniqueTx.insert(tx.GetHash());
@@ -3672,11 +3690,11 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
 
     if (uniqueTx.size() != vtx.size())
     {
-        return DoS(100, error("%s : duplicate transaction", __FUNCTION__));
+        return DoS(100, error("CheckBlock() : duplicate transaction"));
     }
-    // ----------- Duplicate transactions End -----------
 
     unsigned int nSigOps = 0;
+
     BOOST_FOREACH(const CTransaction& tx, vtx)
     {
         nSigOps += GetLegacySigOpCount(tx);
@@ -3684,13 +3702,13 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
 
     if (nSigOps > MAX_BLOCK_SIGOPS)
     {
-        return DoS(100, error("%s : out-of-bounds SigOpCount", __FUNCTION__));
+        return DoS(100, error("CheckBlock() : out-of-bounds SigOpCount"));
     }
 
     // Check merkle root
     if (fCheckMerkleRoot && hashMerkleRoot != BuildMerkleTree())
     {
-        return DoS(100, error("%s : hashMerkleRoot mismatch", __FUNCTION__));
+        return DoS(100, error("CheckBlock() : hashMerkleRoot mismatch"));
     }
 
     return true;
@@ -3698,7 +3716,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
 
 
 bool CBlock::BlockShield(int Block_nHeight) const
-{
+{  
     // BLOCK SHIELD 1.2.1 - Profit Hunters Coin Version
 
     int ActivationHeight = 1; // Block #1 (Default)
@@ -4249,13 +4267,15 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     {
         return error("%s : CheckBlock FAILED", __FUNCTION__);
     }
-
+    
     // If we don't already have its previous block, shunt it off to holding area until we get it
     if (!mapBlockIndex.count(pblock->hashPrevBlock))
     {
         if(fDebug)
         {
             LogPrint("net", "%s : ORPHAN BLOCK %lu, prev=%s\n", __FUNCTION__, (unsigned long)mapOrphanBlocks.size(), pblock->hashPrevBlock.ToString());
+            
+            return error("%s : Orphan", __FUNCTION__);
         }
 
         // Accept orphans as long as there is a node to request its parents from
@@ -4274,7 +4294,9 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             }
 
             PruneOrphanBlocks();
+
             COrphanBlock* pblock2 = new COrphanBlock();
+
             // Global Namespace Start
             {
                 CDataStream ss(SER_DISK, CLIENT_VERSION);
@@ -4295,16 +4317,15 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 setStakeSeenOrphan.insert(pblock->GetProofOfStake());
             }
 
-            // Ask this guy to fill in what we're missing
-            PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(hash));
-
-            // ppcoin: getblocks may not obtain the ancestor block rejected
-            // earlier by duplicate-stake check so we ask for it again directly
-            if (!IsInitialBlockDownload())
+            if(!IsInitialBlockDownload())
             {
+                // Ask this guy to fill in what we're missing
+                PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(hash));
+
+                // ppcoin: getblocks may not obtain the ancestor block rejected
+                // earlier by duplicate-stake check so we ask for it again directly
                 pfrom->AskFor(CInv(MSG_BLOCK, WantedByOrphan(pblock2)));
             }
-
         }
 
         return true;
@@ -4313,40 +4334,40 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     // Store to disk
     if (!pblock->AcceptBlock())
     {
-        return error("%s : AcceptBlock FAILED", __FUNCTION__);
-    }
-
-    // Recursively process any orphan blocks that depended on this one
-    vector<uint256> vWorkQueue;
-    vWorkQueue.push_back(hash);
-    for (unsigned int i = 0; i < vWorkQueue.size(); i++)
-    {
-        uint256 hashPrev = vWorkQueue[i];
-        for (multimap<uint256, COrphanBlock*>::iterator mi = mapOrphanBlocksByPrev.lower_bound(hashPrev); mi != mapOrphanBlocksByPrev.upper_bound(hashPrev); ++mi)
+        // Recursively process any orphan blocks that depended on this one
+        vector<uint256> vWorkQueue;
+        vWorkQueue.push_back(hash);
+        for (unsigned int i = 0; i < vWorkQueue.size(); i++)
         {
-            CBlock block;
-
-            // Global Namespace Start
+            uint256 hashPrev = vWorkQueue[i];
+            for (multimap<uint256, COrphanBlock*>::iterator mi = mapOrphanBlocksByPrev.lower_bound(hashPrev); mi != mapOrphanBlocksByPrev.upper_bound(hashPrev); ++mi)
             {
-                CDataStream ss(mi->second->vchBlock, SER_DISK, CLIENT_VERSION);
-                ss >> block;
+                CBlock block;
+
+                // Global Namespace Start
+                {
+                    CDataStream ss(mi->second->vchBlock, SER_DISK, CLIENT_VERSION);
+                    ss >> block;
+                }
+                // Global Namespace End
+
+                block.BuildMerkleTree();
+
+                if (block.AcceptBlock())
+                {
+                    vWorkQueue.push_back(mi->second->hashBlock);
+                }
+
+                mapOrphanBlocks.erase(mi->second->hashBlock);
+                setStakeSeenOrphan.erase(block.GetProofOfStake());
+
+                delete mi->second;
             }
-            // Global Namespace End
 
-            block.BuildMerkleTree();
-
-            if (block.AcceptBlock())
-            {
-                vWorkQueue.push_back(mi->second->hashBlock);
-            }
-
-            mapOrphanBlocks.erase(mi->second->hashBlock);
-            setStakeSeenOrphan.erase(block.GetProofOfStake());
-
-            delete mi->second;
+            mapOrphanBlocksByPrev.erase(hashPrev);
         }
 
-        mapOrphanBlocksByPrev.erase(hashPrev);
+        return error("%s : AcceptBlock FAILED", __FUNCTION__);
     }
 
     if(!IsInitialBlockDownload())

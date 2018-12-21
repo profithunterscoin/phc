@@ -1141,7 +1141,6 @@ bool AppInit2(boost::thread_group& threadGroup)
         return InitError(_("Error loading block database"));
     }
 
-
     // as LoadBlockIndex can take several minutes, it's possible the user
     // requested to kill bitcoin-qt during the last operation. If so, exit.
     // As the program has not fully started yet, Shutdown() is possibly overkill.
@@ -1159,6 +1158,9 @@ bool AppInit2(boost::thread_group& threadGroup)
     {
         LogPrint("init", "%s : block index %15dms\n", __FUNCTION__, GetTimeMillis() - nStart);
     }
+
+    uiInterface.InitMessage(_("Pruning block index..."));
+    PruneOrphanBlocks();
 
     if (GetBoolArg("-printblockindex", false) || GetBoolArg("-printblocktree", false))
     {
