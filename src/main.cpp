@@ -4319,15 +4319,13 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 setStakeSeenOrphan.insert(pblock->GetProofOfStake());
             }
 
-            if(!IsInitialBlockDownload())
-            {
-                // Ask this guy to fill in what we're missing
-                PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(hash));
+            // Ask this guy to fill in what we're missing
+            PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(hash));
 
-                // ppcoin: getblocks may not obtain the ancestor block rejected
-                // earlier by duplicate-stake check so we ask for it again directly
-                pfrom->AskFor(CInv(MSG_BLOCK, WantedByOrphan(pblock2)));
-            }
+            // ppcoin: getblocks may not obtain the ancestor block rejected
+            // earlier by duplicate-stake check so we ask for it again directly
+            pfrom->AskFor(CInv(MSG_BLOCK, WantedByOrphan(pblock2)));
+
         }
 
         return true;
