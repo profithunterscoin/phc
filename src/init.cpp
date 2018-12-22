@@ -33,6 +33,8 @@
 #include "walletdb.h"
 #endif
 
+#define BOOST_NO_CXX11_SCOPED_ENUMS
+
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/bind.hpp>
@@ -806,8 +808,11 @@ bool AppInit2(boost::thread_group& threadGroup)
 
                 try
                 {
+#if BOOST_VERSION == 155000
+                    copy_file(sourceFile, backupFile);
+#else                    
                     boost::filesystem::copy_file(sourceFile, backupFile);
-                    
+#endif
                     if (fDebug)
                     {
                         LogPrint("init", "%s : Creating backup of %s -> %s\n", __FUNCTION__, sourceFile, backupFile);
