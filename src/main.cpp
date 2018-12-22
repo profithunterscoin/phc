@@ -4276,6 +4276,8 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             LogPrint("net", "%s : ORPHAN BLOCK %lu, prev=%s\n", __FUNCTION__, (unsigned long)mapOrphanBlocks.size(), pblock->hashPrevBlock.ToString());
             
             return error("%s : Orphan", __FUNCTION__);
+
+            PruneOrphanBlocks();
         }
 
         // Accept orphans as long as there is a node to request its parents from
