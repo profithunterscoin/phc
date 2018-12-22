@@ -3066,6 +3066,11 @@ bool SecureMsgScanBlock(CBlock& block)
         }
     }
 
+    if (nDuplicates > 0)
+    {
+        PruneOrphanBlocks();
+    }
+
     return true;
 };
 
