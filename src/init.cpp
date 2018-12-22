@@ -33,6 +33,8 @@
 #include "walletdb.h"
 #endif
 
+#define BOOST_NO_CXX11_SCOPED_ENUMS
+
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/bind.hpp>
