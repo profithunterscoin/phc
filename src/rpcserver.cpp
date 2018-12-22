@@ -295,15 +295,17 @@ Value debug(const Array& params, bool fHelp)
             debugstatus = "False";
         }
 
-        throw runtime_error("Current Debug State: " + debugstatus + " Categories: " + boost::join(mapMultiArgs["-debug"], ",") + "\n"
-                            "Usage:\n"
+        throw runtime_error("Usage:\n"
                             "debug 0|1\n"
+                            "Current Debug State: " + debugstatus + " Categories: " + boost::join(mapMultiArgs["-debug"], ",") + "\n"
                             "|addrman|alert|core|db|rand|rpc|coincontrol|mempool"
-                            "|net|socks|darksend|wallet|masternode|firewall|stealth|protocol|uint|stakemodifier|kernel|util|daemon|socks|smessage|gui|qt|mining|coinage|spork|"
+                            "|net|socks|darksend|wallet|masternode|firewall|stealth"
+                            "|protocol|uint|stakemodifier|kernel|util|daemon|socks"
+                            "|smessage|gui|qt|mining|coinage|spork|blockshield|"
                             "Change debug category on the fly."
                             "Specify single category or use comma to specify many.\n"
                             "Special note: phcd must be run with -debug option and"
-                            "then can be disabled or renabled, pr configured using this rpc command\n"
+                            "then can be disabled or enabled, or configured using this rpc command\n"
                             "\nExamples:\n"
                             + HelpExampleCli("debug", "0")
                             + HelpExampleCli("debug", "1")
