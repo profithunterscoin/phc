@@ -187,7 +187,7 @@ void CTxDB::Close()
 
 bool CTxDB::TxnBegin()
 {
-    assert(!activeBatch);
+
     
     activeBatch = new leveldb::WriteBatch();
     
@@ -197,7 +197,7 @@ bool CTxDB::TxnBegin()
 
 bool CTxDB::TxnCommit()
 {
-    assert(activeBatch);
+
     
     leveldb::Status status = pdb->Write(leveldb::WriteOptions(), activeBatch);
     
