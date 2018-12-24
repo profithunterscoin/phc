@@ -4271,15 +4271,6 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     // If we don't already have its previous block, shunt it off to holding area until we get it
     if (!mapBlockIndex.count(pblock->hashPrevBlock))
     {
-        if(fDebug)
-        {
-            LogPrint("net", "%s : ORPHAN BLOCK %lu, prev=%s\n", __FUNCTION__, (unsigned long)mapOrphanBlocks.size(), pblock->hashPrevBlock.ToString());
-            
-            return error("%s : Orphan", __FUNCTION__);
-
-            PruneOrphanBlocks();
-        }
-
         // Accept orphans as long as there is a node to request its parents from
         if (pfrom)
         {
@@ -4319,13 +4310,36 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 setStakeSeenOrphan.insert(pblock->GetProofOfStake());
             }
 
-            // Ask this guy to fill in what we're missing
-            PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(hash));
+            if(fDebug)
+            {
+                LogPrint("net", "%s : ORPHAN BLOCK %lu, prev=%s\n", __FUNCTION__, (unsigned long)mapOrphanBlocks.size(), pblock->hashPrevBlock.ToString());
+                
+                return error("%s : Orphan", __FUNCTION__);
+            }
 
-            // ppcoin: getblocks may not obtain the ancestor block rejected
-            // earlier by duplicate-stake check so we ask for it again directly
-            pfrom->AskFor(CInv(MSG_BLOCK, WantedByOrphan(pblock2)));
+            if (IsInitialBlockDownload())
+            {
+                // Ask this guy to fill in what we're missing
+                PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(hash));
 
+                // ppcoin: getblocks may not obtain the ancestor block rejected
+                // earlier by duplicate-stake check so we ask for it again directly
+                pfrom->AskFor(CInv(MSG_BLOCK, WantedByOrphan(pblock2)));
+            }
+
+            
+            CTxDB txdb("w");
+
+            // Disconnect Block (this)
+            pblock->DisconnectBlock(txdb, pindexBest);
+
+            CTxDB txdb2("w");
+
+            // Reorganize chain to ensure correct sync
+            Reorganize(txdb2, pindexBest);
+
+            // Prune random orphans left on the chain
+            PruneOrphanBlocks();
         }
 
         return true;
