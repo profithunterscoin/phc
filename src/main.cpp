@@ -2913,7 +2913,8 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
     return true;
 }
 
-bool static Reorganize(CTxDB& txdb, CBlockIndex* pindexNew)
+
+bool Reorganize(CTxDB& txdb, CBlockIndex* pindexNew)
 {
     if (fDebug)
     {
@@ -4211,7 +4212,6 @@ void Misbehaving(NodeId pnode, int howmuch)
             LogPrint("net", "%s : %s (%d -> %d)\n", __FUNCTION__, state->name.c_str(), state->nMisbehavior-howmuch, state->nMisbehavior);
         }
     }
-        
 }
 
 
@@ -4261,12 +4261,6 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     {
         return error("%s : bad block signature encoding", __FUNCTION__);
     }
-
-    // Preliminary checks
-    if (!pblock->CheckBlock())
-    {
-        return error("%s : CheckBlock FAILED", __FUNCTION__);
-    }
     
     // If we don't already have its previous block, shunt it off to holding area until we get it
     if (!mapBlockIndex.count(pblock->hashPrevBlock))
@@ -4309,13 +4303,21 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             {
                 setStakeSeenOrphan.insert(pblock->GetProofOfStake());
             }
+          
+            CTxDB txdb("w");
 
-            if(fDebug)
-            {
-                LogPrint("net", "%s : ORPHAN BLOCK %lu, prev=%s\n", __FUNCTION__, (unsigned long)mapOrphanBlocks.size(), pblock->hashPrevBlock.ToString());
-                
-                return error("%s : Orphan", __FUNCTION__);
-            }
+            // Disconnect current Block
+            pblock->DisconnectBlock(txdb, pindexBest);
+
+            CTxDB txdb2("w");
+
+            // Reorganize chain to ensure correct sync
+            Reorganize(txdb2, pindexBest);
+
+            // Prune random orphans left on the chain
+            PruneOrphanBlocks();
+
+            MilliSleep(100);
 
             if (IsInitialBlockDownload())
             {
@@ -4327,19 +4329,18 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 pfrom->AskFor(CInv(MSG_BLOCK, WantedByOrphan(pblock2)));
             }
 
-            
-            CTxDB txdb("w");
+            // Preliminary checks
+            if (!pblock->CheckBlock())
+            {
+                return error("%s : CheckBlock FAILED", __FUNCTION__);
+            }
 
-            // Disconnect Block (this)
-            pblock->DisconnectBlock(txdb, pindexBest);
-
-            CTxDB txdb2("w");
-
-            // Reorganize chain to ensure correct sync
-            Reorganize(txdb2, pindexBest);
-
-            // Prune random orphans left on the chain
-            PruneOrphanBlocks();
+            if(fDebug)
+            {
+                LogPrint("net", "%s : ORPHAN BLOCK %lu, prev=%s\n", __FUNCTION__, (unsigned long)mapOrphanBlocks.size(), pblock->hashPrevBlock.ToString());
+                
+                return error("%s : Orphan", __FUNCTION__);
+            }
         }
 
         return true;

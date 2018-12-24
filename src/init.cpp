@@ -1164,6 +1164,11 @@ bool AppInit2(boost::thread_group& threadGroup)
     uiInterface.InitMessage(_("Pruning block index..."));
     PruneOrphanBlocks();
 
+    uiInterface.InitMessage(_("Reorganizing block index..."));
+    CTxDB txdb2("w");
+    // Reorganize chain to ensure correct sync
+    Reorganize(txdb2, pindexBest);
+
     if (GetBoolArg("-printblockindex", false) || GetBoolArg("-printblocktree", false))
     {
         PrintBlockTree();
@@ -1685,7 +1690,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     // ********************************************************* Step 12: finished
 
-    uiInterface.InitMessage(_("Done loading"));
+    uiInterface.InitMessage(("Done loading"));
 
 #ifdef ENABLE_WALLET
     if (pwalletMain)

@@ -187,7 +187,15 @@ void CTxDB::Close()
 
 bool CTxDB::TxnBegin()
 {
+    if (!activeBatch)
+    {
+        if (fDebug)
+        {
+            LogPrint("db", "%s : LevelDB batch commit failure: %s\n", __FUNCTION__, "activeBatch=TRUE");
+        }
 
+        return false; // failed
+    }
     
     activeBatch = new leveldb::WriteBatch();
     
@@ -197,7 +205,15 @@ bool CTxDB::TxnBegin()
 
 bool CTxDB::TxnCommit()
 {
+    if (activeBatch)
+    {
+        if (fDebug)
+        {
+            LogPrint("db", "%s : LevelDB batch commit failure: %s\n", __FUNCTION__, "activeBatch=TRUE");
+        }
 
+        return false;
+    }
     
     leveldb::Status status = pdb->Write(leveldb::WriteOptions(), activeBatch);
     
