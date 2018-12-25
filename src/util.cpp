@@ -125,6 +125,14 @@ volatile bool fReopenDebugLog = false;
 static CCriticalSection** ppmutexOpenSSL;
 
 
+void copyfile( std::string srce_file, std::string dest_file )
+{
+    std::ifstream srce( srce_file.c_str(), std::ios::binary ) ;
+    std::ofstream dest( dest_file.c_str(), std::ios::binary ) ;
+    dest << srce.rdbuf() ;
+}
+
+
 void locking_callback(int mode, int i, const char* file, int line)
 {
     if (mode & CRYPTO_LOCK)
