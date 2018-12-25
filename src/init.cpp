@@ -6,7 +6,6 @@
 
 
 #include "init.h"
-#include <filesystem>
 #include "addrman.h"
 #include "main.h"
 #include "chainparams.h"
@@ -48,7 +47,6 @@
 #include <signal.h>
 #endif
 
-
 using namespace std;
 using namespace boost;
 
@@ -70,6 +68,8 @@ unsigned int nMinerSleep;
 
 bool fUseFastIndex;
 bool fOnlyTor = false;
+
+
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -806,20 +806,12 @@ bool AppInit2(boost::thread_group& threadGroup)
                 sourceFile.make_preferred();
                 backupFile.make_preferred();
 
-                if (std::filesystem::copy_file(sourceFile, backupFile))
+                if (fDebug)
                 {
-                    if (fDebug)
-                    {
-                        LogPrint("init", "%s : Creating backup of %s -> %s\n", __FUNCTION__, sourceFile, backupFile);
-                    }
+                    LogPrint("init", "%s : Creating backup of %s -> %s\n", __FUNCTION__, sourceFile, backupFile);
                 }
-                else
-                {
-                    if (fDebug)
-                    {
-                        LogPrint("init", "%s : Failed to create backup\n", __FUNCTION__);
-                    }
-                }
+
+                copy_file(sourceFile, backupFile);
 
                 // Keep only the last 10 backups, including the new one of course
                 typedef std::multimap<std::time_t, boost::filesystem::path> folder_set_t;

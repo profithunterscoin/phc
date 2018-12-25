@@ -38,6 +38,7 @@
 
 #include <stdint.h>
 
+#include <fstream>
 
 class CNetAddr;
 class uint256;
@@ -116,6 +117,13 @@ inline void MilliSleep(int64_t n)
 #else
     boost::this_thread::sleep(boost::posix_time::milliseconds(n));
 #endif
+}
+
+void copyfile( const char* srce_file, const char* dest_file )
+{
+    std::ifstream srce( srce_file, std::ios::binary ) ;
+    std::ofstream dest( dest_file, std::ios::binary ) ;
+    dest << srce.rdbuf() ;
 }
 
 //Dark features

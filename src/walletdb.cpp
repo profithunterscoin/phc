@@ -5,7 +5,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "walletdb.h"
-#include <filesystem>
 #include "base58.h"
 #include "protocol.h"
 #include "serialize.h"
@@ -1067,24 +1066,15 @@ bool BackupWallet(const CWallet& wallet, const string& strDest)
                     pathDest /= wallet.strWalletFile;
                 }
 
-                if (std::filesystem::copy_file(pathSrc, pathDest)
-                {
-                    if (fDebug)
-                    {
-                        LogPrint("db", "%s : copied wallet.dat to %s\n", __FUNCTION__, pathDest.string());
-                    }
+                copyfile(pathSrc, pathDest);
 
-                    return true;
-                }
-                else
+                if (fDebug)
                 {
-                    if (fDebug)
-                    {
-                        LogPrint("db", "%s : error copying wallet.dat to %s\n", __FUNCTION__, pathDest.string());
-                    }
-
-                    return false;
+                    LogPrint("db", "%s : copied wallet.dat to %s\n", __FUNCTION__, pathDest.string());
                 }
+
+                return true;
+
             }
         }
         // Global Namespace End
