@@ -187,6 +187,7 @@ void CTxDB::Close()
 
 bool CTxDB::TxnBegin()
 {
+    /*
     if (!activeBatch)
     {
         if (fDebug)
@@ -196,6 +197,7 @@ bool CTxDB::TxnBegin()
 
         return false; // failed
     }
+    */
     
     activeBatch = new leveldb::WriteBatch();
     
@@ -205,6 +207,7 @@ bool CTxDB::TxnBegin()
 
 bool CTxDB::TxnCommit()
 {
+    /*
     if (activeBatch)
     {
         if (fDebug)
@@ -214,6 +217,7 @@ bool CTxDB::TxnCommit()
 
         return false;
     }
+    */
     
     leveldb::Status status = pdb->Write(leveldb::WriteOptions(), activeBatch);
     
@@ -786,7 +790,6 @@ bool CTxDB::LoadBlockIndex()
                         {
                             if (txindex.vSpent.size()-1 < txin.prevout.n || txindex.vSpent[txin.prevout.n].IsNull())
                             {
-                                
                                 LogPrint("db", "%s : *** found unspent prevout %s:%i in %s\n", __FUNCTION__, txin.prevout.hash.ToString(), txin.prevout.n, hashTx.ToString());
                                 
                                 pindexFork = pindex->pprev;

@@ -2913,6 +2913,16 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
     return true;
 }
 
+bool ReorganizeChain()
+{
+    CTxDB txdb2("w");
+
+    // Reorganize chain to ensure correct sync
+    Reorganize(txdb2, pindexBest);
+
+    return true;
+}
+
 
 bool Reorganize(CTxDB& txdb, CBlockIndex* pindexNew)
 {
@@ -4309,25 +4319,19 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             // Disconnect current Block
             pblock->DisconnectBlock(txdb, pindexBest);
 
-            CTxDB txdb2("w");
-
-            // Reorganize chain to ensure correct sync
-            Reorganize(txdb2, pindexBest);
+            ReorganizeChain();
 
             // Prune random orphans left on the chain
             PruneOrphanBlocks();
 
             MilliSleep(100);
 
-            if (IsInitialBlockDownload())
-            {
-                // Ask this guy to fill in what we're missing
-                PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(hash));
+            // Ask this guy to fill in what we're missing
+            PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(hash));
 
-                // ppcoin: getblocks may not obtain the ancestor block rejected
-                // earlier by duplicate-stake check so we ask for it again directly
-                pfrom->AskFor(CInv(MSG_BLOCK, WantedByOrphan(pblock2)));
-            }
+            // ppcoin: getblocks may not obtain the ancestor block rejected
+            // earlier by duplicate-stake check so we ask for it again directly
+            pfrom->AskFor(CInv(MSG_BLOCK, WantedByOrphan(pblock2)));
 
             // Preliminary checks
             if (!pblock->CheckBlock())
@@ -4645,22 +4649,18 @@ FILE* AppendBlockFile(unsigned int& nFileRet)
 }
 
 
-bool LoadBlockIndex(bool fAllowNew)
+bool LoadBlockIndex()
 {
     LOCK(cs_main);
-
-    if (TestNet())
-    {
-        nCoinbaseMaturity = 10; // test maturity is 10 blocks
-    }
 
     //
     // Load block index
     //
     CTxDB txdb("cr+");
+
     if (!txdb.LoadBlockIndex())
     {
-        return false;
+        return error("%s :txdb.LoadBlockIndex Failed", __FUNCTION__);
     }
 
     //
@@ -4668,11 +4668,6 @@ bool LoadBlockIndex(bool fAllowNew)
     //
     if (mapBlockIndex.empty())
     {
-        if (!fAllowNew)
-        {
-            return false;
-        }
-
         CBlock &block = const_cast<CBlock&>(Params().GenesisBlock());
 
         // Start new block file

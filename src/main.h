@@ -143,6 +143,7 @@ struct CNodeStateStats;
 
 /** Reorganize the chain index */
 bool Reorganize(CTxDB& txdb, CBlockIndex* pindexNew);
+bool ReorganizeChain();
 
 /** Prune Orphan blocks from index */
 void PruneOrphanBlocks();
@@ -182,7 +183,7 @@ FILE* OpenBlockFile(unsigned int nFile, unsigned int nBlockPos, const char* pszM
 FILE* AppendBlockFile(unsigned int& nFileRet);
 
 /** Load the block tree and coins database from disk */
-bool LoadBlockIndex(bool fAllowNew=true);
+bool LoadBlockIndex();
 
 /** Print the loaded block tree */
 void PrintBlockTree();

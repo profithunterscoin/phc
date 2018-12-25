@@ -1138,9 +1138,19 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     nStart = GetTimeMillis();
 
-    if (!LoadBlockIndex())
+    bool DbsLoaded = LoadBlockIndex();
+    
+    MilliSleep(1000);
+
+    if (DbsLoaded == false)
     {
-        return InitError(_("Error loading block database"));
+        // try again (low memory machines will display "error", during BlockIndex loading process)
+        DbsLoaded = LoadBlockIndex();
+    }
+
+    if (DbsLoaded == false)
+    {
+        return InitError("Error loading block database");
     }
 
     // as LoadBlockIndex can take several minutes, it's possible the user
@@ -1163,11 +1173,6 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     uiInterface.InitMessage(_("Pruning block index..."));
     PruneOrphanBlocks();
-
-    uiInterface.InitMessage(_("Reorganizing block index..."));
-    CTxDB txdb2("w");
-    // Reorganize chain to ensure correct sync
-    Reorganize(txdb2, pindexBest);
 
     if (GetBoolArg("-printblockindex", false) || GetBoolArg("-printblocktree", false))
     {
@@ -1702,6 +1707,11 @@ bool AppInit2(boost::thread_group& threadGroup)
         threadGroup.create_thread(boost::bind(&ThreadFlushWalletDB, boost::ref(pwalletMain->strWalletFile)));
     }
 #endif
+
+    if (fDaemon)
+    {
+        fprintf(stdout, "Done loading\n");
+    }
 
     return !fRequestShutdown;
 }
