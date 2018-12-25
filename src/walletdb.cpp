@@ -1067,11 +1067,8 @@ bool BackupWallet(const CWallet& wallet, const string& strDest)
                     pathDest /= wallet.strWalletFile;
                 }
 
-                try
+                if (std::filesystem::copy_file(pathSrc, pathDest)
                 {
-
-                    copy_file(pathSrc, pathDest);
-
                     if (fDebug)
                     {
                         LogPrint("db", "%s : copied wallet.dat to %s\n", __FUNCTION__, pathDest.string());
@@ -1079,7 +1076,7 @@ bool BackupWallet(const CWallet& wallet, const string& strDest)
 
                     return true;
                 }
-                catch(const filesystem::filesystem_error &e)
+                else
                 {
                     if (fDebug)
                     {
