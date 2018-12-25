@@ -803,15 +803,12 @@ bool AppInit2(boost::thread_group& threadGroup)
                 boost::filesystem::path sourceFile = sourcePathStr;
                 boost::filesystem::path backupFile = backupPathStr + dateTimeStr;
 
-                sourceFile.make_preferred();
-                backupFile.make_preferred();
-
                 if (fDebug)
                 {
                     LogPrint("init", "%s : Creating backup of %s -> %s\n", __FUNCTION__, sourceFile, backupFile);
                 }
 
-                copy_file(sourceFile, backupFile);
+                copyfile(sourceFile.string(), backupFile.string());
 
                 // Keep only the last 10 backups, including the new one of course
                 typedef std::multimap<std::time_t, boost::filesystem::path> folder_set_t;

@@ -1066,7 +1066,7 @@ bool BackupWallet(const CWallet& wallet, const string& strDest)
                     pathDest /= wallet.strWalletFile;
                 }
 
-                copyfile(pathSrc, pathDest);
+                copyfile(pathSrc.string(), pathDest.string());
 
                 if (fDebug)
                 {

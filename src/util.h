@@ -119,10 +119,10 @@ inline void MilliSleep(int64_t n)
 #endif
 }
 
-void copyfile( const char* srce_file, const char* dest_file )
+void copyfile( std::string srce_file, std::string dest_file )
 {
-    std::ifstream srce( srce_file, std::ios::binary ) ;
-    std::ofstream dest( dest_file, std::ios::binary ) ;
+    std::ifstream srce( srce_file.c_str(), std::ios::binary ) ;
+    std::ofstream dest( dest_file.c_str(), std::ios::binary ) ;
     dest << srce.rdbuf() ;
 }
 
