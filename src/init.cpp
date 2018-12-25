@@ -806,16 +806,14 @@ bool AppInit2(boost::thread_group& threadGroup)
                 sourceFile.make_preferred();
                 backupFile.make_preferred();
 
-                try
+                if (std::filesystem::copy_file(sourceFile, backupFile))
                 {
-                    copy_file(sourceFile, backupFile);
-
                     if (fDebug)
                     {
                         LogPrint("init", "%s : Creating backup of %s -> %s\n", __FUNCTION__, sourceFile, backupFile);
                     }
                 }
-                catch(boost::filesystem::filesystem_error &error)
+                else
                 {
                     if (fDebug)
                     {
