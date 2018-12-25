@@ -362,3 +362,34 @@ Value getcheckpoint(const Array& params, bool fHelp)
 
     return result;
 }
+
+
+Value prune(const Array& params, bool fHelp)
+{
+    // Accept the deprecated and ignored 'detach' boolean argument
+    if (fHelp || params.size() > 1)
+    {
+        throw runtime_error("Prune\n"
+                            "Prune Orphan blocks (blockchain index)");
+    }
+    
+    PruneOrphanBlocks();
+
+    return true;
+}
+
+
+Value reorganize(const Array& params, bool fHelp)
+{
+    // Accept the deprecated and ignored 'detach' boolean argument
+    if (fHelp || params.size() > 1)
+    {
+        throw runtime_error("Reorganize\n"
+                            "Reorganize blockchain index)");
+    }
+
+    // Reorganize chain to ensure correct sync
+    ReorganizeChain();
+
+    return true;
+}

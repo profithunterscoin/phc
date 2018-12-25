@@ -10,6 +10,7 @@
 
 #include "rpcprotocol.h"
 #include "util.h"
+#include "main.h"
 #include "ui_interface.h"
 #include "chainparams.h" // for Params().RPCPort()
 
@@ -56,9 +57,9 @@ Object CallRPC(const string& strMethod, const Array& params)
     
     do
     {
-        bool fConnected = d.connect(GetArg("-rpcconnect", "127.0.0.1"), GetArg("-rpcport", itostr(Params().RPCPort())));
+        Value fConnected = d.connect(GetArg("-rpcconnect", "127.0.0.1"), GetArg("-rpcport", itostr(Params().RPCPort())));
         
-        if (fConnected)
+        if (fConnected == false)
         {
             break;
         }
@@ -67,9 +68,14 @@ Object CallRPC(const string& strMethod, const Array& params)
         {
             MilliSleep(1000);
         }
-        else
+
+        if (fConnected == false && nBestHeight == -1)
         {
-            throw runtime_error("couldn't connect to server");
+            throw runtime_error("RPC server not available.");
+        }
+        else if (fConnected == false && nBestHeight == 0)
+        {
+            throw runtime_error("ERROR: Couldn't connect to server.");
         }
     }
     while (fWait);
