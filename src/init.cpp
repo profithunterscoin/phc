@@ -6,7 +6,7 @@
 
 
 #include "init.h"
-
+#include <filesystem>
 #include "addrman.h"
 #include "main.h"
 #include "chainparams.h"
@@ -817,7 +817,7 @@ bool AppInit2(boost::thread_group& threadGroup)
                 {
                     if (fDebug)
                     {
-                        LogPrint("init", "%s : Failed to create backup %s\n", __FUNCTION__, error.what());
+                        LogPrint("init", "%s : Failed to create backup\n", __FUNCTION__);
                     }
                 }
 

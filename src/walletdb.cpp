@@ -5,7 +5,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "walletdb.h"
-
+#include <filesystem>
 #include "base58.h"
 #include "protocol.h"
 #include "serialize.h"
@@ -1080,7 +1080,7 @@ bool BackupWallet(const CWallet& wallet, const string& strDest)
                 {
                     if (fDebug)
                     {
-                        LogPrint("db", "%s : error copying wallet.dat to %s - %s\n", __FUNCTION__, pathDest.string(), e.what());
+                        LogPrint("db", "%s : error copying wallet.dat to %s\n", __FUNCTION__, pathDest.string());
                     }
 
                     return false;
