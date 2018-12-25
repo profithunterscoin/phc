@@ -141,6 +141,9 @@ class CTxIndex;
 class CWalletInterface;
 struct CNodeStateStats;
 
+/** Reorganize the chain index */
+bool Reorganize(CTxDB& txdb, CBlockIndex* pindexNew);
+
 /** Prune Orphan blocks from index */
 void PruneOrphanBlocks();
 
