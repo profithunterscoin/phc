@@ -119,12 +119,7 @@ inline void MilliSleep(int64_t n)
 #endif
 }
 
-void copyfile( std::string srce_file, std::string dest_file )
-{
-    std::ifstream srce( srce_file.c_str(), std::ios::binary ) ;
-    std::ofstream dest( dest_file.c_str(), std::ios::binary ) ;
-    dest << srce.rdbuf() ;
-}
+
 
 //Dark features
 
@@ -304,6 +299,8 @@ boost::filesystem::path GetSpecialFolderPath(int nFolder, bool fCreate = true);
 
 std::string getTimeString(int64_t timestamp, char *buffer, size_t nBuffer);
 std::string bytesReadable(uint64_t nBytes);
+
+void copyfile( std::string srce_file, std::string dest_file );
 
 void ShrinkDebugFile();
 
