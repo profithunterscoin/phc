@@ -768,7 +768,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     if (fDaemon)
     {
-        fprintf(stdout, "PHC server starting\n");
+        fprintf(stdout, "PHC server starting... Please wait.\n");
     }
 
     int64_t nStart;
@@ -1158,7 +1158,10 @@ bool AppInit2(boost::thread_group& threadGroup)
         LogPrint("init", "%s : block index %15dms\n", __FUNCTION__, GetTimeMillis() - nStart);
     }
 
-    uiInterface.InitMessage(_("Pruning block index..."));
+    uiInterface.InitMessage(_("Reorganize block index..."));
+    ReorganizeChain();
+
+    uiInterface.InitMessage(_("Prune Orphans in block index..."));
     PruneOrphanBlocks();
 
     if (GetBoolArg("-printblockindex", false) || GetBoolArg("-printblocktree", false))
@@ -1697,7 +1700,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     if (fDaemon)
     {
-        fprintf(stdout, "Done loading\n");
+        fprintf(stdout, "Done loading PHC server.\n");
     }
 
     return !fRequestShutdown;
