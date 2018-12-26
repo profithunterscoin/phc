@@ -4229,6 +4229,12 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 {
     AssertLockHeld(cs_main);
 
+    // Preliminary checks
+    if (!pblock->CheckBlock())
+    {
+        return error("%s : CheckBlock FAILED", __FUNCTION__);
+    }
+
     // Check for duplicate
     uint256 hash = pblock->GetHash();
     if (mapBlockIndex.count(hash))
@@ -4322,12 +4328,6 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 // ppcoin: getblocks may not obtain the ancestor block rejected
                 // earlier by duplicate-stake check so we ask for it again directly
                 pfrom->AskFor(CInv(MSG_BLOCK, WantedByOrphan(pblock2)));
-            }
-
-            // Preliminary checks
-            if (!pblock->CheckBlock())
-            {
-                return error("%s : CheckBlock FAILED", __FUNCTION__);
             }
         }
 

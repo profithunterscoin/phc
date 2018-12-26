@@ -1158,8 +1158,8 @@ bool AppInit2(boost::thread_group& threadGroup)
         LogPrint("init", "%s : block index %15dms\n", __FUNCTION__, GetTimeMillis() - nStart);
     }
 
-    uiInterface.InitMessage(_("Pruning block index..."));
-    PruneOrphanBlocks();
+    uiInterface.InitMessage(_("Reorganize block index..."));
+    ReorganizeChain();
 
     if (GetBoolArg("-printblockindex", false) || GetBoolArg("-printblocktree", false))
     {
