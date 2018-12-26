@@ -4344,7 +4344,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 setStakeSeenOrphan.insert(pblock->GetProofOfStake());
             }
 
-            if (!fReindex && !fImporting)
+            if (!fReindex && !fImporting && !IsInitialBlockDownload())
             {
                 // Ask this node to fill in what we're missing
                 PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(hash));
