@@ -768,7 +768,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     if (fDaemon)
     {
-        fprintf(stdout, "PHC server starting\n");
+        fprintf(stdout, "PHC server starting... Please wait.\n");
     }
 
     int64_t nStart;
@@ -1697,7 +1697,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     if (fDaemon)
     {
-        fprintf(stdout, "Done loading\n");
+        fprintf(stdout, "Done loading PHC server.\n");
     }
 
     return !fRequestShutdown;

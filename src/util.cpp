@@ -88,6 +88,8 @@ int nDarksendRounds = 2;
 int nAnonymizePHCAmount = 1000;
 int nLiquidityProvider = 0;
 
+const std::string LogPrintLog;
+
 /** Spork enforcement enabled time */
 int64_t enforceMasternodePaymentsTime = 4085657524;
 
@@ -369,6 +371,14 @@ int LogPrintStr(const std::string &str)
     {
         return 0;
     }
+
+    // Prevent Logfile flooding of many sequential duplicates
+    if (LogPrintLog == str.data())
+    {
+        return 0;
+    }
+
+    LogPrintLog == str.data();
     
     int ret = 0; // Returns total number of characters written
 

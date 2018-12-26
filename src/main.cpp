@@ -4313,41 +4313,37 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             {
                 setStakeSeenOrphan.insert(pblock->GetProofOfStake());
             }
-          
-            CTxDB txdb("w");
 
-            // Disconnect current Block
-            pblock->DisconnectBlock(txdb, pindexBest);
+            if (!IsInitialBlockDownload())
+            {
+                // Ask this node to fill in what we're missing
+                PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(hash));
 
-            ReorganizeChain();
-
-            // Prune random orphans left on the chain
-            PruneOrphanBlocks();
-
-            MilliSleep(100);
-
-            // Ask this guy to fill in what we're missing
-            PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(hash));
-
-            // ppcoin: getblocks may not obtain the ancestor block rejected
-            // earlier by duplicate-stake check so we ask for it again directly
-            pfrom->AskFor(CInv(MSG_BLOCK, WantedByOrphan(pblock2)));
+                // ppcoin: getblocks may not obtain the ancestor block rejected
+                // earlier by duplicate-stake check so we ask for it again directly
+                pfrom->AskFor(CInv(MSG_BLOCK, WantedByOrphan(pblock2)));
+            }
 
             // Preliminary checks
             if (!pblock->CheckBlock())
             {
                 return error("%s : CheckBlock FAILED", __FUNCTION__);
             }
-
-            if(fDebug)
-            {
-                LogPrint("net", "%s : ORPHAN BLOCK %lu, prev=%s\n", __FUNCTION__, (unsigned long)mapOrphanBlocks.size(), pblock->hashPrevBlock.ToString());
-                
-                return error("%s : Orphan", __FUNCTION__);
-            }
         }
 
-        return true;
+        if(fDebug)
+        {
+            LogPrint("net", "%s : ORPHAN BLOCK %lu, prev=%s\n", __FUNCTION__, (unsigned long)mapOrphanBlocks.size(), pblock->hashPrevBlock.ToString());                  
+        }
+
+        ReorganizeChain();
+
+        CTxDB txdb("w");
+
+        // Disconnect current Block
+        pblock->DisconnectBlock(txdb, pindexBest);
+
+        return error("%s : Orphan", __FUNCTION__);
     }
 
     // Store to disk
