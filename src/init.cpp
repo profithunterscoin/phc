@@ -1161,6 +1161,9 @@ bool AppInit2(boost::thread_group& threadGroup)
     uiInterface.InitMessage(_("Reorganize block index..."));
     ReorganizeChain();
 
+    uiInterface.InitMessage(_("Prune Orphans in block index..."));
+    PruneOrphanBlocks();
+
     if (GetBoolArg("-printblockindex", false) || GetBoolArg("-printblocktree", false))
     {
         PrintBlockTree();

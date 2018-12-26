@@ -2915,7 +2915,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 
 bool ReorganizeChain()
 {
-    CTxDB txdb2("w");
+    CTxDB txdb2("rw");
 
     // Reorganize chain to ensure correct sync
     Reorganize(txdb2, pindexBest);
@@ -4229,23 +4229,25 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 {
     AssertLockHeld(cs_main);
 
-    /*
-    // Preliminary checks
-    if (!pblock->CheckBlock())
-    {
-        return error("%s : CheckBlock FAILED", __FUNCTION__);
-    }
-    */
-
     // Check for duplicate
     uint256 hash = pblock->GetHash();
     if (mapBlockIndex.count(hash))
     {
+        CTxDB txdb("rw");
+        pblock->DisconnectBlock(txdb, pindexBest);
+
+        ReorganizeChain();
+        
         return error("%s : already have block %d %s", __FUNCTION__, mapBlockIndex[hash]->nHeight, hash.ToString());
     }
 
     if (mapOrphanBlocks.count(hash))
     {
+        CTxDB txdb("rw");
+        pblock->DisconnectBlock(txdb, pindexBest);
+
+        ReorganizeChain();
+
         return error("%s : already have block (orphan) %s", __FUNCTION__, hash.ToString());
     }
 
@@ -4254,6 +4256,11 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     // Duplicate stake allowed only when there is orphan child block
     if (!fReindex && !fImporting && pblock->IsProofOfStake() && setStakeSeen.count(pblock->GetProofOfStake()) && !mapOrphanBlocksByPrev.count(hash))
     {
+        CTxDB txdb("rw");
+        pblock->DisconnectBlock(txdb, pindexBest);
+
+        ReorganizeChain();
+
         return error("%s : duplicate proof-of-stake (%s, %d) for block %s", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
     }
 
@@ -4268,6 +4275,11 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             {
                 Misbehaving(pfrom->GetId(), 1);
             }
+            
+            CTxDB txdb("rw");
+            pblock->DisconnectBlock(txdb, pindexBest);
+
+            ReorganizeChain();
 
             return error("%s : block with timestamp before last checkpoint", __FUNCTION__);
         }
@@ -4277,6 +4289,11 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     // For now we just strip garbage from newly received blocks
     if (!IsCanonicalBlockSignature(pblock))
     {
+        CTxDB txdb("rw");
+        pblock->DisconnectBlock(txdb, pindexBest);
+
+        ReorganizeChain();
+
         return error("%s : bad block signature encoding", __FUNCTION__);
     }
     
@@ -4293,6 +4310,11 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 // Duplicate stake allowed only when there is orphan child block
                 if (setStakeSeenOrphan.count(pblock->GetProofOfStake()) && !mapOrphanBlocksByPrev.count(hash))
                 {
+                    CTxDB txdb("rw");
+                    pblock->DisconnectBlock(txdb, pindexBest);
+
+                    ReorganizeChain();
+
                     return error("%s : duplicate proof-of-stake (%s, %d) for orphan block %s", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
                 }
                     
@@ -4322,7 +4344,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 setStakeSeenOrphan.insert(pblock->GetProofOfStake());
             }
 
-            if (!IsInitialBlockDownload())
+            if (!fReindex && !fImporting)
             {
                 // Ask this node to fill in what we're missing
                 PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(hash));
@@ -4335,17 +4357,17 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 
         if(fDebug)
         {
-            LogPrint("net", "%s : ORPHAN BLOCK %lu, prev=%s\n", __FUNCTION__, (unsigned long)mapOrphanBlocks.size(), pblock->hashPrevBlock.ToString());                  
+            LogPrint("net", "%s : ORPHAN BLOCK FOUND: %lu, height=%d, hash=%s, prev=%s\n", __FUNCTION__, (unsigned long)mapOrphanBlocks.size(), pindexBest->nHeight, pblock->GetHash().ToString(), pblock->hashPrevBlock.ToString());                  
         }
+
+        CTxDB txdb("rw");
+        pblock->DisconnectBlock(txdb, pindexBest);
 
         ReorganizeChain();
 
-        CTxDB txdb("w");
+        PruneOrphanBlocks();
 
-        // Disconnect current Block
-        pblock->DisconnectBlock(txdb, pindexBest);
-
-        return error("%s : Orphan", __FUNCTION__);
+        return error("%s : ORPHAN BLOCK FOUND: height=%d, hash=%s", __FUNCTION__, pindexBest->nHeight, pblock->GetHash().ToString());
     }
 
     // Store to disk
@@ -4354,6 +4376,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
         // Recursively process any orphan blocks that depended on this one
         vector<uint256> vWorkQueue;
         vWorkQueue.push_back(hash);
+
         for (unsigned int i = 0; i < vWorkQueue.size(); i++)
         {
             uint256 hashPrev = vWorkQueue[i];
@@ -4383,6 +4406,16 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 
             mapOrphanBlocksByPrev.erase(hashPrev);
         }
+
+        if(fDebug)
+        {
+            LogPrint("net", "%s : AcceptBlock Failed: hash=%s\n", __FUNCTION__, pblock->GetHash().ToString());                  
+        }
+
+        CTxDB txdb("rw");
+        pblock->DisconnectBlock(txdb, pindexBest);
+
+        ReorganizeChain();
 
         return error("%s : AcceptBlock FAILED", __FUNCTION__);
     }
