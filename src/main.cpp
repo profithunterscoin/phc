@@ -4229,11 +4229,13 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 {
     AssertLockHeld(cs_main);
 
+    /*
     // Preliminary checks
     if (!pblock->CheckBlock())
     {
         return error("%s : CheckBlock FAILED", __FUNCTION__);
     }
+    */
 
     // Check for duplicate
     uint256 hash = pblock->GetHash();
