@@ -33,6 +33,7 @@ v1.0.0.7 (Pre-release)
  * ProcessBlock() fixed
  * Installed: ReorganizeChain function
  * FIX: Init Msg
+ * FIX: Reorganize()
 
 v1.0.0.6
 --------
