@@ -27,9 +27,12 @@ v1.0.0.7 (Pre-release)
  * FIX: RPC Client
  * FIX: TXDB Crash
  * FIX: Swapped BOOST::copy_file for STD copy_file
- * FIX Init: LoadblockIndex
+ * FIX: LoadblockIndex upon Init
  * Installed: Init PruneOrphanBlocks
  * Installed: RPC Prune & Reorganize
+ * ProcessBlock() fixed
+ * Installed: ReorganizeChain function
+ * FIX: Init Msg
 
 v1.0.0.6
 --------
