@@ -2918,7 +2918,7 @@ bool ReorganizeChain()
 {
     CTxDB txdb2("rw");
 
-    CBlockIndex* pindexPrev = GetLastBlockIndex(const pindexBest, true);
+    CBlockIndex* pindexPrev = GetLastBlockIndex(pindexBest, false);
 
     // Reorganize chain to ensure correct sync
     Reorganize(txdb2, pindexPrev);
