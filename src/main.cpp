@@ -2919,8 +2919,7 @@ bool ReorganizeChain()
     CTxDB txdb2("rw");
 
     const CBlockIndex* pindex = pindexBest;
-
-    const CBlockIndex* pindexPrev = GetLastBlockIndex(pindex, false);
+    const CBlockIndex* pindexPrev = GetLastBlockIndex(pindex, true);
 
     // Reorganize chain to ensure correct sync
     Reorganize(txdb2, pindexPrev);
@@ -5897,6 +5896,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         else
         {
             PruneOrphanBlocks();
+            mapAlreadyAskedFor.erase(inv);
         }
 
         if (block.nDoS)
