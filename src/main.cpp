@@ -2923,6 +2923,7 @@ bool ReorganizeChain()
 
     // Reorganize chain to ensure correct sync
     return Reorganize(txdb2, const_cast <CBlockIndex *>(pindexPrev));
+
 }
 
 
@@ -2933,8 +2934,8 @@ bool Reorganize(CTxDB& txdb, CBlockIndex* pindexNew)
         LogPrint("core", "%s : REORGANIZE\n", __FUNCTION__);
     }
 
-    CBlockIndex* plonger = pindexBest;
-    CBlockIndex* pfork = pindexNew;
+    CBlockIndex* plonger = pindexNew;
+    CBlockIndex* pfork = pindexBest;
 
     while (pfork != plonger)
     {
