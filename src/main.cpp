@@ -2918,7 +2918,9 @@ bool ReorganizeChain()
 {
     CTxDB txdb2("rw");
 
-    CBlockIndex* pindexPrev = GetLastBlockIndex(pindexBest, false);
+    const CBlockIndex* pindex = pindexBest;
+
+    const CBlockIndex* pindexPrev = GetLastBlockIndex(pindex, false);
 
     // Reorganize chain to ensure correct sync
     Reorganize(txdb2, pindexPrev);
@@ -4328,14 +4330,18 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 // earlier by duplicate-stake check so we ask for it again directly
                 pfrom->AskFor(CInv(MSG_BLOCK, WantedByOrphan(pblock2)));
             }
+
+            if(fDebug)
+            {
+                LogPrint("net", "%s : ORPHAN BLOCK FOUND: %lu, peer=%s, height=%d, hash=%s, prev=%s\n", __FUNCTION__, (unsigned long)mapOrphanBlocks.size(), pfrom->addr.ToString(), pindexBest->nHeight, pblock->GetHash().ToString(), pblock->hashPrevBlock.ToString());                  
+            }
+
+            PruneOrphanBlocks();
+
+            return error("%s : ORPHAN BLOCK FOUND: height=%d, hash=%s", __FUNCTION__, pindexBest->nHeight, pblock->GetHash().ToString());
         }
 
-        if(fDebug)
-        {
-            LogPrint("net", "%s : ORPHAN BLOCK FOUND: %lu, height=%d, hash=%s, prev=%s\n", __FUNCTION__, (unsigned long)mapOrphanBlocks.size(), pindexBest->nHeight, pblock->GetHash().ToString(), pblock->hashPrevBlock.ToString());                  
-        }
-
-        return error("%s : ORPHAN BLOCK FOUND: height=%d, hash=%s", __FUNCTION__, pindexBest->nHeight, pblock->GetHash().ToString());
+        return false;
     }
 
     // Store to disk
@@ -5891,7 +5897,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         }
         else
         {
-            ReorganizeChain();
             PruneOrphanBlocks();
         }
 
