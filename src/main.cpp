@@ -4324,7 +4324,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             if (!fReindex && !fImporting && !IsInitialBlockDownload())
             {
                 // Ask this node to fill in what we're missing
-                PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(hash));
+                PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(pblock2->hashPrev));
 
                 // ppcoin: getblocks may not obtain the ancestor block rejected
                 // earlier by duplicate-stake check so we ask for it again directly
@@ -4337,11 +4337,10 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             }
 
             PruneOrphanBlocks();
-
-            return error("%s : ORPHAN BLOCK FOUND: height=%d, hash=%s", __FUNCTION__, pindexBest->nHeight, pblock->GetHash().ToString());
+            ReorganizeChain();
         }
 
-        return false;
+        return error("%s : ORPHAN BLOCK FOUND: height=%d, hash=%s", __FUNCTION__, pindexBest->nHeight, pblock->GetHash().ToString());
     }
 
     // Store to disk
