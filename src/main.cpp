@@ -2918,8 +2918,7 @@ bool ReorganizeChain()
 {
     CTxDB txdb2("rw");
 
-    const CBlockIndex* pindex = pindexBest;
-    const CBlockIndex* pindexPrev = GetLastBlockIndex(pindex, true);
+    const CBlockIndex* pindexPrev = pindexBest->pprev;
 
     // Reorganize chain to ensure correct sync
     return Reorganize(txdb2, const_cast <CBlockIndex *>(pindexPrev));
@@ -2934,8 +2933,8 @@ bool Reorganize(CTxDB& txdb, CBlockIndex* pindexNew)
         LogPrint("core", "%s : REORGANIZE\n", __FUNCTION__);
     }
 
-    CBlockIndex* plonger = pindexNew;
-    CBlockIndex* pfork = pindexBest;
+    CBlockIndex* pfork = pindexNew;
+    CBlockIndex* plonger = pindexBest;
 
     while (pfork != plonger)
     {
@@ -4290,8 +4289,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 if (setStakeSeenOrphan.count(pblock->GetProofOfStake()) && !mapOrphanBlocksByPrev.count(hash))
                 {
                     return error("%s : duplicate proof-of-stake (%s, %d) for orphan block %s", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
-                }
-                    
+                }       
             }
 
             PruneOrphanBlocks();
@@ -4318,10 +4316,10 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 setStakeSeenOrphan.insert(pblock->GetProofOfStake());
             }
 
-            if (!fReindex && !fImporting && !IsInitialBlockDownload())
+            if (!fReindex && !fImporting)
             {
                 // Ask this node to fill in what we're missing
-                PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(pblock2->hashPrev));
+                PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(hash));
 
                 // ppcoin: getblocks may not obtain the ancestor block rejected
                 // earlier by duplicate-stake check so we ask for it again directly
@@ -5891,16 +5889,13 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         {
             mapAlreadyAskedFor.erase(inv);
         }
-        else
-        {
-            PruneOrphanBlocks();
-            mapAlreadyAskedFor.erase(inv);
-        }
 
+        /* PHC FIX (Let firewall handle orhpan forks)
         if (block.nDoS)
         {
             Misbehaving(pfrom->GetId(), block.nDoS);
         }
+        */
 
         if (fSecMsgEnabled)
         {
