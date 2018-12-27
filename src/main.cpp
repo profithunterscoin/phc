@@ -2922,9 +2922,7 @@ bool ReorganizeChain()
     const CBlockIndex* pindexPrev = GetLastBlockIndex(pindex, true);
 
     // Reorganize chain to ensure correct sync
-    Reorganize(txdb2, const_cast <CBlockIndex *>(pindexPrev));
-
-    return true;
+    return Reorganize(txdb2, const_cast <CBlockIndex *>(pindexPrev));
 }
 
 
