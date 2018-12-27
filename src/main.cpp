@@ -2922,9 +2922,7 @@ bool ReorganizeChain()
     const CBlockIndex* pindexPrev = GetLastBlockIndex(pindex, true);
 
     // Reorganize chain to ensure correct sync
-    Reorganize(txdb2, pindexPrev);
-
-    return true;
+    return Reorganize(txdb2, const_cast <CBlockIndex *>(pindexPrev));
 }
 
 
@@ -2935,9 +2933,8 @@ bool Reorganize(CTxDB& txdb, CBlockIndex* pindexNew)
         LogPrint("core", "%s : REORGANIZE\n", __FUNCTION__);
     }
 
-    // Find the fork
-    CBlockIndex* pfork = pindexBest;
-    CBlockIndex* plonger = pindexNew;
+    CBlockIndex* plonger = pindexBest;
+    CBlockIndex* pfork = pindexNew;
 
     while (pfork != plonger)
     {
