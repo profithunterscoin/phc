@@ -143,7 +143,6 @@ struct CNodeStateStats;
 
 /** Reorganize the chain index */
 bool Reorganize(CTxDB& txdb, CBlockIndex* pindexNew);
-bool Reorganize(CTxDB& txdb, const CBlockIndex* pindexNew);
 
 bool ReorganizeChain();
 
