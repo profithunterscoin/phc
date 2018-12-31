@@ -1,3 +1,12 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2018 Profit Hunters Coin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #include "sendmessagesentry.h"
 #include "ui_sendmessagesentry.h"
 #include "guiutil.h"
@@ -12,10 +21,7 @@
 #include <QApplication>
 #include <QClipboard>
 
-SendMessagesEntry::SendMessagesEntry(QWidget *parent) :
-    QFrame(parent),
-    ui(new Ui::SendMessagesEntry),
-    model(0)
+SendMessagesEntry::SendMessagesEntry(QWidget *parent) : QFrame(parent), ui(new Ui::SendMessagesEntry), model(0)
 {
     ui->setupUi(this);
 
@@ -35,10 +41,12 @@ SendMessagesEntry::SendMessagesEntry(QWidget *parent) :
     GUIUtil::setupAddressWidget(ui->sendTo, this);
 }
 
+
 SendMessagesEntry::~SendMessagesEntry()
 {
     delete ui;
 }
+
 
 void SendMessagesEntry::on_pasteButton_clicked()
 {
@@ -46,16 +54,20 @@ void SendMessagesEntry::on_pasteButton_clicked()
     ui->sendTo->setText(QApplication::clipboard()->text());
 }
 
+
 void SendMessagesEntry::on_PubkeyPasteButton_clicked()
 {
     // Paste text from clipboard into recipient field
     ui->publicKey->setText(QApplication::clipboard()->text());
 }
 
+
 void SendMessagesEntry::on_addressBookButton_clicked()
 {
     if(!model)
+    {
         return;
+    }
 
     AddressBookPage dlg(AddressBookPage::ForSending, AddressBookPage::SendingTab, this);
 
@@ -63,20 +75,26 @@ void SendMessagesEntry::on_addressBookButton_clicked()
 
     if(dlg.exec())
     {
-
         ui->sendTo->setText(dlg.getReturnValue());
 
         if(ui->publicKey->text() == "")
+        {
             ui->publicKey->setFocus();
+        }
         else
+        {
             ui->messageText->setFocus();
+        }
     }
 }
+
 
 void SendMessagesEntry::on_sendTo_textChanged(const QString &address)
 {
     if(!model)
+    {
         return;
+    }
 
     QString pubkey;
     QString sendTo = address;
@@ -96,8 +114,11 @@ void SendMessagesEntry::on_sendTo_textChanged(const QString &address)
     QString associatedLabel = model->getWalletModel()->getAddressTableModel()->labelForAddress(address);
 
     if(!associatedLabel.isEmpty())
+    {
         ui->addAsLabel->setText(associatedLabel);
+    }
 }
+
 
 void SendMessagesEntry::setModel(MessageModel *model)
 {
@@ -107,18 +128,25 @@ void SendMessagesEntry::setModel(MessageModel *model)
     //clear();
 }
 
+
 void SendMessagesEntry::loadRow(int row)
 {
     if(model->data(model->index(row, model->Type, QModelIndex()), Qt::DisplayRole).toString() == MessageModel::Received)
+    {
         ui->sendTo->setText(model->data(model->index(row, model->FromAddress, QModelIndex()), Qt::DisplayRole).toString());
+    }
     else
+    {
         ui->sendTo->setText(model->data(model->index(row, model->ToAddress, QModelIndex()), Qt::DisplayRole).toString());
+    }
 }
+
 
 void SendMessagesEntry::setRemoveEnabled(bool enabled)
 {
     ui->deleteButton->setEnabled(enabled);
 }
+
 
 void SendMessagesEntry::clear()
 {
@@ -127,6 +155,7 @@ void SendMessagesEntry::clear()
     ui->messageText->clear();
     ui->sendTo->setFocus();
 }
+
 
 void SendMessagesEntry::on_deleteButton_clicked()
 {
@@ -164,6 +193,7 @@ bool SendMessagesEntry::validate()
     return retval;
 }
 
+
 SendMessagesRecipient SendMessagesEntry::getValue()
 {
     SendMessagesRecipient rv;
@@ -191,6 +221,7 @@ QWidget *SendMessagesEntry::setupTabChain(QWidget *prev)
 
 }
 
+
 void SendMessagesEntry::setValue(const SendMessagesRecipient &value)
 {
     ui->sendTo->setText(value.address);
@@ -203,6 +234,7 @@ bool SendMessagesEntry::isClear()
 {
     return ui->sendTo->text().isEmpty();
 }
+
 
 void SendMessagesEntry::setFocus()
 {

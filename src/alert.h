@@ -1,7 +1,9 @@
 // Copyright (c) 2010 Satoshi Nakamoto
 // Copyright (c) 2009-2012 The Bitcoin developers
+// Copyright (c) 2018 Profit Hunters Coin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 
 #ifndef _BITCOINALERT_H_
 #define _BITCOINALERT_H_ 1
@@ -22,80 +24,95 @@ class uint256;
  */
 class CUnsignedAlert
 {
-public:
-    int nVersion;
-    int64_t nRelayUntil;      // when newer nodes stop relaying to newer nodes
-    int64_t nExpiration;
-    int nID;
-    int nCancel;
-    std::set<int> setCancel;
-    int nMinVer;            // lowest version inclusive
-    int nMaxVer;            // highest version inclusive
-    std::set<std::string> setSubVer;  // empty matches all
-    int nPriority;
+    public:
 
-    // Actions
-    std::string strComment;
-    std::string strStatusBar;
-    std::string strReserved;
+        int nVersion;
 
-    IMPLEMENT_SERIALIZE
-    (
-        READWRITE(this->nVersion);
-        nVersion = this->nVersion;
-        READWRITE(nRelayUntil);
-        READWRITE(nExpiration);
-        READWRITE(nID);
-        READWRITE(nCancel);
-        READWRITE(setCancel);
-        READWRITE(nMinVer);
-        READWRITE(nMaxVer);
-        READWRITE(setSubVer);
-        READWRITE(nPriority);
+        int64_t nRelayUntil;      // when newer nodes stop relaying to newer nodes
+        int64_t nExpiration;
+        
+        int nID;
+        int nCancel;
+        
+        std::set<int> setCancel;
+        
+        int nMinVer;            // lowest version inclusive
+        int nMaxVer;            // highest version inclusive
+        
+        std::set<std::string> setSubVer;  // empty matches all
+        
+        int nPriority;
 
-        READWRITE(strComment);
-        READWRITE(strStatusBar);
-        READWRITE(strReserved);
-    )
+        // Actions
+        std::string strComment;
+        std::string strStatusBar;
+        std::string strReserved;
 
-    void SetNull();
+        IMPLEMENT_SERIALIZE
+        (
+            READWRITE(this->nVersion);
+            nVersion = this->nVersion;
+            READWRITE(nRelayUntil);
+            READWRITE(nExpiration);
+            READWRITE(nID);
+            READWRITE(nCancel);
+            READWRITE(setCancel);
+            READWRITE(nMinVer);
+            READWRITE(nMaxVer);
+            READWRITE(setSubVer);
+            READWRITE(nPriority);
 
-    std::string ToString() const;
+            READWRITE(strComment);
+            READWRITE(strStatusBar);
+            READWRITE(strReserved);
+        )
+
+        void SetNull();
+
+        std::string ToString() const;
 };
 
 /** An alert is a combination of a serialized CUnsignedAlert and a signature. */
 class CAlert : public CUnsignedAlert
 {
-public:
-    std::vector<unsigned char> vchMsg;
-    std::vector<unsigned char> vchSig;
+    public:
 
-    CAlert()
-    {
-        SetNull();
-    }
+        std::vector<unsigned char> vchMsg;
+        std::vector<unsigned char> vchSig;
 
-    IMPLEMENT_SERIALIZE
-    (
-        READWRITE(vchMsg);
-        READWRITE(vchSig);
-    )
+        CAlert()
+        {
+            SetNull();
+        }
 
-    void SetNull();
-    bool IsNull() const;
-    uint256 GetHash() const;
-    bool IsInEffect() const;
-    bool Cancels(const CAlert& alert) const;
-    bool AppliesTo(int nVersion, std::string strSubVerIn) const;
-    bool AppliesToMe() const;
-    bool RelayTo(CNode* pnode) const;
-    bool CheckSignature() const;
-    bool ProcessAlert(bool fThread = true);
+        IMPLEMENT_SERIALIZE
+        (
+            READWRITE(vchMsg);
+            READWRITE(vchSig);
+        )
 
-    /*
-     * Get copy of (active) alert object by hash. Returns a null alert if it is not found.
-     */
-    static CAlert getAlertByHash(const uint256 &hash);
+        void SetNull();
+        bool IsNull() const;
+
+        uint256 GetHash() const;
+
+        bool IsInEffect() const;
+
+        bool Cancels(const CAlert& alert) const;
+
+        bool AppliesTo(int nVersion, std::string strSubVerIn) const;
+        bool AppliesToMe() const;
+
+        bool RelayTo(CNode* pnode) const;
+
+        bool CheckSignature() const;
+
+        bool ProcessAlert(bool fThread = true);
+
+        /*
+        * Get copy of (active) alert object by hash. Returns a null alert if it is not found.
+        */
+        static CAlert getAlertByHash(const uint256 &hash);
 };
 
 #endif

@@ -1,6 +1,8 @@
 // Copyright (c) 2009-2013 The Bitcoin developers
+// Copyright (c) 2018 Profit Hunters Coin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 
 #include "allocators.h"
 
@@ -34,6 +36,7 @@ static inline size_t GetSystemPageSize()
 #if defined(WIN32)
     SYSTEM_INFO sSysInfo;
     GetSystemInfo(&sSysInfo);
+
     page_size = sSysInfo.dwPageSize;
 #elif defined(PAGESIZE) // defined in limits.h
     page_size = PAGESIZE;

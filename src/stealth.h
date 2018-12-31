@@ -1,6 +1,8 @@
 // Copyright (c) 2014 The ShadowCoin developers
+// Copyright (c) 2018 Profit Hunters Coin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file license.txt or http://www.opensource.org/licenses/mit-license.php.
+
 
 #ifndef BITCOIN_STEALTH_H
 #define BITCOIN_STEALTH_H
@@ -25,7 +27,12 @@ const size_t ec_uncompressed_size = 65;
 
 const uint8_t stealth_version_byte = 0x28;
 
-typedef struct ec_secret { uint8_t e[ec_secret_size]; } ec_secret;
+typedef struct ec_secret
+{
+    uint8_t e[ec_secret_size];
+}
+ec_secret;
+
 typedef data_chunk ec_point;
 
 typedef uint32_t stealth_bitfield;
@@ -36,14 +43,17 @@ struct stealth_prefix
     stealth_bitfield bitfield;
 };
 
-template <typename T, typename Iterator>
-T from_big_endian(Iterator in)
+template <typename T, typename Iterator> T from_big_endian(Iterator in)
 {
     //VERIFY_UNSIGNED(T);
     T out = 0;
     size_t i = sizeof(T);
+
     while (0 < i)
+    {
         out |= static_cast<T>(*in++) << (8 * --i);
+    }
+
     return out;
 }
 
@@ -53,51 +63,59 @@ T from_little_endian(Iterator in)
     //VERIFY_UNSIGNED(T);
     T out = 0;
     size_t i = 0;
+
     while (i < sizeof(T))
+    {
         out |= static_cast<T>(*in++) << (8 * i++);
+    }
+
     return out;
 }
 
 class CStealthAddress
 {
-public:
-    CStealthAddress()
-    {
-        options = 0;
-    }
-    
-    uint8_t options;
-    ec_point scan_pubkey;
-    ec_point spend_pubkey;
-    //std::vector<ec_point> spend_pubkeys;
-    size_t number_signatures;
-    stealth_prefix prefix;
-    
-    mutable std::string label;
-    data_chunk scan_secret;
-    data_chunk spend_secret;
-    
-    bool SetEncoded(const std::string& encodedAddress);
-    std::string Encoded() const;
+    public:
 
-    int SetScanPubKey(CPubKey pk);
-    
-
-    bool operator <(const CStealthAddress& y) const
-    {
-        return memcmp(&scan_pubkey[0], &y.scan_pubkey[0], ec_compressed_size) < 0;
-    }
-    
-    IMPLEMENT_SERIALIZE
-    (
-        READWRITE(this->options);
-        READWRITE(this->scan_pubkey);
-        READWRITE(this->spend_pubkey);
-        READWRITE(this->label);
+        CStealthAddress()
+        {
+            options = 0;
+        }
         
-        READWRITE(this->scan_secret);
-        READWRITE(this->spend_secret);
-    );
+        uint8_t options;
+        ec_point scan_pubkey;
+        ec_point spend_pubkey;
+        
+        //std::vector<ec_point> spend_pubkeys;
+        size_t number_signatures;
+        stealth_prefix prefix;
+        
+        mutable std::string label;
+
+        data_chunk scan_secret;
+        data_chunk spend_secret;
+        
+        bool SetEncoded(const std::string& encodedAddress);
+
+        std::string Encoded() const;
+
+        int SetScanPubKey(CPubKey pk);
+        
+
+        bool operator <(const CStealthAddress& y) const
+        {
+            return memcmp(&scan_pubkey[0], &y.scan_pubkey[0], ec_compressed_size) < 0;
+        }
+        
+        IMPLEMENT_SERIALIZE
+        (
+            READWRITE(this->options);
+            READWRITE(this->scan_pubkey);
+            READWRITE(this->spend_pubkey);
+            READWRITE(this->label);
+            
+            READWRITE(this->scan_secret);
+            READWRITE(this->spend_secret);
+        );
 
 };
 

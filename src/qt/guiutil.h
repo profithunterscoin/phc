@@ -1,3 +1,12 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2018 Profit Hunters Coin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #ifndef GUIUTIL_H
 #define GUIUTIL_H
 
@@ -112,12 +121,15 @@ namespace GUIUtil
         Q_OBJECT
 
     public:
+
         explicit ToolTipToRichTextFilter(int size_threshold, QObject *parent = 0);
 
     protected:
+
         bool eventFilter(QObject *obj, QEvent *evt);
 
     private:
+
         int size_threshold;
     };
 
@@ -136,31 +148,47 @@ namespace GUIUtil
         Q_OBJECT
 
         public:
+
             TableViewLastColumnResizingFixer(QTableView* table, int lastColMinimumWidth, int allColsMinimumWidth);
             void stretchColumnWidth(int column);
 
         private:
+
             QTableView* tableView;
+
             int lastColumnMinimumWidth;
+
             int allColumnsMinimumWidth;
+
             int lastColumnIndex;
+
             int columnCount;
+
             int secondToLastColumnIndex;
 
             void adjustTableColumnsWidth();
+
             int getAvailableWidthForColumn(int column);
+
             int getColumnsWidth();
+
             void connectViewHeadersSignals();
+
             void disconnectViewHeadersSignals();
+
             void setViewHeaderResizeMode(int logicalIndex, QHeaderView::ResizeMode resizeMode);
+
             void resizeColumn(int nColumnIndex, int width);
 
         private slots:
+
             void on_sectionResized(int logicalIndex, int oldSize, int newSize);
+
             void on_geometriesChanged();
     };
 
     bool GetStartOnSystemStartup();
+
     bool SetStartOnSystemStartup(bool fAutoStart);
 
     /* Convert QString to OS specific boost path through UTF-8 */
@@ -187,19 +215,21 @@ namespace GUIUtil
     {
         Q_OBJECT
 
-    public:
-        HelpMessageBox(QWidget *parent = 0);
+        public:
 
-        /** Show message box or print help message to standard output, based on operating system. */
-        void showOrPrint();
+            HelpMessageBox(QWidget *parent = 0);
 
-        /** Print help message to console */
-        void printToConsole();
+            /** Show message box or print help message to standard output, based on operating system. */
+            void showOrPrint();
 
-    private:
-        QString header;
-        QString coreOptions;
-        QString uiOptions;
+            /** Print help message to console */
+            void printToConsole();
+
+        private:
+
+            QString header;
+            QString coreOptions;
+            QString uiOptions;
     };
 
     void SetBlackThemeQSS(QApplication& app);
@@ -210,7 +240,8 @@ namespace GUIUtil
     // QProgressBar uses around 10% CPU even when app is in background
     class ProgressBar : public QProgressBar
     {
-        bool event(QEvent *e) {
+        bool event(QEvent *e)
+        {
             return (e->type() != QEvent::StyleAnimationUpdate) ? QProgressBar::event(e) : false;
         }
     };

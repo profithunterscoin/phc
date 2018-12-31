@@ -1,3 +1,12 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2018 Profit Hunters Coin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #ifndef TRAFFICGRAPHWIDGET_H
 #define TRAFFICGRAPHWIDGET_H
 
@@ -15,30 +24,43 @@ class TrafficGraphWidget : public QWidget
 {
     Q_OBJECT
 
-public:
-    explicit TrafficGraphWidget(QWidget *parent = 0);
-    void setClientModel(ClientModel *model);
-    int getGraphRangeMins() const;
+    public:
 
-protected:
-    void paintEvent(QPaintEvent *);
+        explicit TrafficGraphWidget(QWidget *parent = 0);
+        
+        void setClientModel(ClientModel *model);
+        
+        int getGraphRangeMins() const;
 
-public slots:
-    void updateRates();
-    void setGraphRangeMins(int mins);
-    void clear();
+    protected:
 
-private:
-    void paintPath(QPainterPath &path, QQueue<float> &samples);
+        void paintEvent(QPaintEvent *);
 
-    QTimer *timer;
-    float fMax;
-    int nMins;
-    QQueue<float> vSamplesIn;
-    QQueue<float> vSamplesOut;
-    quint64 nLastBytesIn;
-    quint64 nLastBytesOut;
-    ClientModel *clientModel;
+    public slots:
+
+        void updateRates();
+        
+        void setGraphRangeMins(int mins);
+        
+        void clear();
+
+    private:
+
+        void paintPath(QPainterPath &path, QQueue<float> &samples);
+
+        QTimer *timer;
+        
+        float fMax;
+        
+        int nMins;
+        
+        QQueue<float> vSamplesIn;
+        QQueue<float> vSamplesOut;
+        
+        quint64 nLastBytesIn;
+        quint64 nLastBytesOut;
+        
+        ClientModel *clientModel;
 };
 
 #endif // TRAFFICGRAPHWIDGET_H

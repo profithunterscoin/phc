@@ -1,3 +1,12 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2018 Profit Hunters Coin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #ifndef TRANSACTIONTABLEMODEL_H
 #define TRANSACTIONTABLEMODEL_H
 
@@ -15,87 +24,93 @@ class TransactionTableModel : public QAbstractTableModel
 {
     Q_OBJECT
 
-public:
-    explicit TransactionTableModel(CWallet* wallet, WalletModel *parent = 0);
-    ~TransactionTableModel();
+    public:
 
-    enum ColumnIndex {
-        Status = 0,
-        Watchonly = 1,
-        Date = 2,
-        Type = 3,
-        ToAddress = 4,
-        Amount = 5
-    };
+        explicit TransactionTableModel(CWallet* wallet, WalletModel *parent = 0);
+        ~TransactionTableModel();
 
-    /** Roles to get specific information from a transaction row.
-        These are independent of column.
-    */
-    enum RoleIndex {
-        /** Type of transaction */
-        TypeRole = Qt::UserRole,
-        /** Date and time this transaction was created */
-        DateRole,
-        /** Watch-only boolean */
-        WatchonlyRole,
-        /** Watch-only icon */
-        WatchonlyDecorationRole,
-        /** Long description (HTML format) */
-        LongDescriptionRole,
-        /** Address of transaction */
-        AddressRole,
-        /** Label of address related to transaction */
-        LabelRole,
-        /** Net amount of transaction */
-        AmountRole,
-        /** Unique identifier */
-        TxIDRole,
-        /** Transaction hash */
-        TxHashRole,
-        /** Is transaction confirmed? */
-        ConfirmedRole,
-        /** Formatted amount, without brackets when unconfirmed */
-        FormattedAmountRole,
-        /** Transaction status (TransactionRecord::Status) */
-        StatusRole
-    };
+        enum ColumnIndex
+        {
+            Status      = 0,
+            Watchonly   = 1,
+            Date        = 2,
+            Type        = 3,
+            ToAddress   = 4,
+            Amount  = 5
+        };
 
-    int rowCount(const QModelIndex &parent) const;
-    int columnCount(const QModelIndex &parent) const;
-    QVariant data(const QModelIndex &index, int role) const;
-    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
-    QModelIndex index(int row, int column, const QModelIndex & parent = QModelIndex()) const;
+        /** Roles to get specific information from a transaction row.
+            These are independent of column.
+        */
+        enum RoleIndex {
+            /** Type of transaction */
+            TypeRole = Qt::UserRole,
+            /** Date and time this transaction was created */
+            DateRole,
+            /** Watch-only boolean */
+            WatchonlyRole,
+            /** Watch-only icon */
+            WatchonlyDecorationRole,
+            /** Long description (HTML format) */
+            LongDescriptionRole,
+            /** Address of transaction */
+            AddressRole,
+            /** Label of address related to transaction */
+            LabelRole,
+            /** Net amount of transaction */
+            AmountRole,
+            /** Unique identifier */
+            TxIDRole,
+            /** Transaction hash */
+            TxHashRole,
+            /** Is transaction confirmed? */
+            ConfirmedRole,
+            /** Formatted amount, without brackets when unconfirmed */
+            FormattedAmountRole,
+            /** Transaction status (TransactionRecord::Status) */
+            StatusRole
+        };
 
-private:
-    CWallet* wallet;
-    WalletModel *walletModel;
-    QStringList columns;
-    TransactionTablePriv *priv;
+        int rowCount(const QModelIndex &parent) const;
+        int columnCount(const QModelIndex &parent) const;
 
-    void subscribeToCoreSignals();
-    void unsubscribeFromCoreSignals();
+        QVariant data(const QModelIndex &index, int role) const;
+        QVariant headerData(int section, Qt::Orientation orientation, int role) const;
+        QModelIndex index(int row, int column, const QModelIndex & parent = QModelIndex()) const;
 
-    QString lookupAddress(const std::string &address, bool tooltip) const;
-    QVariant addressColor(const TransactionRecord *wtx) const;
-    QString formatTxStatus(const TransactionRecord *wtx) const;
-    QString formatTxDate(const TransactionRecord *wtx) const;
-    QString formatTxType(const TransactionRecord *wtx) const;
-    QString formatTxToAddress(const TransactionRecord *wtx, bool tooltip) const;
-    QString formatTxAmount(const TransactionRecord *wtx, bool showUnconfirmed=true) const;
-    QString formatTooltip(const TransactionRecord *rec) const;
-    QVariant txStatusDecoration(const TransactionRecord *wtx) const;
-    QVariant txWatchonlyDecoration(const TransactionRecord *wtx) const;
-    QVariant txAddressDecoration(const TransactionRecord *wtx) const;
+    private:
 
-public slots:
-    /* New transaction, or transaction changed status */
-    void updateTransaction(const QString &hash, int status, bool showTransaction);
-    void updateConfirmations();
-    void updateDisplayUnit();
-    /** Updates the column title to "Amount (DisplayUnit)" and emits headerDataChanged() signal for table headers to react. */
-    void updateAmountColumnTitle();
+        CWallet* wallet;
+        WalletModel *walletModel;
+        QStringList columns;
+        TransactionTablePriv *priv;
 
-    friend class TransactionTablePriv;
+        void subscribeToCoreSignals();
+        void unsubscribeFromCoreSignals();
+
+        QString lookupAddress(const std::string &address, bool tooltip) const;
+        QVariant addressColor(const TransactionRecord *wtx) const;
+        QString formatTxStatus(const TransactionRecord *wtx) const;
+        QString formatTxDate(const TransactionRecord *wtx) const;
+        QString formatTxType(const TransactionRecord *wtx) const;
+        QString formatTxToAddress(const TransactionRecord *wtx, bool tooltip) const;
+        QString formatTxAmount(const TransactionRecord *wtx, bool showUnconfirmed=true) const;
+        QString formatTooltip(const TransactionRecord *rec) const;
+        QVariant txStatusDecoration(const TransactionRecord *wtx) const;
+        QVariant txWatchonlyDecoration(const TransactionRecord *wtx) const;
+        QVariant txAddressDecoration(const TransactionRecord *wtx) const;
+
+    public slots:
+
+        /* New transaction, or transaction changed status */
+        void updateTransaction(const QString &hash, int status, bool showTransaction);
+        void updateConfirmations();
+        void updateDisplayUnit();
+        
+        /** Updates the column title to "Amount (DisplayUnit)" and emits headerDataChanged() signal for table headers to react. */
+        void updateAmountColumnTitle();
+
+        friend class TransactionTablePriv;
 };
 
 #endif // TRANSACTIONTABLEMODEL_H

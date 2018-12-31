@@ -1,11 +1,20 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2018 Profit Hunters Coin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #ifndef EDITADDRESSDIALOG_H
 #define EDITADDRESSDIALOG_H
 
 #include <QDialog>
 
-namespace Ui {
+namespace Ui
+{
     class EditAddressDialog;
 }
+
 class AddressTableModel;
 
 QT_BEGIN_NAMESPACE
@@ -18,37 +27,43 @@ class EditAddressDialog : public QDialog
 {
     Q_OBJECT
 
-public:
-    enum Mode {
-        NewReceivingAddress,
-        NewSendingAddress,
-        EditReceivingAddress,
-        EditSendingAddress
-    };
+    public:
+    
+        enum Mode
+        {
+            NewReceivingAddress,
+            NewSendingAddress,
+            EditReceivingAddress,
+            EditSendingAddress
+        };
 
-    explicit EditAddressDialog(Mode mode, QWidget *parent = 0);
-    ~EditAddressDialog();
+        explicit EditAddressDialog(Mode mode, QWidget *parent = 0);
+        ~EditAddressDialog();
 
-    void setModel(AddressTableModel *model);
-    void loadRow(int row);
+        void setModel(AddressTableModel *model);
+        void loadRow(int row);
 
-    QString getAddress() const;
-    void setAddress(const QString &address);
-private slots:
-    void on_EditAddressPasteButton_clicked();
+        QString getAddress() const;
+        void setAddress(const QString &address);
 
-public slots:
-    void accept();
+    private slots:
 
-private:
-    bool saveCurrentRow();
+        void on_EditAddressPasteButton_clicked();
 
-    Ui::EditAddressDialog *ui;
-    QDataWidgetMapper *mapper;
-    Mode mode;
-    AddressTableModel *model;
+    public slots:
 
-    QString address;
+        void accept();
+
+    private:
+
+        bool saveCurrentRow();
+
+        Ui::EditAddressDialog *ui;
+        QDataWidgetMapper *mapper;
+        Mode mode;
+        AddressTableModel *model;
+
+        QString address;
 };
 
 #endif // EDITADDRESSDIALOG_H

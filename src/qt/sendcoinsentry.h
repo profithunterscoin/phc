@@ -1,11 +1,22 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2018 Profit Hunters Coin developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #ifndef SENDCOINSENTRY_H
 #define SENDCOINSENTRY_H
 
 #include <QFrame>
 
-namespace Ui {
+namespace Ui
+{
     class SendCoinsEntry;
 }
+
 class WalletModel;
 class SendCoinsRecipient;
 
@@ -14,44 +25,53 @@ class SendCoinsEntry : public QFrame
 {
     Q_OBJECT
 
-public:
-    explicit SendCoinsEntry(QWidget *parent = 0);
-    ~SendCoinsEntry();
+    public:
 
-    void setModel(WalletModel *model);
-    bool validate();
-    SendCoinsRecipient getValue();
+        explicit SendCoinsEntry(QWidget *parent = 0);
+        ~SendCoinsEntry();
 
-    /** Return whether the entry is still empty and unedited */
-    bool isClear();
+        void setModel(WalletModel *model);
 
-    void setValue(const SendCoinsRecipient &value);
-    void setAddress(const QString &address);
+        bool validate();
 
-    /** Set up the tab chain manually, as Qt messes up the tab chain by default in some cases (issue https://bugreports.qt-project.org/browse/QTBUG-10907).
-     */
-    QWidget *setupTabChain(QWidget *prev);
+        SendCoinsRecipient getValue();
 
-    void setFocus();
+        /** Return whether the entry is still empty and unedited */
+        bool isClear();
 
-public slots:
-    void setRemoveEnabled(bool enabled);
-    void clear();
+        void setValue(const SendCoinsRecipient &value);
+        void setAddress(const QString &address);
 
-signals:
-    void removeEntry(SendCoinsEntry *entry);
-    void payAmountChanged();
+        /** Set up the tab chain manually, as Qt messes up the tab chain by default in some cases (issue https://bugreports.qt-project.org/browse/QTBUG-10907).
+        */
+        QWidget *setupTabChain(QWidget *prev);
 
-private slots:
-    void on_deleteButton_clicked();
-    void on_payTo_textChanged(const QString &address);
-    void on_addressBookButton_clicked();
-    void on_pasteButton_clicked();
-    void updateDisplayUnit();
+        void setFocus();
 
-private:
-    Ui::SendCoinsEntry *ui;
-    WalletModel *model;
+    public slots:
+
+        void setRemoveEnabled(bool enabled);
+
+        void clear();
+
+    signals:
+
+        void removeEntry(SendCoinsEntry *entry);
+
+        void payAmountChanged();
+
+    private slots:
+
+        void on_deleteButton_clicked();
+        void on_payTo_textChanged(const QString &address);
+        void on_addressBookButton_clicked();
+        void on_pasteButton_clicked();
+        void updateDisplayUnit();
+
+    private:
+
+        Ui::SendCoinsEntry *ui;
+        WalletModel *model;
 };
 
 #endif // SENDCOINSENTRY_H

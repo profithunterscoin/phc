@@ -35,14 +35,16 @@
 #define PAIRTYPE(t1, t2)    std::pair<t1, t2>
 
 
-
 std::vector<unsigned char> DecodeBase64(const char* p, bool* pfInvalid = NULL);
 std::string DecodeBase64(const std::string& str);
 std::string EncodeBase64(const unsigned char* pch, size_t len);
 std::string EncodeBase64(const std::string& str);
+
 SecureString DecodeBase64Secure(const SecureString& input);
 SecureString EncodeBase64Secure(const SecureString& input);
+
 std::vector<unsigned char> DecodeBase32(const char* p, bool* pfInvalid = NULL);
+
 std::string DecodeBase32(const std::string& str);
 std::string EncodeBase32(const unsigned char* pch, size_t len);
 std::string EncodeBase32(const std::string& str);
@@ -61,18 +63,24 @@ int atoi(const std::string& str);
  */
 bool ParseInt32(const std::string& str, int32_t *out);
 
-template<typename T>
-std::string HexStr(const T itbegin, const T itend, bool fSpaces=false)
+template<typename T> std::string HexStr(const T itbegin, const T itend, bool fSpaces=false)
 {
     std::string rv;
+
     static const char hexmap[16] = { '0', '1', '2', '3', '4', '5', '6', '7',
-                                     '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+                                     '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' 
+                                    };
     rv.reserve((itend-itbegin)*3);
+
     for(T it = itbegin; it < itend; ++it)
     {
         unsigned char val = (unsigned char)(*it);
+
         if(fSpaces && it != itbegin)
+        {
             rv.push_back(' ');
+        }
+
         rv.push_back(hexmap[val>>4]);
         rv.push_back(hexmap[val&15]);
     }
@@ -80,8 +88,7 @@ std::string HexStr(const T itbegin, const T itend, bool fSpaces=false)
     return rv;
 }
 
-template<typename T>
-inline std::string HexStr(const T& vch, bool fSpaces=false)
+template<typename T> inline std::string HexStr(const T& vch, bool fSpaces=false)
 {
     return HexStr(vch.begin(), vch.end(), fSpaces);
 }
@@ -92,18 +99,26 @@ inline std::string HexStr(const T& vch, bool fSpaces=false)
  */
 std::string FormatParagraph(const std::string in, size_t width=79, size_t indent=0);
 
+
 /**
  * Timing-attack-resistant comparison.
  * Takes time proportional to length
  * of first argument.
  */
-template <typename T>
-bool TimingResistantEqual(const T& a, const T& b)
+template <typename T> bool TimingResistantEqual(const T& a, const T& b)
 {
-    if (b.size() == 0) return a.size() == 0;
+    if (b.size() == 0)
+    {
+        return a.size() == 0;
+    }
+
     size_t accumulator = a.size() ^ b.size();
+    
     for (size_t i = 0; i < a.size(); i++)
+    {
         accumulator |= a[i] ^ b[i%b.size()];
+    }
+    
     return accumulator == 0;
 }
 

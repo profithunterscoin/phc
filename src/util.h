@@ -1,7 +1,9 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2012 The Bitcoin developers
+// Copyright (c) 2018 Profit Hunters Coin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 
 #ifndef BITCOIN_UTIL_H
 #define BITCOIN_UTIL_H
@@ -79,17 +81,19 @@ typedef int64_t CAmount;
 // This is needed because the foreach macro can't get over the comma in pair<t1, t2>
 #define PAIRTYPE(t1, t2)    std::pair<t1, t2>
 
-// Align by increasing pointer, must have extra space at end of buffer
-template <size_t nBytes, typename T>
-T* alignup(T* p)
+// Alignup by increasing pointer, must have extra space at end of buffer
+template <size_t nBytes, typename T> T* alignup(T* p)
 {
     union
     {
         T* ptr;
         size_t n;
-    } u;
+    }
+    u;
+    
     u.ptr = p;
     u.n = (u.n + (nBytes-1)) & ~(nBytes-1);
+
     return u.ptr;
 }
 
@@ -149,9 +153,9 @@ void RandAddSeed();
 void RandAddSeedPerfmon();
 
 
-
 /* Return true if log accepts specified category */
 bool LogAcceptCategory(const char* category);
+
 /* Send a string to the log output */
 int LogPrintStr(const std::string &str);
 
@@ -165,7 +169,7 @@ int LogPrintStr(const std::string &str);
     template<TINYFORMAT_ARGTYPES(n)>                                          \
     static inline int LogPrint(const char* category, const char* format, TINYFORMAT_VARARGS(n))  \
     {                                                                                \
-        if(!LogAcceptCategory(category)) return 0;                                   \
+        if(!LogAcceptCategory(category)) { return 0; }                               \
         return LogPrintStr(tfm::format(format, TINYFORMAT_PASSARGS(n)));             \
     }                                                                                \
     /*   Log error and return false */                                               \
@@ -191,17 +195,25 @@ TINYFORMAT_FOREACH_ARGNUM(MAKE_ERROR_AND_LOG_FUNC)
  */
 static inline int LogPrint(const char* category, const char* format)
 {
-    if(!LogAcceptCategory(category)) return 0;
+    if(!LogAcceptCategory(category))
+    {
+        return 0;
+    }
+
     return LogPrintStr(format);
 }
+
 static inline bool error(const char* format)
 {
     LogPrintStr(std::string("ERROR: ") + format + "\n");
+
     return false;
 }
+
 static inline int errorN(int n, const char* format)
 {
     LogPrintStr(std::string("ERROR: ") + format + "\n");
+    
     return n;
 }
 
@@ -214,33 +226,48 @@ void RandAddSeedPerfmon();
 void PrintException(std::exception* pex, const char* pszThread);
 void PrintExceptionContinue(std::exception* pex, const char* pszThread);
 void ParseString(const std::string& str, char c, std::vector<std::string>& v);
+
 std::string FormatMoney(int64_t n, bool fPlus=false);
+
 bool ParseMoney(const std::string& str, int64_t& nRet);
 bool ParseMoney(const char* pszIn, int64_t& nRet);
+
 std::string SanitizeString(const std::string& str);
 std::vector<unsigned char> ParseHex(const char* psz);
 std::vector<unsigned char> ParseHex(const std::string& str);
+
 bool IsHex(const std::string& str);
+
 std::vector<unsigned char> DecodeBase64(const char* p, bool* pfInvalid = NULL);
 std::string DecodeBase64(const std::string& str);
 std::string EncodeBase64(const unsigned char* pch, size_t len);
 std::string EncodeBase64(const std::string& str);
+
 SecureString DecodeBase64Secure(const SecureString& input);
 SecureString EncodeBase64Secure(const SecureString& input);
+
 std::vector<unsigned char> DecodeBase32(const char* p, bool* pfInvalid = NULL);
 std::string DecodeBase32(const std::string& str);
 std::string EncodeBase32(const unsigned char* pch, size_t len);
 std::string EncodeBase32(const std::string& str);
+
 void ParseParameters(int argc, const char*const argv[]);
+
 bool WildcardMatch(const char* psz, const char* mask);
 bool WildcardMatch(const std::string& str, const std::string& mask);
+
 void FileCommit(FILE *fileout);
+
 bool RenameOver(boost::filesystem::path src, boost::filesystem::path dest);
+
 boost::filesystem::path GetDefaultDataDir();
+
 const boost::filesystem::path &GetDataDir(bool fNetSpecific = true);
+
 boost::filesystem::path GetConfigFile();
 boost::filesystem::path GetMasternodeConfigFile();
 boost::filesystem::path GetPidFile();
+
 #ifndef WIN32
 void CreatePidFile(const boost::filesystem::path &path, pid_t pid);
 #endif
@@ -253,20 +280,30 @@ std::string getTimeString(int64_t timestamp, char *buffer, size_t nBuffer);
 std::string bytesReadable(uint64_t nBytes);
 
 void ShrinkDebugFile();
+
 bool GetRandBytes(unsigned char* buf, int num);
+
 int GetRandInt(int nMax);
+
 uint64_t GetRand(uint64_t nMax);
+
 uint256 GetRandHash();
+
 int64_t GetTime();
+
 void SetMockTime(int64_t nMockTimeIn);
+
 int64_t GetAdjustedTime();
+
 int64_t GetTimeOffset();
+
 std::string FormatFullVersion();
+
 std::string FormatSubVersion(const std::string& name, int nClientVersion, const std::vector<std::string>& comments);
+
 void AddTimeData(const CNetAddr& ip, int64_t nTime);
+
 void runCommand(std::string strCommand);
-
-
 
 
 /**
@@ -338,7 +375,9 @@ inline std::string leftTrim(std::string src, char chr)
     std::string::size_type pos = src.find_first_not_of(chr, 0);
 
     if(pos > 0)
+    {
         src.erase(0, pos);
+    }
 
     return src;
 }
@@ -350,11 +389,16 @@ std::string HexStr(const T itbegin, const T itend, bool fSpaces=false)
     static const char hexmap[16] = { '0', '1', '2', '3', '4', '5', '6', '7',
                                      '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
     rv.reserve((itend-itbegin)*3);
+
     for(T it = itbegin; it < itend; ++it)
     {
         unsigned char val = (unsigned char)(*it);
+        
         if(fSpaces && it != itbegin)
+        {
             rv.push_back(' ');
+        }
+
         rv.push_back(hexmap[val>>4]);
         rv.push_back(hexmap[val&15]);
     }
@@ -362,8 +406,7 @@ std::string HexStr(const T itbegin, const T itend, bool fSpaces=false)
     return rv;
 }
 
-template<typename T>
-inline std::string HexStr(const T& vch, bool fSpaces=false)
+template<typename T> inline std::string HexStr(const T& vch, bool fSpaces=false)
 {
     return HexStr(vch.begin(), vch.end(), fSpaces);
 }
@@ -371,6 +414,7 @@ inline std::string HexStr(const T& vch, bool fSpaces=false)
 inline int64_t GetPerformanceCounter()
 {
     int64_t nCounter = 0;
+
 #ifdef WIN32
     QueryPerformanceCounter((LARGE_INTEGER*)&nCounter);
 #else
@@ -396,17 +440,19 @@ inline int64_t GetTimeMicros()
 std::string DateTimeStrFormat(const char* pszFormat, int64_t nTime);
 
 static const std::string strTimestampFormat = "%Y-%m-%d %H:%M:%S UTC";
+
 inline std::string DateTimeStrFormat(int64_t nTime)
 {
     return DateTimeStrFormat(strTimestampFormat.c_str(), nTime);
 }
 
 
-template<typename T>
-void skipspaces(T& it)
+template<typename T> void skipspaces(T& it)
 {
     while (isspace(*it))
+    {
         ++it;
+    }
 }
 
 inline bool IsSwitchChar(char c)
@@ -427,6 +473,7 @@ inline bool IsSwitchChar(char c)
  */
 std::string GetArg(const std::string& strArg, const std::string& strDefault);
 
+
 /**
  * Return integer argument or default value
  *
@@ -435,6 +482,7 @@ std::string GetArg(const std::string& strArg, const std::string& strDefault);
  * @return command-line argument (0 if invalid number) or default value
  */
 int64_t GetArg(const std::string& strArg, int64_t nDefault);
+
 
 /**
  * Return boolean argument or default value
@@ -445,6 +493,7 @@ int64_t GetArg(const std::string& strArg, int64_t nDefault);
  */
 bool GetBoolArg(const std::string& strArg, bool fDefault);
 
+
 /**
  * Set an argument if it doesn't already have a value
  *
@@ -454,6 +503,7 @@ bool GetBoolArg(const std::string& strArg, bool fDefault);
  */
 bool SoftSetArg(const std::string& strArg, const std::string& strValue);
 
+
 /**
  * Set a boolean argument if it doesn't already have a value
  *
@@ -462,6 +512,7 @@ bool SoftSetArg(const std::string& strArg, const std::string& strValue);
  * @return true if argument gets set, false if it already had a value
  */
 bool SoftSetBoolArg(const std::string& strArg, bool fValue);
+
 
 /**
  * MWC RNG of George Marsaglia
@@ -476,8 +527,10 @@ static inline uint32_t insecure_rand(void)
 {
   insecure_rand_Rz=36969*(insecure_rand_Rz&65535)+(insecure_rand_Rz>>16);
   insecure_rand_Rw=18000*(insecure_rand_Rw&65535)+(insecure_rand_Rw>>16);
+
   return (insecure_rand_Rw<<16)+insecure_rand_Rz;
 }
+
 
 /**
  * Seed insecure_rand using the random pool.
@@ -485,75 +538,91 @@ static inline uint32_t insecure_rand(void)
  */
 void seed_insecure_rand(bool fDeterministic=false);
 
+
 /**
  * Timing-attack-resistant comparison.
  * Takes time proportional to length
  * of first argument.
  */
-template <typename T>
-bool TimingResistantEqual(const T& a, const T& b)
+template <typename T> bool TimingResistantEqual(const T& a, const T& b)
 {
-    if (b.size() == 0) return a.size() == 0;
+    if (b.size() == 0)
+    {
+        return a.size() == 0;
+    } 
+
     size_t accumulator = a.size() ^ b.size();
+  
     for (size_t i = 0; i < a.size(); i++)
+    {
         accumulator |= a[i] ^ b[i%b.size()];
+    }
+  
     return accumulator == 0;
 }
+
 
 /** Median filter over a stream of values.
  * Returns the median of the last N numbers
  */
 template <typename T> class CMedianFilter
 {
-private:
-    std::vector<T> vValues;
-    std::vector<T> vSorted;
-    unsigned int nSize;
-public:
-    CMedianFilter(unsigned int size, T initial_value):
-        nSize(size)
-    {
-        vValues.reserve(size);
-        vValues.push_back(initial_value);
-        vSorted = vValues;
-    }
+    private:
 
-    void input(T value)
-    {
-        if(vValues.size() == nSize)
+        std::vector<T> vValues;
+        std::vector<T> vSorted;
+
+        unsigned int nSize;
+
+    public:
+
+        CMedianFilter(unsigned int size, T initial_value): nSize(size)
         {
-            vValues.erase(vValues.begin());
+            vValues.reserve(size);
+            vValues.push_back(initial_value);
+            vSorted = vValues;
         }
-        vValues.push_back(value);
 
-        vSorted.resize(vValues.size());
-        std::copy(vValues.begin(), vValues.end(), vSorted.begin());
-        std::sort(vSorted.begin(), vSorted.end());
-    }
-
-    T median() const
-    {
-        int size = vSorted.size();
-        assert(size>0);
-        if(size & 1) // Odd number of elements
+        void input(T value)
         {
-            return vSorted[size/2];
+            if(vValues.size() == nSize)
+            {
+                vValues.erase(vValues.begin());
+            }
+
+            vValues.push_back(value);
+
+            vSorted.resize(vValues.size());
+            
+            std::copy(vValues.begin(), vValues.end(), vSorted.begin());
+            std::sort(vSorted.begin(), vSorted.end());
         }
-        else // Even number of elements
+
+        T median() const
         {
-            return (vSorted[size/2-1] + vSorted[size/2]) / 2;
+            int size = vSorted.size();
+
+            assert(size>0);
+            
+            if(size & 1) // Odd number of elements
+            {
+                return vSorted[size/2];
+            }
+            else // Even number of elements
+            {
+                return (vSorted[size/2-1] + vSorted[size/2]) / 2;
+            }
         }
-    }
 
-    int size() const
-    {
-        return vValues.size();
-    }
+        int size() const
+        {
+            return vValues.size();
+        }
 
-    std::vector<T> sorted () const
-    {
-        return vSorted;
-    }
+        std::vector<T> sorted () const
+        {
+            return vSorted;
+        }
 };
 
 #ifdef WIN32
@@ -585,6 +654,7 @@ void RenameThread(const char* name);
 inline uint32_t ByteReverse(uint32_t value)
 {
     value = ((value & 0xFF00FF00) >> 8) | ((value & 0x00FF00FF) << 8);
+    
     return (value<<16) | (value>>16);
 }
 
@@ -598,48 +668,64 @@ inline uint32_t ByteReverse(uint32_t value)
 template <typename Callable> void LoopForever(const char* name,  Callable func, int64_t msecs)
 {
     std::string s = strprintf("PHC-%s", name);
+    
     RenameThread(s.c_str());
+    
     LogPrintf("%s thread start\n", name);
+    
     try
     {
         while (1)
         {
             MilliSleep(msecs);
+            
             func();
         }
     }
     catch (boost::thread_interrupted)
     {
         LogPrintf("%s thread stop\n", name);
+        
         throw;
     }
-    catch (std::exception& e) {
+    catch (std::exception& e)
+    {
         PrintException(&e, name);
     }
-    catch (...) {
+    catch (...)
+    {
         PrintException(NULL, name);
     }
 }
+
+
 // .. and a wrapper that just calls func once
 template <typename Callable> void TraceThread(const char* name,  Callable func)
 {
     std::string s = strprintf("PHC-%s", name);
+    
     RenameThread(s.c_str());
+    
     try
     {
         LogPrintf("%s thread start\n", name);
+        
         func();
+        
         LogPrintf("%s thread exit\n", name);
     }
     catch (boost::thread_interrupted)
     {
         LogPrintf("%s thread interrupt\n", name);
+        
         throw;
     }
-    catch (std::exception& e) {
+    catch (std::exception& e)
+    {
         PrintException(&e, name);
     }
-    catch (...) {
+    catch (...)
+    {
         PrintException(NULL, name);
     }
 }

@@ -1,7 +1,10 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2012 The Bitcoin developers
+// Copyright (c) 2018 Profit Hunters Coin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+
 #ifndef _BITCOIN_COMPAT_H
 #define _BITCOIN_COMPAT_H
 
@@ -41,8 +44,10 @@
 #ifdef WIN32
 #define MSG_DONTWAIT        0
 #else
+
 typedef u_int SOCKET;
 #include "errno.h"
+
 #define WSAGetLastError()   errno
 #define WSAEINVAL           EINVAL
 #define WSAEALREADY         EALREADY
@@ -52,6 +57,7 @@ typedef u_int SOCKET;
 #define WSAEINPROGRESS      EINPROGRESS
 #define WSAEADDRINUSE       EADDRINUSE
 #define WSAENOTSOCK         EBADF
+
 #define INVALID_SOCKET      (SOCKET)(~0)
 #define SOCKET_ERROR        -1
 #endif
@@ -59,7 +65,10 @@ typedef u_int SOCKET;
 inline int myclosesocket(SOCKET& hSocket)
 {
     if (hSocket == INVALID_SOCKET)
+    {
         return WSAENOTSOCK;
+    }
+
 #ifdef WIN32
     int ret = closesocket(hSocket);
 #else
