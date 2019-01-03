@@ -14,26 +14,26 @@ started with peer to peer profits from trading coins on our decentralized exchan
 
 v1.0.0.7 (Pre-release)
 --------
- * Cleaned Core and QT source files
- * OpenSSL 1.1 Support
- * FIX: Excessive CPU use during mining
- * Upgrade: Debug to Logfile (Disabled by default, Added Categories and Function Names)
- * FIX: Removed peer banning ProcessBlock, upgraded some Misbehaving calls in main.cpp
- * Installed: Retarget Hard Fork (TimeFrame changed from 120 to 60 seconds) (Mainnet: Inactive, Testnet: Block # 338250)
- * Installed: Block Shield 1.2.1 (Mainnet: Inactive, Testnet: Block # 338250)
- * FIX: Blank Masternode Payee in CBlock::AddToBlockIndex()
- * Install Internal PoW Miner (setgenerate)
- * FIX: Sync time minimized & Reorganize/Prune orphan blocks
- * FIX: RPC Client
- * FIX: TXDB Crash
- * FIX: Swapped BOOST::copy_file for STD copy_file
- * FIX: LoadblockIndex upon Init
- * Installed: Init PruneOrphanBlocks
- * Installed: RPC Prune & Reorganize
- * ProcessBlock() fixed
- * Installed: ReorganizeChain function
- * FIX: Init Msg
- * FIX: Reorganize()
+* Cleaned Core and QT source files
+* OpenSSL 1.1 Support
+* FIX: Excessive CPU use during mining
+* Upgrade: Debug to Logfile (Disabled by default, Added Categories and Function Names)
+* FIX: Removed peer banning ProcessBlock, upgraded some Misbehaving calls in main.cpp
+* Installed: Retarget Hard Fork (TimeFrame changed from 120 to 60 seconds) (Mainnet: Inactive, Testnet: Block # 338250)
+* Installed: Block Shield 1.2.1 (Mainnet: Inactive, Testnet: Block # 338250)
+* FIX: Blank Masternode Payee in CBlock::AddToBlockIndex()
+* Install Internal PoW Miner (setgenerate)
+* FIX: Sync time minimized & Reorganize/Prune orphan blocks
+* FIX: RPC Client
+* FIX: TXDB Crash
+* FIX: Swapped BOOST::copy_file for STD copy_file
+* FIX: LoadblockIndex upon Init
+* Installed: Init PruneOrphanBlocks
+* Installed: RPC Prune & Reorganize
+* ProcessBlock() fixed
+* Installed: ReorganizeChain function
+* FIX: Init Msg
+* FIX: Reorganize()
 
 v1.0.0.6
 --------
