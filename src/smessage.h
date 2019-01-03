@@ -15,7 +15,6 @@
 #include "base58.h"
 #include "lz4/lz4.h"
 
-
 const unsigned int SMSG_HDR_LEN         = 104;               // length of unencrypted header, 4 + 2 + 1 + 8 + 16 + 33 + 32 + 4 +4
 const unsigned int SMSG_PL_HDR_LEN      = 1+20+65+4;         // length of encrypted header in payload
 const unsigned int SMSG_BUCKET_LEN      = 60 * 10;           // in seconds
@@ -25,8 +24,8 @@ const unsigned int SMSG_THREAD_DELAY    = 30;
 const unsigned int SMSG_THREAD_LOG_GAP  = 6;
 const unsigned int SMSG_TIME_LEEWAY     = 60;
 const unsigned int SMSG_TIME_IGNORE     = 90;                // seconds that a peer is ignored for if they fail to deliver messages for a smsgWant
-const unsigned int SMSG_MAX_MSG_BYTES   = 4096;              // the user input part
 
+const unsigned int SMSG_MAX_MSG_BYTES   = 4096;              // the user input part
 
 // max size of payload worst case compression
 const unsigned int SMSG_MAX_MSG_WORST = LZ4_COMPRESSBOUND(SMSG_MAX_MSG_BYTES+SMSG_PL_HDR_LEN);
@@ -59,8 +58,8 @@ extern SecMsgOptions                    smsgOptions;
 extern CCriticalSection cs_smsg;            // all except inbox and outbox
 extern CCriticalSection cs_smsgDB;
 
-
 #pragma pack(push, 1)
+
 class SecureMessage
 {
     public:
@@ -74,7 +73,10 @@ class SecureMessage
         ~SecureMessage()
         {
             if (pPayload)
+            {
                 delete[] pPayload;
+            }
+
             pPayload = NULL;
         };
 
@@ -99,7 +101,7 @@ class MessageData
     public:
 
         int64_t               timestamp;
-    
+
         std::string           sToAddress;
         std::string           sFromAddress;
         std::vector<uint8_t>  vchMessage;         // null terminated plaintext
@@ -109,6 +111,7 @@ class MessageData
 class SecMsgToken
 {
     public:
+
         SecMsgToken(int64_t ts, uint8_t* p, int np, long int o)
         {
             timestamp = ts;
@@ -120,9 +123,9 @@ class SecMsgToken
             } 
             else
             {
-
-            }
                 memcpy(sample, p, 8);
+            }
+
             offset = o;
         };
 
@@ -144,7 +147,6 @@ class SecMsgToken
         int64_t               timestamp;    // doesn't need to be full 64 bytes?
         uint8_t               sample[8];    // first 8 bytes of payload - a hash
         int64_t               offset;       // offset
-
 };
 
 
@@ -158,7 +160,7 @@ class SecMsgBucket
             hash            = 0;
             nLockCount      = 0;
             nLockPeerId     = 0;
-        }
+        };
 
         ~SecMsgBucket() {};
 
@@ -167,9 +169,7 @@ class SecMsgBucket
         int64_t                     timeChanged;
         uint32_t                    hash;           // token set should get ordered the same on each node
         uint32_t                    nLockCount;     // set when smsgWant first sent, unset at end of smsgMsg, ticks down in ThreadSecureMsg()
-        
         NodeId                      nLockPeerId;    // id of peer that bucket is locked for
-        
         std::set<SecMsgToken>       setTokens;
 
 };
@@ -216,7 +216,6 @@ class SecMsgAddress
         };
 
         std::string     sAddress;
-        
         bool            fReceiveEnabled;
         bool            fReceiveAnon;
 
@@ -252,9 +251,8 @@ class SecMsgCrypter
 
         uint8_t chKey[32];
         uint8_t chIV[16];
-
         bool fKeySet;
-
+    
     public:
 
         SecMsgCrypter()
@@ -264,7 +262,6 @@ class SecMsgCrypter
             // Note as well that at no point in this program is any attempt made to prevent stealing of keys by reading the memory of the running process.
             LockedPageManager::Instance().LockRange(&chKey[0], sizeof chKey);
             LockedPageManager::Instance().LockRange(&chIV[0], sizeof chIV);
-
             fKeySet = false;
         }
 
@@ -291,11 +288,8 @@ class SecMsgStored
     public:
 
         int64_t                   timeReceived;
-
         char                      status;         // read etc
-        
         uint16_t                  folderId;
-        
         std::string               sAddrTo;        // when in owned addr, when sent remote addr
         std::string               sAddrOutbox;    // owned address this copy was encrypted with
         std::vector<uint8_t>      vchMessage;     // message header + encryped payload
@@ -354,7 +348,6 @@ class SecMsgDB
 
 };
 
-
 int SecureMsgBuildBucketSet();
 int SecureMsgAddWalletAddresses();
 
@@ -370,12 +363,10 @@ bool SecureMsgDisable();
 bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRecv);
 bool SecureMsgSendData(CNode* pto, bool fSendTrickle);
 
-
 bool SecureMsgScanBlock(CBlock& block);
 bool ScanChainForPublicKeys(CBlockIndex* pindexStart);
 bool SecureMsgScanBlockChain();
 bool SecureMsgScanBuckets();
-
 
 int SecureMsgWalletUnlocked();
 int SecureMsgWalletKeyChanged(std::string sAddress, std::string sLabel, ChangeType mode);
@@ -395,8 +386,6 @@ int SecureMsgReceive(CNode* pfrom, std::vector<uint8_t>& vchData);
 int SecureMsgStoreUnscanned(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload);
 int SecureMsgStore(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload, bool fUpdateBucket);
 int SecureMsgStore(SecureMessage& smsg, bool fUpdateBucket);
-
-
 
 int SecureMsgSend(std::string &addressFrom, std::string &addressTo, std::string &message, std::string &sError);
 

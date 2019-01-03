@@ -1,9 +1,8 @@
 // Copyright (c) 2009-2012 The Bitcoin Developers.
+// Copyright (c) 2018 Profit Hunters Coin developers
 // Authored by Google, Inc.
-// Edited by: Profit Hunters Coin developers (2018)
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-
 
 #ifndef BITCOIN_LEVELDB_H
 #define BITCOIN_LEVELDB_H
@@ -29,11 +28,13 @@
 // together when too many files stack up.
 //
 // Learn more: http://code.google.com/p/leveldb/
+
 class CTxDB
 {
     public:
 
         CTxDB(const char* pszMode="r+");
+
         ~CTxDB()
         {
             // Note that this is not the same as Close() because it deletes only
@@ -52,10 +53,10 @@ class CTxDB
         // field is non-NULL, writes/deletes go there instead of directly to disk.
         leveldb::WriteBatch *activeBatch;
         leveldb::Options options;
-
-        bool fReadOnly;
         
+        bool fReadOnly;
         int nVersion;
+
 
     protected:
 
@@ -80,7 +81,7 @@ class CTxDB
                 bool deleted = false;
 
                 readFromDb = ScanBatch(ssKey, &strValue, &deleted) == false;
-                
+
                 if (deleted)
                 {
                     return false;
@@ -89,8 +90,8 @@ class CTxDB
 
             if (readFromDb)
             {
-                leveldb::Status status = pdb->Get(leveldb::ReadOptions(),
-                                                ssKey.str(), &strValue);
+                leveldb::Status status = pdb->Get(leveldb::ReadOptions(), ssKey.str(), &strValue);
+                
                 if (!status.ok())
                 {
                     if (status.IsNotFound())
@@ -104,10 +105,10 @@ class CTxDB
                     return false;
                 }
             }
-
+            
             // Unserialize value
             try
-            {    
+            {
                 CDataStream ssValue(strValue.data(), strValue.data() + strValue.size(), SER_DISK, CLIENT_VERSION);
                 ssValue >> value;
             }
@@ -129,7 +130,6 @@ class CTxDB
             CDataStream ssKey(SER_DISK, CLIENT_VERSION);
             ssKey.reserve(1000);
             ssKey << key;
-
             CDataStream ssValue(SER_DISK, CLIENT_VERSION);
             ssValue.reserve(10000);
             ssValue << value;
@@ -137,37 +137,47 @@ class CTxDB
             if (activeBatch)
             {
                 activeBatch->Put(ssKey.str(), ssValue.str());
-                
+
                 return true;
             }
 
             leveldb::Status status = pdb->Put(leveldb::WriteOptions(), ssKey.str(), ssValue.str());
-            
+
             if (!status.ok())
             {
                 LogPrintf("LevelDB write failure: %s\n", status.ToString());
 
                 return false;
             }
-            
+
             return true;
         }
 
         template<typename K> bool Erase(const K& key)
         {
             if (!pdb)
+            {
                 return false;
+            }
+
             if (fReadOnly)
+            {
                 assert(!"Erase called on database in read-only mode");
+            }
 
             CDataStream ssKey(SER_DISK, CLIENT_VERSION);
             ssKey.reserve(1000);
             ssKey << key;
-            if (activeBatch) {
+
+            if (activeBatch)
+            {
                 activeBatch->Delete(ssKey.str());
+
                 return true;
             }
+
             leveldb::Status status = pdb->Delete(leveldb::WriteOptions(), ssKey.str());
+
             return (status.ok() || status.IsNotFound());
         }
 
@@ -181,13 +191,12 @@ class CTxDB
             if (activeBatch)
             {
                 bool deleted;
-
+            
                 if (ScanBatch(ssKey, &unused, &deleted) && !deleted)
                 {
                     return true;
                 }
             }
-
 
             leveldb::Status status = pdb->Get(leveldb::ReadOptions(), ssKey.str(), &unused);
 
@@ -197,11 +206,12 @@ class CTxDB
 
     public:
 
-        bool TxnBegin();
-        bool TxnCommit();
-        bool TxnAbort()
 
-        // Global Namespace Start
+        bool TxnBegin();
+
+        bool TxnCommit();
+
+        bool TxnAbort()
         {
             delete activeBatch;
 
@@ -209,7 +219,6 @@ class CTxDB
 
             return true;
         }
-        // Global Namespace End
 
         bool ReadVersion(int& nVersion)
         {
@@ -225,26 +234,20 @@ class CTxDB
 
         bool ReadAddrIndex(uint160 addrHash, std::vector<uint256>& txHashes);
         bool WriteAddrIndex(uint160 addrHash, uint256 txHash);
-        
         bool ReadTxIndex(uint256 hash, CTxIndex& txindex);
         bool UpdateTxIndex(uint256 hash, const CTxIndex& txindex);
         bool AddTxIndex(const CTransaction& tx, const CDiskTxPos& pos, int nHeight);
         bool EraseTxIndex(const CTransaction& tx);
         bool ContainsTx(uint256 hash);
-        
         bool ReadDiskTx(uint256 hash, CTransaction& tx, CTxIndex& txindex);
         bool ReadDiskTx(uint256 hash, CTransaction& tx);
         bool ReadDiskTx(COutPoint outpoint, CTransaction& tx, CTxIndex& txindex);
         bool ReadDiskTx(COutPoint outpoint, CTransaction& tx);
-        
         bool WriteBlockIndex(const CDiskBlockIndex& blockindex);
-
         bool ReadHashBestChain(uint256& hashBestChain);
         bool WriteHashBestChain(uint256 hashBestChain);
-
         bool ReadBestInvalidTrust(CBigNum& bnBestInvalidTrust);
         bool WriteBestInvalidTrust(CBigNum bnBestInvalidTrust);
-
         bool LoadBlockIndex();
 
     private:
