@@ -186,9 +186,10 @@ namespace
     {
         // Accumulated misbehaviour score for this peer.
         int nMisbehavior;
-
+        
         // Whether this peer should be disconnected and banned.
         bool fShouldBan;
+        
         std::string name;
 
         CNodeState()
@@ -197,52 +198,54 @@ namespace
             fShouldBan = false;
         }
     };
-};
 
-map<NodeId, CNodeState> mapNodeState;
+    map<NodeId, CNodeState> mapNodeState;
 
-// Requires cs_main.
-CNodeState *State(NodeId pnode)
-{
-    map<NodeId, CNodeState>::iterator it = mapNodeState.find(pnode);
-    if (it == mapNodeState.end())
+    // Requires cs_main.
+    CNodeState *State(NodeId pnode)
     {
-        return NULL;
-    }
-        
-    return &it->second;
-}
+        map<NodeId, CNodeState>::iterator it = mapNodeState.find(pnode);
 
-
-int GetHeight()
-{
-    while(true)
-    {
-        TRY_LOCK(cs_main, lockMain);
-
-        if(!lockMain)
+        if (it == mapNodeState.end())
         {
-            MilliSleep(50);
-            continue;
+            return NULL;
         }
 
-        return pindexBest->nHeight;
+        return &it->second;
     }
-}
 
+    int GetHeight()
+    {
+        while(true)
+        {
+            TRY_LOCK(cs_main, lockMain);
 
-void InitializeNode(NodeId nodeid, const CNode *pnode)
-{
-    LOCK(cs_main);
-    CNodeState &state = mapNodeState.insert(std::make_pair(nodeid, CNodeState())).first->second;
-    state.name = pnode->addrName;
-}
+            if(!lockMain)
+            {
+                MilliSleep(50);
 
+                continue;
+            }
 
-void FinalizeNode(NodeId nodeid)
-{
-    LOCK(cs_main);
-    mapNodeState.erase(nodeid);
+            return pindexBest->nHeight;
+        }
+    }
+
+    void InitializeNode(NodeId nodeid, const CNode *pnode)
+    {
+        LOCK(cs_main);
+
+        CNodeState &state = mapNodeState.insert(std::make_pair(nodeid, CNodeState())).first->second;
+
+        state.name = pnode->addrName;
+    }
+
+    void FinalizeNode(NodeId nodeid)
+    {
+        LOCK(cs_main);
+
+        mapNodeState.erase(nodeid);
+    }
 
 }
 
