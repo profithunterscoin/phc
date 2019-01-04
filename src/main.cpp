@@ -244,7 +244,6 @@ namespace
 
 }
 
-
 bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats)
 {
     LOCK(cs_main);
@@ -271,7 +270,6 @@ void RegisterNodeSignals(CNodeSignals& nodeSignals)
     nodeSignals.FinalizeNode.connect(&FinalizeNode);
 }
 
-
 void UnregisterNodeSignals(CNodeSignals& nodeSignals)
 {
     nodeSignals.GetHeight.disconnect(&GetHeight);
@@ -280,7 +278,6 @@ void UnregisterNodeSignals(CNodeSignals& nodeSignals)
     nodeSignals.InitializeNode.disconnect(&InitializeNode);
     nodeSignals.FinalizeNode.disconnect(&FinalizeNode);
 }
-
 
 bool AbortNode(const std::string &strMessage, const std::string &userMessage)
 {
@@ -294,7 +291,6 @@ bool AbortNode(const std::string &strMessage, const std::string &userMessage)
     
     return false;
 }
-
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -338,7 +334,6 @@ bool AddOrphanTx(const CTransaction& tx)
     return true;
 }
 
-
 void static EraseOrphanTx(uint256 hash)
 {
     map<uint256, CTransaction>::iterator it = mapOrphanTransactions.find(hash);
@@ -368,7 +363,6 @@ void static EraseOrphanTx(uint256 hash)
     mapOrphanTransactions.erase(it);
 }
 
-
 unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans)
 {
     unsigned int nEvicted = 0;
@@ -392,7 +386,6 @@ unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans)
     return nEvicted;
 }
 
-
 //////////////////////////////////////////////////////////////////////////////
 //
 // CTransaction and CTxIndex
@@ -415,7 +408,6 @@ bool CTransaction::ReadFromDisk(CTxDB& txdb, const uint256& hash, CTxIndex& txin
     return true;
 }
 
-
 bool CTransaction::ReadFromDisk(CTxDB& txdb, COutPoint prevout, CTxIndex& txindexRet)
 {
     if (!ReadFromDisk(txdb, prevout.hash, txindexRet))
@@ -433,14 +425,12 @@ bool CTransaction::ReadFromDisk(CTxDB& txdb, COutPoint prevout, CTxIndex& txinde
     return true;
 }
 
-
 bool CTransaction::ReadFromDisk(CTxDB& txdb, COutPoint prevout)
 {
     CTxIndex txindex;
 
     return ReadFromDisk(txdb, prevout, txindex);
 }
-
 
 bool CTransaction::ReadFromDisk(COutPoint prevout)
 {
@@ -450,7 +440,6 @@ bool CTransaction::ReadFromDisk(COutPoint prevout)
     
     return ReadFromDisk(txdb, prevout, txindex);
 }
-
 
 bool IsStandardTx(const CTransaction& tx, string& reason)
 {
@@ -581,7 +570,6 @@ bool IsStandardTx(const CTransaction& tx, string& reason)
     return true;
 }
 
-
 bool IsFinalTx(const CTransaction &tx, int nBlockHeight, int64_t nBlockTime)
 {
     AssertLockHeld(cs_main);
@@ -617,7 +605,6 @@ bool IsFinalTx(const CTransaction &tx, int nBlockHeight, int64_t nBlockTime)
 
     return true;
 }
-
 
 //
 // Check transaction inputs to mitigate two
@@ -716,7 +703,6 @@ bool AreInputsStandard(const CTransaction& tx, const MapPrevTx& mapInputs)
     return true;
 }
 
-
 unsigned int GetLegacySigOpCount(const CTransaction& tx)
 {
     unsigned int nSigOps = 0;
@@ -733,7 +719,6 @@ unsigned int GetLegacySigOpCount(const CTransaction& tx)
     
     return nSigOps;
 }
-
 
 unsigned int GetP2SHSigOpCount(const CTransaction& tx, const MapPrevTx& inputs)
 {
@@ -756,7 +741,6 @@ unsigned int GetP2SHSigOpCount(const CTransaction& tx, const MapPrevTx& inputs)
     
     return nSigOps;
 }
-
 
 int CMerkleTx::SetMerkleBranch(const CBlock* pblock)
 {
@@ -827,7 +811,6 @@ int CMerkleTx::SetMerkleBranch(const CBlock* pblock)
     return pindexBest->nHeight - pindex->nHeight + 1;
 }
 
-
 double CTransaction::ComputePriority(double dPriorityInputs, unsigned int nTxSize) const
 {
     // In order to avoid disincentivizing cleaning up the UTXO set we don't count
@@ -857,7 +840,6 @@ double CTransaction::ComputePriority(double dPriorityInputs, unsigned int nTxSiz
     
     return dPriorityInputs / nTxSize;
 }
-
 
 bool CTransaction::CheckTransaction() const
 {
@@ -940,7 +922,6 @@ bool CTransaction::CheckTransaction() const
 
     return true;
 }
-
 
 int64_t GetMinFee(const CTransaction& tx, unsigned int nBytes, bool fAllowFree, enum GetMinFee_mode mode)
 {
@@ -1206,7 +1187,6 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CTransaction &tx, bool fLimitFree, boo
     return true;
 }
 
-
 bool AcceptableInputs(CTxMemPool& pool, const CTransaction &txo, bool fLimitFree, bool* pfMissingInputs, bool fRejectInsaneFee, bool isDSTX)
 {
     AssertLockHeld(cs_main);
@@ -1427,7 +1407,6 @@ int CMerkleTx::GetDepthInMainChainINTERNAL(CBlockIndex* &pindexRet) const
     return pindexBest->nHeight - pindex->nHeight + 1;
 }
 
-
 int CMerkleTx::GetTransactionLockSignatures() const
 {
     if(!IsSporkActive(SPORK_2_INSTANTX))
@@ -1451,7 +1430,6 @@ int CMerkleTx::GetTransactionLockSignatures() const
     return -1;
 }
 
-
 bool CMerkleTx::IsTransactionLockTimedOut() const
 {
     if(!fEnableInstantX)
@@ -1469,7 +1447,6 @@ bool CMerkleTx::IsTransactionLockTimedOut() const
 
     return false;
 }
-
 
 int CMerkleTx::GetDepthInMainChain(CBlockIndex* &pindexRet, bool enableIX) const
 {
@@ -1497,7 +1474,6 @@ int CMerkleTx::GetDepthInMainChain(CBlockIndex* &pindexRet, bool enableIX) const
 
     return nResult;
 }
-
 
 int CMerkleTx::GetBlocksToMaturity() const
 {
@@ -1548,7 +1524,6 @@ bool CWalletTx::AcceptWalletTransaction()
 
     return AcceptWalletTransaction(txdb);
 }
-
 
 int GetInputAge(CTxIn& vin)
 {
@@ -1605,7 +1580,6 @@ int GetInputAgeIX(uint256 nTXHash, CTxIn& vin)
     return -1;
 }
 
-
 int GetIXConfirmations(uint256 nTXHash)
 {
     int sigs = 0;
@@ -1624,7 +1598,6 @@ int GetIXConfirmations(uint256 nTXHash)
 
     return 0;
 }
-
 
 int CTxIndex::GetDepthInMainChain() const
 {
@@ -1650,7 +1623,6 @@ int CTxIndex::GetDepthInMainChain() const
     
     return 1 + nBestHeight - pindex->nHeight;
 }
-
 
 // Return transaction in tx, and if it was found inside a block, its hash is placed in hashBlock
 bool GetTransaction(const uint256 &hash, CTransaction &tx, uint256 &hashBlock)
@@ -1712,15 +1684,12 @@ bool GetTransaction(const uint256 &hash, CTransaction &tx, uint256 &hashBlock)
     return false;
 }
 
-
 //////////////////////////////////////////////////////////////////////////////
 //
 // CBlock and CBlockIndex
 //
 
-
 static CBlockIndex* pblockindexFBBHLast;
-
 
 CBlockIndex* FindBlockByHeight(int nHeight)
 {
@@ -1755,7 +1724,6 @@ CBlockIndex* FindBlockByHeight(int nHeight)
     return pblockindex;
 }
 
-
 bool CBlock::ReadFromDisk(const CBlockIndex* pindex, bool fReadTransactions)
 {
     if (!fReadTransactions)
@@ -1777,7 +1745,6 @@ bool CBlock::ReadFromDisk(const CBlockIndex* pindex, bool fReadTransactions)
     
     return true;
 }
-
 
 uint256 static GetOrphanRoot(const uint256& hash)
 {
@@ -1802,7 +1769,6 @@ uint256 static GetOrphanRoot(const uint256& hash)
     while(true);
 }
 
-
 // ppcoin: find block wanted by given orphan block
 uint256 WantedByOrphan(const COrphanBlock* pblockOrphan)
 {
@@ -1814,7 +1780,6 @@ uint256 WantedByOrphan(const COrphanBlock* pblockOrphan)
 
     return pblockOrphan->hashPrev;
 }
-
 
 // Remove a random orphan block (which does not have any dependent orphans).
 void static PruneOrphanBlocks()
@@ -1857,12 +1822,10 @@ void static PruneOrphanBlocks()
     mapOrphanBlocks.erase(hash);
 }
 
-
 static CBigNum GetProofOfStakeLimit(int nHeight)
 {
     return bnProofOfStakeLimit;
 }
-
 
 double GetDynamicBlockReward3(int nHeight)
 {
@@ -1949,7 +1912,6 @@ double GetDynamicBlockReward3(int nHeight)
 
 }
 
-
 // miner's coin base reward
 int64_t GetProofOfWorkReward(int nHeight, int64_t nFees)
 {
@@ -2005,7 +1967,6 @@ int64_t GetProofOfWorkReward(int nHeight, int64_t nFees)
 
 }
 
-
 // miner's coin stake reward
 int64_t GetProofOfStakeReward(const CBlockIndex* pindexPrev, int64_t nCoinAge, int64_t nFees)
 {
@@ -2056,9 +2017,7 @@ int64_t GetProofOfStakeReward(const CBlockIndex* pindexPrev, int64_t nCoinAge, i
     */
 }
 
-
 static int64_t nTargetTimespan = 120;  //2 mins
-
 
 // ppcoin: find last block index up to pindex
 const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfStake)
@@ -2070,7 +2029,6 @@ const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfSta
 
     return pindex;
 }
-
 
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake)
 {
@@ -2121,7 +2079,6 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     return bnNew.GetCompact();
 }
 
-
 bool CheckProofOfWork(uint256 hash, unsigned int nBits)
 {
     CBigNum bnTarget;
@@ -2141,7 +2098,6 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits)
 
     return true;
 }
-
 
 bool IsInitialBlockDownload()
 {
@@ -2163,7 +2119,6 @@ bool IsInitialBlockDownload()
     
     return (GetTime() - nLastUpdate < 15 && pindexBest->GetBlockTime() < GetTime() - 8 * 60 * 60);
 }
-
 
 void static InvalidChainFound(CBlockIndex* pindexNew)
 {
@@ -2195,7 +2150,6 @@ void CBlock::UpdateTime(const CBlockIndex* pindexPrev)
     nTime = max(GetBlockTime(), GetAdjustedTime());
 }
 
-
 bool IsConfirmedInNPrevBlocks(const CTxIndex& txindex, const CBlockIndex* pindexFrom, int nMaxDepth, int& nActualDepth)
 {
     for (const CBlockIndex* pindex = pindexFrom; pindex && pindexFrom->nHeight - pindex->nHeight < nMaxDepth; pindex = pindex->pprev)
@@ -2210,7 +2164,6 @@ bool IsConfirmedInNPrevBlocks(const CTxIndex& txindex, const CBlockIndex* pindex
 
     return false;
 }
-
 
 bool CTransaction::DisconnectInputs(CTxDB& txdb)
 {
@@ -2346,7 +2299,6 @@ bool CTransaction::FetchInputs(CTxDB& txdb, const map<uint256, CTxIndex>& mapTes
     return true;
 }
 
-
 const CTxOut& CTransaction::GetOutputFor(const CTxIn& input, const MapPrevTx& inputs) const
 {
     MapPrevTx::const_iterator mi = inputs.find(input.prevout.hash);
@@ -2366,7 +2318,6 @@ const CTxOut& CTransaction::GetOutputFor(const CTxIn& input, const MapPrevTx& in
     return txPrev.vout[input.prevout.n];
 }
 
-
 int64_t CTransaction::GetValueIn(const MapPrevTx& inputs) const
 {
     if (IsCoinBase())
@@ -2384,7 +2335,6 @@ int64_t CTransaction::GetValueIn(const MapPrevTx& inputs) const
     return nResult;
 
 }
-
 
 bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs, map<uint256, CTxIndex>& mapTestPool, const CDiskTxPos& posThisTx, const CBlockIndex* pindexBlock, bool fBlock, bool fMiner, unsigned int flags, bool fValidateSig)
 {
@@ -2528,7 +2478,6 @@ bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs, map<uint256, CTx
     return true;
 }
 
-
 bool CBlock::DisconnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 {
     // Disconnect in reverse order
@@ -2561,7 +2510,6 @@ bool CBlock::DisconnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 
     return true;
 }
-
 
 bool static BuildAddrIndex(const CScript &script, std::vector<uint160>& addrIds)
 {
@@ -2616,7 +2564,6 @@ bool static BuildAddrIndex(const CScript &script, std::vector<uint160>& addrIds)
     }
 }
 
-
 bool FindTransactionsByDestination(const CTxDestination &dest, std::vector<uint256> &vtxhash)
 {
     uint160 addrid = 0;
@@ -2658,7 +2605,6 @@ bool FindTransactionsByDestination(const CTxDestination &dest, std::vector<uint2
     
     return true;
 }
-
 
 void CBlock::RebuildAddressIndex(CTxDB& txdb)
 {
@@ -2719,7 +2665,6 @@ void CBlock::RebuildAddressIndex(CTxDB& txdb)
         }
     }
 }
-
 
 bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 {
@@ -2970,7 +2915,6 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
     return true;
 }
 
-
 bool static Reorganize(CTxDB& txdb, CBlockIndex* pindexNew)
 {
     LogPrintf("REORGANIZE\n");
@@ -3154,7 +3098,6 @@ bool CBlock::SetBestChainInner(CTxDB& txdb, CBlockIndex *pindexNew)
     return true;
 }
 
-
 bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
 {
     uint256 hash = GetHash();
@@ -3302,7 +3245,6 @@ bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
     return true;
 }
 
-
 // ppcoin: total coin age spent in transaction, in the unit of coin-days.
 // Only those coins meeting minimum age requirement counts. As those
 // transactions not in main chain are not currently indexed so we
@@ -3363,7 +3305,6 @@ bool CTransaction::GetCoinAge(CTxDB& txdb, const CBlockIndex* pindexPrev, uint64
     
     return true;
 }
-
 
 bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos, const uint256& hashProof)
 {
@@ -3459,7 +3400,6 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos, const u
 
     return true;
 }
-
 
 bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) const
 {
@@ -3561,6 +3501,8 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
             LogPrintf("CheckBlock() : skipping transaction locking checks\n");
         }
     }
+
+
 
     // ----------- masternode payments -----------
 
@@ -3730,7 +3672,6 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
     return true;
 }
 
-
 bool CBlock::AcceptBlock()
 {
     AssertLockHeld(cs_main);
@@ -3888,7 +3829,6 @@ bool CBlock::AcceptBlock()
     return true;
 }
 
-
 uint256 CBlockIndex::GetBlockTrust() const
 {
     CBigNum bnTarget;
@@ -3901,7 +3841,6 @@ uint256 CBlockIndex::GetBlockTrust() const
 
     return ((CBigNum(1)<<256) / (bnTarget+1)).getuint256();
 }
-
 
 void PushGetBlocks(CNode* pnode, CBlockIndex* pindexBegin, uint256 hashEnd)
 {
@@ -3917,7 +3856,6 @@ void PushGetBlocks(CNode* pnode, CBlockIndex* pindexBegin, uint256 hashEnd)
     pnode->PushMessage("getblocks", CBlockLocator(pindexBegin), hashEnd);
 }
 
-
 bool static IsCanonicalBlockSignature(CBlock* pblock)
 {
     if (pblock->IsProofOfWork())
@@ -3927,7 +3865,6 @@ bool static IsCanonicalBlockSignature(CBlock* pblock)
 
     return IsDERSignature(pblock->vchBlockSig, false);
 }
-
 
 void Misbehaving(NodeId pnode, int howmuch)
 {
@@ -3956,7 +3893,6 @@ void Misbehaving(NodeId pnode, int howmuch)
         LogPrintf("Misbehaving: %s (%d -> %d)\n", state->name.c_str(), state->nMisbehavior-howmuch, state->nMisbehavior);
     }
 }
-
 
 bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 {
@@ -4165,9 +4101,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     return true;
 }
 
-
 #ifdef ENABLE_WALLET
-
 
 // novacoin: attempt to generate suitable proof-of-stake
 bool CBlock::SignBlock(CWallet& wallet, int64_t nFees)
@@ -4241,7 +4175,6 @@ bool CBlock::SignBlock(CWallet& wallet, int64_t nFees)
 }
 #endif
 
-
 bool CBlock::CheckBlockSignature() const
 {
     if (IsProofOfWork())
@@ -4274,7 +4207,6 @@ bool CBlock::CheckBlockSignature() const
     return false;
 }
 
-
 bool CheckDiskSpace(uint64_t nAdditionalBytes)
 {
     uint64_t nFreeBytesAvailable = filesystem::space(GetDataDir()).available;
@@ -4297,14 +4229,12 @@ bool CheckDiskSpace(uint64_t nAdditionalBytes)
     return true;
 }
 
-
 static filesystem::path BlockFilePath(unsigned int nFile)
 {
     string strBlockFn = strprintf("blk%04u.dat", nFile);
 
     return GetDataDir() / strBlockFn;
 }
-
 
 FILE* OpenBlockFile(unsigned int nFile, unsigned int nBlockPos, const char* pszMode)
 {
@@ -4333,9 +4263,7 @@ FILE* OpenBlockFile(unsigned int nFile, unsigned int nBlockPos, const char* pszM
     return file;
 }
 
-
 static unsigned int nCurrentBlockFile = 1;
-
 
 FILE* AppendBlockFile(unsigned int& nFileRet)
 {
@@ -4368,7 +4296,6 @@ FILE* AppendBlockFile(unsigned int& nFileRet)
         nCurrentBlockFile++;
     }
 }
-
 
 bool LoadBlockIndex(bool fAllowNew)
 {
@@ -4418,6 +4345,7 @@ bool LoadBlockIndex(bool fAllowNew)
 
     return true;
 }
+
 
 
 void PrintBlockTree()
@@ -4519,7 +4447,6 @@ void PrintBlockTree()
     }
 }
 
-
 bool LoadExternalBlockFile(FILE* fileIn)
 {
     int64_t nStart = GetTimeMillis();
@@ -4610,7 +4537,6 @@ bool LoadExternalBlockFile(FILE* fileIn)
     return nLoaded > 0;
 }
 
-
 struct CImportingNow
 {
     CImportingNow()
@@ -4627,7 +4553,6 @@ struct CImportingNow
         fImporting = false;
     }
 };
-
 
 void ThreadImport(std::vector<boost::filesystem::path> vImportFiles)
 {
@@ -4672,7 +4597,6 @@ void ThreadImport(std::vector<boost::filesystem::path> vImportFiles)
 
 extern map<uint256, CAlert> mapAlerts;
 extern CCriticalSection cs_mapAlerts;
-
 
 string GetWarnings(string strFor)
 {
@@ -4733,6 +4657,7 @@ string GetWarnings(string strFor)
 
     return "error";
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -4968,7 +4893,6 @@ void static ProcessGetData(CNode* pfrom)
         pfrom->PushMessage("notfound", vNotFound);
     }
 }
-
 
 bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 {
@@ -5831,7 +5755,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
     return true;
 }
 
-
 // requires LOCK(cs_vRecvMsg)
 bool ProcessMessages(CNode* pfrom)
 {
@@ -6261,6 +6184,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
 
     return true;
 }
+
 
 
 int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
