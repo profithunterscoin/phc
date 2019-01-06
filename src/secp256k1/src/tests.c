@@ -209,7 +209,7 @@ void run_context_tests(void)
 
     /*** clone and destroy all of them to make sure cloning was complete ***/
 
-    // Global Namespace Start
+    /*** Global Namespace Start ***/
     {
         secp256k1_context *ctx_tmp;
 
@@ -218,7 +218,7 @@ void run_context_tests(void)
         ctx_tmp = vrfy; vrfy = secp256k1_context_clone(vrfy); secp256k1_context_destroy(ctx_tmp);
         ctx_tmp = both; both = secp256k1_context_clone(both); secp256k1_context_destroy(ctx_tmp);
     }
-    // Global Namespace End
+    /*** Global Namespace End ***/
 
     /* Verify that the error callback makes it across the clone. */
     CHECK(vrfy->error_callback.fn != sign->error_callback.fn);
@@ -3656,7 +3656,7 @@ int test_ecdsa_der_parse(const unsigned char *sig, size_t siglen, int certainly_
 
     if (parsed_openssl)
     {
-#if OPENSSL_VERSION_NUMBER < 0x10100000L // OPENSSL 1.0
+#if OPENSSL_VERSION_NUMBER < 0x10100000L /***  OPENSSL 1.0 **/
         valid_openssl = !BN_is_negative(sig_openssl->r) && !BN_is_negative(sig_openssl->s) && BN_num_bits(sig_openssl->r) > 0 && BN_num_bits(sig_openssl->r) <= 256 && BN_num_bits(sig_openssl->s) > 0 && BN_num_bits(sig_openssl->s) <= 256;
 
         if (valid_openssl)
@@ -3672,7 +3672,7 @@ int test_ecdsa_der_parse(const unsigned char *sig, size_t siglen, int certainly_
             BN_bn2bin(sig_openssl->s, tmp + 32 - BN_num_bytes(sig_openssl->s));
             valid_openssl = memcmp(tmp, max_scalar, 32) < 0;
         }
-#else // OPENSSL 1.1+
+#else /***  OPENSSL 1.1+  **/
         const BIGNUM *sig_openssl_r = NULL;
         const BIGNUM *sig_openssl_s = NULL;
 
