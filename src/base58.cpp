@@ -66,7 +66,11 @@ bool DecodeBase58(const char* psz, std::vector<unsigned char>& vchRet)
 
         bnChar.setulong(p1 - pszBase58);
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+        if (!BN_mul(&bn, &bn, &bn58, pctx))
+#else // OPENSSL 1.1+
         if (!BN_mul(bn.to_bignum(), bn.to_bignum(), bn58.to_bignum(), pctx))
+#endif
         {
             throw bignum_error("DecodeBase58 : BN_mul failed");
         }

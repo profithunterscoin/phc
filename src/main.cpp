@@ -292,7 +292,7 @@ bool AbortNode(const std::string &strMessage, const std::string &userMessage)
 
     if (fDebug)
     {
-        LogPrintf("net", "*** %s\n", strMessage);
+        LogPrint("net", "*** %s\n", strMessage);
     }
 
     uiInterface.ThreadSafeMessageBox(userMessage.empty() ? _("Error: A fatal internal error occured, see debug.log for details") : userMessage, "", CClientUIInterface::MSG_ERROR);
@@ -381,6 +381,7 @@ void static EraseOrphanTx(uint256 hash)
 unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans)
 {
     unsigned int nEvicted = 0;
+
     while (mapOrphanTransactions.size() > nMaxOrphans)
     {
         // Evict a random orphan:
@@ -791,7 +792,7 @@ int CMerkleTx::SetMerkleBranch(const CBlock* pblock)
 
             if (fDebug)
             {
-                LogPrintf("core", "%s : ERROR: couldn't find tx in block\n", __FUNCTION__);
+                LogPrint("core", "%s : ERROR: couldn't find tx in block\n", __FUNCTION__);
             }
 
             return 0;
@@ -2141,10 +2142,10 @@ void static InvalidChainFound(CBlockIndex* pindexNew)
 
     if (fDebug)
     {
-        LogPrintf("%s : invalid block=%s  height=%d  trust=%s  blocktrust=%d  date=%s\n", __FUNCTION__,
+        LogPrint("core", "%s : invalid block=%s  height=%d  trust=%s  blocktrust=%d  date=%s\n", __FUNCTION__,
         pindexNew->GetBlockHash().ToString(), pindexNew->nHeight, CBigNum(pindexNew->nChainTrust).ToString(), nBestInvalidBlockTrust.Get64(), DateTimeStrFormat("%x %H:%M:%S", pindexNew->GetBlockTime()));
 
-        LogPrintf("%s : current best=%s  height=%d  trust=%s  blocktrust=%d  date=%s\n", __FUNCTION__,
+        LogPrint("core", "%s : current best=%s  height=%d  trust=%s  blocktrust=%d  date=%s\n", __FUNCTION__,
         hashBestChain.ToString(), nBestHeight, CBigNum(pindexBest->nChainTrust).ToString(), nBestBlockTrust.Get64(), DateTimeStrFormat("%x %H:%M:%S", pindexBest->GetBlockTime()));
     }
 }
@@ -2584,7 +2585,7 @@ bool FindTransactionsByDestination(const CTxDestination &dest, std::vector<uint2
     {
         if (fDebug)
         {
-            LogPrintf("%s : Couldn't parse dest into addrid\n", __FUNCTION__);
+            LogPrint("core", "%s : Couldn't parse dest into addrid\n", __FUNCTION__);
         }
 
         return false;
@@ -2597,7 +2598,7 @@ bool FindTransactionsByDestination(const CTxDestination &dest, std::vector<uint2
     {
         if (fDebug)
         {
-            LogPrintf("%s : txdb.ReadAddrIndex failed\n", __FUNCTION__);
+            LogPrint("core", "%s : txdb.ReadAddrIndex failed\n", __FUNCTION__);
         }
 
         return false;
@@ -2639,7 +2640,7 @@ void CBlock::RebuildAddressIndex(CTxDB& txdb)
                             {
                                 if (fDebug)
                                 {
-                                    LogPrintf("%s : txins WriteAddrIndex failed addrId: %s txhash: %s\n", __FUNCTION__, addrId.ToString().c_str(), hashTx.ToString().c_str());
+                                    LogPrint("core", "%s : txins WriteAddrIndex failed addrId: %s txhash: %s\n", __FUNCTION__, addrId.ToString().c_str(), hashTx.ToString().c_str());
                                 }
                             }   
                         }
@@ -2661,7 +2662,7 @@ void CBlock::RebuildAddressIndex(CTxDB& txdb)
                     {
                         if (fDebug)
                         {
-                            LogPrintf("%s : txouts WriteAddrIndex failed addrId: %s txhash: %s\n", __FUNCTION__, addrId.ToString().c_str(), hashTx.ToString().c_str());
+                            LogPrint("core", "%s : txouts WriteAddrIndex failed addrId: %s txhash: %s\n", __FUNCTION__, addrId.ToString().c_str(), hashTx.ToString().c_str());
                         }
                     }
                 }
@@ -2917,14 +2918,34 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 }
 
 
-bool ReorganizeChain()
+bool RollbackChain(int nBlockCount)
 {
-    CTxDB txdb2("rw");
+    // NOT WORKING CORRECTLY
 
-    const CBlockIndex* pindexPrev = pindexBest->pprev;
+/*
+    CTxDB txdb("rw+");
 
-    // Reorganize chain to ensure correct sync
-    return Reorganize(txdb2, const_cast <CBlockIndex *>(pindexPrev));
+    int nFound = 0;
+
+    for (map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.end() - nBlockCount; mi != mapBlockIndex.end(); ++mi)
+    {
+        CBlockIndex* pindex = (*mi).second;
+
+        CBlock block;
+
+        block.DisconnectBlock(txdb, pindex);
+
+        if (fDebug)
+        {
+            LogPrint("core", "%s : Block: %s\n", __FUNCTION__, block.ToString());
+        }
+
+        nFound++;
+
+    }
+*/
+
+return false;
 
 }
 
@@ -2936,8 +2957,9 @@ bool Reorganize(CTxDB& txdb, CBlockIndex* pindexNew)
         LogPrint("core", "%s : REORGANIZE\n", __FUNCTION__);
     }
 
-    CBlockIndex* pfork = pindexNew;
-    CBlockIndex* plonger = pindexBest;
+    // Find the fork
+    CBlockIndex* pfork = pindexBest;
+    CBlockIndex* plonger = pindexNew;
 
     while (pfork != plonger)
     {
@@ -2958,6 +2980,7 @@ bool Reorganize(CTxDB& txdb, CBlockIndex* pindexNew)
         {
             return error("%s : pfork->pprev is null", __FUNCTION__);
         }
+
     }
 
     // List of what to disconnect
@@ -4228,15 +4251,15 @@ void Misbehaving(NodeId pnode, int howmuch)
     }
 }
 
-
 bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 {
     AssertLockHeld(cs_main);
 
     // Check for duplicate
     uint256 hash = pblock->GetHash();
+
     if (mapBlockIndex.count(hash))
-    {      
+    {
         return error("%s : already have block %d %s", __FUNCTION__, mapBlockIndex[hash]->nHeight, hash.ToString());
     }
 
@@ -4277,10 +4300,21 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     {
         return error("%s : bad block signature encoding", __FUNCTION__);
     }
-    
+
+    // Preliminary checks
+    if (!pblock->CheckBlock())
+    {
+        return error("%s : CheckBlock FAILED", __FUNCTION__);
+    }
+
     // If we don't already have its previous block, shunt it off to holding area until we get it
     if (!mapBlockIndex.count(pblock->hashPrevBlock))
     {
+        if(fDebug)
+        {
+            LogPrint("core", "%s : ORPHAN BLOCK %lu, prev=%s\n", __FUNCTION__, (unsigned long)mapOrphanBlocks.size(), pblock->hashPrevBlock.ToString());
+        }
+
         // Accept orphans as long as there is a node to request its parents from
         if (pfrom)
         {
@@ -4292,13 +4326,13 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 if (setStakeSeenOrphan.count(pblock->GetProofOfStake()) && !mapOrphanBlocksByPrev.count(hash))
                 {
                     return error("%s : duplicate proof-of-stake (%s, %d) for orphan block %s", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
-                }       
+                }
             }
 
             PruneOrphanBlocks();
-
+            
             COrphanBlock* pblock2 = new COrphanBlock();
-
+            
             // Global Namespace Start
             {
                 CDataStream ss(SER_DISK, CLIENT_VERSION);
@@ -4310,80 +4344,69 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             pblock2->hashBlock = hash;
             pblock2->hashPrev = pblock->hashPrevBlock;
             pblock2->stake = pblock->GetProofOfStake();
-
+            
             mapOrphanBlocks.insert(make_pair(hash, pblock2));
             mapOrphanBlocksByPrev.insert(make_pair(pblock2->hashPrev, pblock2));
-
+            
             if (pblock->IsProofOfStake())
             {
                 setStakeSeenOrphan.insert(pblock->GetProofOfStake());
             }
 
-            if (!fReindex && !fImporting)
-            {
-                // Ask this node to fill in what we're missing
-                PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(hash));
+            // Ask this guy to fill in what we're missing
+            PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(hash));
 
-                // ppcoin: getblocks may not obtain the ancestor block rejected
-                // earlier by duplicate-stake check so we ask for it again directly
+            // ppcoin: getblocks may not obtain the ancestor block rejected
+            // earlier by duplicate-stake check so we ask for it again directly
+            if (!IsInitialBlockDownload())
+            {
                 pfrom->AskFor(CInv(MSG_BLOCK, WantedByOrphan(pblock2)));
             }
-
-            if(fDebug)
-            {
-                LogPrint("net", "%s : ORPHAN BLOCK FOUND: %lu, peer=%s, height=%d, hash=%s, prev=%s\n", __FUNCTION__, (unsigned long)mapOrphanBlocks.size(), pfrom->addr.ToString(), pindexBest->nHeight, pblock->GetHash().ToString(), pblock->hashPrevBlock.ToString());                  
-            }
-
-            PruneOrphanBlocks();
-            ReorganizeChain();
         }
 
-        return error("%s : ORPHAN BLOCK FOUND: height=%d, hash=%s", __FUNCTION__, pindexBest->nHeight, pblock->GetHash().ToString());
+        return true;
     }
 
     // Store to disk
     if (!pblock->AcceptBlock())
     {
-        // Recursively process any orphan blocks that depended on this one
-        vector<uint256> vWorkQueue;
-        vWorkQueue.push_back(hash);
-
-        for (unsigned int i = 0; i < vWorkQueue.size(); i++)
-        {
-            uint256 hashPrev = vWorkQueue[i];
-            for (multimap<uint256, COrphanBlock*>::iterator mi = mapOrphanBlocksByPrev.lower_bound(hashPrev); mi != mapOrphanBlocksByPrev.upper_bound(hashPrev); ++mi)
-            {
-                CBlock block;
-
-                // Global Namespace Start
-                {
-                    CDataStream ss(mi->second->vchBlock, SER_DISK, CLIENT_VERSION);
-                    ss >> block;
-                }
-                // Global Namespace End
-
-                block.BuildMerkleTree();
-
-                if (block.AcceptBlock())
-                {
-                    vWorkQueue.push_back(mi->second->hashBlock);
-                }
-
-                mapOrphanBlocks.erase(mi->second->hashBlock);
-                setStakeSeenOrphan.erase(block.GetProofOfStake());
-
-                delete mi->second;
-            }
-
-            mapOrphanBlocksByPrev.erase(hashPrev);
-        }
-
-        if(fDebug)
-        {
-            LogPrint("net", "%s : AcceptBlock Failed: hash=%s\n", __FUNCTION__, pblock->GetHash().ToString());                  
-        }
-
         return error("%s : AcceptBlock FAILED", __FUNCTION__);
+    }
+
+    // Recursively process any orphan blocks that depended on this one
+    vector<uint256> vWorkQueue;
+    vWorkQueue.push_back(hash);
+
+    for (unsigned int i = 0; i < vWorkQueue.size(); i++)
+    {
+        uint256 hashPrev = vWorkQueue[i];
+
+        for (multimap<uint256, COrphanBlock*>::iterator mi = mapOrphanBlocksByPrev.lower_bound(hashPrev); mi != mapOrphanBlocksByPrev.upper_bound(hashPrev); ++mi)
+        {
+            CBlock block;
+            
+            // Global Namespace Start
+            {
+                CDataStream ss(mi->second->vchBlock, SER_DISK, CLIENT_VERSION);
+                ss >> block;
+            }
+            // Global Namespac End
+
+            block.BuildMerkleTree();
+
+            if (block.AcceptBlock())
+            {
+                vWorkQueue.push_back(mi->second->hashBlock);
+            }
+            
+            mapOrphanBlocks.erase(mi->second->hashBlock);
+            
+            setStakeSeenOrphan.erase(block.GetProofOfStake());
+            
+            delete mi->second;
+        }
+
+        mapOrphanBlocksByPrev.erase(hashPrev);
     }
 
     if(!IsInitialBlockDownload())
@@ -4398,6 +4421,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             {
                 //UPDATE MASTERNODE LAST PAID TIME
                 CMasternode* pmn = mnodeman.Find(vin);
+
                 if(pmn != NULL)
                 {
                     pmn->nLastPaid = GetAdjustedTime();
@@ -4405,7 +4429,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 
                 if(fDebug)
                 {
-                    LogPrint("net", "%s : Update Masternode Last Paid Time - %d\n", __FUNCTION__, pindexBest->nHeight);
+                    LogPrint("core", "%s : Update Masternode Last Paid Time - %d\n", __FUNCTION__, pindexBest->nHeight);
                 }
             }
 
@@ -4420,6 +4444,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             {
                 //UPDATE MASTERNODE LAST PAID TIME
                 CMasternode* pmn = mnodeman.Find(vin);
+
                 if(pmn != NULL)
                 {
                     pmn->nLastPaid = GetAdjustedTime();
@@ -4427,18 +4452,17 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 
                 if(fDebug)
                 {
-                    LogPrint("net", "%s : Update Masternode Last Paid Time - %d\n", __FUNCTION__, pindexBest->nHeight);
+                    LogPrint("core", "%s : Update Masternode Last Paid Time - %d\n", __FUNCTION__, pindexBest->nHeight);
                 }
             }
 
             masternodePayments.ProcessBlock(GetHeight()+10);
         }
-
     }
 
     if(fDebug)
     {
-        LogPrint("net", "%s : ProcessBlock: ACCEPTED\n", __FUNCTION__);
+        LogPrint("core", "%s : ACCEPTED\n", __FUNCTION__);
     }
 
     return true;
@@ -4689,6 +4713,11 @@ bool LoadBlockIndex()
 
 void PrintBlockTree()
 {
+    if(!fDebug)
+    {
+        return;
+    }
+
     AssertLockHeld(cs_main);
 
     // pre-compute tree structure
@@ -4706,9 +4735,11 @@ void PrintBlockTree()
     vStack.push_back(make_pair(0, pindexGenesisBlock));
 
     int nPrevCol = 0;
+
     while (!vStack.empty())
     {
         int nCol = vStack.back().first;
+
         CBlockIndex* pindex = vStack.back().second;
         vStack.pop_back();
 
@@ -4717,19 +4748,19 @@ void PrintBlockTree()
         {
             for (int i = 0; i < nCol-1; i++)
             {
-                LogPrintf("| ");
+                LogPrint("blocktree", "| ");
             }
 
-            LogPrintf("|\\\n");
+            LogPrint("blocktree", "|\\\n");
         }
         else if (nCol < nPrevCol)
         {
             for (int i = 0; i < nCol; i++)
             {
-                LogPrintf("| ");
+                LogPrint("blocktree", "| ");
             }
 
-            LogPrintf("|\n");
+            LogPrint("blocktree", "|\n");
         }
         
         nPrevCol = nCol;
@@ -4737,7 +4768,7 @@ void PrintBlockTree()
         // print columns
         for (int i = 0; i < nCol; i++)
         {
-            LogPrintf("| ");
+            LogPrint("blocktree", "| ");
         }
 
         // print item
@@ -4745,15 +4776,15 @@ void PrintBlockTree()
         block.ReadFromDisk(pindex);
 
 #ifndef LOWMEM
-        LogPrintf("%d (%u,%u) %s  %08x  %s  mint %7s  tx %u",
+        LogPrint("blocktree", "%d (%u,%u) %s  %08x  %s  mint %7s  tx %u",
 #else
-        LogPrintf("%d (%u,%u) %s  %08x  %s  tx %u",
+        LogPrint("blocktree", "%d (%u,%u) %s  %08x  %s  tx %u",
 #endif        
-            pindex->nHeight, pindex->nFile, pindex->nBlockPos, block.GetHash().ToString(), block.nBits, DateTimeStrFormat("%x %H:%M:%S", block.GetBlockTime()),
+        pindex->nHeight, pindex->nFile, pindex->nBlockPos, block.GetHash().ToString(), block.nBits, DateTimeStrFormat("%x %H:%M:%S", block.GetBlockTime()),
 #ifndef LOWMEM
-            FormatMoney(pindex->nMint),
+        FormatMoney(pindex->nMint),
 #endif            
-            block.vtx.size());
+        block.vtx.size());
 
         // put the main time-chain first
         vector<CBlockIndex*>& vNext = mapNext[pindex];
@@ -5554,7 +5585,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
                 if (fDebug)
                 {
-                    LogPrintf("%s : force request: %s\n", __FUNCTION__, inv.ToString());
+                    LogPrint("net", "%s : force request: %s\n", __FUNCTION__, inv.ToString());
                 }
             }
 

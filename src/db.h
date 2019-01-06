@@ -4,7 +4,6 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-
 #ifndef BITCOIN_DB_H
 #define BITCOIN_DB_H
 
@@ -18,7 +17,6 @@
 
 #include <boost/filesystem/path.hpp>
 #include <db_cxx.h>
-
 
 class CAddrMan;
 class CBlockLocator;
@@ -35,10 +33,9 @@ void ThreadFlushWalletDB(const std::string& strWalletFile);
 class CDBEnv
 {
     private:
-
+    
         bool fDbEnvInit;
         bool fMockDb;
-
         boost::filesystem::path pathEnv;
         std::string strPath;
 
@@ -47,19 +44,14 @@ class CDBEnv
     public:
 
         mutable CCriticalSection cs_db;
-
         DbEnv dbenv;
         std::map<std::string, int> mapFileUseCount;
         std::map<std::string, Db*> mapDb;
 
         CDBEnv();
         ~CDBEnv();
-
         void MakeMock();
-        bool IsMock()
-        {
-            return fMockDb;
-        };
+        bool IsMock() { return fMockDb; };
 
         /*
         * Verify that database file strFile is OK. If it is not,
@@ -67,9 +59,12 @@ class CDBEnv
         * This must be called BEFORE strFile is opened.
         * Returns true if strFile is OK.
         */
-        enum VerifyResult { VERIFY_OK, RECOVER_OK, RECOVER_FAIL };
-        VerifyResult Verify(std::string strFile, bool (*recoverFunc)(CDBEnv& dbenv, std::string strFile));
+        enum VerifyResult
+        {
+            VERIFY_OK, RECOVER_OK, RECOVER_FAIL
+        };
         
+        VerifyResult Verify(std::string strFile, bool (*recoverFunc)(CDBEnv& dbenv, std::string strFile));
         /*
         * Salvage data from a file that Verify says is bad.
         * fAggressive sets the DB_AGGRESSIVE flag (see berkeley DB->verify() method documentation).
@@ -91,8 +86,9 @@ class CDBEnv
         DbTxn *TxnBegin(int flags=DB_TXN_WRITE_NOSYNC)
         {
             DbTxn* ptxn = NULL;
-            int ret = dbenv.txn_begin(NULL, &ptxn, flags);
 
+            int ret = dbenv.txn_begin(NULL, &ptxn, flags);
+            
             if (!ptxn || ret != 0)
             {
                 return NULL;
@@ -113,26 +109,25 @@ class CDB
         Db* pdb;
         std::string strFile;
         DbTxn *activeTxn;
-
         bool fReadOnly;
 
         explicit CDB(const std::string& strFilename, const char* pszMode="r+");
-
-        ~CDB() { Close(); }
+        ~CDB()
+        {
+            Close();
+        }
 
     public:
-
+    
         void Close();
 
     private:
 
         CDB(const CDB&);
-
         void operator=(const CDB&);
 
     protected:
 
-        // Read
         template<typename K, typename T> bool Read(const K& key, T& value)
         {
             if (!pdb)
@@ -174,18 +169,17 @@ class CDB
             memset(datValue.get_data(), 0, datValue.get_size());
             
             free(datValue.get_data());
-            
+
             return (ret == 0);
         }
 
-        // Write
         template<typename K, typename T> bool Write(const K& key, const T& value, bool fOverwrite=true)
         {
             if (!pdb)
             {
                 return false;
             }
-            
+
             if (fReadOnly)
             {
                 assert(!"Write called on database in read-only mode");
@@ -209,18 +203,17 @@ class CDB
             // Clear memory in case it was a private key
             memset(datKey.get_data(), 0, datKey.get_size());
             memset(datValue.get_data(), 0, datValue.get_size());
-            
+
             return (ret == 0);
         }
 
-        // Erase
         template<typename K> bool Erase(const K& key)
         {
             if (!pdb)
             {
                 return false;
             }
-            
+
             if (fReadOnly)
             {
                 assert(!"Erase called on database in read-only mode");
@@ -241,7 +234,6 @@ class CDB
             return (ret == 0 || ret == DB_NOTFOUND);
         }
 
-        // Exists
         template<typename K> bool Exists(const K& key)
         {
             if (!pdb)
@@ -270,7 +262,7 @@ class CDB
             {
                 return NULL;
             }
-            
+
             Dbc* pcursor = NULL;
             
             int ret = pdb->cursor(NULL, &pcursor, 0);
@@ -287,7 +279,7 @@ class CDB
         {
             // Read at cursor
             Dbt datKey;
-            
+
             if (fFlags == DB_SET || fFlags == DB_SET_RANGE || fFlags == DB_GET_BOTH || fFlags == DB_GET_BOTH_RANGE)
             {
                 datKey.set_data(&ssKey[0]);
@@ -295,7 +287,7 @@ class CDB
             }
             
             Dbt datValue;
-            
+
             if (fFlags == DB_GET_BOTH || fFlags == DB_GET_BOTH_RANGE)
             {
                 datValue.set_data(&ssValue[0]);
@@ -304,7 +296,7 @@ class CDB
             
             datKey.set_flags(DB_DBT_MALLOC);
             datValue.set_flags(DB_DBT_MALLOC);
-            
+
             int ret = pcursor->get(&datKey, &datValue, fFlags);
 
             if (ret != 0)
@@ -327,10 +319,9 @@ class CDB
             // Clear and free memory
             memset(datKey.get_data(), 0, datKey.get_size());
             memset(datValue.get_data(), 0, datValue.get_size());
-            
             free(datKey.get_data());
             free(datValue.get_data());
-            
+
             return 0;
         }
 
@@ -342,16 +333,16 @@ class CDB
             {
                 return false;
             }
-            
+
             DbTxn* ptxn = bitdb.TxnBegin();
-            
+
             if (!ptxn)
             {
                 return false;
             }
 
             activeTxn = ptxn;
-            
+
             return true;
         }
 
@@ -363,9 +354,9 @@ class CDB
             }
 
             int ret = activeTxn->commit(0);
-            
+
             activeTxn = NULL;
-            
+
             return (ret == 0);
         }
 
@@ -394,7 +385,6 @@ class CDB
         {
             return Write(std::string("version"), nVersion);
         }
-
 
         bool static Rewrite(const std::string& strFile, const char* pszSkip = NULL);
 };
