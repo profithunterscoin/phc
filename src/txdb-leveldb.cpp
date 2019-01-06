@@ -198,7 +198,7 @@ bool CTxDB::TxnBegin()
         return false; // failed
     }
     */
-    
+    assert(!activeBatch);
     activeBatch = new leveldb::WriteBatch();
     
     return true;
@@ -218,7 +218,7 @@ bool CTxDB::TxnCommit()
         return false;
     }
     */
-    
+    assert(activeBatch);
     leveldb::Status status = pdb->Write(leveldb::WriteOptions(), activeBatch);
     
     delete activeBatch;
@@ -301,7 +301,6 @@ bool CTxDB::ScanBatch(const CDataStream &key, string *value, bool *deleted) cons
     return scanner.foundEntry;
 }
 
-
 bool CTxDB::WriteAddrIndex(uint160 addrHash, uint256 txHash)
 {
     std::vector<uint256> txHashes;
@@ -309,20 +308,20 @@ bool CTxDB::WriteAddrIndex(uint160 addrHash, uint256 txHash)
     if(!ReadAddrIndex(addrHash, txHashes))
     {
 	    txHashes.push_back(txHash);
-        
         return Write(make_pair(string("adr"), addrHash), txHashes);
     }
     else
     {
-	    if(std::find(txHashes.begin(), txHashes.end(), txHash) == txHashes.end()) 
-    	{
-    	    txHashes.push_back(txHash);
-            return Write(make_pair(string("adr"), addrHash), txHashes);
-	    }
-	    else
-	    {
-	        return true; // already have this tx hash
-	    }
+        if(std::find(txHashes.begin(), txHashes.end(), txHash) == txHashes.end()) 
+        {
+                txHashes.push_back(txHash);
+
+                return Write(make_pair(string("adr"), addrHash), txHashes);
+        }
+        else
+        {
+            return true; // already have this tx hash
+        }
     }
 }
 

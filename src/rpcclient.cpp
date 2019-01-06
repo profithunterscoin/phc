@@ -146,6 +146,8 @@ static const CRPCConvertParam vRPCConvertParams[] =
 {
     // Command                                   Param Count
     { "stop",                                       0 },
+    { "prune",                                      0 },
+    { "rollback",                                   1 },
     { "getaddednodeinfo",                           0 },
     { "sendtoaddress",                              1 },
     { "settxfee",                                   0 },

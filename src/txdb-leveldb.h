@@ -89,8 +89,8 @@ class CTxDB
 
             if (readFromDb)
             {
-                leveldb::Status status = pdb->Get(leveldb::ReadOptions(),
-                                                ssKey.str(), &strValue);
+                leveldb::Status status = pdb->Get(leveldb::ReadOptions(), ssKey.str(), &strValue);
+                
                 if (!status.ok())
                 {
                     if (status.IsNotFound())

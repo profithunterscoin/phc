@@ -171,6 +171,33 @@ bool SecMsgCrypter::Decrypt(uint8_t* chCiphertext, uint32_t nCipher, std::vector
 
     vchPlaintext.resize(nCipher);
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L   // OPENSSL 1.0
+
+    EVP_CIPHER_CTX ctx;
+
+    bool fOk = true;
+
+    EVP_CIPHER_CTX_init(&ctx);
+
+    if (fOk)
+    {
+        fOk = EVP_DecryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, &chKey[0], &chIV[0]);
+    }
+
+    if (fOk)
+    {
+        fOk = EVP_DecryptUpdate(&ctx, &vchPlaintext[0], &nPLen, &chCiphertext[0], nCipher);
+    }
+
+    if (fOk)
+    {
+        fOk = EVP_DecryptFinal_ex(&ctx, (&vchPlaintext[0])+nPLen, &nFLen);
+    }
+    
+    EVP_CIPHER_CTX_cleanup(&ctx);
+
+#else // OpenSSL 1.1
+
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
 
     bool fOk = true;
@@ -195,6 +222,7 @@ bool SecMsgCrypter::Decrypt(uint8_t* chCiphertext, uint32_t nCipher, std::vector
     EVP_CIPHER_CTX_cleanup(ctx);
     EVP_CIPHER_CTX_free(ctx);
 
+#endif
     if (!fOk)
     {
         return false;
@@ -882,19 +910,22 @@ void ThreadSecureMsg()
 
                     smsgBuckets.erase(it);
                 }
-                else if (it->second.nLockCount > 0) // -- tick down nLockCount, so will eventually expire if peer never sends data
+                else
                 {
-                    it->second.nLockCount--;
-
-                    if (it->second.nLockCount == 0)     // lock timed out
+                    if (it->second.nLockCount > 0) // -- tick down nLockCount, so will eventually expire if peer never sends data
                     {
-                        vTimedOutLocks.push_back(std::make_pair(it->first, it->second.nLockPeerId)); // cs_vNodes 
+                        it->second.nLockCount--;
+
+                        if (it->second.nLockCount == 0)     // lock timed out
+                        {
+                            vTimedOutLocks.push_back(std::make_pair(it->first, it->second.nLockPeerId)); // cs_vNodes 
+                            
+                            it->second.nLockPeerId = 0;
+                        }; // if (it->second.nLockCount == 0)
                         
-                        it->second.nLockPeerId = 0;
-                    } // if (it->second.nLockCount == 0)
-                    
-                } // ! if (it->first < cutoffTime)
-            }
+                    }; // ! if (it->first < cutoffTime)
+                }
+            };
         } // cs_smsg
         
         for (std::vector<std::pair<int64_t, NodeId> >::iterator it(vTimedOutLocks.begin()); it != vTimedOutLocks.end(); it++)
@@ -998,7 +1029,7 @@ void ThreadSecureMsgPow()
                     LogPrint("smessage", "%s : *** RGP >>> ThreadSecureMsgPow dbOutbox.Open Debug 003\n", __FUNCTION__);
                 }
 
-                //MilliSleep(500); // Thanks to Jimmy (Robert)
+                MilliSleep(50); // Thanks to Jimmy (Robert)
                 
                 continue;
             }
@@ -1101,7 +1132,7 @@ void ThreadSecureMsgPow()
             }
 
             /* RGP, Added as smsg-po was using 100% cpu time? */
-            MilliSleep(50); // Thanks to Jimmy (Robert)
+
         }
 
         delete it;
@@ -1465,38 +1496,41 @@ int SecureMsgReadIni()
         {
             smsgOptions.fNewAddressRecv = (strcmp(pValue, "true") == 0) ? true : false;
         }
-        else if (strcmp(pName, "newAddressAnon") == 0)
+        else
         {
-            smsgOptions.fNewAddressAnon = (strcmp(pValue, "true") == 0) ? true : false;
-        }
-        else if (strcmp(pName, "scanIncoming") == 0)
-        {
-            smsgOptions.fScanIncoming = (strcmp(pValue, "true") == 0) ? true : false;
-        }
-        else if (strcmp(pName, "key") == 0)
-        {
-            int rv = sscanf(pValue, "%64[^|]|%d|%d", cAddress, &addrRecv, &addrRecvAnon);
-            
-            if (rv == 3)
+            if (strcmp(pName, "newAddressAnon") == 0)
             {
-                smsgAddresses.push_back(SecMsgAddress(std::string(cAddress), addrRecv, addrRecvAnon));
+                smsgOptions.fNewAddressAnon = (strcmp(pValue, "true") == 0) ? true : false;
             }
             else
             {
-                if (fDebug)
+                if (strcmp(pName, "scanIncoming") == 0)
                 {
-                    LogPrint("smessage", "%s : Could not parse key line %s, rv %d.\n", __FUNCTION__, pValue, rv);
+                    smsgOptions.fScanIncoming = (strcmp(pValue, "true") == 0) ? true : false;
+                }
+                else
+                {
+                    if (strcmp(pName, "key") == 0)
+                    {
+                        int rv = sscanf(pValue, "%64[^|]|%d|%d", cAddress, &addrRecv, &addrRecvAnon);
+                        
+                        if (rv == 3)
+                        {
+                            smsgAddresses.push_back(SecMsgAddress(std::string(cAddress), addrRecv, addrRecvAnon));
+                        }
+                        else
+                        {
+                            LogPrint("smessage", "Could not parse key line %s, rv %d.\n", pValue, rv);
+                        }
+                    }
+                    else
+                    {
+                        LogPrint("smessage", "Unknown setting name: '%s'.", pName);
+                    };
                 }
             }
         }
-        else
-        {
-            if (fDebug)
-            {
-                LogPrint("smessage", "%s : Unknown setting name: '%s'.", __FUNCTION__, pName);
-            }
-        }
-    }
+    };
 
     if (fDebug)
     {
@@ -2122,535 +2156,479 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
         {
             pfrom->PushMessage("smsgShow", vchDataOut);
         }
-        else if (nLocked < 1) // Don't report buckets as matched if any are locked
+        else
         {
-            // -- peer has no buckets we want, don't send them again until something changes
-            //    peer will still request buckets from this node if needed (< ncontent)
-            vchDataOut.resize(8);
-            
-            memcpy(&vchDataOut[0], &now, 8);
-            
-            pfrom->PushMessage("smsgMatch", vchDataOut);
-            
-            if (fDebugSmsg)
+            if (nLocked < 1) // Don't report buckets as matched if any are locked
             {
-                if (fDebug)
-                {
-                    LogPrint("smessage", "%s : Sending smsgMatch, %d.\n", __FUNCTION__, now);
-                }
-            }
-        }
+                // -- peer has no buckets we want, don't send them again until something changes
+                //    peer will still request buckets from this node if needed (< ncontent)
+                vchDataOut.resize(8);
+                memcpy(&vchDataOut[0], &now, 8);
+                pfrom->PushMessage("smsgMatch", vchDataOut);
 
-    }
-    else if (strCommand == "smsgShow")
-    {
-        std::vector<uint8_t> vchData;
-        vRecv >> vchData;
-
-        if (vchData.size() < 4)
-        {
-            return false;
-        }
-
-        uint32_t nBuckets;
-        memcpy(&nBuckets, &vchData[0], 4);
-
-        if (vchData.size() < 4 + nBuckets * 8)
-        {
-            return false;
-        }
-
-        if (fDebugSmsg)
-        {
-            if (fDebug)
-            {
-                LogPrint("smessage", "%s : peer wants to see content of %u buckets.\n", __FUNCTION__, nBuckets);
-            }
-        }
-        
-        std::map<int64_t, SecMsgBucket>::iterator itb;
-        std::set<SecMsgToken>::iterator it;
-
-        std::vector<uint8_t> vchDataOut;
-        
-        int64_t time;
-        
-        uint8_t* pIn = &vchData[4];
-        
-        for (uint32_t i = 0; i < nBuckets; ++i, pIn += 8)
-        {
-            memcpy(&time, pIn, 8);
-            
-            // Global Namespace Start
-            {
-                LOCK(cs_smsg);
-                
-                itb = smsgBuckets.find(time);
-                
-                if (itb == smsgBuckets.end())
-                {
-                    if (fDebugSmsg)
-                    {
-                        if (fDebug)
-                        {
-                            LogPrint("smessage", "%s : Don't have bucket %d.\n", __FUNCTION__, time);
-                        }
-                    }
-
-                    continue;
-                }
-
-                std::set<SecMsgToken>& tokenSet = (*itb).second.setTokens;
-
-                try
-                {
-                    vchDataOut.resize(8 + 16 * tokenSet.size());
-                }
-                catch (std::exception& e)
-                {
-                    if (fDebug)
-                    {
-                        LogPrint("smessage", "%s : vchDataOut.resize %u threw: %s.\n", __FUNCTION__, 8 + 16 * tokenSet.size(), e.what());
-                    }
-
-                    continue;
-                }
-                
-                memcpy(&vchDataOut[0], &time, 8);
-
-                uint8_t* p = &vchDataOut[8];
-                
-                for (it = tokenSet.begin(); it != tokenSet.end(); ++it)
-                {
-                    memcpy(p, &it->timestamp, 8);
-                    memcpy(p+8, &it->sample, 8);
-
-                    p += 16;
-                }
-            }
-            // Global Namespace End
-
-            pfrom->PushMessage("smsgHave", vchDataOut);
-        }
-
-
-    }
-    else if (strCommand == "smsgHave")
-    {
-        // -- peer has these messages in bucket
-        std::vector<uint8_t> vchData;
-        vRecv >> vchData;
-
-        if (vchData.size() < 8)
-        {
-            return false;
-        }
-
-        int n = (vchData.size() - 8) / 16;
-
-        int64_t time;
-
-        memcpy(&time, &vchData[0], 8);
-
-        // -- Check time valid:
-        int64_t now = GetTime();
-        
-        if (time < now - SMSG_RETENTION)
-        {
-            if (fDebugSmsg)
-            {
-                if (fDebug)
-                {
-                    LogPrint("smessage", "%s : Not interested in peer bucket %d, has expired.\n", __FUNCTION__, time);
-                }
-            }
-            
-            return false;
-        }
-        
-        if (time > now + SMSG_TIME_LEEWAY)
-        {
-            if (fDebugSmsg)
-            {
-                if (fDebug)
-                {
-                    LogPrint("smessage", "%s : Not interested in peer bucket %d, in the future.\n", __FUNCTION__, time);
-                }
-            }
-            
-            Misbehaving(pfrom->GetId(), 1);
-            
-            return false;
-        }
-        
-        std::vector<uint8_t> vchDataOut;
-        
-        // Global Namespace Start
-        {
-            LOCK(cs_smsg);
-            
-            if (smsgBuckets[time].nLockCount > 0)
-            {
                 if (fDebugSmsg)
                 {
-                    if (fDebug)
-                    {
-                        LogPrint("smessage", "%s : Bucket %d lock count %u, waiting for message data from peer %u.\n", __FUNCTION__, time, smsgBuckets[time].nLockCount, smsgBuckets[time].nLockPeerId);
-                    }
+                    LogPrint("smessage", "Sending smsgMatch, %d.\n", now);
                 }
-
-                return false;
-            }
-
-            if (fDebugSmsg)
-            {
-                if (fDebug)
-                {
-                    LogPrint("smessage", "%s : Sifting through bucket %d.\n", __FUNCTION__, time);
-                }
-            }
-            
-            vchDataOut.resize(8);
-            memcpy(&vchDataOut[0], &vchData[0], 8);
-
-            std::set<SecMsgToken>& tokenSet = smsgBuckets[time].setTokens;
-            std::set<SecMsgToken>::iterator it;
-            
-            SecMsgToken token;
-
-            uint8_t* p = &vchData[8];
-
-            for (int i = 0; i < n; ++i)
-            {
-                memcpy(&token.timestamp, p, 8);
-                memcpy(&token.sample, p+8, 8);
-
-                it = tokenSet.find(token);
-
-                if (it == tokenSet.end())
-                {
-                    int nd = vchDataOut.size();
-                    
-                    try
-                    {
-                        vchDataOut.resize(nd + 16);
-                    }
-                    catch (std::exception& e)
-                    {
-                        if (fDebug)
-                        {
-                            LogPrint("smessage", "%s : vchDataOut.resize %d threw: %s.\n", __FUNCTION__, nd + 16, e.what());
-                        }
-
-                        continue;
-                    }
-
-                    memcpy(&vchDataOut[nd], p, 16);
-                }
-
-                p += 16;
-            }
-        }
-        // Global Namespace End
-        
-        if (vchDataOut.size() > 8)
-        {
-            if (fDebugSmsg)
-            {
-                if (fDebug)
-                {
-                    LogPrint("smessage", "%s : Asking peer for %u messages.\n", __FUNCTION__, (vchDataOut.size() - 8) / 16);
-                    LogPrint("smessage", "%s : Locking bucket %u for peer %d.\n", __FUNCTION__, time, pfrom->id);
-                }
-            }
-
-            // Global Namespace Start
-            {
-                LOCK(cs_smsg);
-            
-                smsgBuckets[time].nLockCount   = 3; // lock this bucket for at most 3 * SMSG_THREAD_DELAY seconds, unset when peer sends smsgMsg
-                smsgBuckets[time].nLockPeerId  = pfrom->id;
-            }
-            // Global Namespace End
-
-            pfrom->PushMessage("smsgWant", vchDataOut);
-        }
-    }
-    else if (strCommand == "smsgWant")
-    {
-        std::vector<uint8_t> vchData;
-        vRecv >> vchData;
-
-        if (vchData.size() < 8)
-        {
-            return false;
-        }
-
-        std::vector<uint8_t> vchOne;
-        std::vector<uint8_t> vchBunch;
-
-        vchBunch.resize(4+8); // nmessages + bucketTime
-
-        int n = (vchData.size() - 8) / 16;
-
-        int64_t time;
-        
-        uint32_t nBunch = 0;
-
-        memcpy(&time, &vchData[0], 8);
-        
-        std::map<int64_t, SecMsgBucket>::iterator itb;
-        
-        // Global Namespace Start
-        {
-            LOCK(cs_smsg);
-            
-            itb = smsgBuckets.find(time);
-            
-            if (itb == smsgBuckets.end())
-            {
-                if (fDebugSmsg)
-                {
-                    if (fDebug)
-                    {
-                        LogPrint("smessage", "%s : Don't have bucket %d.\n", __FUNCTION__, time);
-                    }
-                }
-
-                return false;
-            }
-
-            std::set<SecMsgToken>& tokenSet = itb->second.setTokens;
-            std::set<SecMsgToken>::iterator it;
-            
-            SecMsgToken token;
-            
-            uint8_t* p = &vchData[8];
-
-            for (int i = 0; i < n; ++i)
-            {
-                memcpy(&token.timestamp, p, 8);
-                memcpy(&token.sample, p+8, 8);
-
-                it = tokenSet.find(token);
-
-                if (it == tokenSet.end())
-                {
-                    if (fDebugSmsg)
-                    {
-                        if (fDebug)
-                        {
-                            LogPrint("smessage", "%s : Don't have wanted message %d.\n", __FUNCTION__, token.timestamp);
-                        }
-                    }
-                }
-                else
-                {
-                    //LogPrint("smessage", "%s : Have message at %d.\n", __FUNCTION__, it->offset); // DEBUG
-                    token.offset = it->offset;
-                    //LogPrint("smessage", "%s : winb before SecureMsgRetrieve %d.\n", __FUNCTION__, token.timestamp);
-
-                    // -- place in vchOne so if SecureMsgRetrieve fails it won't corrupt vchBunch
-                    if (SecureMsgRetrieve(token, vchOne) == 0)
-                    {
-                        nBunch++;
-                        
-                        vchBunch.insert(vchBunch.end(), vchOne.begin(), vchOne.end()); // append
-                    }
-                    else
-                    {
-                        if (fDebug)
-                        {
-                            LogPrint("smessage", "%s : SecureMsgRetrieve failed %d.\n", __FUNCTION__, token.timestamp);
-                        }
-                    }
-
-                    if (nBunch >= 500 || vchBunch.size() >= 96000)
-                    {
-                        if (fDebugSmsg)
-                        {
-                            if (fDebug)
-                            {
-                                LogPrint("smessage", "%s : Break bunch %u, %u.\n", __FUNCTION__, nBunch, vchBunch.size());
-                            }
-                        }
-
-                        break; // end here, peer will send more want messages if needed.
-                    }
-                }
-            
-                p += 16;
-            }
-        }
-        // Global Namespace End
-        // LOCK(cs_smsg);
-        
-        if (nBunch > 0)
-        {
-            if (fDebugSmsg)
-            {
-                if (fDebug)
-                {
-                    LogPrint("smessage", "%s : Sending block of %u messages for bucket %d.\n", __FUNCTION__, nBunch, time);
-                }
-            }
-
-            memcpy(&vchBunch[0], &nBunch, 4);
-            memcpy(&vchBunch[4], &time, 8);
-            
-            pfrom->PushMessage("smsgMsg", vchBunch);
-        }
-    }
-    else if (strCommand == "smsgMsg")
-    {
-        std::vector<uint8_t> vchData;
-        vRecv >> vchData;
-
-        if (fDebugSmsg)
-        {
-            if (fDebug)
-            {
-                LogPrint("smessage", "%s : smsgMsg vchData.size() %u.\n", __FUNCTION__, vchData.size());
-            }
-        }
-
-        SecureMsgReceive(pfrom, vchData);
-    }
-    else if (strCommand == "smsgMatch")
-    {
-        std::vector<uint8_t> vchData;
-        vRecv >> vchData;
-
-        if (vchData.size() < 8)
-        {
-            if (fDebug)
-            {
-                LogPrint("smessage", "%s : smsgMatch not enough data %u.\n", __FUNCTION__, vchData.size());
-            }
-
-            Misbehaving(pfrom->GetId(), 1);
-        
-            return false;
-        }
-
-        int64_t time;
-        
-        memcpy(&time, &vchData[0], 8);
-
-        int64_t now = GetTime();
-        
-        if (time > now + SMSG_TIME_LEEWAY)
-        {
-            if (fDebugSmsg)
-            {
-                if (fDebug)
-                {
-                    LogPrint("smessage", "%s : Warning: Peer buckets matched in the future: %d.\nEither this node or the peer node has the incorrect time set.\n", __FUNCTION__, time);
-                    LogPrint("smessage", "%s : Peer match time set to now.\n", __FUNCTION__);
-                }    
-            }
-
-            time = now;
-        }
-        
-        // Global Namespace Start
-        {
-            LOCK(pfrom->smsgData.cs_smsg_net);
-            
-            pfrom->smsgData.lastMatched = time;
-        }
-        // Global Namespace End
-
-        if (fDebugSmsg)
-        {
-            if (fDebug)
-            {
-                LogPrint("smessage", "%s : Peer buckets matched at %d.\n", __FUNCTION__, time);
-            }
-        }
-    }
-    else if (strCommand == "smsgPing")
-    {
-        // -- smsgPing is the initial message, send reply
-        pfrom->PushMessage("smsgPong");
-    }
-    else if (strCommand == "smsgPong")
-    {
-        if (fDebugSmsg)
-        {
-            if (fDebug)
-            {
-                LogPrint("smessage", "%s : Peer replied, secure messaging enabled.\n", __FUNCTION__);
-            }
-        }
-
-        // Global Namespace Start
-        {
-            LOCK(pfrom->smsgData.cs_smsg_net);
-            pfrom->smsgData.fEnabled = true;
-        }
-        // Global Namespace End        
-    }
-    else if (strCommand == "smsgDisabled")
-    {
-        // -- peer has disabled secure messaging.
-        // Global Namespace Start
-        {
-            LOCK(pfrom->smsgData.cs_smsg_net);
-            pfrom->smsgData.fEnabled = false;
-        }
-        // Global Namespace End
-        
-        if (fDebugSmsg)
-        {
-            if (fDebug)
-            {
-                LogPrint("smessage", "%s : Peer %d has disabled secure messaging.\n", __FUNCTION__, pfrom->id);
-            }
-        }
-
-    }
-    else if (strCommand == "smsgIgnore")
-    {
-        // -- peer is reporting that it will ignore this node until time.
-        //    Ignore peer too
-        std::vector<uint8_t> vchData;
-        vRecv >> vchData;
-
-        if (vchData.size() < 8)
-        {
-            if (fDebug)
-            {
-                LogPrint("smessage", "%s : smsgIgnore, not enough data %u.\n", __FUNCTION__, vchData.size());
-            }
-
-            Misbehaving(pfrom->GetId(), 1);
-            
-            return false;
-        }
-
-        int64_t time;
-
-        memcpy(&time, &vchData[0], 8);
-        
-        // Global Namespace Start
-        {
-            LOCK(pfrom->smsgData.cs_smsg_net);
-            pfrom->smsgData.ignoreUntil = time;
-        }
-        // Global Namespace End        
-
-        if (fDebugSmsg)
-        {
-            if (fDebug)
-            {
-                LogPrint("smessage", "%s : Peer %d is ignoring this node until %d, ignore peer too.\n", __FUNCTION__, pfrom->id, time);
-            }
+            };
         }
     }
     else
     {
-        // Unknown message
+        if (strCommand == "smsgShow")
+        {
+            std::vector<uint8_t> vchData;
+            vRecv >> vchData;
+
+            if (vchData.size() < 4)
+            {
+                return false;
+            }
+
+            uint32_t nBuckets;
+            memcpy(&nBuckets, &vchData[0], 4);
+
+            if (vchData.size() < 4 + nBuckets * 8)
+            {
+                return false;
+            }
+
+            if (fDebugSmsg)
+            {
+                LogPrint("smessage", "smsgShow: peer wants to see content of %u buckets.\n", nBuckets);
+            }
+            
+            std::map<int64_t, SecMsgBucket>::iterator itb;
+            std::set<SecMsgToken>::iterator it;
+
+            std::vector<uint8_t> vchDataOut;
+            int64_t time;
+            uint8_t* pIn = &vchData[4];
+
+            for (uint32_t i = 0; i < nBuckets; ++i, pIn += 8)
+            {
+                memcpy(&time, pIn, 8);
+                
+                // Global Namespace Start
+                {
+                    LOCK(cs_smsg);
+                    
+                    itb = smsgBuckets.find(time);
+                    
+                    if (itb == smsgBuckets.end())
+                    {
+                        if (fDebugSmsg)
+                        {
+                            LogPrint("smessage", "Don't have bucket %d.\n", time);
+                        }
+                        
+                        continue;
+                    };
+
+                    std::set<SecMsgToken>& tokenSet = (*itb).second.setTokens;
+
+                    try
+                    {
+                        vchDataOut.resize(8 + 16 * tokenSet.size());
+                    }
+                    catch (std::exception& e)
+                    {
+                        LogPrint("smessage", "vchDataOut.resize %u threw: %s.\n", 8 + 16 * tokenSet.size(), e.what());
+                        
+                        continue;
+                    };
+
+                    memcpy(&vchDataOut[0], &time, 8);
+
+                    uint8_t* p = &vchDataOut[8];
+
+                    for (it = tokenSet.begin(); it != tokenSet.end(); ++it)
+                    {
+                        memcpy(p, &it->timestamp, 8);
+                        memcpy(p+8, &it->sample, 8);
+
+                        p += 16;
+                    };
+                }
+                // Global Namespace End
+
+                pfrom->PushMessage("smsgHave", vchDataOut);
+            };
+
+
+        }
+        else
+        {
+            if (strCommand == "smsgHave")
+            {
+                // -- peer has these messages in bucket
+                std::vector<uint8_t> vchData;
+                vRecv >> vchData;
+
+                if (vchData.size() < 8)
+                {
+                    return false;
+                }
+
+                int n = (vchData.size() - 8) / 16;
+
+                int64_t time;
+
+                memcpy(&time, &vchData[0], 8);
+
+                // -- Check time valid:
+                int64_t now = GetTime();
+
+                if (time < now - SMSG_RETENTION)
+                {
+                    if (fDebugSmsg)
+                    {
+                        LogPrint("smessage", "Not interested in peer bucket %d, has expired.\n", time);
+                    }
+
+                    return false;
+                };
+
+                if (time > now + SMSG_TIME_LEEWAY)
+                {
+                    if (fDebugSmsg)
+                    {
+                        LogPrint("smessage", "Not interested in peer bucket %d, in the future.\n", time);
+                    }
+                    
+                    Misbehaving(pfrom->GetId(), 1);
+                    
+                    return false;
+                };
+                
+                std::vector<uint8_t> vchDataOut;
+                
+                // Global Namespace Start
+                {
+                    LOCK(cs_smsg);
+                    
+                    if (smsgBuckets[time].nLockCount > 0)
+                    {
+                        if (fDebugSmsg)
+                        {
+                            LogPrint("smessage", "Bucket %d lock count %u, waiting for message data from peer %u.\n", time, smsgBuckets[time].nLockCount, smsgBuckets[time].nLockPeerId);
+                        }
+
+                        return false;
+                    };
+
+                    if (fDebugSmsg)
+                    {
+                        LogPrint("smessage", "Sifting through bucket %d.\n", time);
+                    }
+                    
+                    vchDataOut.resize(8);
+                    memcpy(&vchDataOut[0], &vchData[0], 8);
+
+                    std::set<SecMsgToken>& tokenSet = smsgBuckets[time].setTokens;
+                    std::set<SecMsgToken>::iterator it;
+                    SecMsgToken token;
+                    uint8_t* p = &vchData[8];
+
+                    for (int i = 0; i < n; ++i)
+                    {
+                        memcpy(&token.timestamp, p, 8);
+                        memcpy(&token.sample, p+8, 8);
+
+                        it = tokenSet.find(token);
+
+                        if (it == tokenSet.end())
+                        {
+                            int nd = vchDataOut.size();
+                            
+                            try
+                            {
+                                vchDataOut.resize(nd + 16);
+                            }
+                            catch (std::exception& e)
+                            {
+                                LogPrint("smessage", "vchDataOut.resize %d threw: %s.\n", nd + 16, e.what());
+                            
+                                continue;
+                            };
+
+                            memcpy(&vchDataOut[nd], p, 16);
+                        };
+
+                        p += 16;
+                    };
+                }
+                // // Global Namespace End
+                
+                if (vchDataOut.size() > 8)
+                {
+                    if (fDebugSmsg)
+                    {
+                        LogPrint("smessage", "Asking peer for %u messages.\n", (vchDataOut.size() - 8) / 16);
+                        LogPrint("smessage", "Locking bucket %u for peer %d.\n", time, pfrom->id);
+                    };
+
+                    // Global Namespace Start
+                    {
+                        LOCK(cs_smsg);
+
+                        smsgBuckets[time].nLockCount   = 3; // lock this bucket for at most 3 * SMSG_THREAD_DELAY seconds, unset when peer sends smsgMsg
+                        smsgBuckets[time].nLockPeerId  = pfrom->id;
+                    }
+                    // // Global Namespace End
+
+                    pfrom->PushMessage("smsgWant", vchDataOut);
+                };
+            }
+            else
+            {
+                if (strCommand == "smsgWant")
+                {
+                    std::vector<uint8_t> vchData;
+                    vRecv >> vchData;
+
+                    if (vchData.size() < 8)
+                    {
+                        return false;
+                    }
+
+                    std::vector<uint8_t> vchOne;
+                    std::vector<uint8_t> vchBunch;
+
+                    vchBunch.resize(4+8); // nmessages + bucketTime
+
+                    int n = (vchData.size() - 8) / 16;
+
+                    int64_t time;
+                    uint32_t nBunch = 0;
+                    memcpy(&time, &vchData[0], 8);
+                    
+                    std::map<int64_t, SecMsgBucket>::iterator itb;
+                    
+                    // Global Namespace Start
+                    {
+                        LOCK(cs_smsg);
+
+                        itb = smsgBuckets.find(time);
+                        if (itb == smsgBuckets.end())
+                        {
+                            if (fDebugSmsg)
+                            {
+                                LogPrint("smessage", "Don't have bucket %d.\n", time);
+                            }
+
+                            return false;
+                        };
+
+                        std::set<SecMsgToken>& tokenSet = itb->second.setTokens;
+                        std::set<SecMsgToken>::iterator it;
+                        SecMsgToken token;
+                        uint8_t* p = &vchData[8];
+
+                        for (int i = 0; i < n; ++i)
+                        {
+                            memcpy(&token.timestamp, p, 8);
+                            memcpy(&token.sample, p+8, 8);
+
+                            it = tokenSet.find(token);
+                            if (it == tokenSet.end())
+                            {
+                                if (fDebugSmsg)
+                                {
+                                    LogPrint("smessage", "Don't have wanted message %d.\n", token.timestamp);
+                                }
+                            }
+                            else
+                            {
+                                //LogPrint("smessage", "Have message at %d.\n", it->offset); // DEBUG
+                                token.offset = it->offset;
+                                //LogPrint("smessage", "winb before SecureMsgRetrieve %d.\n", token.timestamp);
+
+                                // -- place in vchOne so if SecureMsgRetrieve fails it won't corrupt vchBunch
+                                if (SecureMsgRetrieve(token, vchOne) == 0)
+                                {
+                                    nBunch++;
+                                    vchBunch.insert(vchBunch.end(), vchOne.begin(), vchOne.end()); // append
+                                }
+                                else
+                                {
+                                    LogPrint("smessage", "SecureMsgRetrieve failed %d.\n", token.timestamp);
+                                };
+
+                                if (nBunch >= 500 || vchBunch.size() >= 96000)
+                                {
+                                    if (fDebugSmsg)
+                                    {
+                                        LogPrint("smessage", "Break bunch %u, %u.\n", nBunch, vchBunch.size());
+                                    }
+
+                                    break; // end here, peer will send more want messages if needed.
+                                };
+                            };
+
+                            p += 16;
+                        };
+                    } // LOCK(cs_smsg);
+                    // // Global Namespace End
+                    
+                    if (nBunch > 0)
+                    {
+                        if (fDebugSmsg)
+                        {
+                            LogPrint("smessage", "Sending block of %u messages for bucket %d.\n", nBunch, time);
+                        }
+
+                        memcpy(&vchBunch[0], &nBunch, 4);
+                        memcpy(&vchBunch[4], &time, 8);
+                        
+                        pfrom->PushMessage("smsgMsg", vchBunch);
+                    };
+                }
+                else
+                {
+                    if (strCommand == "smsgMsg")
+                    {
+                        std::vector<uint8_t> vchData;
+                        vRecv >> vchData;
+
+                        if (fDebugSmsg)
+                        {
+                            LogPrint("smessage", "smsgMsg vchData.size() %u.\n", vchData.size());
+                        }
+
+                        SecureMsgReceive(pfrom, vchData);
+                    }
+                    else
+                    {
+                        if (strCommand == "smsgMatch")
+                        {
+                            std::vector<uint8_t> vchData;
+                            vRecv >> vchData;
+
+                            if (vchData.size() < 8)
+                            {
+                                LogPrint("smessage", "smsgMatch, not enough data %u.\n", vchData.size());
+                                
+                                Misbehaving(pfrom->GetId(), 1);
+                                
+                                return false;
+                            };
+
+                            int64_t time;
+                            memcpy(&time, &vchData[0], 8);
+
+                            int64_t now = GetTime();
+
+                            if (time > now + SMSG_TIME_LEEWAY)
+                            {
+                                LogPrint("smessage", "Warning: Peer buckets matched in the future: %d.\nEither this node or the peer node has the incorrect time set.\n", time);
+                                
+                                if (fDebugSmsg)
+                                {
+                                    LogPrint("smessage", "Peer match time set to now.\n");
+                                }
+                                
+                                time = now;
+                            };
+                            
+                            // Global Namespace Start
+                            {
+                                LOCK(pfrom->smsgData.cs_smsg_net);
+                                pfrom->smsgData.lastMatched = time;
+                            }
+                            // Global Namespace End
+                            
+                            if (fDebugSmsg)
+                            {
+                                LogPrint("smessage", "Peer buckets matched at %d.\n", time);
+                            }
+                        }
+                        else
+                        {
+                            if (strCommand == "smsgPing")
+                            {
+                                // -- smsgPing is the initial message, send reply
+                                pfrom->PushMessage("smsgPong");
+                            }
+                            else
+                            {
+                                if (strCommand == "smsgPong")
+                                {
+                                    if (fDebugSmsg)
+                                    {
+                                        LogPrint("smessage", "Peer replied, secure messaging enabled.\n");
+                                    }
+                                    
+                                    // Global Namespace Start
+                                    {
+                                        LOCK(pfrom->smsgData.cs_smsg_net);
+                                        pfrom->smsgData.fEnabled = true;
+                                    }
+                                    // // Global Namespace End                                    
+                                }
+                                else
+                                {
+                                    if (strCommand == "smsgDisabled")
+                                    {
+                                        // -- peer has disabled secure messaging.
+                                        
+                                        // // Global Namespace Start
+                                        {
+                                            LOCK(pfrom->smsgData.cs_smsg_net);
+                                            pfrom->smsgData.fEnabled = false;
+                                        }
+                                        // // Global Namespace End
+                                        
+                                        if (fDebugSmsg)
+                                        {
+                                            LogPrint("smessage", "Peer %d has disabled secure messaging.\n", pfrom->id);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (strCommand == "smsgIgnore")
+                                        {
+                                            // -- peer is reporting that it will ignore this node until time.
+                                            //    Ignore peer too
+                                            std::vector<uint8_t> vchData;
+                                            vRecv >> vchData;
+
+                                            if (vchData.size() < 8)
+                                            {
+                                                LogPrint("smessage", "smsgIgnore, not enough data %u.\n", vchData.size());
+                                                
+                                                Misbehaving(pfrom->GetId(), 1);
+                                                
+                                                return false;
+                                            };
+
+                                            int64_t time;
+                                            memcpy(&time, &vchData[0], 8);
+                                            
+                                            // Global Namespace Start
+                                            {
+                                                LOCK(pfrom->smsgData.cs_smsg_net);
+                                                pfrom->smsgData.ignoreUntil = time;
+                                            }
+                                            // Global Namespace End                                            
+
+                                            if (fDebugSmsg)
+                                            {
+                                                LogPrint("smessage", "Peer %d is ignoring this node until %d, ignore peer too.\n", pfrom->id, time);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            // Unknown message
+                                        };  
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     return true;
@@ -2692,9 +2670,12 @@ bool SecureMsgSendData(CNode* pto, bool fSendTrickle)
         
         return true;
     }
-    else if (!pto->smsgData.fEnabled || now - pto->smsgData.lastSeen < SMSG_SEND_DELAY || now < pto->smsgData.ignoreUntil)
+    else
     {
-        return true;
+        if (!pto->smsgData.fEnabled || now - pto->smsgData.lastSeen < SMSG_SEND_DELAY || now < pto->smsgData.ignoreUntil)
+        {
+            return true;
+        };
     }
 
     // -- When nWakeCounter == 0, resend bucket inventory.
@@ -4656,14 +4637,21 @@ int SecureMsgValidate(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
         memcpy(civ+i, &nonse, 4);
     }
 
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
-    HMAC_CTX *ctx = HMAC_CTX_new();
-#else
-    HMAC_CTX *ctx = new HMAC_CTX();
-    HMAC_CTX_init(ctx);
-#endif
-
     uint32_t nBytes;
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L   // OPENSSL 1.0
+    HMAC_CTX ctx;
+    HMAC_CTX_init(&ctx);
+
+    if (!HMAC_Init_ex(&ctx, &civ[0], 32, EVP_sha256(), NULL)
+        || !HMAC_Update(&ctx, (uint8_t*) pHeader+4, SMSG_HDR_LEN-4)
+        || !HMAC_Update(&ctx, (uint8_t*) pPayload, nPayload)
+        || !HMAC_Update(&ctx, pPayload, nPayload)
+        || !HMAC_Final(&ctx, sha256Hash, &nBytes)
+        || nBytes != 32)
+
+#else // OPENSSL 1.1+
+    HMAC_CTX *ctx = HMAC_CTX_new();
 
     if (!HMAC_Init_ex(ctx, &civ[0], 32, EVP_sha256(), NULL)
         || !HMAC_Update(ctx, (uint8_t*) pHeader+4, SMSG_HDR_LEN-4)
@@ -4671,6 +4659,7 @@ int SecureMsgValidate(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
         || !HMAC_Update(ctx, pPayload, nPayload)
         || !HMAC_Final(ctx, sha256Hash, &nBytes)
         || nBytes != 32)
+#endif
     {
         if (fDebugSmsg)
         {
@@ -4713,11 +4702,10 @@ int SecureMsgValidate(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
         }
     }
 
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+#if OPENSSL_VERSION_NUMBER < 0x10100000L   // OPENSSL 1.0
+    HMAC_CTX_cleanup(&ctx);
+#else // OPENSSL 1.1+
     HMAC_CTX_free(ctx);
-#else
-    HMAC_CTX_cleanup(ctx);
-    delete ctx;
 #endif
 
     return rv;
@@ -4746,11 +4734,11 @@ int SecureMsgSetHash(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
 
     bool found = false;
     
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+#if OPENSSL_VERSION_NUMBER < 0x10100000L    // OPENSSL 1.0
+    HMAC_CTX ctx;
+    HMAC_CTX_init(&ctx);
+#else  // OPENSSL 1.1+
     HMAC_CTX *ctx = HMAC_CTX_new();
-#else
-    HMAC_CTX *ctx = new HMAC_CTX();
-    HMAC_CTX_init(ctx);
 #endif
 
     uint32_t nonse = 0;
@@ -4777,13 +4765,23 @@ int SecureMsgSetHash(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
 
         uint32_t nBytes;
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L    // OPENSSL 1.0
+        if (!HMAC_Init_ex(&ctx, &civ[0], 32, EVP_sha256(), NULL)
+            || !HMAC_Update(&ctx, (uint8_t*) pHeader+4, SMSG_HDR_LEN-4)
+            || !HMAC_Update(&ctx, (uint8_t*) pPayload, nPayload)
+            || !HMAC_Update(&ctx, pPayload, nPayload)
+            || !HMAC_Final(&ctx, sha256Hash, &nBytes)
+            //|| !HMAC_Final(&ctx, &vchHash[0], &nBytes)
+            || nBytes != 32)
+#else // OPENSSL 1.1+
         if (!HMAC_Init_ex(ctx, &civ[0], 32, EVP_sha256(), NULL)
             || !HMAC_Update(ctx, (uint8_t*) pHeader+4, SMSG_HDR_LEN-4)
             || !HMAC_Update(ctx, (uint8_t*) pPayload, nPayload)
             || !HMAC_Update(ctx, pPayload, nPayload)
             || !HMAC_Final(ctx, sha256Hash, &nBytes)
-            //|| !HMAC_Final(&ctx, &vchHash[0], &nBytes)
+            //|| !HMAC_Final(ctx, &vchHash[0], &nBytes)
             || nBytes != 32)
+#endif
         {
             break;
         }
@@ -4836,11 +4834,10 @@ int SecureMsgSetHash(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
         nonse++;
     }
 
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+#if OPENSSL_VERSION_NUMBER < 0x10100000L    // OPENSSL 1.0
+    HMAC_CTX_cleanup(&ctx);
+#else // OPENSSL 1.1+
     HMAC_CTX_free(ctx);
-#else
-    HMAC_CTX_cleanup(ctx);
-    delete ctx;
 #endif
 
     if (!fSecMsgEnabled)
@@ -5008,10 +5005,11 @@ int SecureMsgEncrypt(SecureMessage &smsg, const std::string &addressFrom, const 
     */
 
     // -- ECDH_compute_key returns the same P if fed compressed or uncompressed public keys
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
-    EC_KEY_set_method(pkeyr, EC_KEY_OpenSSL());
-#else
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L    // OPENSSL 1.0
     ECDH_set_method(pkeyr, ECDH_OpenSSL());
+#else // OPENSSL 1.1+
+    EC_KEY_set_method(pkeyr, EC_KEY_OpenSSL());
 #endif
     
     int lenP = ECDH_compute_key(&vchP[0], 32, EC_KEY_get0_public_key(pkeyK), pkeyr, NULL);
@@ -5082,10 +5080,14 @@ int SecureMsgEncrypt(SecureMessage &smsg, const std::string &addressFrom, const 
 
     if (fSendAnonymous)
     {
-        try { vchPayload.resize(9 + lenMsgData); } catch (std::exception& e)
+        try
         {
-            return errorN(8, "%s : vchPayload.resize %u threw: %s.", __FUNCTION__, 9 + lenMsgData, e.what());
+            vchPayload.resize(9 + lenMsgData);
         }
+        catch (std::exception& e)
+        {
+            return errorN(8, "%s: vchPayload.resize %u threw: %s.", __func__, 9 + lenMsgData, e.what());
+        };
 
         memcpy(&vchPayload[9], pMsgData, lenMsgData);
 
@@ -5095,17 +5097,22 @@ int SecureMsgEncrypt(SecureMessage &smsg, const std::string &addressFrom, const 
     }
     else
     {
-        try { vchPayload.resize(SMSG_PL_HDR_LEN + lenMsgData); } catch (std::exception& e)
+        try
         {
-            return errorN(8, "%s : vchPayload.resize %u threw: %s.", __FUNCTION__, SMSG_PL_HDR_LEN + lenMsgData, e.what());
-        }
+            vchPayload.resize(SMSG_PL_HDR_LEN + lenMsgData);
+        } 
+        catch (std::exception& e)
+        {
+            return errorN(8, "%s: vchPayload.resize %u threw: %s.", __func__, SMSG_PL_HDR_LEN + lenMsgData, e.what());
+        };
         
         memcpy(&vchPayload[SMSG_PL_HDR_LEN], pMsgData, lenMsgData);
+        
         // -- compact signature proves ownership of from address and allows the public key to be recovered, recipient can always reply.
         if (!pwalletMain->GetKey(ckidFrom, keyFrom))
         {
-            return errorN(7, "%s : Could not get private key for addressFrom.", __FUNCTION__);
-        }
+            return errorN(7, "%s: Could not get private key for addressFrom.", __func__);
+        };
 
         // -- sign the plaintext
         std::vector<uint8_t> vchSignature;
@@ -5147,12 +5154,25 @@ int SecureMsgEncrypt(SecureMessage &smsg, const std::string &addressFrom, const 
    
     uint32_t nBytes = 32;
    
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+#if OPENSSL_VERSION_NUMBER < 0x10100000L   // OPENSSL 1.0
+
+    HMAC_CTX ctx;
+    HMAC_CTX_init(&ctx);
+
+    if (!HMAC_Init_ex(&ctx, &key_m[0], 32, EVP_sha256(), NULL)
+        || !HMAC_Update(&ctx, (uint8_t*) &smsg.timestamp, sizeof(smsg.timestamp))
+        || !HMAC_Update(&ctx, &vchCiphertext[0], vchCiphertext.size())
+        || !HMAC_Final(&ctx, smsg.mac, &nBytes)
+        || nBytes != 32)
+    {
+        fHmacOk = false;
+    }
+
+    HMAC_CTX_cleanup(&ctx);
+
+#else // OPENSSL 1.1+
+
     HMAC_CTX *ctx = HMAC_CTX_new();
-#else
-    HMAC_CTX *ctx = new HMAC_CTX();
-    HMAC_CTX_init(ctx);
-#endif
 
     if (!HMAC_Init_ex(ctx, &key_m[0], 32, EVP_sha256(), NULL)
         || !HMAC_Update(ctx, (uint8_t*) &smsg.timestamp, sizeof(smsg.timestamp))
@@ -5163,11 +5183,8 @@ int SecureMsgEncrypt(SecureMessage &smsg, const std::string &addressFrom, const 
         fHmacOk = false;
     }
 
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
     HMAC_CTX_free(ctx);
-#else
-    HMAC_CTX_cleanup(ctx);
-    delete ctx;
+
 #endif
 
     if (!fHmacOk)
@@ -5561,11 +5578,11 @@ int SecureMsgDecrypt(bool fTestOnly, std::string &address, uint8_t *pHeader, uin
     EC_KEY* pkeyR = ecKeyR.GetECKey();
 
 
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
-    EC_KEY_set_method(pkeyk, EC_KEY_OpenSSL());
-#else
+#if OPENSSL_VERSION_NUMBER < 0x10100000L   // OPENSSL 1.0
     ECDH_set_method(pkeyk, ECDH_OpenSSL());
-#endif
+#else //OPENSSL 1.1+
+    EC_KEY_set_method(pkeyk, EC_KEY_OpenSSL());
+#endif    
 
     int lenPdec = ECDH_compute_key(&vchP[0], 32, EC_KEY_get0_public_key(pkeyR), pkeyk, NULL);
 
@@ -5591,12 +5608,22 @@ int SecureMsgDecrypt(bool fTestOnly, std::string &address, uint8_t *pHeader, uin
     
     uint32_t nBytes = 32;
     
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+#if OPENSSL_VERSION_NUMBER < 0x10100000L   // OPENSSL 1.0
+    HMAC_CTX ctx;
+    HMAC_CTX_init(&ctx);
+
+    if (!HMAC_Init_ex(&ctx, &key_m[0], 32, EVP_sha256(), NULL)
+	|| !HMAC_Update(&ctx, (uint8_t*) &psmsg->timestamp, sizeof(psmsg->timestamp))
+	|| !HMAC_Update(&ctx, pPayload, nPayload)
+	|| !HMAC_Final(&ctx, MAC, &nBytes)
+	|| nBytes != 32)
+	{
+		fHmacOk = false;
+	}
+	
+	HMAC_CTX_cleanup(&ctx);
+#else // OPENSSL 1.1+
     HMAC_CTX *ctx = HMAC_CTX_new();
-#else
-    HMAC_CTX *ctx = new HMAC_CTX();
-    HMAC_CTX_init(ctx);
-#endif
 
     if (!HMAC_Init_ex(ctx, &key_m[0], 32, EVP_sha256(), NULL)
         || !HMAC_Update(ctx, (uint8_t*) &psmsg->timestamp, sizeof(psmsg->timestamp))
@@ -5607,11 +5634,7 @@ int SecureMsgDecrypt(bool fTestOnly, std::string &address, uint8_t *pHeader, uin
         fHmacOk = false;
     }
 
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
-    HMAC_CTX_free(ctx);
-#else
-    HMAC_CTX_cleanup(ctx);
-    delete ctx;
+	HMAC_CTX_free(ctx);
 #endif
 
     if (!fHmacOk)

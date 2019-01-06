@@ -1161,6 +1161,9 @@ bool AppInit2(boost::thread_group& threadGroup)
     uiInterface.InitMessage(_("Prune Orphans in block index..."));
     PruneOrphanBlocks();
 
+    //uiInterface.InitMessage(_("Rolling back block index..."));
+    //RollbackChain(101);
+
     if (GetBoolArg("-printblockindex", false) || GetBoolArg("-printblocktree", false))
     {
         PrintBlockTree();

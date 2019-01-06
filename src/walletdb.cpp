@@ -1066,7 +1066,17 @@ bool BackupWallet(const CWallet& wallet, const string& strDest)
                     pathDest /= wallet.strWalletFile;
                 }
 
+#if BOOST_VERSION >= 156000 // Above or equal to 1.56+
+                filesystem::copy_file(pathSrc, pathDest, filesystem::copy_option::overwrite_if_exists);
+#elif BOOST_VERSION == 155000  // Workaround for 1.55 bug
                 copyfile(pathSrc.string(), pathDest.string());
+#elif BOOST_VERSION >= 104000 // Above or equal to 1.04
+                filesystem::copy_file(pathSrc, pathDest, filesystem::copy_option::overwrite_if_exists);
+#elif BOOST_VERSION >= 100000 // Above or equal to 1.00
+                filesystem::copy_file(pathSrc, pathDest);
+#else // NO BOOST
+                copyfile(pathSrc.string(), pathDest.string());
+#endif
 
                 if (fDebug)
                 {

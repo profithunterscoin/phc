@@ -24,16 +24,13 @@ v1.0.0.7 (Pre-release)
 * FIX: Blank Masternode Payee in CBlock::AddToBlockIndex()
 * Install Internal PoW Miner (setgenerate)
 * FIX: Sync time minimized & Reorganize/Prune orphan blocks
-* FIX: RPC Client
-* FIX: TXDB Crash
-* FIX: Swapped BOOST::copy_file for STD copy_file
-* FIX: LoadblockIndex upon Init
+* FIX: RPC Client & INIT Msg
+* FIX: Swapped BOOST::copy_file for STD copy_file (BOOST 1.55)
+* FIX: LoadblockIndex Init
 * Installed: Init PruneOrphanBlocks
 * Installed: RPC Prune & Reorganize
-* ProcessBlock() fixed
-* Installed: ReorganizeChain function
-* FIX: Init Msg
-* FIX: Reorganize()
+* Installed: RollbackChain function
+
 
 v1.0.0.6
 --------

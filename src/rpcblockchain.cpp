@@ -379,17 +379,24 @@ Value prune(const Array& params, bool fHelp)
 }
 
 
-Value reorganize(const Array& params, bool fHelp)
+Value rollback(const Array& params, bool fHelp)
 {
     // Accept the deprecated and ignored 'detach' boolean argument
-    if (fHelp || params.size() > 1)
+    if (fHelp || params.size() < 1)
     {
-        throw runtime_error("Reorganize\n"
-                            "Reorganize blockchain index)");
+        throw runtime_error("rollback <blockcount>\n"
+                            "Rollback blockchain index by X blocks (100 default)");
     }
 
-    // Reorganize chain to ensure correct sync
-    ReorganizeChain();
+    int nBlockCount = (int)strtod(params[0].get_str().c_str(), NULL);
+
+    if (nBlockCount == 0)
+    {
+        nBlockCount = 100;
+    }
+
+    // Rollback chain to ensure correct sync
+    RollbackChain(nBlockCount);
 
     return true;
 }

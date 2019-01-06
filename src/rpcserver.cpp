@@ -301,7 +301,7 @@ Value debug(const Array& params, bool fHelp)
                             "|addrman|alert|core|db|rand|rpc|coincontrol|mempool"
                             "|net|socks|darksend|wallet|masternode|firewall|stealth"
                             "|protocol|uint|stakemodifier|kernel|util|daemon|socks"
-                            "|smessage|gui|qt|mining|coinage|spork|blockshield|"
+                            "|smessage|gui|qt|mining|coinage|spork|blockshield|blocktree|"
                             "Change debug category on the fly."
                             "Specify single category or use comma to specify many.\n"
                             "Special note: phcd must be run with -debug option and"
@@ -350,7 +350,7 @@ static const CRPCCommand vRPCCommands[] =
     { "stop",                                           &stop,                                          true,      true,      false },
     { "debug",                                          &debug,                                         true,      true,      false },
     { "prune",                                          &prune,                                         true,      true,      false },
-    { "reorganize",                                     &reorganize,                                    true,      true,      false },
+    { "rollback",                                       &rollback,                                      true,      true,      false },
     { "getbestblockhash",                               &getbestblockhash,                              true,      false,     false },
     { "getblockcount",                                  &getblockcount,                                 true,      false,     false },
     { "getconnectioncount",                             &getconnectioncount,                            true,      false,     false },

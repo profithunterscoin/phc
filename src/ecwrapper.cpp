@@ -103,11 +103,11 @@ namespace
         const BIGNUM *ecsig_r = NULL;
         const BIGNUM *ecsig_s = NULL;
 
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
-        ECDSA_SIG_get0(ecsig, &ecsig_r, &ecsig_s);
-#else
+#if OPENSSL_VERSION_NUMBER < 0x10100000L  // OPENSSL 1.0
         ecsig_r = ecsig->r;
         ecsig_s = ecsig->s;
+#else
+        ECDSA_SIG_get0(ecsig, &ecsig_r, &ecsig_s);
 #endif
 
         const EC_GROUP *group = EC_KEY_get0_group(eckey);
@@ -310,11 +310,21 @@ CECKey::~CECKey()
 void CECKey::GetSecretBytes(unsigned char vch[32]) const
 {
     const BIGNUM *bn = EC_KEY_get0_private_key(pkey);
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L  // OPENSSL 1.0
     assert(bn);
 
     int nBytes = BN_num_bytes(bn);
 
     int n=BN_bn2bin(bn,&vch[32 - nBytes]);
+#else
+    assert(bn);
+
+    int nBytes = BN_num_bytes(bn);
+
+    int n=BN_bn2bin(bn, &vch[32 - nBytes]);
+#endif
+
     assert(n == nBytes);
     
     memset(vch, 0, 32 - nBytes);
@@ -325,15 +335,31 @@ void CECKey::SetSecretBytes(const unsigned char vch[32])
 {
     bool ret;
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L  // OPENSSL 1.0
+    BIGNUM bn;
+    BN_init(&bn);
+
+    ret = BN_bin2bn(vch, 32, &bn) != NULL;
+    assert(ret);
+    
+    ret = EC_KEY_regenerate_key(pkey, &bn) != 0;
+
+    assert(ret);
+
+    BN_clear_free(&bn);
+#else
     BIGNUM* bn(BN_new());
     
     ret = BN_bin2bn(vch, 32, bn) != NULL;
     assert(ret);
 
     ret = EC_KEY_regenerate_key(pkey, bn) != 0;
+
     assert(ret);
 
     BN_clear_free(bn);
+#endif
+
 }
 
 
@@ -414,11 +440,11 @@ bool CECKey::Sign(const uint256 &hash, std::vector<unsigned char>& vchSig)
     const BIGNUM *sig_r = NULL;
     const BIGNUM *sig_s = NULL;
 
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
-    ECDSA_SIG_get0(sig, &sig_r, &sig_s);
-#else
+#if OPENSSL_VERSION_NUMBER < 0x10100000L  // OPENSSL 1.0
     sig_r = sig->r;
     sig_s = sig->s;
+#else
+    ECDSA_SIG_get0(sig, &sig_r, &sig_s);
 #endif
     
     BN_CTX *ctx = BN_CTX_new();
@@ -491,11 +517,11 @@ bool CECKey::SignCompact(const uint256 &hash, unsigned char *p64, int &rec)
     const BIGNUM *sig_r = NULL;
     const BIGNUM *sig_s = NULL;
 
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
-    ECDSA_SIG_get0(sig, &sig_r, &sig_s);
-#else
+#if OPENSSL_VERSION_NUMBER < 0x10100000L  // OPENSSL 1.0
     sig_r = sig->r;
     sig_s = sig->s;
+#else
+    ECDSA_SIG_get0(sig, &sig_r, &sig_s);
 #endif
 
     memset(p64, 0, 64);
@@ -549,19 +575,15 @@ bool CECKey::Recover(const uint256 &hash, const unsigned char *p64, int rec)
     
     ECDSA_SIG *sig = ECDSA_SIG_new();
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L  // OPENSSL 1.0
+    BN_bin2bn(&p64[0],  32, sig->r);
+    BN_bin2bn(&p64[32], 32, sig->s);
+
+#else
     BIGNUM *sig_r(BN_new());
     BIGNUM *sig_s(BN_new());
 
-    BN_bin2bn(&p64[0],  32, sig_r);
-    BN_bin2bn(&p64[32], 32, sig_s);    
-
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
     ECDSA_SIG_set0(sig, sig_r, sig_s);
-#else
-    BN_clear_free(sig->r);
-    BN_clear_free(sig->s);
-    sig->r = sig_r;
-    sig->s = sig_s;
 #endif
 
     bool ret = ECDSA_SIG_recover_key_GFp(pkey, sig, (unsigned char*)&hash, sizeof(hash), rec, 0) == 1;

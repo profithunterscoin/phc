@@ -74,7 +74,9 @@ class SecureMessage
         ~SecureMessage()
         {
             if (pPayload)
+            {
                 delete[] pPayload;
+            }
             pPayload = NULL;
         };
 
@@ -120,9 +122,8 @@ class SecMsgToken
             } 
             else
             {
-
-            }
                 memcpy(sample, p, 8);
+            }
             offset = o;
         };
 
@@ -158,7 +159,7 @@ class SecMsgBucket
             hash            = 0;
             nLockCount      = 0;
             nLockPeerId     = 0;
-        }
+        };
 
         ~SecMsgBucket() {};
 
