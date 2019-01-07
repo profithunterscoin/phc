@@ -1068,7 +1068,7 @@ bool BackupWallet(const CWallet& wallet, const string& strDest)
 
 #if BOOST_FILESYSTEM_VERSION >= 2 && BOOST_VERSION >= 156000
                 filesystem::copy_file(pathSrc, pathDest, filesystem::copy_option::overwrite_if_exists);
-#elif BOOST_FILESYSTEM_VERSION < 2
+#elif BOOST_FILESYSTEM_VERSION < 2 && BOOST_VERSION <= 156000  // FIX for (https://svn.boost.org/trac10/ticket/10038)
                 filesystem::copy_file(pathSrc, pathDest);
 #else
                 copyfile(pathSrc.string(), pathDest.string());
