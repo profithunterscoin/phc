@@ -14,6 +14,9 @@ USE_UPNP:=1
 USE_WALLET:=1
 USE_LOWMEM:=0
 LIBS= -dead_strip
+
+# workaround for boost 1.55 + 1.56 (https://svn.boost.org/trac10/ticket/10038)
+BOOST = -lboost_system -lboost_filesystem
 # *****************************************************
 
 # *****************************************************

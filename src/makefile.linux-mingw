@@ -22,6 +22,9 @@ STRIP=$(TARGET_PLATFORM)-w64-mingw32-strip
 USE_UPNP:=0
 USE_WALLET:=1
 USE_LOWMEM:=0
+
+# workaround for boost 1.55 + 1.56 (https://svn.boost.org/trac10/ticket/10038)
+BOOST = -lboost_system -lboost_filesystem
 # *****************************************************
 
 # *****************************************************
