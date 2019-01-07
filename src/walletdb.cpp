@@ -11,9 +11,7 @@
 #include "sync.h"
 #include "wallet.h"
 
-#define BOOST_NO_CXX11_SCOPED_ENUMS
 #include <boost/filesystem.hpp>
-#undef BOOST_NO_CXX11_SCOPED_ENUMS
 #include <boost/foreach.hpp>
 
 using namespace std;
@@ -1067,17 +1065,15 @@ bool BackupWallet(const CWallet& wallet, const string& strDest)
                 {
                     pathDest /= wallet.strWalletFile;
                 }
-#if BOOST_VERSION >= 157000 // Above or equal to 1.57
+
+#if BOOST_FILESYSTEM_VERSION >= 2 && BOOST_VERSION >= 156000
                 filesystem::copy_file(pathSrc, pathDest, filesystem::copy_option::overwrite_if_exists);
-#elif BOOST_VERSION <= 157000 && BOOST_VERSION >= 150000  // Workaround for 1.5+ bug (https://svn.boost.org/trac10/ticket/10038)
-                copyfile(pathSrc.string(), pathDest.string());
-#elif BOOST_VERSION <= 150000 // Below or equal to 1.50
-                filesystem::copy_file(pathSrc, pathDest, filesystem::copy_option::overwrite_if_exists);
-#elif BOOST_VERSION < 104000 // Above or equal to 1.04
+#elif BOOST_FILESYSTEM_VERSION < 2
                 filesystem::copy_file(pathSrc, pathDest);
-#else // NO BOOST
+#else
                 copyfile(pathSrc.string(), pathDest.string());
 #endif
+
                 if (fDebug)
                 {
                     LogPrint("db", "%s : copied wallet.dat to %s\n", __FUNCTION__, pathDest.string());
