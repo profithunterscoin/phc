@@ -38,6 +38,9 @@ UI_DIR = build
 #    BOOST_INCLUDE_PATH, BOOST_LIB_PATH, BDB_INCLUDE_PATH,
 #    BDB_LIB_PATH, OPENSSL_INCLUDE_PATH and OPENSSL_LIB_PATH respectively
 
+# workaround for boost 1.55 + 1.56 (https://svn.boost.org/trac10/ticket/10038)
+BOOST = -lboost_system -lboost_filesystem
+
 # workaround for boost 1.58
 DEFINES += BOOST_VARIANT_USE_RELAXED_GET_BY_DEFAULT
 

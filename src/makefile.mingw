@@ -16,6 +16,9 @@ USE_LOWMEM:=0
 
 BOOST_SUFFIX?=-mgw49-mt-s-1_57
 
+# workaround for boost 1.55 + 1.56 (https://svn.boost.org/trac10/ticket/10038)
+BOOST = -lboost_system -lboost_filesystem
+
 INCLUDEPATHS= \
  -I"$(CURDIR)" \
  -I"d:/project/phc/include/boost-1_57" \

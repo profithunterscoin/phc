@@ -17,7 +17,6 @@ USE_LOWMEM:=0
 CC = gcc
 CXX = g++ -std=c++11 -Wno-deprecated-declarations
 CFLAGS = -O2 -fomit-frame-pointer
-
 LINK:=$(CXX)
 ARCH:=$(system lscpu | head -n 1 | awk '{print $2}')
 
@@ -34,6 +33,9 @@ ifdef STATIC
         LMODE2 = static
     endif
 endif
+
+# workaround for boost 1.55 + 1.56 (https://svn.boost.org/trac10/ticket/10038)
+BOOST = -lboost_system -lboost_filesystem
 # *****************************************************
 
 # *****************************************************
