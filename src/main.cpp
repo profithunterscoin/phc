@@ -2918,9 +2918,56 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 }
 
 
-bool RollbackChain(int nBlockCount)
+int RollbackChain(int nBlockCount)
 {
-    // NOT WORKING CORRECTLY
+    // NOT WORKING 100% correctly (won't sync after)
+
+    LOCK(cs_main);
+
+    CTxDB txdb("cr+");
+
+    CBlockIndex* pindexNew = pindexBest;
+
+    for (int counter = 1; counter != nBlockCount; counter = counter + 1)
+    {
+        pindexNew = pindexNew->pprev;
+    }
+
+    pindexBest = pindexNew;
+
+    /*
+    pindexBest->pprev = pindexNew->pprev;
+    pindexBest->pprev->nHeight = pindexNew->pprev->nHeight;
+    pindexBest->pprev->nChainTrust = pindexNew->pprev->nChainTrust;
+    pindexBest->pprev->pnext = NULL;
+    pindexBest->pnext = NULL;
+    pindexBest->nHeight = pindexNew->nHeight;
+    pindexBest->nChainTrust = pindexNew->nChainTrust;
+    */
+    
+    // Update best block in wallet (so we can detect restored wallets)
+    const CBlockLocator locator(pindexBest);
+    g_signals.SetBestChain(locator);
+
+    // New best block
+    hashBestChain = pindexBest->GetBlockHash();
+    pblockindexFBBHLast = NULL;
+    nBestHeight = pindexBest->nHeight;
+    nBestChainTrust = pindexBest->nChainTrust;
+    nTimeBestReceived = GetTime();
+    mempool.AddTransactionsUpdated(1);
+
+    if (!txdb.WriteHashBestChain(pindexBest->GetBlockHash()))
+    {
+        return error("%s : WriteHashBestChain failed", __FUNCTION__);
+    }
+
+    // Make sure it's successfully written to disk
+    txdb.TxnCommit();
+
+    return pindexBest->nHeight;
+
+    // alt-code
 
 /*
     CTxDB txdb("rw+");
@@ -2943,10 +2990,10 @@ bool RollbackChain(int nBlockCount)
         nFound++;
 
     }
-*/
+
 
 return false;
-
+*/
 }
 
 
