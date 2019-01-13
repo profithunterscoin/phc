@@ -145,7 +145,7 @@ struct CNodeStateStats;
 bool Reorganize(CTxDB& txdb, CBlockIndex* pindexNew);
 
 /** Rollback Blockchain Index */
-bool RollbackChain(int nBlockCount);
+int RollbackChain(int nBlockCount);
 
 /** Prune Orphan blocks from index */
 void PruneOrphanBlocks();

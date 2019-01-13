@@ -381,11 +381,13 @@ Value prune(const Array& params, bool fHelp)
 
 Value rollback(const Array& params, bool fHelp)
 {
-    // Accept the deprecated and ignored 'detach' boolean argument
+
     if (fHelp || params.size() < 1)
     {
         throw runtime_error("rollback <blockcount>\n"
-                            "Rollback blockchain index by X blocks (100 default)");
+                            "Rollback blockchain index by X blocks (100 default)"
+                            "NOTE: Daemon or QT restart required after."
+                            "NOTE: Not working 100% correctly yet");
     }
 
     int nBlockCount = (int)strtod(params[0].get_str().c_str(), NULL);
@@ -395,8 +397,8 @@ Value rollback(const Array& params, bool fHelp)
         nBlockCount = 100;
     }
 
-    // Rollback chain to ensure correct sync
-    RollbackChain(nBlockCount);
 
-    return true;
+    // Rollback chain to ensure correct sync
+    return RollbackChain(nBlockCount);
+
 }
