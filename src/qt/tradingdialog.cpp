@@ -991,7 +991,7 @@ void tradingDialog::on_SaveKeys_clicked()
 {
     bool fSuccess = true;
 
-    boost::filesystem::path pathConfigFile = GetDataDir() / "APIcache.txt";
+    boost::filesystem::path pathConfigFile = GetDataDir(true) / "APIcache.txt";
     boost::filesystem::ofstream stream (pathConfigFile.string(), ios::out | ios::trunc);
 
     // Qstring to string
@@ -1035,7 +1035,7 @@ void tradingDialog::on_LoadKeys_clicked()
 {
     bool fSuccess = true;
 
-    boost::filesystem::path pathConfigFile = GetDataDir() / "APIcache.txt";
+    boost::filesystem::path pathConfigFile = GetDataDir(true) / "APIcache.txt";
     boost::filesystem::ifstream stream (pathConfigFile.string());
 
     // Qstring to string

@@ -143,6 +143,16 @@ class CChainParams
             return strDarksendPoolDummyAddress;
         }
 
+        int GetHardFork_1() const
+        {
+            return nHardFork_1;
+        }
+
+        int GetHardFork_2() const
+        {
+            return nHardFork_2;
+        }
+
         //std::string SporkKey() const { return strSporkKey; }
         //std::string MasternodePaymentPubKey() const { return strMasternodePaymentsPubKey; }
 
@@ -170,6 +180,9 @@ class CChainParams
         int nLastPOWBlock;
         int nPOSStartBlock;
         int nPoolMaxTransactions;
+
+        int nHardFork_1;
+        int nHardFork_2;
 
         std::string strDarksendPoolDummyAddress;
         //std::string strSporkKey;

@@ -317,7 +317,7 @@ static void DebugPrintInit()
     assert(fileout == NULL);
     assert(mutexDebugLog == NULL);
 
-    boost::filesystem::path pathDebug = GetDataDir() / "debug.log";
+    boost::filesystem::path pathDebug = GetDataDir(true) / "debug.log";
     fileout = fopen(pathDebug.string().c_str(), "a");
 
     if (fileout)
@@ -403,7 +403,7 @@ int LogPrintStr(const std::string &str)
         {
             fReopenDebugLog = false;
 
-            boost::filesystem::path pathDebug = GetDataDir() / "debug.log";
+            boost::filesystem::path pathDebug = GetDataDir(true) / "debug.log";
             
             if (freopen(pathDebug.string().c_str(),"a",fileout) != NULL)
             {
@@ -1614,7 +1614,7 @@ boost::filesystem::path GetConfigFile()
 
     if (!pathConfigFile.is_complete())
     {
-        pathConfigFile = GetDataDir(false) / pathConfigFile;
+        pathConfigFile = GetDataDir(true) / pathConfigFile;
     }
     
     return pathConfigFile;
@@ -1627,7 +1627,7 @@ boost::filesystem::path GetMasternodeConfigFile()
     
     if (!pathConfigFile.is_complete())
     {
-        pathConfigFile = GetDataDir() / pathConfigFile;
+        pathConfigFile = GetDataDir(true) / pathConfigFile;
     }
     
     return pathConfigFile;
@@ -1681,7 +1681,7 @@ boost::filesystem::path GetPidFile()
 
     if (!pathPidFile.is_complete())
     {
-        pathPidFile = GetDataDir() / pathPidFile;
+        pathPidFile = GetDataDir(true) / pathPidFile;
     }
     
     return pathPidFile;
@@ -1770,7 +1770,7 @@ std::string bytesReadable(uint64_t nBytes)
 void ShrinkDebugFile()
 {
     // Scroll debug.log if it's getting too big
-    boost::filesystem::path pathLog = GetDataDir() / "debug.log";
+    boost::filesystem::path pathLog = GetDataDir(true) / "debug.log";
     FILE* file = fopen(pathLog.string().c_str(), "r");
     
     if (file && boost::filesystem::file_size(pathLog) > 10 * 1000000)

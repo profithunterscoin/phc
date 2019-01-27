@@ -46,7 +46,7 @@ static leveldb::Options GetOptions()
 void init_blockindex(leveldb::Options& options, bool fRemoveOld = false)
 {
     // First time init.
-    filesystem::path directory = GetDataDir() / "txleveldb";
+    filesystem::path directory = GetDataDir(true) / "txleveldb";
 
     if (fRemoveOld)
     {
@@ -55,7 +55,7 @@ void init_blockindex(leveldb::Options& options, bool fRemoveOld = false)
 
         while (true)
         {
-            filesystem::path strBlockFile = GetDataDir() / strprintf("blk%04u.dat", nFile);
+            filesystem::path strBlockFile = GetDataDir(true) / strprintf("blk%04u.dat", nFile);
 
             // Break if no such file
             if( !filesystem::exists( strBlockFile ) )

@@ -328,7 +328,7 @@ CDB::CDB(const std::string& strFilename, const char* pszMode) : pdb(NULL), activ
     {
         LOCK(bitdb.cs_db);
 
-        if (!bitdb.Open(GetDataDir()))
+        if (!bitdb.Open(GetDataDir(true)))
         {
             throw runtime_error(strprintf("%s : env open failed", __FUNCTION__));
         }

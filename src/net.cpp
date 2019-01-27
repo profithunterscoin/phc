@@ -4124,7 +4124,7 @@ uint64_t CNode::GetTotalBytesSent()
 
 CAddrDB::CAddrDB()
 {
-    pathAddr = GetDataDir() / "peers.dat";
+    pathAddr = GetDataDir(true) / "peers.dat";
 }
 
 bool CAddrDB::Write(const CAddrMan& addr)
@@ -4143,7 +4143,7 @@ bool CAddrDB::Write(const CAddrMan& addr)
     ssPeers << hash;
 
     // open temp output file, and associate with CAutoFile
-    boost::filesystem::path pathTmp = GetDataDir() / tmpfn;
+    boost::filesystem::path pathTmp = GetDataDir(true) / tmpfn;
     FILE *file = fopen(pathTmp.string().c_str(), "wb");
     CAutoFile fileout = CAutoFile(file, SER_DISK, CLIENT_VERSION);
 
@@ -4255,7 +4255,7 @@ bool CAddrDB::Read(CAddrMan& addr)
 
 CBanDB::CBanDB()
 {
-    pathBanlist = GetDataDir() / "banlist.dat";
+    pathBanlist = GetDataDir(true) / "banlist.dat";
 }
 
 
@@ -4274,7 +4274,7 @@ bool CBanDB::Write(const banmap_t& banSet)
     ssBanlist << hash;
 
     // open temp output file, and associate with CAutoFile
-    boost::filesystem::path pathTmp = GetDataDir() / tmpfn;
+    boost::filesystem::path pathTmp = GetDataDir(true) / tmpfn;
     FILE *file = fopen(pathTmp.string().c_str(), "wb");
     CAutoFile fileout(file, SER_DISK, CLIENT_VERSION);
     if (fileout.IsNull())
