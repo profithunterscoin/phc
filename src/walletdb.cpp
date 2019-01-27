@@ -1058,7 +1058,7 @@ bool BackupWallet(const CWallet& wallet, const string& strDest)
                 bitdb.mapFileUseCount.erase(wallet.strWalletFile);
 
                 // Copy wallet.dat
-                filesystem::path pathSrc = GetDataDir() / wallet.strWalletFile;
+                filesystem::path pathSrc = GetDataDir(true) / wallet.strWalletFile;
                 filesystem::path pathDest(strDest);
                 
                 if (filesystem::is_directory(pathDest))

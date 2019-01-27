@@ -1840,42 +1840,91 @@ double GetDynamicBlockReward3(int nHeight)
     int nSubsidyMax = 1;
     double nSubsidyBase = nSubsidyMin;
     int nSubsidyMod = 0;
-    int TightForkHeight = 120000;
+    int TightForkHeight = 0;
 
-    /* ------ Pre-Mining Phase: Block #0 (Start) ------ */
-    if (nHeight == 0)
+    if (!TestNet())
     {
-        nSubsidyMax = 1;
+        // MAIN-NET
+
+        TightForkHeight = 120000;
+
+        /* ------ Pre-Mining Phase: Block #0 (Start) ------ */
+        if (nHeight == 0)
+        {
+            nSubsidyMax = 1;
+        }
+        /* ------ Initial Mining Phase: Blocks Bigger than 0 ------ */
+        if (nHeight > 0)
+        {
+            nSubsidyMax = 100;
+        }
+        /* ------ Initial Mining Phase: Blocks Bigger than 50000 ------ */
+        if (nHeight > 50000)
+        {
+            nSubsidyMax = 50;
+        }
+        /* ------ Tight-Fork Mining Phase: Blocks Bigger than 120000 ------ */
+        if (nHeight > TightForkHeight)
+        {
+            nSubsidyMax = 25;
+        }
+        /* ------ Regular Mining Phase: Blocks Bigger than 200000 ------ */
+        if (nHeight > 150000)
+        {
+            nSubsidyMax = 12.5;
+        }
+        /* ------ Regular Mining Phase: Blocks Bigger than 200000 ------ */
+        if (nHeight > 200000)
+        {
+            nSubsidyMax = 6.25;
+        }
+        /* ------ Regular Mining Phase: Blocks Bigger than 250000 ------ */
+        if (nHeight > 250000)
+        {
+            nSubsidyMax = 3.125;
+        }
     }
-    /* ------ Initial Mining Phase: Block #1 Up to 50000 ------ */
-    if (nHeight > 0)
+    else
     {
-        nSubsidyMax = 100;
-    }
-    /* ------ Initial Mining Phase: Block #50001 Up to 12000 ------ */
-    if (nHeight > 50000)
-    {
-        nSubsidyMax = 50;
-    }
-    /* ------ Tight-Fork Mining Phase: Block #120001 Up to 15000 ------ */
-    if (nHeight > TightForkHeight)
-    {
-        nSubsidyMax = 25;
-    }
-    /* ------ Regular Mining Phase: Block #15001 Up to 200000 ------ */
-    if (nHeight > 150000)
-    {
-        nSubsidyMax = 12.5;
-    }
-    /* ------ Regular Mining Phase: Block #20001 Up to 200000 ------ */
-    if (nHeight > 200000)
-    {
-        nSubsidyMax = 6.25;
-    }
-    /* ------ Regular Mining Phase: Block #25001 Up to 250000 ------ */
-    if (nHeight > 250000)
-    {
-        nSubsidyMax = 3.125;
+        // TESNET
+
+        TightForkHeight = 1200;
+
+        /* ------ Pre-Mining Phase: Block #0 (Start) ------ */
+        if (nHeight == 0)
+        {
+            nSubsidyMax = 1;
+        }
+        /* ------ Initial Mining Phase: Blocks Bigger than 0 ------ */
+        if (nHeight > 0)
+        {
+            nSubsidyMax = 100;
+        }
+        /* ------ Initial Mining Phase: Blocks Bigger than 500 ------ */
+        if (nHeight > 500)
+        {
+            nSubsidyMax = 50;
+        }
+        /* ------ Tight-Fork Mining Phase: Blocks Bigger than 1200 ------ */
+        if (nHeight > TightForkHeight)
+        {
+            nSubsidyMax = 25;
+        }
+        /* ------ Regular Mining Phase: Blocks Bigger than 1500 ------ */
+        if (nHeight > 1500)
+        {
+            nSubsidyMax = 12.5;
+        }
+        /* ------ Regular Mining Phase: Blocks Bigger than 2000 ------ */
+        if (nHeight > 2000)
+        {
+            nSubsidyMax = 6.25;
+        }
+        /* ------ Regular Mining Phase: Blocks Bigger than 2500 ------ */
+        if (nHeight > 2500)
+        {
+            nSubsidyMax = 3.125;
+        }
     }
 
     nSubsidyMod = nNetworkHashPS / nDifficulty;
@@ -2023,22 +2072,10 @@ const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfSta
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake)
 {
     // TargetTimespan correction after development testing
-    // 1.0.0.7 Hardfork
-
-    if (!TestNet())
-    {   // Mainnet Block #100000000 (undecided)
-        if (nBestHeight >= 100000000)
-        {
-            nTargetTimespan = 60; // 1 Minute
-        }
-    }
-    else
+    // PHC 1.0.0.7 Hard_Fork 1
+    if (nBestHeight >= Params().GetHardFork_1())
     {
-        // Testnet Block #338,250
-        if (nBestHeight >= 338250)
-        {
-            nTargetTimespan = 60; // 1 Minute
-        }
+        nTargetTimespan = 60; // 1 Minute
     }
 
     CBigNum bnTargetLimit = fProofOfStake ? GetProofOfStakeLimit(pindexLast->nHeight) : Params().ProofOfWorkLimit();
@@ -2072,12 +2109,33 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     CBigNum bnNew;
     bnNew.SetCompact(pindexPrev->nBits);
     int64_t nInterval = nTargetTimespan / TARGET_SPACING;
-    bnNew *= ((nInterval - 1) * TARGET_SPACING + nActualSpacing + nActualSpacing);
-    bnNew /= ((nInterval + 1) * TARGET_SPACING);
 
-    if (bnNew <= 0 || bnNew > bnTargetLimit)
+    // ASIC_CHOKER 1.0.1
+    // PHC 1.0.0.7 Hard_Fork 2
+    if (nBestHeight >= Params().GetHardFork_2())
     {
-        bnNew = bnTargetLimit;
+        bnNew *= ((nInterval - 1) * TARGET_SPACING + nActualSpacing);
+        bnNew /= ((nInterval + 1) * TARGET_SPACING);
+
+        if (bnNew <= 0 || bnNew == bnTargetLimit)
+        {
+            bnNew = bnTargetLimit;
+        }
+
+        if (bnNew <= 0 || bnNew > bnTargetLimit)
+        {
+            bnNew = 0;
+        }
+    }
+    else
+    {
+        bnNew *= ((nInterval - 1) * TARGET_SPACING + nActualSpacing + nActualSpacing);
+        bnNew /= ((nInterval + 1) * TARGET_SPACING);
+
+        if (bnNew <= 0 || bnNew > bnTargetLimit)
+        {
+            bnNew = bnTargetLimit;
+        }
     }
 
     return bnNew.GetCompact();
@@ -2966,34 +3024,6 @@ int RollbackChain(int nBlockCount)
     txdb.TxnCommit();
 
     return pindexBest->nHeight;
-
-    // alt-code
-
-/*
-    CTxDB txdb("rw+");
-
-    int nFound = 0;
-
-    for (map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.end() - nBlockCount; mi != mapBlockIndex.end(); ++mi)
-    {
-        CBlockIndex* pindex = (*mi).second;
-
-        CBlock block;
-
-        block.DisconnectBlock(txdb, pindex);
-
-        if (fDebug)
-        {
-            LogPrint("core", "%s : Block: %s\n", __FUNCTION__, block.ToString());
-        }
-
-        nFound++;
-
-    }
-
-
-return false;
-*/
 }
 
 
@@ -3647,17 +3677,10 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                     {
                         int DeActivationHeight = 1;
 
-                        // 1.0.0.7 Hardfork
-                        //* PHC FIX: Do not allow blank payments
+                        // PHC 1.0.0.7 Hard_Fork 1
+                        //* Do not allow blank payments
                         
-                        if (!TestNet())
-                        {
-                            DeActivationHeight = 1000000000; // Activation @ Mainnet Block 1000000000 (undecided)
-                        }
-                        else
-                        {
-                            DeActivationHeight = 338250; // Activation @ Testnet Block 338250
-                        }
+                        DeActivationHeight = Params().GetHardFork_1(); // DeActivation
 
                         if (pindexBest->nHeight+1 >= DeActivationHeight)
                         {
@@ -3813,15 +3836,8 @@ bool CBlock::BlockShield(int Block_nHeight) const
     double Compare3;
     std::string TempLogCache;
 
-    // 1.0.0.7 Hardfork
-    if (!TestNet())
-    {
-        ActivationHeight = 1000000000; // Activation @ Mainnet Block 1000000000 (undecided)
-    }
-    else
-    {
-        ActivationHeight = 338250; // Activation @ Testnet Block 338250
-    }
+    // PHC 1.0.0.7 Hard_Fork 1
+    ActivationHeight = Params().GetHardFork_1();
 
     if (Block_nHeight >= ActivationHeight)
     {
@@ -4624,7 +4640,7 @@ bool CBlock::CheckBlockSignature() const
 
 bool CheckDiskSpace(uint64_t nAdditionalBytes)
 {
-    uint64_t nFreeBytesAvailable = filesystem::space(GetDataDir()).available;
+    uint64_t nFreeBytesAvailable = filesystem::space(GetDataDir(true)).available;
 
     // Check for nMinDiskSpace bytes (currently 50MB)
     if (nFreeBytesAvailable < nMinDiskSpace + nAdditionalBytes)
@@ -4652,7 +4668,7 @@ static filesystem::path BlockFilePath(unsigned int nFile)
 {
     string strBlockFn = strprintf("blk%04u.dat", nFile);
 
-    return GetDataDir() / strBlockFn;
+    return GetDataDir(true) / strBlockFn;
 }
 
 
@@ -4976,13 +4992,13 @@ void ThreadImport(std::vector<boost::filesystem::path> vImportFiles)
     }
 
     // hardcoded $DATADIR/bootstrap.dat
-    filesystem::path pathBootstrap = GetDataDir() / "bootstrap.dat";
+    filesystem::path pathBootstrap = GetDataDir(true) / "bootstrap.dat";
     if (filesystem::exists(pathBootstrap))
     {
         FILE *file = fopen(pathBootstrap.string().c_str(), "rb");
         if (file)
         {
-            filesystem::path pathBootstrapOld = GetDataDir() / "bootstrap.dat.old";
+            filesystem::path pathBootstrapOld = GetDataDir(true) / "bootstrap.dat.old";
             LoadExternalBlockFile(file);
             RenameOver(pathBootstrap, pathBootstrapOld);
         }

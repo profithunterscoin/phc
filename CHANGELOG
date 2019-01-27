@@ -19,9 +19,9 @@ v1.0.0.7 (Pre-release)
 * FIX: Excessive CPU use during mining
 * Upgrade: Debug to Logfile (Disabled by default, Added Categories and Function Names)
 * FIX: Removed peer banning ProcessBlock, upgraded some Misbehaving calls in main.cpp
-* Installed: Retarget Hard Fork (TimeFrame changed from 120 to 60 seconds) (Mainnet: Inactive, Testnet: Block # 338250)
-* Installed: Block Shield 1.2.1 (Mainnet: Inactive, Testnet: Block # 338250)
-* FIX: Blank Masternode Payee in CBlock::AddToBlockIndex()
+* Installed: Retarget Hard Fork (TimeFrame changed from 120 to 60 seconds) (Hard-Fork 1)
+* Installed: Block Shield 1.2.1 (Hard-Fork 1)
+* FIX: Blank Masternode Payee in CBlock::AddToBlockIndex() (Hard-Fork 1)
 * Install Internal PoW Miner (setgenerate)
 * FIX: Sync time minimized & Reorganize/Prune orphan blocks
 * FIX: RPC Client & INIT Msg
@@ -30,7 +30,10 @@ v1.0.0.7 (Pre-release)
 * Installed: Init PruneOrphanBlocks
 * Installed: RPC Prune & Reorganize
 * Installed: RollbackChain function
-
+* ProcessBlock() fixed (Orphans)
+* FIX: Network specific .conf
+* Installed: New Testnet
+* Installed: ASIC_CHOKER 1.0.1 (Hard-Fork 2)
 
 v1.0.0.6
 --------

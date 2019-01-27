@@ -278,7 +278,7 @@ bool SecMsgDB::Open(const char* pszMode)
 
     bool fCreate = strchr(pszMode, 'c');
 
-    fs::path fullpath = GetDataDir() / "smsgDB";
+    fs::path fullpath = GetDataDir(true) / "smsgDB";
 
     if (!fCreate && (!fs::exists(fullpath) || !fs::is_directory(fullpath)))
     {
@@ -866,7 +866,7 @@ void ThreadSecureMsg()
 
                     std::string fileName = boost::lexical_cast<std::string>(it->first);
 
-                    fs::path fullPath = GetDataDir() / "smsgStore" / (fileName + "_01.dat");
+                    fs::path fullPath = GetDataDir(true) / "smsgStore" / (fileName + "_01.dat");
 
                     if (fs::exists(fullPath))
                     {
@@ -891,7 +891,7 @@ void ThreadSecureMsg()
                     }
                     
                     // -- look for a wl file, it stores incoming messages when wallet is locked
-                    fullPath = GetDataDir() / "smsgStore" / (fileName + "_01_wl.dat");
+                    fullPath = GetDataDir(true) / "smsgStore" / (fileName + "_01_wl.dat");
                     
                     if (fs::exists(fullPath))
                     {
@@ -1163,7 +1163,7 @@ int SecureMsgBuildBucketSet()
     uint32_t nFiles         = 0;
     uint32_t nMessages      = 0;
 
-    fs::path pathSmsgDir = GetDataDir() / "smsgStore";
+    fs::path pathSmsgDir = GetDataDir(true) / "smsgStore";
     fs::directory_iterator itend;
 
     if (!fs::exists(pathSmsgDir) || !fs::is_directory(pathSmsgDir))
@@ -1453,7 +1453,7 @@ int SecureMsgReadIni()
         }
     }
 
-    fs::path fullpath = GetDataDir() / "smsg.ini";
+    fs::path fullpath = GetDataDir(true) / "smsg.ini";
 
 
     FILE *fp;
@@ -1558,7 +1558,7 @@ int SecureMsgWriteIni()
         }
     }
 
-    fs::path fullpath = GetDataDir() / "smsg.ini~";
+    fs::path fullpath = GetDataDir(true) / "smsg.ini~";
 
     FILE *fp;
     errno = 0;
@@ -1630,7 +1630,7 @@ int SecureMsgWriteIni()
 
     try
     {
-        fs::path finalpath = GetDataDir() / "smsg.ini";
+        fs::path finalpath = GetDataDir(true) / "smsg.ini";
         
         fs::rename(fullpath, finalpath);
     }
@@ -3197,7 +3197,7 @@ bool SecureMsgScanBuckets()
     uint32_t nMessages      = 0;
     uint32_t nFoundMessages = 0;
 
-    fs::path pathSmsgDir = GetDataDir() / "smsgStore";
+    fs::path pathSmsgDir = GetDataDir(true) / "smsgStore";
     fs::directory_iterator itend;
 
     if (!fs::exists(pathSmsgDir) || !fs::is_directory(pathSmsgDir))
@@ -3428,7 +3428,7 @@ int SecureMsgWalletUnlocked()
     uint32_t nMessages      = 0;
     uint32_t nFoundMessages = 0;
 
-    fs::path pathSmsgDir = GetDataDir() / "smsgStore";
+    fs::path pathSmsgDir = GetDataDir(true) / "smsgStore";
     fs::directory_iterator itend;
 
     if (!fs::exists(pathSmsgDir) || !fs::is_directory(pathSmsgDir))
@@ -4064,7 +4064,7 @@ int SecureMsgRetrieve(SecMsgToken &token, std::vector<uint8_t>& vchData)
 
     // -- has cs_smsg lock from SecureMsgReceiveData
 
-    fs::path pathSmsgDir = GetDataDir() / "smsgStore";
+    fs::path pathSmsgDir = GetDataDir(true) / "smsgStore";
 
     if (fDebug)
     {
@@ -4359,7 +4359,7 @@ int SecureMsgStoreUnscanned(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPaylo
     
     try
     {
-        pathSmsgDir = GetDataDir() / "smsgStore";
+        pathSmsgDir = GetDataDir(true) / "smsgStore";
         
         fs::create_directory(pathSmsgDir);
     }
@@ -4455,7 +4455,7 @@ int SecureMsgStore(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload, bool 
 
     try
     {
-        pathSmsgDir = GetDataDir() / "smsgStore";
+        pathSmsgDir = GetDataDir(true) / "smsgStore";
         fs::create_directory(pathSmsgDir);
     }
     catch (const boost::filesystem::filesystem_error& ex)

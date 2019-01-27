@@ -694,7 +694,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         return InitError(_("Initialization sanity check failed. PHC is shutting down."));
     }
 
-    std::string strDataDir = GetDataDir().string();
+    std::string strDataDir = GetDataDir(true).string();
 #ifdef ENABLE_WALLET
 
     std::string strWalletFileName = GetArg("-wallet", "wallet.dat");
@@ -707,7 +707,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
 #endif
     // Make sure only a single Bitcoin process is using the data directory.
-    boost::filesystem::path pathLockFile = GetDataDir() / ".lock";
+    boost::filesystem::path pathLockFile = GetDataDir(true) / ".lock";
     FILE* file = fopen(pathLockFile.string().c_str(), "a"); // empty lock file; created if it doesn't exist.
 
     if (file)
@@ -778,7 +778,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     if (!fDisableWallet)
     {
 
-        filesystem::path backupDir = GetDataDir() / "backups";
+        filesystem::path backupDir = GetDataDir(true) / "backups";
         if (!filesystem::exists(backupDir))
         {
             // Always create backup folder to not confuse the operating system's file browser
@@ -797,7 +797,7 @@ bool AppInit2(boost::thread_group& threadGroup)
                 std::string backupPathStr = backupDir.string();
 
                 backupPathStr += "/" + strWalletFileName;
-                std::string sourcePathStr = GetDataDir().string();
+                std::string sourcePathStr = GetDataDir(true).string();
                 sourcePathStr += "/" + strWalletFileName;
 
                 boost::filesystem::path sourceFile = sourcePathStr;
@@ -871,11 +871,11 @@ bool AppInit2(boost::thread_group& threadGroup)
 
         uiInterface.InitMessage(_("Verifying database integrity..."));
 
-        if (!bitdb.Open(GetDataDir()))
+        if (!bitdb.Open(GetDataDir(true)))
         {
             // try moving the database env out of the way
-            boost::filesystem::path pathDatabase = GetDataDir() / "database";
-            boost::filesystem::path pathDatabaseBak = GetDataDir() / strprintf("database.%d.bak", GetTime());
+            boost::filesystem::path pathDatabase = GetDataDir(true) / "database";
+            boost::filesystem::path pathDatabaseBak = GetDataDir(true) / strprintf("database.%d.bak", GetTime());
 
             try
             {
@@ -892,7 +892,7 @@ bool AppInit2(boost::thread_group& threadGroup)
             }
 
             // try again
-            if (!bitdb.Open(GetDataDir()))
+            if (!bitdb.Open(GetDataDir(true)))
             {
                 // if it still fails, it probably means we can't even create the database env
                 string msg = strprintf(_("Error initializing wallet database environment %s!"), strDataDir);
@@ -910,7 +910,7 @@ bool AppInit2(boost::thread_group& threadGroup)
             }
         }
 
-        if (filesystem::exists(GetDataDir() / strWalletFileName))
+        if (filesystem::exists(GetDataDir(true) / strWalletFileName))
         {
             CDBEnv::VerifyResult r = bitdb.Verify(strWalletFileName, CWalletDB::Recover);
 

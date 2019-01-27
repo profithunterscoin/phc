@@ -776,7 +776,7 @@ void StartRPCThreads()
 
         filesystem::path pathCertFile(GetArg("-rpcsslcertificatechainfile", "server.cert"));
         
-        if (!pathCertFile.is_complete()) pathCertFile = filesystem::path(GetDataDir()) / pathCertFile;
+        if (!pathCertFile.is_complete()) pathCertFile = filesystem::path(GetDataDir(true)) / pathCertFile;
         
         if (filesystem::exists(pathCertFile))
         {
@@ -794,7 +794,7 @@ void StartRPCThreads()
         
         if (!pathPKFile.is_complete())
         {
-            pathPKFile = filesystem::path(GetDataDir()) / pathPKFile;
+            pathPKFile = filesystem::path(GetDataDir(true)) / pathPKFile;
         }
         
         if (filesystem::exists(pathPKFile))

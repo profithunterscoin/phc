@@ -47,7 +47,7 @@ struct CompareValueOnlyMN
 
 CMasternodeDB::CMasternodeDB()
 {
-    pathMN = GetDataDir() / "mncache.dat";
+    pathMN = GetDataDir(true) / "mncache.dat";
     strMagicMessage = "MasternodeCache";
 }
 

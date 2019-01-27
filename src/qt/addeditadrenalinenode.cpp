@@ -99,7 +99,7 @@ void AddEditAdrenalineNode::on_okButton_clicked()
         std::string sRewardAddress = ui->rewardaddressLineEdit->text().toStdString();
         std::string sRewardPercentage = ui->rewardpercentageLineEdit->text().toStdString();
 
-        boost::filesystem::path pathConfigFile = GetDataDir() / "masternode.conf";
+        boost::filesystem::path pathConfigFile = GetDataDir(true) / "masternode.conf";
         boost::filesystem::ofstream stream (pathConfigFile.string(), ios::out | ios::app);
         
         if (stream.is_open())

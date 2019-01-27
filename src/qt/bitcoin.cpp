@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
     ParseParameters(argc, argv);
 
     // ... then bitcoin.conf:
-    if (!boost::filesystem::is_directory(GetDataDir(false)))
+    if (!boost::filesystem::is_directory(GetDataDir(true)))
     {
         // This message can not be translated, as translation is not initialized yet
         // (which not yet possible because lang=XX can be overridden in bitcoin.conf in the data directory)

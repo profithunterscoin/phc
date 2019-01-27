@@ -348,7 +348,7 @@ namespace GUIUtil
 
     void openDebugLogfile()
     {
-        boost::filesystem::path pathDebug = GetDataDir() / "debug.log";
+        boost::filesystem::path pathDebug = GetDataDir(true) / "debug.log";
 
         /* Open debug.log with the associated application */
         if (boost::filesystem::exists(pathDebug))
@@ -360,7 +360,7 @@ namespace GUIUtil
 
     void openPHCConfigfile()
     {
-        boost::filesystem::path pathDebug = GetDataDir() / "phc.conf";
+        boost::filesystem::path pathDebug = GetDataDir(true) / "phc.conf";
 
         /* Open phc.conf with the associated application */
         if (boost::filesystem::exists(pathDebug))
@@ -372,7 +372,7 @@ namespace GUIUtil
 
     void openMNConfigfile()
     {
-        boost::filesystem::path pathDebug = GetDataDir() / "masternode.conf";
+        boost::filesystem::path pathDebug = GetDataDir(true) / "masternode.conf";
 
         /* Open masternode.conf with the associated application */
         if (boost::filesystem::exists(pathDebug))
@@ -384,7 +384,7 @@ namespace GUIUtil
 
     void showBackups()
     {
-        boost::filesystem::path pathBackups = GetDataDir() / "backups";
+        boost::filesystem::path pathBackups = GetDataDir(true) / "backups";
 
         /* Open folder with default browser */
         if (boost::filesystem::exists(pathBackups))
