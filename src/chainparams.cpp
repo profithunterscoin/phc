@@ -71,6 +71,7 @@ class CMainParams : public CChainParams
             nDefaultPort = 20060;
             nRPCPort = 20061;
             bnProofOfWorkLimit = CBigNum(~uint256(0) >> 16);
+            strDataDir = ""; // Default
 
             // Build the genesis block. Note that the output of the genesis coinbase cannot
             // be spent as it did not originally exist in the database.
@@ -283,7 +284,7 @@ class CMainParams : public CChainParams
 
             // 1.0.0.7 - Hard Forks
             nHardFork_1 = 10000000; // Block #10000000 Activation (HardFork_1) (UNDECIDED)
-            nHardFork_2 = 10000000; // Block #10000000 Activation (HardFork_2) (UNDECIDED)
+            //nHardFork_2 = 10000000; // Block #10000000 Activation (HardFork_2) (UNDECIDED)
         }
 
         virtual const CBlock& GenesisBlock() const
@@ -414,7 +415,7 @@ class CTestNetParams : public CMainParams
 
             // 1.0.0.7 - Hard Forks
             nHardFork_1 = 1; // Block #1 Activation (HardFork_1)
-            nHardFork_2 = 1; // Block #1 Activation (HardFork_2)
+            //nHardFork_2 = 1; // Block #1 Activation (HardFork_2)
         }
 
         virtual Network NetworkID() const

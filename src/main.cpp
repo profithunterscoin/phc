@@ -2110,32 +2110,12 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     bnNew.SetCompact(pindexPrev->nBits);
     int64_t nInterval = nTargetTimespan / TARGET_SPACING;
 
-    // ASIC_CHOKER 1.0.1
-    // PHC 1.0.0.7 Hard_Fork 2
-    if (nBestHeight >= Params().GetHardFork_2())
+    bnNew *= ((nInterval - 1) * TARGET_SPACING + nActualSpacing + nActualSpacing);
+    bnNew /= ((nInterval + 1) * TARGET_SPACING);
+
+    if (bnNew <= 0 || bnNew > bnTargetLimit)
     {
-        bnNew *= ((nInterval - 1) * TARGET_SPACING + nActualSpacing);
-        bnNew /= ((nInterval + 1) * TARGET_SPACING);
-
-        if (bnNew <= 0 || bnNew == bnTargetLimit)
-        {
-            bnNew = bnTargetLimit;
-        }
-
-        if (bnNew <= 0 || bnNew > bnTargetLimit)
-        {
-            bnNew = 0;
-        }
-    }
-    else
-    {
-        bnNew *= ((nInterval - 1) * TARGET_SPACING + nActualSpacing + nActualSpacing);
-        bnNew /= ((nInterval + 1) * TARGET_SPACING);
-
-        if (bnNew <= 0 || bnNew > bnTargetLimit)
-        {
-            bnNew = bnTargetLimit;
-        }
+        bnNew = bnTargetLimit;
     }
 
     return bnNew.GetCompact();
