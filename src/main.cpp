@@ -56,6 +56,9 @@ unsigned int nModifierInterval = 8 * 60; // time to elapse before new modifier i
 // TargetTimespan increased to prevent stalled blocks during development testing
 static int64_t nTargetTimespan = 120; // 2 minutes
 
+static const int64_t nTargetSpacing = 60; // 1 Minute
+//static const int64_t nInterval = nTargetTimespan / nTargetSpacing;
+
 // Block Shield
 CAmount StakeRewardAverage;
 int BlockShieldCounter;
@@ -2068,6 +2071,32 @@ const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfSta
 
 }
 
+//
+// minimum amount of work that could possibly be required nTime after
+// minimum work required was nBase
+//
+unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime)
+{
+    const CBigNum &bnLimit = Params().ProofOfWorkLimit();
+    // Testnet has min-difficulty blocks
+    // after nTargetSpacing*2 time between blocks:
+    if (TestNet() && nTime > nTargetSpacing*2)
+        return bnLimit.GetCompact();
+
+    CBigNum bnResult;
+    bnResult.SetCompact(nBase);
+    while (nTime > 0 && bnResult < bnLimit)
+    {
+        // Maximum 400% adjustment...
+        bnResult *= 4;
+        // ... in best-case exactly 4-times-normal target time
+        nTime -= nTargetTimespan*4;
+    }
+    if (bnResult > bnLimit)
+        bnResult = bnLimit;
+    return bnResult.GetCompact();
+}
+
 
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake)
 {
@@ -2192,6 +2221,14 @@ void static InvalidChainFound(CBlockIndex* pindexNew)
 void CBlock::UpdateTime(const CBlockIndex* pindexPrev)
 {
     nTime = max(GetBlockTime(), GetAdjustedTime());
+}
+
+
+void UpdateTime(CBlock& block, const CBlockIndex* pindexPrev)
+{
+    block.nTime = max(pindexPrev->GetMedianTimePast()+1, GetAdjustedTime());
+
+    block.nBits = GetNextTargetRequired(pindexPrev, false);
 }
 
 
