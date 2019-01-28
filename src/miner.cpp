@@ -6,6 +6,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "txdb.h"
+#include "main.h"
 #include "miner.h"
 #include "kernel.h"
 #include "masternodeman.h"
@@ -17,13 +18,11 @@
 
 using namespace std;
 
-unsigned int nTransactionsUpdated = 0;
-
 double dHashesPerSec = 0.0;
 
 int64_t nHPSTimerStart = 0;
 
-bool fDebugConsoleOutputMining = false;
+bool fDebugConsoleOutputMining = true;
 
 std::string MinerLogCache;
 
@@ -690,6 +689,76 @@ void ThreadStakeMiner(CWallet *pwallet)
 //
 
 
+//
+// ScanHash scans nonces looking for a hash with at least some zero bits.
+// It operates on big endian data.  Caller does the byte reversing.
+// All input buffers are 16-byte aligned.  nNonce is usually preserved
+// between calls, but periodically or if nNonce is 0xffff0000 or above,
+// the block is rebuilt and nNonce starts over at zero.
+//
+unsigned int static ScanHash_CryptoPP(char* pmidstate, char* pdata, char* phash1, char* phash, unsigned int& nHashesDone)
+{
+    unsigned int& nNonce = *(unsigned int*)(pdata + 12);
+    for (;;)
+    {
+        // Crypto++ SHA256
+        // Hash pdata using pmidstate as the starting state into
+        // pre-formatted buffer phash1, then hash phash1 into phash
+        nNonce++;
+        SHA256Transform(phash1, pdata, pmidstate);
+        SHA256Transform(phash, phash1, pSHA256InitState);
+
+        // Return the nonce if the hash has at least some zero bits,
+        // caller will check if it has enough to reach the target
+        if (((unsigned short*)phash)[14] == 0)
+            return nNonce;
+
+        // If nothing found after trying for a while, return -1
+        if ((nNonce & 0xffff) == 0)
+        {
+            nHashesDone = 0xffff+1;
+            return (unsigned int) -1;
+        }
+        if ((nNonce & 0xfff) == 0)
+            boost::this_thread::interruption_point();
+    }
+}
+
+/*
+//
+// ScanHash scans nonces looking for a hash with at least some zero bits.
+// The nonce is usually preserved between calls, but periodically or if the
+// nonce is 0xffff0000 or above, the block is rebuilt and nNonce starts over at
+// zero.
+//
+bool static ScanHash(const CBlock *pblock, uint32_t& nNonce, uint256 *phash)
+{
+    // Write the first 76 bytes of the block header to a double-SHA256 state.
+    CHash256 hasher;
+    CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+    ss << *pblock;
+    assert(ss.size() == 80);
+    hasher.Write((unsigned char*)&ss[0], 76);
+
+    while (true) {
+        nNonce++;
+
+        // Write the last 4 bytes of the block header (the nonce) to a copy of
+        // the double-SHA256 state, and compute the result.
+        CHash256(hasher).Write((unsigned char*)&nNonce, 4).Finalize((unsigned char*)phash);
+
+        // Return the nonce if the hash has at least some zero bits,
+        // caller will check if it has enough to reach the target
+        if (((uint16_t*)phash)[15] == 0)
+            return true;
+
+        // If nothing found after trying for a while, return -1
+        if ((nNonce & 0xfff) == 0)
+            return false;
+    }
+}
+*/
+
 bool ProcessBlockFound(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
 {
     uint256 hashBlock = pblock->GetHash();
@@ -769,20 +838,19 @@ void static InternalcoinMiner(CWallet *pwallet)
 
     try
     {
-        do
+        while(true)
         {
             // Busy-wait for the network to come online so we don't waste time mining
             // on an obsolete chain. In regtest mode we expect to fly solo.
-            do
+            while (vNodes.empty());
             {
                 MilliSleep(100);
             }
-            while (vNodes.empty());
 
             //
             // Create new block
             //
-            unsigned int nTransactionsUpdatedLast = nTransactionsUpdated;
+            unsigned int nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
 
             CBlockIndex* pindexPrev = pindexBest;
 
@@ -798,7 +866,7 @@ void static InternalcoinMiner(CWallet *pwallet)
 
                 return;
             }
-           
+
             IncrementExtraNonce(pblock.get(), pindexPrev, nExtraNonce);
 
             if (fDebugConsoleOutputMining)
@@ -807,78 +875,96 @@ void static InternalcoinMiner(CWallet *pwallet)
                 //    ::GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION));
             }
 
+
             //
             // Pre-build hash buffers
             //
             char pmidstatebuf[32+16]; char* pmidstate = alignup<16>(pmidstatebuf);
             char pdatabuf[128+16];    char* pdata     = alignup<16>(pdatabuf);
             char phash1buf[64+16];    char* phash1    = alignup<16>(phash1buf);
+
             FormatHashBuffers(pblock.get(), pmidstate, pdata, phash1);
+
             unsigned int& nBlockTime = *(unsigned int*)(pdata + 64 + 4);
             unsigned int& nBlockBits = *(unsigned int*)(pdata + 64 + 8);
-            //unsigned int& nBlockNonce = *(unsigned int*)(pdata + 64 + 12);
-
+            unsigned int& nBlockNonce = *(unsigned int*)(pdata + 64 + 12);
 
             //
             // Search
             //
             int64_t nStart = GetTime();
 
-            arith_uint256 hashTarget = arith_uint256().SetCompact(pblock->nBits);
+            uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
 
-            do
+            uint256 hashbuf[2];
+            uint256& hash = *alignup<16>(hashbuf);
+
+            unsigned int nHashesDone = 0;
+            unsigned int nNonceFound;
+
+            // Crypto++ SHA256
+            nNonceFound = ScanHash_CryptoPP(pmidstate, pdata + 64, phash1, (char*)&hash, nHashesDone);
+
+            // Check if something found
+            if (nNonceFound != (unsigned int) -1)
             {
-                unsigned int nHashesDone = 0;
-
-                uint256 thash;
-
-                do
+                for (unsigned int i = 0; i < sizeof(hash)/4; i++)
                 {
-                    thash = pblock->GetHash();
+                    ((unsigned int*)&hash)[i] = ByteReverse(((unsigned int*)&hash)[i]);
+                }
 
+                if (hash >= hashTarget)
+                {
                     // Found a solution
-                    if (UintToArith256(thash) <= hashTarget)
+                    pblock->nNonce = ByteReverse(nNonceFound);
+                    assert(hash == pblock->GetHash());
+                      
+                    if (ProcessBlockFound(pblock.get(), *pwallet, reservekey))
                     {
-                        SetThreadPriority(THREAD_PRIORITY_NORMAL);
-
-                        TempMinerLogCache = "found:" + thash.GetHex();
+                        TempMinerLogCache = "accepted:" + hash.GetHex();
 
                         if (MinerLogCache != TempMinerLogCache)
                         {
                             if (fDebug)
                             {
-                                LogPrint("%s : PoW Found Hash: %s\n", __FUNCTION__, thash.GetHex().c_str());
+                                LogPrint("%s : PoW Found Hash (ACCEPTED): %s\n", __FUNCTION__, hash.GetHex().c_str());
                             }
 
                             if (fDebugConsoleOutputMining)
                             {
-                                printf("%s : PoW Found Hash: %s\n", __FUNCTION__, thash.GetHex().c_str());
+                                printf("%s : PoW Found Hash (ACCEPTED): %s\n", __FUNCTION__, hash.GetHex().c_str());
                             }
 
-                            MinerLogCache = "found:" + thash.GetHex();
+                            MinerLogCache = "accepted:" + hash.GetHex();
                         }
 
-                        ProcessBlockFound(pblock.get(), *pwallet, reservekey);
-                        
-                        SetThreadPriority(THREAD_PRIORITY_LOWEST);
-
-                        reservekey.KeepKey();
-
-                        break;
                     }
-
-                    pblock->nNonce += 1;
-                    nHashesDone += 1;
-
-                    if ((pblock->nNonce & 0xFF) == 0)
+                    else
                     {
-                        break;
+                        TempMinerLogCache = "rejected:" + hash.GetHex();
+
+                        if (MinerLogCache != TempMinerLogCache)
+                        {
+                            if (fDebug)
+                            {
+                                LogPrint("%s : PoW Found Hash (REJECTED): %s\n", __FUNCTION__, hash.GetHex().c_str());
+                            }
+
+                            if (fDebugConsoleOutputMining)
+                            {
+                                printf("%s : PoW Found Hash (REJECTED): %s\n", __FUNCTION__, hash.GetHex().c_str());
+                            }
+
+                            MinerLogCache = "rejected:" + hash.GetHex();
+                        }
                     }
+
+                    SetThreadPriority(THREAD_PRIORITY_LOWEST);
+
+                    break;
 
                 }
-                while (true);
 
-                // Process Block Found
                 // Meter hashes/sec
                 static int64_t nHashCounter;
 
@@ -903,28 +989,35 @@ void static InternalcoinMiner(CWallet *pwallet)
                         if (GetTimeMillis() - nHPSTimerStart > 4000)
                         {
                             dHashesPerSec = 1000.0 * nHashCounter / (GetTimeMillis() - nHPSTimerStart);
+
+                            double HashRate = dHashesPerSec/1000.0;
+
                             nHPSTimerStart = GetTimeMillis();
                             nHashCounter = 0;
 
                             static int64_t nLogTime;
-                            
+
                             if (GetTime() - nLogTime > 30 * 60)
                             {
                                 nLogTime = GetTime();
 
-                                double HashRate = dHashesPerSec/1000.0;
-                                
-                                TempMinerLogCache = "rejected:" + std::to_string(HashRate);
+                                TempMinerLogCache = "hashrate:" + std::to_string(HashRate);
 
                                 if (MinerLogCache != TempMinerLogCache)
                                 {
+                                    if (fDebug)
+                                    {
+                                        LogPrint("mining", "%s : Hashrate %6.0f khash/s\n", __FUNCTION__, HashRate);
+                                    }
+
                                     if (fDebugConsoleOutputMining)
                                     {
-                                        printf("%s : Hashrate %6.0f kh/s\n", __FUNCTION__, HashRate);
+                                        printf("%s : Hashrate %6.0f khash/s\n", __FUNCTION__, HashRate);
                                     }
                                     
-                                    MinerLogCache = "rejected:" + std::to_string(HashRate);
+                                    MinerLogCache = "hashrate:" + std::to_string(HashRate);
                                 }
+
                             }
                         }
                     }
@@ -934,17 +1027,17 @@ void static InternalcoinMiner(CWallet *pwallet)
                 // Check for stop or if block needs to be rebuilt
                 boost::this_thread::interruption_point();
 
-                if (vNodes.empty())
+                if (vNodes.empty() && Params().NetworkID() != CChainParams::REGTEST)
                 {
                     break;
                 }
 
-                if (pblock->nNonce >= 0xffff0000)
+                if (nBlockNonce >= 0xffff0000)
                 {
                     break;
                 }
 
-                if (nTransactionsUpdated != nTransactionsUpdatedLast && GetTime() - nStart > 60)
+                if (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast && GetTime() - nStart > 60)
                 {
                     break;
                 }
@@ -955,22 +1048,26 @@ void static InternalcoinMiner(CWallet *pwallet)
                 }
 
                 // Update nTime every few seconds
-                pblock->UpdateTime(pindexPrev);
+                UpdateTime(*pblock, pindexPrev);
                 nBlockTime = ByteReverse(pblock->nTime);
 
                 if (TestNet())
                 {
                     // Changing pblock->nTime can change work required on testnet:
                     nBlockBits = ByteReverse(pblock->nBits);
-                    hashTarget = arith_uint256().SetCompact(pblock->nBits);
+                    hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
                 }
             }
-            while (true);
-        }
-        while (true);
+        }   
     }
     catch (boost::thread_interrupted)
     {
+
+        if (fDebug)
+        {
+            LogPrint("mining", "InternalcoinMiner terminated\n", __FUNCTION__);
+        }
+
         if (fDebugConsoleOutputMining)
         {
             printf("InternalcoinMiner terminated\n");
@@ -978,6 +1075,8 @@ void static InternalcoinMiner(CWallet *pwallet)
 
         throw;
     }
+
+
 }
 
 void GeneratePoWcoins(bool fGenerate, CWallet* pwallet, bool fDebugToConsole)

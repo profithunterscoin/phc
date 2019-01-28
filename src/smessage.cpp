@@ -1029,7 +1029,7 @@ void ThreadSecureMsgPow()
                     LogPrint("smessage", "%s : *** RGP >>> ThreadSecureMsgPow dbOutbox.Open Debug 003\n", __FUNCTION__);
                 }
 
-                MilliSleep(50); // Thanks to Jimmy (Robert)
+                MilliSleep(5); // Thanks to Jimmy (Robert)
                 
                 continue;
             }
@@ -1132,6 +1132,7 @@ void ThreadSecureMsgPow()
             }
 
             /* RGP, Added as smsg-po was using 100% cpu time? */
+            MilliSleep(5); // Thanks to Jimmy (Robert)
 
         }
 
@@ -1330,6 +1331,8 @@ int SecureMsgBuildBucketSet()
                 }
 
                 tokenSet.insert(token);
+
+                MilliSleep(5); // Thanks to Jimmy (Robert)
             }
 
             fclose(fp);
@@ -3605,6 +3608,8 @@ int SecureMsgWalletUnlocked()
 
                 return 1;
             }
+
+            MilliSleep(5); // Thanks to Jimmy (Robert)
         }
         // Global Namespace End
         // cs_smsg
@@ -4832,6 +4837,8 @@ int SecureMsgSetHash(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
         }
 
         nonse++;
+
+        MilliSleep(5); // Thanks to Jimmy (Robert)
     }
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L    // OPENSSL 1.0

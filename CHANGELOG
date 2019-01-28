@@ -22,7 +22,7 @@ v1.0.0.7 (Pre-release)
 * Installed: Retarget Hard Fork (TimeFrame changed from 120 to 60 seconds) (Hard-Fork 1)
 * Installed: Block Shield 1.2.1 (Hard-Fork 1)
 * FIX: Blank Masternode Payee in CBlock::AddToBlockIndex() (Hard-Fork 1)
-* Install Internal PoW Miner (setgenerate)
+* Installed: Internal PoW Miner (setgenerate)
 * FIX: Sync time minimized & Reorganize/Prune orphan blocks
 * FIX: RPC Client & INIT Msg
 * FIX: Swapped BOOST::copy_file for STD copy_file (BOOST 1.55)
@@ -33,7 +33,7 @@ v1.0.0.7 (Pre-release)
 * ProcessBlock() fixed (Orphans)
 * FIX: Network specific .conf
 * Installed: New Testnet
-* Installed: ASIC_CHOKER 1.0.1 (Hard-Fork 2)
+
 
 v1.0.0.6
 --------
