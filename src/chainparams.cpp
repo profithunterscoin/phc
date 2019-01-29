@@ -332,7 +332,7 @@ class CTestNetParams : public CMainParams
             vAlertPubKey = ParseHex("04344278bdac5f6e1e1711a3672a5002e54369b984c97df9d36e5aa2123dec228e85da0b88f3a38ba62746a1ca20726dd73a806767620c830ffb99ab1e6c45a778");
             nDefaultPort = 20062;
             nRPCPort = 20063;
-            strDataDir = "testnet";
+            strDataDir = "testnet/";
 
             // Build the genesis block. Note that the output of the genesis coinbase cannot
             // be spent as it did not originally exist in the database.

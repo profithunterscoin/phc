@@ -49,7 +49,9 @@ bool AppInit(int argc, char* argv[])
         //
         // If Qt is used, parameters/bitcoin.conf are parsed in qt/bitcoin.cpp's main()
         ParseParameters(argc, argv);
-        
+
+        SelectParamsFromCommandLine();
+   
         if (!boost::filesystem::is_directory(GetDataDir(true)))
         {
             fprintf(stderr, "Error: Specified directory does not exist\n");

@@ -4,11 +4,9 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-
 #include "util.h"
-
-#include "chainparams.h"
 #include "sync.h"
+#include "chainparams.h"
 #include "ui_interface.h"
 #include "uint256.h"
 #include "version.h"
@@ -1581,8 +1579,20 @@ const boost::filesystem::path &GetDataDir(bool fNetSpecific)
 
         if (!fs::is_directory(path))
         {
-            path = "";
+            if (fNetSpecific)
+            {
+                path /= Params().DataDir();
+            }
+            else
+            {
+                path = "";
+            }
         
+            return path;
+        }
+        else
+        {
+            fs::create_directory(path);
             return path;
         }
     }
@@ -1591,12 +1601,10 @@ const boost::filesystem::path &GetDataDir(bool fNetSpecific)
         path = GetDefaultDataDir();
     }
 
-    if (fNetSpecific)
+    if (fNetSpecific || GetArg("-testnet", false))
     {
         path /= Params().DataDir();
     }
-
-    fs::create_directory(path);
 
     return path;
 }
