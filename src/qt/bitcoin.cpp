@@ -186,6 +186,8 @@ int main(int argc, char *argv[])
     // Command-line options take precedence:
     ParseParameters(argc, argv);
 
+    SelectParamsFromCommandLine();
+    
     // ... then bitcoin.conf:
     if (!boost::filesystem::is_directory(GetDataDir(true)))
     {
