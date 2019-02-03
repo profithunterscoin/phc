@@ -9,6 +9,7 @@
 #include "main.h"
 #include "kernel.h"
 #include "checkpoints.h"
+#include "init.h"
 
 using namespace json_spirit;
 using namespace std;
@@ -370,7 +371,8 @@ Value prune(const Array& params, bool fHelp)
     if (fHelp || params.size() > 1)
     {
         throw runtime_error("Prune\n"
-                            "Prune Orphan blocks (blockchain index)");
+                            "Prune Orphan blocks (blockchain index)"
+                            );
     }
     
     PruneOrphanBlocks();
@@ -387,7 +389,7 @@ Value rollback(const Array& params, bool fHelp)
         throw runtime_error("rollback <blockcount>\n"
                             "Rollback blockchain index by X blocks (100 default)"
                             "NOTE: Daemon or QT restart required after."
-                            "NOTE: Not working 100% correctly yet");
+                            );
     }
 
     int nBlockCount = (int)strtod(params[0].get_str().c_str(), NULL);
@@ -397,8 +399,12 @@ Value rollback(const Array& params, bool fHelp)
         nBlockCount = 100;
     }
 
+    int OldHeight = nBestHeight;
+
+    nBestHeight = RollbackChain(nBlockCount);
+
+    throw runtime_error(strprintf("%s : Rollback completed: %d blocks total (%d -> %d) Shutdown and reload wallet.", __FUNCTION__, nBlockCount, OldHeight, nBestHeight));
 
     // Rollback chain to ensure correct sync
-    return RollbackChain(nBlockCount);
-
+    return true;
 }

@@ -2551,7 +2551,6 @@ bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs, map<uint256, CTx
     return true;
 }
 
-
 bool CBlock::DisconnectBlock(CTxDB& txdb, CBlockIndex* pindex)
 {
     // Disconnect in reverse order
@@ -2995,52 +2994,41 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 
 int RollbackChain(int nBlockCount)
 {
-    // NOT WORKING 100% correctly (won't sync after)
-
     LOCK(cs_main);
 
-    CTxDB txdb("cr+");
+    CTxDB txdb("wr");
 
     CBlockIndex* pindexNew = pindexBest;
 
-    for (int counter = 1; counter != nBlockCount; counter = counter + 1)
+    for (int counter = 1; counter != nBlockCount + 1; counter = counter + 1)
     {
         pindexNew = pindexNew->pprev;
+
+        CBlock pblock;
+
+        pblock.DisconnectBlock(txdb, pindexNew);
     }
 
     pindexBest = pindexNew;
 
-    /*
-    pindexBest->pprev = pindexNew->pprev;
-    pindexBest->pprev->nHeight = pindexNew->pprev->nHeight;
-    pindexBest->pprev->nChainTrust = pindexNew->pprev->nChainTrust;
-    pindexBest->pprev->pnext = NULL;
-    pindexBest->pnext = NULL;
-    pindexBest->nHeight = pindexNew->nHeight;
-    pindexBest->nChainTrust = pindexNew->nChainTrust;
-    */
-    
     // Update best block in wallet (so we can detect restored wallets)
-    const CBlockLocator locator(pindexBest);
+    const CBlockLocator locator(pindexNew);
     g_signals.SetBestChain(locator);
 
     // New best block
-    hashBestChain = pindexBest->GetBlockHash();
-    pblockindexFBBHLast = NULL;
-    nBestHeight = pindexBest->nHeight;
-    nBestChainTrust = pindexBest->nChainTrust;
+    hashBestChain = pindexNew->GetBlockHash();
+    nBestHeight = pindexNew->nHeight;
+    nBestChainTrust = pindexNew->nChainTrust;
     nTimeBestReceived = GetTime();
+
     mempool.AddTransactionsUpdated(1);
 
-    if (!txdb.WriteHashBestChain(pindexBest->GetBlockHash()))
+    if (!txdb.WriteHashBestChain(pindexNew->GetBlockHash()))
     {
         return error("%s : WriteHashBestChain failed", __FUNCTION__);
     }
 
-    // Make sure it's successfully written to disk
-    txdb.TxnCommit();
-
-    return pindexBest->nHeight;
+    return pindexNew->nHeight;
 }
 
 

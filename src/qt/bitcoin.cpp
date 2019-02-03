@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
     ParseParameters(argc, argv);
 
     SelectParamsFromCommandLine();
-    
+   
     // ... then bitcoin.conf:
     if (!boost::filesystem::is_directory(GetDataDir(true)))
     {
@@ -195,6 +195,8 @@ int main(int argc, char *argv[])
         // (which not yet possible because lang=XX can be overridden in bitcoin.conf in the data directory)
         QMessageBox::critical(0, "PHC", QString("Error: Specified data directory \"%1\" does not exist.").arg(QString::fromStdString(mapArgs["-datadir"])));
         
+        boost::filesystem::create_directories(GetDataDir(true));
+
         return 1;
     }
 

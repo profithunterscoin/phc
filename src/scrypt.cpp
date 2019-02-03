@@ -38,6 +38,11 @@
 #include "util.h"
 #include "net.h"
 
+#include <string.h>
+#include <openssl/sha.h>
+
+//~~~~~~~~~~~~~~~~~~~~~ FROM BITCOIN CORE 8 START ~~~~~~~~~~~~~~~~~~~~~
+
 #define SCRYPT_BUFFER_SIZE (131072 + 63)
 
 #if defined (OPTIMIZED_SALSA) && ( defined (__x86_64__) || defined (__i386__) || defined(__arm__) )
@@ -225,4 +230,114 @@ uint256 scrypt_blockhash(const void* input)
     
     return scrypt_nosalt(input, 80, scratchpad);
 }
+//~~~~~~~~~~~~~~~~~~~~~ FROM BITCOIN CORE 8 END ~~~~~~~~~~~~~~~~~~~~~
 
+//~~~~~~~~~~~~~~~~~~~~~ FROM BITCOIN CORE 10 START ~~~~~~~~~~~~~~~~~~~~~
+
+
+#if defined(USE_SSE2) && !defined(USE_SSE2_ALWAYS)
+#ifdef _MSC_VER
+// MSVC 64bit is unable to use inline asm
+#include <intrin.h>
+#else
+// GCC Linux or i686-w64-mingw32
+#include <cpuid.h>
+#endif
+#endif
+
+static inline uint32_t be32dec(const void *pp)
+{
+	const uint8_t *p = (uint8_t const *)pp;
+	return ((uint32_t)(p[3]) + ((uint32_t)(p[2]) << 8) +
+	    ((uint32_t)(p[1]) << 16) + ((uint32_t)(p[0]) << 24));
+}
+
+static inline void be32enc(void *pp, uint32_t x)
+{
+	uint8_t *p = (uint8_t *)pp;
+	p[3] = x & 0xff;
+	p[2] = (x >> 8) & 0xff;
+	p[1] = (x >> 16) & 0xff;
+	p[0] = (x >> 24) & 0xff;
+}
+
+
+
+#define ROTL(a, b) (((a) << (b)) | ((a) >> (32 - (b))))
+
+void scrypt_1024_1_1_256_sp_generic(const char *input, char *output, char *scratchpad)
+{
+	uint8_t B[128];
+	uint32_t X[32];
+	uint32_t *V;
+	uint32_t i, j, k;
+
+	V = (uint32_t *)(((uintptr_t)(scratchpad) + 63) & ~ (uintptr_t)(63));
+
+	PBKDF2_SHA256((const uint8_t *)input, 80, (const uint8_t *)input, 80, 1, B, 128);
+
+	for (k = 0; k < 32; k++)
+		X[k] = le32dec(&B[4 * k]);
+
+	for (i = 0; i < 1024; i++) {
+		memcpy(&V[i * 32], X, 128);
+		xor_salsa8(&X[0], &X[16]);
+		xor_salsa8(&X[16], &X[0]);
+	}
+	for (i = 0; i < 1024; i++) {
+		j = 32 * (X[16] & 1023);
+		for (k = 0; k < 32; k++)
+			X[k] ^= V[j + k];
+		xor_salsa8(&X[0], &X[16]);
+		xor_salsa8(&X[16], &X[0]);
+	}
+
+	for (k = 0; k < 32; k++)
+		le32enc(&B[4 * k], X[k]);
+
+	PBKDF2_SHA256((const uint8_t *)input, 80, B, 128, 1, (uint8_t *)output, 32);
+}
+
+#if defined(USE_SSE2)
+// By default, set to generic scrypt function. This will prevent crash in case when scrypt_detect_sse2() wasn't called
+void (*scrypt_1024_1_1_256_sp_detected)(const char *input, char *output, char *scratchpad) = &scrypt_1024_1_1_256_sp_generic;
+
+void scrypt_detect_sse2()
+{
+#if defined(USE_SSE2_ALWAYS)
+    printf("scrypt: using scrypt-sse2 as built.\n");
+#else // USE_SSE2_ALWAYS
+    // 32bit x86 Linux or Windows, detect cpuid features
+    unsigned int cpuid_edx=0;
+#if defined(_MSC_VER)
+    // MSVC
+    int x86cpuid[4];
+    __cpuid(x86cpuid, 1);
+    cpuid_edx = (unsigned int)buffer[3];
+#else // _MSC_VER
+    // Linux or i686-w64-mingw32 (gcc-4.6.3)
+    unsigned int eax, ebx, ecx;
+    __get_cpuid(1, &eax, &ebx, &ecx, &cpuid_edx);
+#endif // _MSC_VER
+
+    if (cpuid_edx & 1<<26)
+    {
+        scrypt_1024_1_1_256_sp_detected = &scrypt_1024_1_1_256_sp_sse2;
+        printf("scrypt: using scrypt-sse2 as detected.\n");
+    }
+    else
+    {
+        scrypt_1024_1_1_256_sp_detected = &scrypt_1024_1_1_256_sp_generic;
+        printf("scrypt: using scrypt-generic, SSE2 unavailable.\n");
+    }
+#endif // USE_SSE2_ALWAYS
+}
+#endif
+
+void scrypt_1024_1_1_256(const char *input, char *output)
+{
+	char scratchpad[SCRYPT_SCRATCHPAD_SIZE];
+    scrypt_1024_1_1_256_sp(input, output, scratchpad);
+}
+
+//~~~~~~~~~~~~~~~~~~~~~ FROM BITCOIN CORE 10 END ~~~~~~~~~~~~~~~~~~~~~

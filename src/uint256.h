@@ -744,6 +744,13 @@ class uint256 : public base_uint256
                 *this = 0;
             }
         }
+
+    //~~~~~~~~~~~~~~~~~~~~~ FROM BITCOIN CORE 10 START ~~~~~~~~~~~~~~~~~~~~~
+    // NOTE: Not working 100% yet
+    uint256& SetCompact(uint32_t nCompact, bool *pfNegative = NULL, bool *pfOverflow = NULL);
+    uint32_t GetCompact(bool fNegative = false) const;
+    //~~~~~~~~~~~~~~~~~~~~~ FROM BITCOIN CORE 10 END ~~~~~~~~~~~~~~~~~~~~~
+
 };
 
 inline bool operator==(const uint256& a, uint64_t b)                         { return (base_uint256)a == b; }

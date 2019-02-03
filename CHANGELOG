@@ -23,6 +23,7 @@ v1.0.0.7 (Pre-release)
 * Installed: Block Shield 1.2.1 (Hard-Fork 1)
 * FIX: Blank Masternode Payee in CBlock::AddToBlockIndex() (Hard-Fork 1)
 * Installed: Internal PoW Miner (setgenerate)
+* Upgraded: Internal PoW Miner (Wait for approx expected block times, PrintToConsole, LogFlooding prevention)
 * FIX: Sync time minimized & Reorganize/Prune orphan blocks
 * FIX: RPC Client & INIT Msg
 * FIX: Swapped BOOST::copy_file for STD copy_file (BOOST 1.55)

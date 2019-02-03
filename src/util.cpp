@@ -1680,8 +1680,15 @@ void ReadConfigFile(map<string, string>& mapSettingsRet, map<string, vector<stri
 
     // If datadir is changed in .conf file:
     ClearDatadirCache();
+
+    if (!boost::filesystem::is_directory(GetDataDir(true)))
+    {
+        throw std::runtime_error(strprintf("specified data directory \"%s\" does not exist.", GetArg("-datadir", "").c_str()));
+    }
 }
 
+
+#ifndef WIN32
 
 boost::filesystem::path GetPidFile()
 {
@@ -1695,8 +1702,6 @@ boost::filesystem::path GetPidFile()
     return pathPidFile;
 }
 
-
-#ifndef WIN32
 void CreatePidFile(const boost::filesystem::path &path, pid_t pid)
 {
     FILE* file = fopen(path.string().c_str(), "w");
