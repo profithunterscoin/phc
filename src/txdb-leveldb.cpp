@@ -188,7 +188,7 @@ void CTxDB::Close()
 bool CTxDB::TxnBegin()
 {
     assert(!activeBatch);
-
+    
     activeBatch = new leveldb::WriteBatch();
     
     return true;

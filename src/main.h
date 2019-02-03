@@ -14,6 +14,7 @@
 #include "net.h"
 #include "script.h"
 #include "scrypt.h"
+#include "uint256.h"
 #include <list>
 
 class CValidationState;
@@ -747,6 +748,10 @@ class CTxIndex
  */
 class CBlock
 {
+
+    std::vector<CAmount> vTxFees;
+    std::vector<int64_t> vTxSigOps;
+
     public:
 
         // header
@@ -1679,5 +1684,8 @@ class CWalletInterface
         friend void ::UnregisterWallet(CWalletInterface*);
         friend void ::UnregisterAllWallets();
 };
+
+
+
 
 #endif

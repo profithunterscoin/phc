@@ -120,7 +120,7 @@ Value setgenerate(const Array& params, bool fHelp)
             "setgenerate <generate> [genproclimit] <debugtoconsole>\n"
             "<generate> is true or false to turn generation on or off.\n"
             "[genproclimit] CPU threads to use for mining\n"
-            "<debugtoconsole> optional to display live debug to unix/dos console"
+            "<debugtoconsole> optional to display live debug to unix/dos console (default: false)"
             "Generation is limited to [genproclimit] processors, -1 is unlimited.");
 
     bool fGenerate = true;
