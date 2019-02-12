@@ -27,12 +27,6 @@ extern int CountStringArray(string *ArrayName);
 extern int CountIntArray(int *ArrayName);
 
 
-inline const char * const BoolToString(bool b)
-{
-  return b ? "true" : "false";
-}
-
-
 Value getconnectioncount(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)

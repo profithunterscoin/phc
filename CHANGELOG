@@ -34,6 +34,7 @@ v1.0.0.7 (Pre-release)
 * ProcessBlock() fixed (Orphans)
 * FIX: Network specific .conf
 * Installed: New Testnet
+* Installed: ASIC Choker 1.0.0
 
 
 v1.0.0.6

@@ -99,14 +99,6 @@ CNodeSignals& GetNodeSignals()
     return g_signals;
 }
 
-
-// * Function: BoolToString *
-inline const char * const BoolToString(bool b)
-{
-    return b ? "true" : "false";
-}
-
-
 // * Function: CountArray *
 int CountStringArray(string *ArrayName)
 {

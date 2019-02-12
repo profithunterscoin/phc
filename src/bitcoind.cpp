@@ -54,8 +54,10 @@ bool AppInit(int argc, char* argv[])
    
         if (!boost::filesystem::is_directory(GetDataDir(true)))
         {
-            fprintf(stderr, "Error: Specified directory does not exist\n");
+            fprintf(stderr, "Error: Specified directory does not exist. Creating directory now (wallet restart required)\n");
+
             boost::filesystem::create_directories(GetDataDir(true));
+            
             Shutdown();
         }
 
