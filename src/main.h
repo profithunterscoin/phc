@@ -100,6 +100,12 @@ inline int64_t GetMNCollateral(int nHeight)
     return 10000;
 }
 
+// * Function: BoolToString *
+inline const char * const BoolToString(bool b)
+{
+    return b ? "true" : "false";
+}
+
 extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
 extern CTxMemPool mempool;

@@ -45,6 +45,9 @@ CCriticalSection cs_main;
 
 CTxMemPool mempool;
 
+int BlockPeerLogPosition = 0;
+std::string BlockPeerLog[4][3];
+
 map<uint256, CBlockIndex*> mapBlockIndex;
 set<pair<COutPoint, unsigned int> > setStakeSeen;
 
@@ -4319,6 +4322,85 @@ void Misbehaving(NodeId pnode, int howmuch)
     }
 }
 
+bool ASIC_Choker(CNode* pfrom, CBlock* pblock)
+{
+    // Version 1.0.0 (C) 2019 Profit Hunters Coin in collaboration with Crypostle
+    // Prevents consecutive blocks from the same node (decentralized coin distribution regardless of hash-power)
+    int ActivationHeight = 1; // Block #1 (Default)
+    int nHeight = 0;
+
+    // PHC 1.0.0.7 Hard_Fork 1
+    ActivationHeight = Params().GetHardFork_1();
+
+    uint256 hash = pblock->GetHash();
+
+    // Find if this block is already in the index
+    if (mapBlockIndex.count(hash))
+    {
+        nHeight = mapBlockIndex[hash]->nHeight;
+    }
+    else
+    {
+        nHeight = nBestHeight;
+    }
+
+    if (nHeight < ActivationHeight)
+    {
+        return false; // bypass
+    }
+
+    // Count PoS Blocks
+    int PoSCount = 0;
+    for (int i = 0; i < 4; i++)
+    {
+        if (BlockPeerLog[i][3] == BoolToString(pblock->IsProofOfStake()))
+        {
+            PoSCount = PoSCount + 1;
+        }
+    }
+
+    // no less than 2 PoS blocks required per 5 blocks
+    if (BlockPeerLogPosition == 4)
+    {
+        if (PoSCount < 2)
+        {
+            if (pblock->IsProofOfStake() == false)
+            {
+                return true; // reject PoW block from peer
+            }
+        }
+    }
+
+    // PoW block must not be from same pfrom within 5 blocks
+    for (int i = 0; i < 4; i++)
+    {
+        if (BlockPeerLog[i][1] == pfrom->addrName)
+        {
+            // Blocktime not larger than 5 minutes (seconary check)
+            // if (BlockPeerLog[i][2] GetTime())
+            // {
+                return true; // reject block from peer
+            // }
+        }
+    }
+
+    // Increment position
+    BlockPeerLogPosition = BlockPeerLogPosition + 1;
+
+    // Keep position between boundaries
+    if (BlockPeerLogPosition > 4)
+    {
+        BlockPeerLogPosition = 0;
+    }
+
+    // Update log data for node, block info
+    BlockPeerLog[BlockPeerLogPosition][1] = pfrom->addrName;
+    BlockPeerLog[BlockPeerLogPosition][2] = pblock->GetBlockTime();
+    BlockPeerLog[BlockPeerLogPosition][3] = BoolToString(pblock->IsProofOfStake());
+
+    return false;
+}
+
 bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 {
     AssertLockHeld(cs_main);
@@ -4373,6 +4455,12 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     if (!pblock->CheckBlock())
     {
         return error("%s : CheckBlock FAILED", __FUNCTION__);
+    }
+
+    // ASIC Choker checks
+    if (ASIC_Choker(pfrom, pblock))
+    {
+        return error("%s : ASIC_Choker FAILED", __FUNCTION__);
     }
 
     // If we don't already have its previous block, shunt it off to holding area until we get it

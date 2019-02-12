@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
     {
         // This message can not be translated, as translation is not initialized yet
         // (which not yet possible because lang=XX can be overridden in bitcoin.conf in the data directory)
-        QMessageBox::critical(0, "PHC", QString("Error: Specified data directory \"%1\" does not exist.").arg(QString::fromStdString(mapArgs["-datadir"])));
+        QMessageBox::critical(0, "PHC", QString("Error: Specified data directory \"%1\" does not exist. Creating directory now (wallet restart required)").arg(QString::fromStdString(mapArgs["-datadir"])));
         
         boost::filesystem::create_directories(GetDataDir(true));
 
