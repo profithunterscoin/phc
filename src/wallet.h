@@ -279,9 +279,11 @@ class CWallet : public CCryptoKeyStore, public CWalletInterface
         void ReacceptWalletTransactions();
         void ResendWalletTransactions(bool fForce = false);
 
-        CAmount GetBalance() const;
         CAmount GetStake() const;
-        CAmount GetNewMint() const;
+        CAmount GetNewPOWMint() const;
+        CAmount GetNewPOSMint() const;
+
+        CAmount GetBalance() const;
         CAmount GetUnconfirmedBalance() const;
         CAmount GetImmatureBalance() const;
         CAmount GetAnonymizableBalance() const;
@@ -431,6 +433,13 @@ class CWallet : public CCryptoKeyStore, public CWalletInterface
             }
 
             return nCredit;
+        }
+
+        CAmount GetStakeReward(const CTransaction& tx, const isminefilter& filter) const
+        {
+            if (!MoneyRange(tx.vout[1].nValue))
+                throw std::runtime_error("CWallet::GetStakeReward() : value out of range");
+            return ((IsMine(tx) & filter) ? tx.vout[1].nValue : 0);
         }
 
         CAmount GetChange(const CTransaction& tx) const

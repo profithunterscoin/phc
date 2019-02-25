@@ -16,6 +16,7 @@ USE_LOWMEM:=0
 
 CC = gcc
 CXX = g++ -std=c++11 -Wno-deprecated-declarations
+xCXXFLAG= -std=c++11
 CFLAGS = -O2 -fomit-frame-pointer
 LINK:=$(CXX)
 ARCH:=$(system lscpu | head -n 1 | awk '{print $2}')

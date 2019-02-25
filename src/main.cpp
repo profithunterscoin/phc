@@ -2850,15 +2850,16 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
     {
         int64_t nReward = GetProofOfWorkReward(pindex->nHeight, nFees);
 
-#ifndef LOWMEM
-        //  money supply info (last PoW reward)
-        pindex->nLastReward = nReward;
-#endif 
         // Check coinbase reward
         if (vtx[0].GetValueOut() > nReward)
         {
             return DoS(50, error("%s : coinbase reward exceeded (actual=%d vs calculated=%d)", __FUNCTION__, vtx[0].GetValueOut(), nReward));
         }
+
+#ifndef LOWMEM
+        //  PHC money supply info (last PoW reward)
+        pindex->nPOWMint = nReward;
+#endif 
     }
 
     if (IsProofOfStake())
@@ -2873,8 +2874,8 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
         int64_t nCalculatedStakeReward = GetProofOfStakeReward(pindex->pprev, nCoinAge, nFees);
 
 #ifndef LOWMEM
-        //  money supply info (last PoS reward)
-        pindex->nLastReward = nCalculatedStakeReward;
+        // PHC: track mint amount info (PoW)
+        pindex->nPOSMint = nCalculatedStakeReward;
 #endif 
 
         if (nStakeReward > nCalculatedStakeReward)
@@ -2882,11 +2883,15 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
             return DoS(100, error("%s : coinstake pays too much(actual=%d vs calculated=%d)", __FUNCTION__, nStakeReward, nCalculatedStakeReward));
         }
     }
-
-    // ppcoin: track money supply and mint amount info
+/*
+    // PHC: track mint amount info (PoW)
 #ifndef LOWMEM
-    pindex->nMint = nValueOut - nValueIn + nFees;
-    pindex->nMoneySupply = (pindex->pprev? pindex->pprev->nMoneySupply : 0) + nValueOut - nValueIn;
+    pindex->nPOWMint = nValueOut - nValueIn + nFees;
+#endif
+*/
+    // PHC: track money supply
+#ifndef LOWMEM
+    pindex->nMoneySupply = (pindex->pprev? pindex->pprev->nMoneySupply : 0) + pindex->nPOSMint + pindex->nPOWMint;
 #endif
 
     if (!txdb.WriteBlockIndex(CDiskBlockIndex(pindex)))
@@ -4226,6 +4231,7 @@ bool CBlock::AcceptBlock()
 
     // Relay inventory, but don't relay old inventory during initial block download
     int nBlockEstimate = Checkpoints::GetTotalBlocksEstimate();
+
     if (hashBestChain == hash)
     {
         LOCK(cs_vNodes);
@@ -4242,6 +4248,7 @@ bool CBlock::AcceptBlock()
             if (nHeight > 0)
             {
                 pnode->nSyncHeight = nHeight;
+                pnode->nHashBestChain = hash;
             }
         }
     }
@@ -4324,8 +4331,14 @@ void Misbehaving(NodeId pnode, int howmuch)
 
 bool ASIC_Choker(CNode* pfrom, CBlock* pblock)
 {
-    // Version 1.0.0 (C) 2019 Profit Hunters Coin in collaboration with Crypostle
+    // Version 1.0.1 (C) 2019 Profit Hunters Coin in collaboration with Crypostle
     // Prevents consecutive blocks from the same node (decentralized coin distribution regardless of hash-power)
+
+    if (fReindex && fImporting)
+    {
+        return false; // Bypass for Reindexing and Importing Bootstrap
+    }
+
     int ActivationHeight = 1; // Block #1 (Default)
     int nHeight = 0;
 
@@ -4346,27 +4359,30 @@ bool ASIC_Choker(CNode* pfrom, CBlock* pblock)
 
     if (nHeight < ActivationHeight)
     {
-        return false; // bypass
+        return false; // bypass Until Hard Fork 1
     }
 
-    // Count PoS Blocks
-    int PoSCount = 0;
-    for (int i = 0; i < 4; i++)
+    if (nHeight > Params().POSStartBlock()) // bypass until Staking is Active
     {
-        if (BlockPeerLog[i][3] == BoolToString(pblock->IsProofOfStake()))
+        // Count PoS Blocks
+        int PoSCount = 0;
+        for (int i = 0; i < 4; i++)
         {
-            PoSCount = PoSCount + 1;
-        }
-    }
-
-    // no less than 2 PoS blocks required per 5 blocks
-    if (BlockPeerLogPosition == 4)
-    {
-        if (PoSCount < 2)
-        {
-            if (pblock->IsProofOfStake() == false)
+            if (BlockPeerLog[i][3] == BoolToString(pblock->IsProofOfStake()))
             {
-                return true; // reject PoW block from peer
+                PoSCount = PoSCount + 1;
+            }
+        }
+
+        // no less than 2 PoS blocks required per 5 blocks
+        if (BlockPeerLogPosition == 4)
+        {
+            if (PoSCount < 2)
+            {
+                if (pblock->IsProofOfStake() == false)
+                {
+                    return true; // reject New PoW block from peer (wait until more Staking Blocks are generated)
+                }
             }
         }
     }
@@ -4379,7 +4395,7 @@ bool ASIC_Choker(CNode* pfrom, CBlock* pblock)
             // Blocktime not larger than 5 minutes (seconary check)
             // if (BlockPeerLog[i][2] GetTime())
             // {
-                return true; // reject block from peer
+                return true; // reject too many consecutive NEW blocks from peer
             // }
         }
     }
@@ -4932,13 +4948,13 @@ void PrintBlockTree()
         block.ReadFromDisk(pindex);
 
 #ifndef LOWMEM
-        LogPrint("blocktree", "%d (%u,%u) %s  %08x  %s  mint %7s  tx %u",
+        LogPrint("blocktree", "%d (%u,%u) %s  %08x  %s  POWmint %7s POSmint %7s tx %u",
 #else
         LogPrint("blocktree", "%d (%u,%u) %s  %08x  %s  tx %u",
 #endif        
         pindex->nHeight, pindex->nFile, pindex->nBlockPos, block.GetHash().ToString(), block.nBits, DateTimeStrFormat("%x %H:%M:%S", block.GetBlockTime()),
 #ifndef LOWMEM
-        FormatMoney(pindex->nMint),
+        FormatMoney(pindex->nPOWMint), FormatMoney(pindex->nPOSMint),
 #endif            
         block.vtx.size());
 
@@ -6676,7 +6692,9 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         //
         vector<CInv> vGetData;
         int64_t nNow = GetTime() * 1000000;
+        
         CTxDB txdb("r");
+        
         while (!pto->mapAskFor.empty() && (*pto->mapAskFor.begin()).first <= nNow)
         {
             const CInv& inv = (*pto->mapAskFor.begin()).second;

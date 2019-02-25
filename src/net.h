@@ -114,6 +114,9 @@ extern double FIREWALL_FLOODINGWALLET_MAXTRAFFICAVERAGE;
 extern int FIREWALL_FLOODINGWALLET_MINCHECK;
 extern int FIREWALL_FLOODINGWALLET_MAXCHECK;
 
+// * Average Blockheight among Peers */
+extern int Firewall_AverageHeight;
+
 /** Time between pings automatically sent out for latency probing and keepalive (in seconds). */
 static const int PING_INTERVAL = 1 * 60;
 
@@ -275,6 +278,8 @@ class CNodeStats
         std::string strSubVer;
         bool fInbound;
         int nStartingHeight;
+
+        int nSyncHeight;
         
         uint64_t nSendBytes;
         uint64_t nRecvBytes;
@@ -480,6 +485,8 @@ class CNode
         double nTrafficAverage;
         double nTrafficRatio;
         int nTrafficTimestamp;
+
+        uint256 nHashBestChain;
         int nSyncHeight;
         int nSyncHeightOld;
 
@@ -499,6 +506,7 @@ class CNode
         // store the sanitized version in cleanSubVer. The original should be used when dealing with
         // the network or wire types and the cleaned string used when displayed or logged.
         std::string strSubVer, cleanSubVer;
+
         bool fOneShot;
         bool fClient;
         bool fInbound;

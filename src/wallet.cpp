@@ -1938,7 +1938,7 @@ CAmount CWallet::GetStake() const
 }
 
 
-CAmount CWallet::GetNewMint() const
+CAmount CWallet::GetNewPOWMint() const
 {
     CAmount nTotal = 0;
 
@@ -1951,6 +1951,27 @@ CAmount CWallet::GetNewMint() const
         if (pcoin->IsCoinBase() && pcoin->GetBlocksToMaturity() > 0 && pcoin->GetDepthInMainChain() > 0)
         {
             nTotal += CWallet::GetCredit(*pcoin, ISMINE_ALL);
+        }
+
+    }
+
+    return nTotal;
+}
+
+
+CAmount CWallet::GetNewPOSMint() const
+{
+    CAmount nTotal = 0;
+
+    LOCK2(cs_main, cs_wallet);
+
+    for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
+    {
+        const CWalletTx* pcoin = &(*it).second;
+
+        if (!pcoin->IsCoinBase() && pcoin->GetBlocksToMaturity() > 0 && pcoin->GetDepthInMainChain() > 0)
+        {
+            nTotal += CWallet::GetStakeReward(*pcoin, ISMINE_ALL);
         }
 
     }

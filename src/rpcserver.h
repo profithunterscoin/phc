@@ -126,6 +126,8 @@ extern json_spirit::Value getconnectioncount(const json_spirit::Array& params, b
 
 extern json_spirit::Value getpeerinfo(const json_spirit::Array& params, bool fHelp);
 
+extern json_spirit::Value getpeeraverageheight(const json_spirit::Array& params, bool fHelp);
+
 extern json_spirit::Value ping(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value setban(const json_spirit::Array& params, bool fHelp);

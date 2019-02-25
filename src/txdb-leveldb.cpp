@@ -490,16 +490,16 @@ bool CTxDB::LoadBlockIndex()
         uint256 blockHash = diskindex.GetBlockHash();
 
         // Construct block index object
-        CBlockIndex* pindexNew    = InsertBlockIndex(blockHash);
-        pindexNew->pprev          = InsertBlockIndex(diskindex.hashPrev);
-        pindexNew->pnext          = InsertBlockIndex(diskindex.hashNext);
-        pindexNew->nFile          = diskindex.nFile;
+        CBlockIndex* pindexNew          = InsertBlockIndex(blockHash);
+        pindexNew->pprev                = InsertBlockIndex(diskindex.hashPrev);
+        pindexNew->pnext                = InsertBlockIndex(diskindex.hashNext);
+        pindexNew->nFile                = diskindex.nFile;
         pindexNew->nBlockPos      = diskindex.nBlockPos;
         pindexNew->nHeight        = diskindex.nHeight;
 #ifndef LOWMEM
-        pindexNew->nMint          = diskindex.nMint;
+        pindexNew->nPOWMint          = diskindex.nPOWMint;
         pindexNew->nMoneySupply   = diskindex.nMoneySupply;
-        pindexNew->nLastReward    = diskindex.nLastReward;
+        pindexNew->nPOSMint    = diskindex.nPOSMint;
 #endif
         pindexNew->nFlags         = diskindex.nFlags;
         pindexNew->nStakeModifier = diskindex.nStakeModifier;
