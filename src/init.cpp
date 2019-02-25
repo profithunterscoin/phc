@@ -348,6 +348,9 @@ std::string HelpMessage()
     strUsage += "  -checkblocks=<n>       " + _("How many blocks to check at startup (default: 500, 0 = all)") + "\n";
     strUsage += "  -checklevel=<n>        " + _("How thorough the block verification is (0-6, default: 1)") + "\n";
     strUsage += "  -loadblock=<file>      " + _("Imports blocks from external blk000?.dat file") + "\n";
+    strUsage += "  -reindex               " + _("Reindex addresses found in blockchain database") + "\n";
+    strUsage += "  -rebuild               " + _("Rebuilds local Block Database") + "\n";
+    strUsage += "  -rollback=<n>          " + _("Rollback local blockchain database X amount of blocks (default: 100") + "\n";
     strUsage += "  -maxorphanblocks=<n>   " + strprintf(_("Keep at most <n> unconnectable blocks in memory (default: %u)"), DEFAULT_MAX_ORPHAN_BLOCKS) + "\n";
 
     strUsage += "\n" + _("Block creation options:") + "\n";
@@ -1105,6 +1108,18 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     // ********************************************************* Step 7: load blockchain
 
+    // Rollback local blockchain database X amount of blocks (default: 100")
+    int nBlockCount = GetArg( "-rollback", 0);
+
+    if (nBlockCount > 0)
+    {
+        nBestHeight = RollbackChain(nBlockCount);
+
+        InitError(strprintf("%s : Rollback completed: %d blocks total.", __FUNCTION__, nBlockCount));
+
+        return false;
+    }
+
     if (GetBoolArg("-loadblockindextest", false))
     {
         CTxDB txdb("r");
@@ -1120,7 +1135,44 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     nStart = GetTimeMillis();
 
-    bool DbsLoaded = LoadBlockIndex();
+    bool DbsLoaded = false;
+
+    // Rebuilds local blockchain Database
+    if(GetBoolArg("-rebuild", false))
+    {
+        filesystem::path pathBlockchain = GetDataDir(true) / "blk0001.dat";
+        filesystem::path pathBootstrap = GetDataDir(true) / "bootstrap.dat";
+        filesystem::path pathDatabase = GetDataDir(true) / "database";
+        filesystem::path pathsmsgDB = GetDataDir(true) / "smsgDB";
+        filesystem::path pathTxleveldb = GetDataDir(true) / "txleveldb";
+
+        if (filesystem::exists(pathBlockchain))
+        {
+            filesystem::rename(pathBlockchain, pathBootstrap);
+            filesystem::remove_all(pathDatabase);
+            filesystem::remove_all(pathsmsgDB);
+            filesystem::remove_all(pathTxleveldb);
+        }
+
+        // Load bootstrap
+        if (filesystem::exists(pathBootstrap))
+        {
+            FILE *file = fopen(pathBootstrap.string().c_str(), "rb");
+            if (file)
+            {
+                filesystem::path pathBootstrapOld = GetDataDir(true) / "bootstrap.dat.old";
+
+                DbsLoaded = LoadExternalBlockFile(file);
+                
+                RenameOver(pathBootstrap, pathBootstrapOld);
+            }
+        }
+    }
+    else
+    {
+        // Loads Blockchain database normally if -rebuild is not present in params
+        DbsLoaded = LoadBlockIndex();
+    }
     
     MilliSleep(1000);
 
@@ -1609,8 +1661,8 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     RandAddSeedPerfmon();
 
-    // reindex addresses found in blockchain
-    if(GetBoolArg("-reindexaddr", false))
+    // reindex addresses found in blockchain database
+    if(GetBoolArg("-reindex", false))
     {
         uiInterface.InitMessage(_("Rebuilding address index..."));
 

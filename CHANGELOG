@@ -34,7 +34,12 @@ v1.0.0.7 (Pre-release)
 * ProcessBlock() fixed (Orphans)
 * FIX: Network specific .conf
 * Installed: New Testnet
-* Installed: ASIC Choker 1.0.0
+* Installed: ASIC Choker 1.0.1
+* Installed: nSyncHeight value output to GetPeerInfo RPC
+* FIX: PoW & POS New Mint value (GetInfo RPC / BlockToJSON)
+* Installed GetNewPOWMint & GetNewPOSMint in CWallet
+* FIX: MoneySupply (CBlockIndex)
+* FIX: Compiling on Ubuntu 16
 
 
 v1.0.0.6

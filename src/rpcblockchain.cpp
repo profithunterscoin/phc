@@ -7,6 +7,7 @@
 
 #include "rpcserver.h"
 #include "main.h"
+#include "net.h"
 #include "kernel.h"
 #include "checkpoints.h"
 #include "init.h"
@@ -145,7 +146,8 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool fPri
     result.push_back(Pair("version", block.nVersion));
     result.push_back(Pair("merkleroot", block.hashMerkleRoot.GetHex()));
 #ifndef LOWMEM
-    result.push_back(Pair("mint", ValueFromAmount(blockindex->nMint)));
+    result.push_back(Pair("POWmint", ValueFromAmount(blockindex->nPOWMint)));
+    result.push_back(Pair("POSmint", ValueFromAmount(blockindex->nPOSMint)));
 #endif
     result.push_back(Pair("moneysupply", ValueFromAmount(blockindex->nMoneySupply)));
     result.push_back(Pair("time", (int64_t)block.GetBlockTime()));
@@ -407,4 +409,15 @@ Value rollback(const Array& params, bool fHelp)
 
     // Rollback chain to ensure correct sync
     return true;
+}
+
+Value getpeeraverageheight(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 0)
+    {
+        throw runtime_error("getpeeraverageheight\n"
+                            "Returns average blockheight among connected nodes.");
+    }
+   
+    return Firewall_AverageHeight;
 }

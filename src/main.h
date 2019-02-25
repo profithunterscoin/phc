@@ -194,6 +194,9 @@ FILE* AppendBlockFile(unsigned int& nFileRet);
 /** Load the block tree and coins database from disk */
 bool LoadBlockIndex();
 
+/** Load the block tree and coins database from file X on disk */
+bool LoadExternalBlockFile(FILE* fileIn);
+
 /** Print the loaded block tree */
 void PrintBlockTree();
 
@@ -1090,9 +1093,9 @@ class CBlockIndex
         uint256 nChainTrust; // ppcoin: trust score of block chain
         int nHeight;
     #ifndef LOWMEM
-        int64_t nMint;
+        int64_t nPOWMint;
+        int64_t nPOSMint;
         int64_t nMoneySupply;
-        int64_t nLastReward;
     #endif
         unsigned int nFlags;  // ppcoin: block index flags
         enum
@@ -1129,9 +1132,9 @@ class CBlockIndex
             nHeight = 0;
             nChainTrust = 0;
     #ifndef LOWMEM
-            nMint = 0;
+            nPOWMint = 0;
+            nPOSMint = 0;
             nMoneySupply = 0;
-            nLastReward = 0;
     #endif
             nFlags = 0;
             nStakeModifier = 0;
@@ -1159,9 +1162,9 @@ class CBlockIndex
             nHeight = 0;
             nChainTrust = 0;
     #ifndef LOWMEM
-            nMint = 0;
+            nPOWMint = 0;
+            nPOSMint = 0;
             nMoneySupply = 0;
-            nLastReward = 0;
     #endif
             nFlags = 0;
             nStakeModifier = 0;
@@ -1300,13 +1303,13 @@ class CBlockIndex
         std::string ToString() const
         {
     #ifndef LOWMEM
-            return strprintf("CBlockIndex(nprev=%p, pnext=%p, nFile=%u, nBlockPos=%-6d nHeight=%d, nMint=%s, nMoneySupply=%s, nFlags=(%s)(%d)(%s), nStakeModifier=%016x, hashProof=%s, prevoutStake=(%s), nStakeTime=%d merkle=%s, hashBlock=%s)",
+            return strprintf("CBlockIndex(nprev=%p, pnext=%p, nFile=%u, nBlockPos=%-6d nHeight=%d, nPOWMint=%s, nPOSMint=%s, nMoneySupply=%s, nFlags=(%s)(%d)(%s), nStakeModifier=%016x, hashProof=%s, prevoutStake=(%s), nStakeTime=%d merkle=%s, hashBlock=%s)",
     #else
             return strprintf("CBlockIndex(nprev=%p, pnext=%p, nFile=%u, nBlockPos=%-6d nHeight=%d, nFlags=(%s)(%d)(%s), nStakeModifier=%016x, hashProof=%s, prevoutStake=(%s), nStakeTime=%d merkle=%s, hashBlock=%s)",
     #endif        
                 pprev, pnext, nFile, nBlockPos, nHeight,
     #ifndef LOWMEM
-                FormatMoney(nMint), FormatMoney(nMoneySupply),
+                FormatMoney(nPOWMint), FormatMoney(nPOSMint), FormatMoney(nMoneySupply),
     #endif           
                 GeneratedStakeModifier() ? "MOD" : "-", GetStakeEntropyBit(), IsProofOfStake()? "PoS" : "PoW",
                 nStakeModifier, hashProof.ToString(), prevoutStake.ToString(), nStakeTime, hashMerkleRoot.ToString(), GetBlockHash().ToString());
@@ -1351,9 +1354,9 @@ class CDiskBlockIndex : public CBlockIndex
             READWRITE(nBlockPos);
             READWRITE(nHeight);
     #ifndef LOWMEM
-            READWRITE(nMint);
+            READWRITE(nPOWMint);
+            READWRITE(nPOSMint);
             READWRITE(nMoneySupply);
-            READWRITE(nLastReward);
     #endif
             READWRITE(nFlags);
             READWRITE(nStakeModifier);
