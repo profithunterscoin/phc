@@ -4329,10 +4329,12 @@ void Misbehaving(NodeId pnode, int howmuch)
     }
 }
 
+
 bool ASIC_Choker(CNode* pfrom, CBlock* pblock)
 {
     // Version 1.0.1 (C) 2019 Profit Hunters Coin in collaboration with Crypostle
     // Prevents consecutive blocks from the same node (decentralized coin distribution regardless of hash-power)
+
 
     if (fReindex && fImporting)
     {
@@ -4387,10 +4389,21 @@ bool ASIC_Choker(CNode* pfrom, CBlock* pblock)
         }
     }
 
+    std::string tmpaddrname;
+
+    if (pfrom)
+    {
+        tmpaddrname = pfrom->addrName;
+    }
+    else
+    {
+        tmpaddrname = "Unknown";
+    }
+
     // PoW block must not be from same pfrom within 5 blocks
     for (int i = 0; i < 4; i++)
     {
-        if (BlockPeerLog[i][1] == pfrom->addrName)
+        if (BlockPeerLog[i][1] == tmpaddrname)
         {
             // Blocktime not larger than 5 minutes (seconary check)
             // if (BlockPeerLog[i][2] GetTime())
@@ -4404,18 +4417,21 @@ bool ASIC_Choker(CNode* pfrom, CBlock* pblock)
     BlockPeerLogPosition = BlockPeerLogPosition + 1;
 
     // Keep position between boundaries
-    if (BlockPeerLogPosition > 4)
+    if (BlockPeerLogPosition >= 4)
     {
         BlockPeerLogPosition = 0;
     }
 
-    // Update log data for node, block info
-    BlockPeerLog[BlockPeerLogPosition][1] = pfrom->addrName;
+    // Update log data with node info
+    BlockPeerLog[BlockPeerLogPosition][1] = tmpaddrname;
+
+    // Update log data with block info
     BlockPeerLog[BlockPeerLogPosition][2] = pblock->GetBlockTime();
     BlockPeerLog[BlockPeerLogPosition][3] = BoolToString(pblock->IsProofOfStake());
 
     return false;
 }
+
 
 bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 {
