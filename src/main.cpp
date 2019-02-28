@@ -4403,11 +4403,8 @@ bool ASIC_Choker(std::string addrname, CBlock* pblock)
         }
     }
 
-    // Increment position
-    BlockPeerLogPosition = BlockPeerLogPosition + 1;
-
     // Keep position between boundaries
-    if (BlockPeerLogPosition >= 4)
+    if (BlockPeerLogPosition > 4)
     {
         BlockPeerLogPosition = 0;
     }
@@ -4417,7 +4414,15 @@ bool ASIC_Choker(std::string addrname, CBlock* pblock)
 
     // Update log data with block info
     BlockPeerLog[BlockPeerLogPosition][2] = pblock->GetBlockTime();
-    BlockPeerLog[BlockPeerLogPosition][3] = BoolToString(pblock->IsProofOfStake());
+
+    if (pblock->IsProofOfWork())
+    {
+        BlockPeerLog[BlockPeerLogPosition][3] = "false";
+    }
+    else
+    {
+        BlockPeerLog[BlockPeerLogPosition][3] = "true";
+    }
 
     return false;
 }
