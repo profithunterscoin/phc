@@ -4330,7 +4330,8 @@ void Misbehaving(NodeId pnode, int howmuch)
 }
 
 
-bool ASIC_Choker(CNode* pfrom, CBlock* pblock)
+
+bool ASIC_Choker(std::string addrname, CBlock* pblock)
 {
     // Version 1.0.1 (C) 2019 Profit Hunters Coin in collaboration with Crypostle
     // Prevents consecutive blocks from the same node (decentralized coin distribution regardless of hash-power)
@@ -4389,21 +4390,10 @@ bool ASIC_Choker(CNode* pfrom, CBlock* pblock)
         }
     }
 
-    std::string tmpaddrname;
-
-    if (pfrom)
-    {
-        tmpaddrname = pfrom->addrName;
-    }
-    else
-    {
-        tmpaddrname = "Unknown";
-    }
-
     // PoW block must not be from same pfrom within 5 blocks
     for (int i = 0; i < 4; i++)
     {
-        if (BlockPeerLog[i][1] == tmpaddrname)
+        if (BlockPeerLog[i][1] == addrname)
         {
             // Blocktime not larger than 5 minutes (seconary check)
             // if (BlockPeerLog[i][2] GetTime())
@@ -4423,7 +4413,7 @@ bool ASIC_Choker(CNode* pfrom, CBlock* pblock)
     }
 
     // Update log data with node info
-    BlockPeerLog[BlockPeerLogPosition][1] = tmpaddrname;
+    BlockPeerLog[BlockPeerLogPosition][1] = addrname;
 
     // Update log data with block info
     BlockPeerLog[BlockPeerLogPosition][2] = pblock->GetBlockTime();
@@ -4431,7 +4421,6 @@ bool ASIC_Choker(CNode* pfrom, CBlock* pblock)
 
     return false;
 }
-
 
 bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 {
@@ -4489,8 +4478,19 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
         return error("%s : CheckBlock FAILED", __FUNCTION__);
     }
 
+    std::string addrname;
+
+    if (pfrom)
+    {
+        addrname = pfrom->addrName;
+    }
+    else
+    {
+        addrname = "Unknown";
+    }
+
     // ASIC Choker checks
-    if (ASIC_Choker(pfrom, pblock))
+    if (ASIC_Choker(addrname, pblock))
     {
         return error("%s : ASIC_Choker FAILED", __FUNCTION__);
     }
