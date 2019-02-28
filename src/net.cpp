@@ -2341,11 +2341,11 @@ void RefreshRecentConnections(int RefreshMinutes)
 void IdleNodeCheck(CNode *pnode)
 {
     // Disconnect node/peer if send/recv data becomes idle
-    if (GetTime() - pnode->nTimeConnected > 60)
+    if (GetTime() - pnode->nTimeConnected > 120)
     {
-        if (GetTime() - pnode->nLastRecv > 60)
+        if (GetTime() - pnode->nLastRecv > 120)
         {
-            if (GetTime() - pnode->nLastSend < 60)
+            if (GetTime() - pnode->nLastSend < 120)
             {
                 if (fDebug)
                 {
