@@ -128,9 +128,28 @@ class BitcoinGUI : public QMainWindow
         QAction *lockWalletAction;
         QAction *aboutQtAction;
         QAction *openRPCConsoleAction;
+        QAction *openInformationAction;
+        QAction *openNetTrafficAction;
+        QAction *openPeersAction;
+        QAction *openConfigFileAction;
+        QAction *openMasternodeConfigFileAction;
+        QAction *openDebugFileAction;
+        QAction *setgenerateTRUEAction;
+        QAction *setgenerateFALSEAction;
         QAction *masternodeManagerAction;
         QAction *messageAction;
         QAction *blockAction;
+
+        QAction *linkWebsiteAction;
+        QAction *linkBitcointalkAction;
+        QAction *linkTwitterAction;
+        QAction *linkFacebookAction;
+        QAction *linkDiscordAction;
+        QAction *linkTelegramAction;
+        QAction *linkSlackAction;
+        QAction *linkExplorer1Action;
+        QAction *linkExplorer2Action;
+
         //QAction *TradingAction;
         QAction *showBackupsAction;
 
@@ -233,6 +252,33 @@ class BitcoinGUI : public QMainWindow
         
         /** Show about dialog */
         void aboutClicked();
+        
+        /** Open Website Link in Default Web-Browser (New tab in current session) **/
+        void linkWebsiteClicked();
+
+         /** Open Bitcointalk Link in Default Web-Browser */	
+        void linkBitcointalkClicked();
+
+        /** Open Bitcointalk Link in Default Web-Browser */	
+        void linkTwitterClicked();
+
+        /** Open Bitcointalk Link in Default Web-Browser */	
+        void linkFacebookClicked();
+
+        /** Open Bitcointalk Link in Default Web-Browser */	
+        void linkDiscordClicked();
+
+        /** Open Bitcointalk Link in Default Web-Browser */	
+        void linkTelegramClicked();
+
+        /** Open Bitcointalk Link in Default Web-Browser */	
+        void linkSlackClicked();
+
+        /** Open Bitcointalk Link in Default Web-Browser */	
+        void linkExplorer1Clicked();
+
+        /** Open Bitcointalk Link in Default Web-Browser */	
+        void linkExplorer2Clicked();
 
     #ifndef Q_OS_MAC
         /** Handle tray icon clicked */
@@ -274,6 +320,9 @@ class BitcoinGUI : public QMainWindow
 
         /** Show progress dialog e.g. for verifychain */
         void showProgress(const QString &title, int nProgress);
+
+
+
 };
 
 #endif // BITCOINGUI_H

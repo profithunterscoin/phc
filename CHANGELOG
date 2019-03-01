@@ -30,7 +30,6 @@ v1.0.0.7 (Pre-release)
 * FIX: LoadblockIndex Init
 * Installed: Init PruneOrphanBlocks
 * Installed: RPC Prune & Reorganize
-* Installed: RollbackChain function
 * ProcessBlock() fixed (Orphans)
 * FIX: Network specific .conf
 * Installed: New Testnet
@@ -40,7 +39,7 @@ v1.0.0.7 (Pre-release)
 * Installed GetNewPOWMint & GetNewPOSMint in CWallet
 * FIX: MoneySupply (CBlockIndex)
 * FIX: Compiling on Ubuntu 16
-
+* Installed: MENU ITEMS -> Tools & Mining & Social Media Links in Help
 
 v1.0.0.6
 --------

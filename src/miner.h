@@ -31,4 +31,6 @@ bool ProcessBlockStake(CBlock* pblock, CWallet& wallet);
 /** Base sha256 mining transform */
 void SHA256Transform(void* pstate, void* pinput, const void* pinit);
 
+void GeneratePoWcoins(bool fGenerate, CWallet* pwallet, bool fDebugToConsole);
+
 #endif // NOVACOIN_MINER_H

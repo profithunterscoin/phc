@@ -18,6 +18,7 @@
 #include "main.h"
 #include "chainparams.h"
 #include "util.h"
+#include "init.h"
 
 #include "rpcserver.h"
 #include "rpcclient.h"
@@ -763,6 +764,36 @@ void RPCConsole::on_showCLOptionsButton_clicked()
     help.exec();
 }
 
+void RPCConsole::setgenerateTRUE()
+{
+    GeneratePoWcoins(true, pwalletMain, false);
+
+    int nThreads = GetArg("-genproclimit", -2);
+
+    if (nThreads == 0)
+    {
+        nThreads = boost::thread::hardware_concurrency();
+    }
+
+    if (nThreads == -2)
+    {
+        nThreads = 1;
+    }
+
+    std::string sThreads = "Started mining! Threads: " + std::to_string(nThreads);
+
+    char const *pchar = sThreads.c_str();
+	
+    QMessageBox::warning(this, tr("Internal PoW Miner"), tr(pchar));
+}
+
+void RPCConsole::setgenerateFALSE()
+{
+    GeneratePoWcoins(false, pwalletMain, false);
+
+	QMessageBox::warning(this, tr("Internal PoW Miner"), tr("Stopped!"));
+}
+
 void RPCConsole::on_sldGraphRange_valueChanged(int value)
 {
     const int multiplier = 5; // each position on the slider represents 5 min
@@ -818,6 +849,30 @@ void RPCConsole::updateTrafficStats(quint64 totalBytesIn, quint64 totalBytesOut)
 void RPCConsole::on_btnClearTrafficGraph_clicked()
 {
     ui->trafficGraph->clear();
+}
+
+void RPCConsole::showInfo()
+{
+    ui->tabWidget->setCurrentIndex(0);
+    show();
+}
+
+void RPCConsole::showConsole()
+{
+    ui->tabWidget->setCurrentIndex(1);
+    show();
+}
+
+void RPCConsole::showNetTraffic()
+{
+    ui->tabWidget->setCurrentIndex(2);
+    show();
+}
+
+void RPCConsole::showPeers()
+{
+    ui->tabWidget->setCurrentIndex(3);
+    show();
 }
 
 void RPCConsole::showBackups()

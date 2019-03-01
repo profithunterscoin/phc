@@ -37,6 +37,8 @@
 #include "shlwapi.h"
 #endif
 
+#include <iostream>
+
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #if BOOST_FILESYSTEM_VERSION >= 3
@@ -348,37 +350,46 @@ namespace GUIUtil
 
     void openDebugLogfile()
     {
-        boost::filesystem::path pathDebug = GetDataDir(true) / "debug.log";
+        boost::filesystem::path pathFile = GetDataDir(true) / "debug.log";
 
         /* Open debug.log with the associated application */
-        if (boost::filesystem::exists(pathDebug))
+        if (!boost::filesystem::exists(pathFile))
         {
-            QDesktopServices::openUrl(QUrl::fromLocalFile(boostPathToQString(pathDebug)));
+            // Create the file if it doesn't exist
+            boost::filesystem::ofstream output(pathFile);
         }
+
+        QDesktopServices::openUrl(QUrl::fromLocalFile(boostPathToQString(pathFile)));
     }
 
 
     void openPHCConfigfile()
     {
-        boost::filesystem::path pathDebug = GetDataDir(true) / "phc.conf";
+        boost::filesystem::path pathFile = GetDataDir(true) / "phc.conf";
 
         /* Open phc.conf with the associated application */
-        if (boost::filesystem::exists(pathDebug))
+        if (!boost::filesystem::exists(pathFile))
         {
-            QDesktopServices::openUrl(QUrl::fromLocalFile(boostPathToQString(pathDebug)));
+            // Create the file if it doesn't exist
+            boost::filesystem::ofstream output(pathFile);
         }
+
+        QDesktopServices::openUrl(QUrl::fromLocalFile(boostPathToQString(pathFile)));
     }
 
 
     void openMNConfigfile()
     {
-        boost::filesystem::path pathDebug = GetDataDir(true) / "masternode.conf";
+        boost::filesystem::path pathFile = GetDataDir(true) / "masternode.conf";
 
         /* Open masternode.conf with the associated application */
-        if (boost::filesystem::exists(pathDebug))
+        if (!boost::filesystem::exists(pathFile))
         {
-            QDesktopServices::openUrl(QUrl::fromLocalFile(boostPathToQString(pathDebug)));
+            // Create the file if it doesn't exist
+            boost::filesystem::ofstream output(pathFile);
         }
+
+        QDesktopServices::openUrl(QUrl::fromLocalFile(boostPathToQString(pathFile)));
     }
 
 

@@ -111,9 +111,6 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 	{
 		// NORMAL THEME
 
-
-
-
 		qApp->setStyleSheet("QMainWindow"
 							"{"
 							"	background-image:url(:images/bkg);"
@@ -330,12 +327,12 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 
 
 #ifndef Q_OS_MAC
-	qApp->setWindowIcon(QIcon(":icons/bitcoin"));
-	setWindowIcon(QIcon(":icons/bitcoin"));
+			qApp->setWindowIcon(QIcon(":icons/bitcoin"));
+			setWindowIcon(QIcon(":icons/bitcoin"));
 #else
-	//setUnifiedTitleAndToolBarOnMac(true);
-	QApplication::setAttribute(Qt::AA_DontShowIconsInMenus);
+			MacDockIconHandler::instance()->setIcon(QIcon(":icons/bitcoin"));
 #endif
+
 	setObjectName("PHC");
 
 	setStyleSheet("#PHC"
@@ -488,7 +485,15 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 	connect(transactionView, SIGNAL(doubleClicked(QModelIndex)), transactionView, SLOT(showDetails()));
 
 	rpcConsole = new RPCConsole(0);
-	connect(openRPCConsoleAction, SIGNAL(triggered()), rpcConsole, SLOT(show()));
+	connect(openRPCConsoleAction, SIGNAL(triggered()), rpcConsole, SLOT(showConsole()));
+	connect(openInformationAction, SIGNAL(triggered()), rpcConsole, SLOT(showInfo()));
+	connect(openNetTrafficAction, SIGNAL(triggered()), rpcConsole, SLOT(showNetTraffic()));
+	connect(openPeersAction, SIGNAL(triggered()), rpcConsole, SLOT(showPeers()));
+	connect(openConfigFileAction, SIGNAL(triggered()), rpcConsole, SLOT(on_openPHCConfigfileButton_clicked()));
+	connect(openMasternodeConfigFileAction, SIGNAL(triggered()), rpcConsole, SLOT(on_openMNConfigfileButton_clicked()));
+	connect(openDebugFileAction, SIGNAL(triggered()), rpcConsole, SLOT(on_openDebugLogfileButton_clicked()));
+	connect(setgenerateTRUEAction, SIGNAL(triggered()), rpcConsole, SLOT(setgenerateTRUE()));
+	connect(setgenerateFALSEAction, SIGNAL(triggered()), rpcConsole, SLOT(setgenerateFALSE()));
 
 	// clicking on automatic backups shows details
 	connect(showBackupsAction, SIGNAL(triggered()), rpcConsole, SLOT(showBackups()));
@@ -602,7 +607,7 @@ void BitcoinGUI::createActions()
 	quitAction->setToolTip(tr("Quit application"));
 	quitAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
 	quitAction->setMenuRole(QAction::QuitRole);
-	
+
 	aboutAction = new QAction(QIcon(":/icons/bitcoin1"), tr("&About PHC"), this);
 	aboutAction->setToolTip(tr("Show information about PHC"));
 	aboutAction->setMenuRole(QAction::AboutRole);
@@ -610,6 +615,33 @@ void BitcoinGUI::createActions()
 	aboutQtAction = new QAction(QIcon(":/qt-project.org/qmessagebox/images/qtlogo-64.png"), tr("About &Qt"), this);
 	aboutQtAction->setToolTip(tr("Show information about Qt"));
 	aboutQtAction->setMenuRole(QAction::AboutQtRole);
+
+	linkWebsiteAction = new QAction(QIcon(":/icons/website"), tr("&PHC Website"), this);
+	linkWebsiteAction->setToolTip(tr("Visit the Official PHC website"));
+
+    linkBitcointalkAction = new QAction(QIcon(":/icons/bitcointalk"), tr("&Bitcointalk Discussion"), this);
+	linkBitcointalkAction->setToolTip(tr("Visit our Bitcointalk discussion thread"));
+
+	linkTwitterAction = new QAction(QIcon(":/icons/twitter"), tr("&PHC Twitter"), this);
+    linkTwitterAction->setToolTip(tr("Join PHC Twitter"));
+
+	linkFacebookAction = new QAction(QIcon(":/icons/facebook"), tr("&PHC Facebook"), this);
+    linkFacebookAction->setToolTip(tr("Join PHC Facebook"));
+
+    linkDiscordAction = new QAction(QIcon(":/icons/discord"), tr("&PHC Discord"), this);
+    linkDiscordAction->setToolTip(tr("Join PHC Discord"));
+
+	linkTelegramAction = new QAction(QIcon(":/icons/telegram"), tr("&PHC Telegram"), this);
+    linkTelegramAction->setToolTip(tr("Join PHC Telegram"));
+
+	linkSlackAction = new QAction(QIcon(":/icons/slack"), tr("&PHC Slack"), this);
+    linkSlackAction->setToolTip(tr("Join PHC Slack Group"));
+
+    linkExplorer1Action = new QAction(QIcon(":/icons/explorer"), tr("&PHC Explorer #1"), this);
+	linkExplorer1Action->setToolTip(tr("PHC Explorer #1"));	
+	
+	linkExplorer2Action = new QAction(QIcon(":/icons/explorer"), tr("&PHC Explorer #2"), this);
+	linkExplorer2Action->setToolTip(tr("PHC Explorer #2"));	
 	
 	optionsAction = new QAction(QIcon(":/icons/options"), tr("&Options..."), this);
 	optionsAction->setToolTip(tr("Modify configuration options for PHC"));
@@ -639,8 +671,32 @@ void BitcoinGUI::createActions()
 	exportAction = new QAction(QIcon(":/icons/export"), tr("&Export..."), this);
 	exportAction->setToolTip(tr("Export the data in the current tab to a file"));
 	
-	openRPCConsoleAction = new QAction(QIcon(":/icons/debugwindow"), tr("&Debug window"), this);
+	openRPCConsoleAction = new QAction(QIcon(":/icons/debugwindow"), tr("&RPC Console"), this);
 	openRPCConsoleAction->setToolTip(tr("Open debugging and diagnostic console"));
+
+	openInformationAction = new QAction(QIcon(":/icons/synced"), tr("&Information"), this);
+	openInformationAction->setToolTip(tr("Open client information"));
+
+	openNetTrafficAction = new QAction(QIcon(":/icons/connect_4"), tr("&Network Traffic"), this);
+	openNetTrafficAction->setToolTip(tr("Open network traffic information"));
+
+	openPeersAction = new QAction(QIcon(":/icons/eye"), tr("&Peers"), this);
+	openPeersAction->setToolTip(tr("Open peers information"));
+
+	openConfigFileAction = new QAction(QIcon(":/icons/edit"), tr("&Open Config File"), this);
+	openConfigFileAction->setToolTip(tr("Open configuration file"));
+
+	openMasternodeConfigFileAction = new QAction(QIcon(":/icons/edit"), tr("&Open Masternode Config File"), this);
+	openMasternodeConfigFileAction->setToolTip(tr("Open masternode configuration file"));
+
+	openDebugFileAction = new QAction(QIcon(":/icons/edit"), tr("&Open Debug File"), this);
+	openDebugFileAction->setToolTip(tr("Open debug file"));
+
+	setgenerateTRUEAction = new QAction(QIcon(":/icons/tx_mined"), tr("&Start"), this);
+	setgenerateTRUEAction->setToolTip(tr("Start Internal CPU Miner"));
+
+	setgenerateFALSEAction = new QAction(QIcon(":/icons/quit"), tr("&Stop"), this);
+	setgenerateFALSEAction->setToolTip(tr("Stop Internal CPU Miner"));
 
 	connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
 	connect(aboutAction, SIGNAL(triggered()), this, SLOT(aboutClicked()));
@@ -654,6 +710,17 @@ void BitcoinGUI::createActions()
 	connect(lockWalletAction, SIGNAL(triggered()), this, SLOT(lockWallet()));
 	connect(signMessageAction, SIGNAL(triggered()), this, SLOT(gotoSignMessageTab()));
 	connect(verifyMessageAction, SIGNAL(triggered()), this, SLOT(gotoVerifyMessageTab()));
+
+	connect(linkWebsiteAction, SIGNAL(triggered()), this, SLOT(linkWebsiteClicked()));
+	connect(linkBitcointalkAction, SIGNAL(triggered()), this, SLOT(linkBitcointalkClicked()));
+	connect(linkTwitterAction, SIGNAL(triggered()), this, SLOT(linkTwitterClicked()));
+	connect(linkFacebookAction, SIGNAL(triggered()), this, SLOT(linkFacebookClicked()));
+	connect(linkDiscordAction, SIGNAL(triggered()), this, SLOT(linkDiscordClicked()));
+	connect(linkTelegramAction, SIGNAL(triggered()), this, SLOT(linkTelegramClicked()));
+	connect(linkSlackAction, SIGNAL(triggered()), this, SLOT(linkSlackClicked()));
+	connect(linkExplorer1Action, SIGNAL(triggered()), this, SLOT(linkExplorer1Clicked()));
+	connect(linkExplorer2Action, SIGNAL(triggered()), this, SLOT(linkExplorer2Clicked()));
+
 }
 
 
@@ -681,13 +748,36 @@ void BitcoinGUI::createMenuBar()
 	settings->addAction(lockWalletAction);
 	settings->addSeparator();
 	settings->addAction(optionsAction);
-	settings->addAction(showBackupsAction);
+
+	QMenu *tools = appMenuBar->addMenu(tr("&Tools"));
+	tools->addAction(openInformationAction);
+	tools->addAction(openRPCConsoleAction);
+	tools->addAction(openNetTrafficAction);
+	tools->addAction(openPeersAction);
+	tools->addAction(showBackupsAction);
+	tools->addSeparator();
+	tools->addAction(openConfigFileAction);
+	tools->addAction(openMasternodeConfigFileAction);
+	tools->addAction(openDebugFileAction);
+
+	QMenu *mining = appMenuBar->addMenu(tr("&Mining"));
+	mining->addAction(setgenerateTRUEAction);
+	mining->addAction(setgenerateFALSEAction);
+	//mining->addAction(setgenproclimitAction);
 
 	QMenu *help = appMenuBar->addMenu(tr("&Help"));
-	help->addAction(openRPCConsoleAction);
-	help->addSeparator();
 	help->addAction(aboutAction);
 	help->addAction(aboutQtAction);
+	help->addSeparator();
+	help->addAction(linkWebsiteAction);
+    help->addAction(linkBitcointalkAction);
+	help->addAction(linkTwitterAction);
+	help->addAction(linkFacebookAction);
+	help->addAction(linkDiscordAction);
+	help->addAction(linkTelegramAction);
+	help->addAction(linkSlackAction);
+	help->addAction(linkExplorer1Action);
+	help->addAction(linkExplorer2Action);
 }
 
 
@@ -1788,3 +1878,49 @@ void BitcoinGUI::showProgress(const QString &title, int nProgress)
 		progressDialog->setValue(nProgress);
 	}
 }
+
+void BitcoinGUI::linkWebsiteClicked()
+{
+	QDesktopServices::openUrl(QUrl("https://profithunterscoin.com", QUrl::TolerantMode));
+}
+
+ void BitcoinGUI::linkBitcointalkClicked()
+{
+    QDesktopServices::openUrl(QUrl("https://bitcointalk.org/index.php?topic=2786295.0", QUrl::TolerantMode));
+}
+
+ void BitcoinGUI::linkTwitterClicked()
+{
+    QDesktopServices::openUrl(QUrl("https://twitter.com/phcadmin", QUrl::TolerantMode));
+}
+
+void BitcoinGUI::linkFacebookClicked()
+{
+    QDesktopServices::openUrl(QUrl("https://www.facebook.com/ProfitHuntersCoin/", QUrl::TolerantMode));
+}
+
+void BitcoinGUI::linkDiscordClicked()
+{
+    QDesktopServices::openUrl(QUrl("https://discordapp.com/invite/Abwhbw2", QUrl::TolerantMode));
+}
+
+void BitcoinGUI::linkTelegramClicked()
+{
+    QDesktopServices::openUrl(QUrl("https://t.me/profithunterscoin", QUrl::TolerantMode));
+}
+
+void BitcoinGUI::linkSlackClicked()
+{
+    QDesktopServices::openUrl(QUrl("https://profithunterscoin.slack.com/join/shared_invite/enQ%20tMjk1NTU0NjI4NjMxLWE5NmM1MWYyN2Y4NTY4ZjE0ZTgxYzJiNGYyNDYwODh%20iNGQwODQ1OTFkYTY4OTZkODFjN2Y0NDA4MWEwY2FiNWU"));
+}
+
+void BitcoinGUI::linkExplorer1Clicked()
+{
+    QDesktopServices::openUrl(QUrl("http://explorer.profithunterscoin.com", QUrl::TolerantMode));
+}
+
+void BitcoinGUI::linkExplorer2Clicked()
+{
+    QDesktopServices::openUrl(QUrl("http://explorer2.profithunterscoin.com", QUrl::TolerantMode));
+}
+

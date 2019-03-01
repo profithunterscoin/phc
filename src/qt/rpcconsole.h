@@ -125,6 +125,24 @@ class RPCConsole: public QWidget
         
         /** Scroll console view to end */
         void scrollToEnd();
+
+        /** Shows Information Window **/
+        void showInfo();
+
+        /** Shows RPC Console **/
+        void showConsole();
+
+        /** Shows Network Traffic **/
+        void showNetTraffic();
+
+        /** Show Peers **/
+        void showPeers();
+
+        /** Starts the Internal PoW Miner **/
+        void setgenerateTRUE();
+
+        /** Stops the internal PoW Miner **/
+        void setgenerateFALSE();
         
         /** Handle selection of peer in peers list */
         void peerSelected(const QItemSelection &selected, const QItemSelection &deselected);
