@@ -48,8 +48,22 @@ Value getinfo(const Array& params, bool fHelp)
     GetProxy(NET_IPV4, proxy);
 
     Object obj, diff;
+    obj.push_back(Pair("testnet",                   TestNet()));
     obj.push_back(Pair("version",                   FormatFullVersion()));
     obj.push_back(Pair("protocolversion",           (int)PROTOCOL_VERSION));
+    obj.push_back(Pair("timeoffset",                (int64_t)GetTimeOffset()));
+
+#ifndef LOWMEM
+    obj.push_back(Pair("pow_lastreward",            ValueFromAmount(pindexBest->nPOWMint)));
+    obj.push_back(Pair("pos_lastreward",            ValueFromAmount(pindexBest->nPOSMint)));
+    obj.push_back(Pair("moneysupply",               ValueFromAmount(pindexBest->nMoneySupply)));
+#endif
+
+    obj.push_back(Pair("chain_blocks",              (int)nBestHeight));
+    obj.push_back(Pair("chain_bestblockhash",       hashBestChain.GetHex()));
+
+    obj.push_back(Pair("pow_difficulty",            GetDifficulty(GetLastBlockIndex(pindexBest, false))));
+    obj.push_back(Pair("pos_difficulty",            GetDifficulty(GetLastBlockIndex(pindexBest, true))));
 
 #ifdef ENABLE_WALLET
     if (pwalletMain)
@@ -62,31 +76,11 @@ Value getinfo(const Array& params, bool fHelp)
             obj.push_back(Pair("darksend_balance",  ValueFromAmount(pwalletMain->GetAnonymizedBalance())));
         }
 
-        obj.push_back(Pair("new_pow_mint",               ValueFromAmount(pwalletMain->GetNewPOWMint())));
-        obj.push_back(Pair("new_pos_mint",               ValueFromAmount(pwalletMain->GetNewPOSMint())));
+        obj.push_back(Pair("pow_newmint",               ValueFromAmount(pwalletMain->GetNewPOWMint())));
+        obj.push_back(Pair("pos_newmint",               ValueFromAmount(pwalletMain->GetNewPOSMint())));
 
         obj.push_back(Pair("stake_locked",                 ValueFromAmount(pwalletMain->GetStake())));
-    }
-#endif
 
-#ifndef LOWMEM
-    obj.push_back(Pair("lastpowReward",            ValueFromAmount(pindexBest->nPOWMint)));
-    obj.push_back(Pair("lastposReward",            ValueFromAmount(pindexBest->nPOSMint)));
-    obj.push_back(Pair("moneysupply",               ValueFromAmount(pindexBest->nMoneySupply)));
-#endif
-
-    obj.push_back(Pair("blocks",                    (int)nBestHeight));
-    obj.push_back(Pair("timeoffset",                (int64_t)GetTimeOffset()));
-    obj.push_back(Pair("connections",               (int)vNodes.size()));
-    obj.push_back(Pair("proxy",                     (proxy.first.IsValid() ? proxy.first.ToStringIPPort() : string())));
-    obj.push_back(Pair("ip",                        GetLocalAddress(NULL).ToStringIP()));
-    obj.push_back(Pair("pow-difficulty",            GetDifficulty(GetLastBlockIndex(pindexBest, false))));
-    obj.push_back(Pair("pos-difficulty",            GetDifficulty(GetLastBlockIndex(pindexBest, true))));
-    obj.push_back(Pair("testnet",                   TestNet()));
-
-#ifdef ENABLE_WALLET
-    if (pwalletMain)
-    {
         obj.push_back(Pair("keypoololdest",         (int64_t)pwalletMain->GetOldestKeyPoolTime()));
         obj.push_back(Pair("keypoolsize",           (int)pwalletMain->GetKeyPoolSize()));
     }
@@ -100,6 +94,15 @@ Value getinfo(const Array& params, bool fHelp)
     }
 
 #endif
+
+
+    obj.push_back(Pair("peer_connections",          (int)vNodes.size()));
+    //obj.push_back(Pair("peer_averagechainblocks",   Peer_AverageHeight));
+
+    obj.push_back(Pair("proxy",                     (proxy.first.IsValid() ? proxy.first.ToStringIPPort() : string())));
+    obj.push_back(Pair("ip",                        GetLocalAddress(NULL).ToStringIP()));
+
+    obj.push_back(Pair("Firewall_averagechainblocks",   Firewall_AverageHeight));
 
     obj.push_back(Pair("errors",                    GetWarnings("statusbar")));
     
