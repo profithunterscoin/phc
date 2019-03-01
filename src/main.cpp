@@ -46,7 +46,7 @@ CCriticalSection cs_main;
 CTxMemPool mempool;
 
 int BlockPeerLogPosition = 0;
-std::string BlockPeerLog[4][3];
+std::string BlockPeerLog[5][4];
 
 map<uint256, CBlockIndex*> mapBlockIndex;
 set<pair<COutPoint, unsigned int> > setStakeSeen;
@@ -4333,6 +4333,16 @@ bool ASIC_Choker(std::string addrname, CBlock* pblock)
         return false; // Bypass for Reindexing and Importing Bootstrap
     }
 
+    if (!pblock)
+    {
+        return false;
+    }
+
+    if (addrname == "")
+    {
+        addrname = "Unknown";
+    }
+
     int ActivationHeight = 1; // Block #1 (Default)
     int nHeight = 0;
 
@@ -4408,15 +4418,7 @@ bool ASIC_Choker(std::string addrname, CBlock* pblock)
 
     // Update log data with block info
     BlockPeerLog[BlockPeerLogPosition][1] = pblock->GetBlockTime();
-
-    if (pblock->IsProofOfWork())
-    {
-        BlockPeerLog[BlockPeerLogPosition][2] = "true";
-    }
-    else
-    {
-        BlockPeerLog[BlockPeerLogPosition][2] = "false";
-    }
+    BlockPeerLog[BlockPeerLogPosition][2] = BoolToString(pblock->IsProofOfWork());
 
     return false;
 }
