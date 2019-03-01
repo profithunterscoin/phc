@@ -53,8 +53,8 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("protocol_testnet",          TestNet()));
     obj.push_back(Pair("timeoffset",                (int64_t)GetTimeOffset()));
 
-    obj.push_back(Pair("chain_blocks",              (int)nBestHeight));
-    obj.push_back(Pair("chain_bestblockhash",       hashBestChain.GetHex()));
+    obj.push_back(Pair("blocks",              (int)nBestHeight));
+    obj.push_back(Pair("bestblockhash",       hashBestChain.GetHex()));
 
     obj.push_back(Pair("pow_difficulty",            GetDifficulty(GetLastBlockIndex(pindexBest, false))));
     obj.push_back(Pair("pos_difficulty",            GetDifficulty(GetLastBlockIndex(pindexBest, true))));

@@ -5788,6 +5788,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
     else if (strCommand == "getcheckpoint")
     {
 
+        /*
         vector<CInv> vInv;
         vRecv >> vInv;
         if (vInv.size() > 0)
@@ -5795,7 +5796,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
         }
 
-        /*
         // Push Inventory Height to CNode Data Cache
 
         pnode->nSyncHeight = pindexBegin->nHeight;
@@ -6733,6 +6733,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         // Message: getcheckpoint
         // 
 
+/*
         vector<CInv> vCheckpoint;
 
         CInv peercheckpoint;
@@ -6746,6 +6747,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         {
             pto->PushMessage("getcheckpoint", vCheckpoint);
         }
+*/
 
         // ----------------------
         //
