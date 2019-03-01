@@ -62,16 +62,16 @@ Value getinfo(const Array& params, bool fHelp)
             obj.push_back(Pair("darksend_balance",  ValueFromAmount(pwalletMain->GetAnonymizedBalance())));
         }
 
-        obj.push_back(Pair("new_POW_mint",               ValueFromAmount(pwalletMain->GetNewPOWMint())));
-        obj.push_back(Pair("new_POS_mint",               ValueFromAmount(pwalletMain->GetNewPOSMint())));
+        obj.push_back(Pair("new_pow_mint",               ValueFromAmount(pwalletMain->GetNewPOWMint())));
+        obj.push_back(Pair("new_pos_mint",               ValueFromAmount(pwalletMain->GetNewPOSMint())));
 
         obj.push_back(Pair("stake_locked",                 ValueFromAmount(pwalletMain->GetStake())));
     }
 #endif
 
 #ifndef LOWMEM
-    obj.push_back(Pair("lastPOWReward",            ValueFromAmount(pindexBest->nPOWMint)));
-    obj.push_back(Pair("lastPOSReward",            ValueFromAmount(pindexBest->nPOSMint)));
+    obj.push_back(Pair("lastpowReward",            ValueFromAmount(pindexBest->nPOWMint)));
+    obj.push_back(Pair("lastposReward",            ValueFromAmount(pindexBest->nPOSMint)));
     obj.push_back(Pair("moneysupply",               ValueFromAmount(pindexBest->nMoneySupply)));
 #endif
 
@@ -80,8 +80,8 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("connections",               (int)vNodes.size()));
     obj.push_back(Pair("proxy",                     (proxy.first.IsValid() ? proxy.first.ToStringIPPort() : string())));
     obj.push_back(Pair("ip",                        GetLocalAddress(NULL).ToStringIP()));
-    obj.push_back(Pair("PoW-Difficulty",            GetDifficulty(GetLastBlockIndex(pindexBest, false))));
-    obj.push_back(Pair("PoS-Difficulty",            GetDifficulty(GetLastBlockIndex(pindexBest, true))));
+    obj.push_back(Pair("pow-difficulty",            GetDifficulty(GetLastBlockIndex(pindexBest, false))));
+    obj.push_back(Pair("pos-difficulty",            GetDifficulty(GetLastBlockIndex(pindexBest, true))));
     obj.push_back(Pair("testnet",                   TestNet()));
 
 #ifdef ENABLE_WALLET

@@ -1352,11 +1352,16 @@ void GeneratePoWcoins(bool fGenerate, CWallet* pwallet, bool fDebugToConsole)
 
     static boost::thread_group* minerThreads = NULL;
 
-    int nThreads = GetArg("-genproclimit", -1);
+    int nThreads = GetArg("-genproclimit", -2);
 
-    if (nThreads < 0)
+    if (nThreads == 0)
     {
         nThreads = boost::thread::hardware_concurrency();
+    }
+
+    if (nThreads == -2)
+    {
+        nThreads = 1;
     }
 
     if (minerThreads != NULL)
@@ -1368,7 +1373,7 @@ void GeneratePoWcoins(bool fGenerate, CWallet* pwallet, bool fDebugToConsole)
         minerThreads = NULL;
     }
 
-    if (nThreads == 0 || !fGenerate)
+    if (nThreads == -1 || !fGenerate)
     {
         return;
     }

@@ -349,7 +349,8 @@ std::string HelpMessage()
     strUsage += "  -checklevel=<n>        " + _("How thorough the block verification is (0-6, default: 1)") + "\n";
     strUsage += "  -loadblock=<file>      " + _("Imports blocks from external blk000?.dat file") + "\n";
     strUsage += "  -reindex               " + _("Reindex addresses found in blockchain database") + "\n";
-    strUsage += "  -rebuild               " + _("Rebuilds local Block Database") + "\n";
+    strUsage += "  -rebuild               " + _("Rebuilds local Blockchain Database") + "\n";
+    strUsage += "  -clearchainfiles       " + _("Removes local Blockchain Database files") + "\n";
     strUsage += "  -rollback=<n>          " + _("Rollback local blockchain database X amount of blocks (default: 100") + "\n";
     strUsage += "  -maxorphanblocks=<n>   " + strprintf(_("Keep at most <n> unconnectable blocks in memory (default: %u)"), DEFAULT_MAX_ORPHAN_BLOCKS) + "\n";
 
@@ -1108,34 +1109,29 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     // ********************************************************* Step 7: load blockchain
 
-    // Rollback local blockchain database X amount of blocks (default: 100")
-    int nBlockCount = GetArg( "-rollback", 0);
-
-    if (nBlockCount > 0)
-    {
-        nBestHeight = RollbackChain(nBlockCount);
-
-        InitError(strprintf("%s : Rollback completed: %d blocks total.", __FUNCTION__, nBlockCount));
-
-        return false;
-    }
-
-    if (GetBoolArg("-loadblockindextest", false))
-    {
-        CTxDB txdb("r");
-
-        txdb.LoadBlockIndex();
-
-        PrintBlockTree();
-
-        return false;
-    }
-
     uiInterface.InitMessage(_("Loading block index..."));
 
     nStart = GetTimeMillis();
 
     bool DbsLoaded = false;
+
+    // Rebuilds local blockchain Database
+    if(GetBoolArg("-clearchainfiles", false))
+    {
+        filesystem::path pathBlockchain = GetDataDir(true) / "blk0001.dat";
+        filesystem::path pathDatabase = GetDataDir(true) / "database";
+        filesystem::path pathsmsgDB = GetDataDir(true) / "smsgDB";
+        filesystem::path pathTxleveldb = GetDataDir(true) / "txleveldb";
+        filesystem::path pathMncache = GetDataDir(true) / "mncache.dat";
+
+        filesystem::remove_all(pathBlockchain);
+        filesystem::remove_all(pathDatabase);
+        filesystem::remove_all(pathsmsgDB);
+        filesystem::remove_all(pathTxleveldb);
+        filesystem::remove_all(pathMncache);
+
+        return InitError(strprintf("%s : Removal of local blockchain files complete, start wallet again to re-sync fresh. Or Bootstrap manually.", __FUNCTION__));
+    }
 
     // Rebuilds local blockchain Database
     if(GetBoolArg("-rebuild", false))
@@ -1145,6 +1141,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         filesystem::path pathDatabase = GetDataDir(true) / "database";
         filesystem::path pathsmsgDB = GetDataDir(true) / "smsgDB";
         filesystem::path pathTxleveldb = GetDataDir(true) / "txleveldb";
+        filesystem::path pathMncache = GetDataDir(true) / "mncache.dat";
 
         if (filesystem::exists(pathBlockchain))
         {
@@ -1152,6 +1149,7 @@ bool AppInit2(boost::thread_group& threadGroup)
             filesystem::remove_all(pathDatabase);
             filesystem::remove_all(pathsmsgDB);
             filesystem::remove_all(pathTxleveldb);
+            filesystem::remove_all(pathMncache);
         }
 
         // Load bootstrap
@@ -1165,6 +1163,8 @@ bool AppInit2(boost::thread_group& threadGroup)
                 DbsLoaded = LoadExternalBlockFile(file);
                 
                 RenameOver(pathBootstrap, pathBootstrapOld);
+
+                return InitError(strprintf("%s : Rebuild local blockchain complete, start wallet again to bootstrap local blockchain index (reload).", __FUNCTION__));
             }
         }
     }
@@ -1180,6 +1180,28 @@ bool AppInit2(boost::thread_group& threadGroup)
     {
         // try again (low memory machines will display "error", during BlockIndex loading process)
         DbsLoaded = LoadBlockIndex();
+    }
+
+
+    // Rollback local blockchain database X amount of blocks (default: 100")
+    int nBlockCount = GetArg( "-rollback", 0);
+
+    if (nBlockCount > 0)
+    {
+        nBestHeight = RollbackChain(nBlockCount);
+
+        return InitError(strprintf("%s : Rollback completed: %d blocks total.", __FUNCTION__, nBlockCount));
+    }
+
+    if (GetBoolArg("-loadblockindextest", false))
+    {
+        CTxDB txdb("r");
+
+        txdb.LoadBlockIndex();
+
+        PrintBlockTree();
+
+        return false;
     }
 
     if (DbsLoaded == false)

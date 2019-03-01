@@ -272,13 +272,15 @@ class CNodeStats
         int64_t nTimeConnected;
         int64_t nTimeOffset;
 
+        int nTurboSync;
+
         std::string addrName;
         int nVersion;
         std::string cleanSubVer;
         std::string strSubVer;
         bool fInbound;
-        int nStartingHeight;
 
+        int nStartingHeight;
         int nSyncHeight;
         
         uint64_t nSendBytes;
@@ -481,6 +483,8 @@ class CNode
         uint64_t nRecvBytes;
         int nRecvVersion;
 
+        int nTurboSync;
+
         // Firewall Data
         double nTrafficAverage;
         double nTrafficRatio;
@@ -616,6 +620,8 @@ class CNode
             nPingNonceSent = 0;
             nPingUsecStart = 0;
             nPingUsecTime = 0;
+
+            nTurboSync = 0;
             
             fPingQueued = false;
 

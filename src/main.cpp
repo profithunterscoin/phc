@@ -4243,13 +4243,6 @@ bool CBlock::AcceptBlock()
             {
                 pnode->PushInventory(CInv(MSG_BLOCK, hash));
             }
-
-            // Push Inventory Height to CNode Data Cache
-            if (nHeight > 0)
-            {
-                pnode->nSyncHeight = nHeight;
-                pnode->nHashBestChain = hash;
-            }
         }
     }
 
@@ -4329,8 +4322,6 @@ void Misbehaving(NodeId pnode, int howmuch)
     }
 }
 
-
-
 bool ASIC_Choker(std::string addrname, CBlock* pblock)
 {
     // Version 1.0.1 (C) 2019 Profit Hunters Coin in collaboration with Crypostle
@@ -4403,6 +4394,9 @@ bool ASIC_Choker(std::string addrname, CBlock* pblock)
         }
     }
 
+    // Increment position
+    BlockPeerLogPosition = BlockPeerLogPosition + 1;
+
     // Keep position between boundaries
     if (BlockPeerLogPosition > 4)
     {
@@ -4410,18 +4404,18 @@ bool ASIC_Choker(std::string addrname, CBlock* pblock)
     }
 
     // Update log data with node info
-    BlockPeerLog[BlockPeerLogPosition][1] = addrname;
+    BlockPeerLog[BlockPeerLogPosition][0] = addrname;
 
     // Update log data with block info
-    BlockPeerLog[BlockPeerLogPosition][2] = pblock->GetBlockTime();
+    BlockPeerLog[BlockPeerLogPosition][1] = pblock->GetBlockTime();
 
     if (pblock->IsProofOfWork())
     {
-        BlockPeerLog[BlockPeerLogPosition][3] = "false";
+        BlockPeerLog[BlockPeerLogPosition][2] = "true";
     }
     else
     {
-        BlockPeerLog[BlockPeerLogPosition][3] = "true";
+        BlockPeerLog[BlockPeerLogPosition][2] = "false";
     }
 
     return false;
@@ -5455,6 +5449,11 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         return true;
     }
 
+    if (strCommand == "turbosync")
+    {
+
+    }
+
     if (strCommand == "version")
     {
         // Each connection can only send one version message
@@ -5785,6 +5784,23 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             // Track requests for our stuff
             g_signals.Inventory(inv.hash);
         }
+    }
+    else if (strCommand == "getcheckpoint")
+    {
+
+        vector<CInv> vInv;
+        vRecv >> vInv;
+        if (vInv.size() > 0)
+        {
+
+        }
+
+        /*
+        // Push Inventory Height to CNode Data Cache
+
+        pnode->nSyncHeight = pindexBegin->nHeight;
+        pnode->nHashBestChain = hashEnd;
+        */
     }
     else if (strCommand == "getdata")
     {
@@ -6646,11 +6662,14 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
             State(pto->GetId())->fShouldBan = false;
         }
 
+        // ----------------------
         //
         // Message: inventory
         //
         vector<CInv> vInv;
         vector<CInv> vInvWait;
+
+        // Global Namespace Start
         {
             LOCK(pto->cs_inventory);
 
@@ -6702,12 +6721,33 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
 
             pto->vInventoryToSend = vInvWait;
         }
+        // Global Namespace End
 
         if (!vInv.empty())
         {
             pto->PushMessage("inv", vInv);
         }
 
+        // ----------------------
+        //
+        // Message: getcheckpoint
+        // 
+
+        vector<CInv> vCheckpoint;
+
+        CInv peercheckpoint;
+
+        //peercheckpoint.type = nBestHeight;
+        //peercheckpoint.hash = nBestBlockTrust;
+
+        vCheckpoint.push_back(peercheckpoint);
+
+        if (!vCheckpoint.empty())
+        {
+            pto->PushMessage("getcheckpoint", vCheckpoint);
+        }
+
+        // ----------------------
         //
         // Message: getdata
         //
@@ -6767,3 +6807,5 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
 
     return ret;
 }
+
+// TODO: ChainShield
