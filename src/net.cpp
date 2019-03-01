@@ -1140,9 +1140,13 @@ void Examination(CNode *pnode, string FromFunction)
             Firewall_AverageTraffic = Firewall_AverageTraffic / (double)2;
             Firewall_AverageTraffic = Firewall_AverageTraffic - (double)FIREWALL_TRAFFIC_TOLERANCE;      // reduce with tolerance
             Firewall_AverageTraffic_Min = Firewall_AverageTraffic - (double)FIREWALL_TRAFFIC_ZONE;
-            Firewall_AverageTraffic_Max = Firewall_AverageTraffic + (double)FIREWALL_TRAFFIC_ZONE;    
-            Firewall_AverageSend = Firewall_AverageSend + pnode->nSendBytes / vNodes.size();
-            Firewall_AverageRecv = Firewall_AverageRecv + pnode->nRecvBytes / vNodes.size();        
+            Firewall_AverageTraffic_Max = Firewall_AverageTraffic + (double)FIREWALL_TRAFFIC_ZONE;
+            
+            if (vNodes.size() > 0)
+            {
+                Firewall_AverageSend = Firewall_AverageSend + pnode->nSendBytes / vNodes.size();
+                Firewall_AverageRecv = Firewall_AverageRecv + pnode->nRecvBytes / vNodes.size();         
+            }
 
             if (FIREWALL_LIVE_DEBUG == true)
             {
