@@ -351,7 +351,8 @@ std::string HelpMessage()
     strUsage += "  -reindex               " + _("Reindex addresses found in blockchain database") + "\n";
     strUsage += "  -rebuild               " + _("Rebuilds local Blockchain Database") + "\n";
     strUsage += "  -clearchainfiles       " + _("Removes local Blockchain Database files") + "\n";
-    strUsage += "  -rollback=<n>          " + _("Rollback local blockchain database X amount of blocks (default: 100") + "\n";
+    strUsage += "  -rollbackchain=<n>     " + _("Rollbackchain local database X amount of blocks (default: 100") + "\n";
+    strUsage += "  -backtoblock=<n>       " + _("Rollbacktoblock local database to block height (default: 100000)") + "\n";
     strUsage += "  -maxorphanblocks=<n>   " + strprintf(_("Keep at most <n> unconnectable blocks in memory (default: %u)"), DEFAULT_MAX_ORPHAN_BLOCKS) + "\n";
 
     strUsage += "\n" + _("Block creation options:") + "\n";
@@ -1165,14 +1166,13 @@ bool AppInit2(boost::thread_group& threadGroup)
                 RenameOver(pathBootstrap, pathBootstrapOld);
 
                 return InitError(strprintf("%s : Rebuild local blockchain complete, start wallet again to bootstrap local blockchain index (reload).", __FUNCTION__));
+            
             }
         }
     }
-    else
-    {
-        // Loads Blockchain database normally if -rebuild is not present in params
-        DbsLoaded = LoadBlockIndex();
-    }
+
+    // Loads Blockchain database normally if -rebuild is not present in params
+    DbsLoaded = LoadBlockIndex();
     
     MilliSleep(1000);
 
@@ -1182,15 +1182,22 @@ bool AppInit2(boost::thread_group& threadGroup)
         DbsLoaded = LoadBlockIndex();
     }
 
-
-    // Rollback local blockchain database X amount of blocks (default: 100")
-    int nBlockCount = GetArg( "-rollback", 0);
+    // Rollbackchain local database X amount of blocks (default: 100")
+    int nBlockCount = GetArg( "-rollbackchain", 0);
 
     if (nBlockCount > 0)
     {
         nBestHeight = RollbackChain(nBlockCount);
 
-        return InitError(strprintf("%s : Rollback completed: %d blocks total.", __FUNCTION__, nBlockCount));
+        return InitError(strprintf("%s : Rollback completed: %d blocks total removed from local height.", __FUNCTION__, nBlockCount));
+    }
+
+    // Rollbacktoblock local database to block height (default: 100000)
+    if (mapArgs.count("-backtoblock"))
+    {
+        int nNewHeight = Backtoblock(GetArg("-backtoblock", 100000));
+
+        return InitError(strprintf("%s : Backtoblock completed: %d is the new local block height.", __FUNCTION__, nNewHeight));
     }
 
     if (GetBoolArg("-loadblockindextest", false))

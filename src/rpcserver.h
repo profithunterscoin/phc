@@ -361,6 +361,7 @@ extern json_spirit::Value smsgoutbox(const json_spirit::Array& params, bool fHel
 extern json_spirit::Value smsgbuckets(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value prune(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value rollback(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value rollbackchain(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value backtoblock(const json_spirit::Array& params, bool fHelp);
 
 #endif

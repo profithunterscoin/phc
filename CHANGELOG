@@ -25,11 +25,12 @@ v1.0.0.7 (Pre-release)
 * Installed: Internal PoW Miner (setgenerate)
 * Upgraded: Internal PoW Miner (Wait for approx expected block times, PrintToConsole, LogFlooding prevention)
 * FIX: Sync time minimized & Reorganize/Prune orphan blocks
-* FIX: RPC Client & INIT Msg
+* FIX: RPC Client & Initialization Msg
 * FIX: Swapped BOOST::copy_file for STD copy_file (BOOST 1.55)
-* FIX: LoadblockIndex Init
-* Installed: Init PruneOrphanBlocks
-* Installed: RPC Prune & Reorganize
+* FIX: LoadblockIndex Initialization
+* Installed: OnStartup PruneOrphanBlocks
+* Installed: InitArgs Prune, Backtoblock, Rollbackchain, Clearchainfiles
+* Installed: RPC Prune & Reorganize & Backtoblock, Rollbackchain, Clearchainfiles
 * ProcessBlock() fixed (Orphans)
 * FIX: Network specific .conf
 * Installed: New Testnet
