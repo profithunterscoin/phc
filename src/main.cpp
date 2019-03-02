@@ -3002,43 +3002,98 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 
 int RollbackChain(int nBlockCount)
 {
-    LOCK(cs_main);
+    // Rollbackchain 1.1 - (C) 2019 Profit Hunters Coin
+    // Thanks to TaliumTech for various fixes
 
-    CTxDB txdb("wr");
-
-    CBlockIndex* pindexNew = pindexBest;
+    CBlockIndex* pindex = pindexBest;
 
     for (int counter = 1; counter != nBlockCount + 1; counter = counter + 1)
     {
-        pindexNew = pindexNew->pprev;
-
-        CBlock pblock;
-
-        pblock.DisconnectBlock(txdb, pindexNew);
+        pindex = pindex->pprev;
     }
 
-    pindexBest = pindexNew;
-
-    // Update best block in wallet (so we can detect restored wallets)
-    const CBlockLocator locator(pindexNew);
-    g_signals.SetBestChain(locator);
-
-    // New best block
-    hashBestChain = pindexNew->GetBlockHash();
-    nBestHeight = pindexNew->nHeight;
-    nBestChainTrust = pindexNew->nChainTrust;
-    nTimeBestReceived = GetTime();
-
-    mempool.AddTransactionsUpdated(1);
-
-    if (!txdb.WriteHashBestChain(pindexNew->GetBlockHash()))
+    if (pindex != NULL)
     {
-        return error("%s : WriteHashBestChain failed", __FUNCTION__);
+        if (fDebug)
+        {
+            LogPrintf("Back to block index %d rolled back by: %d blocks\n", pindex->nHeight, nBlockCount);
+        }
+
+        CTxDB txdbAddr("rw");
+
+        CBlock block;
+
+        block.ReadFromDisk(pindex);
+
+        block.SetBestChain(txdbAddr, pindex);
+
+        return pindex->nHeight;
     }
 
-    return pindexNew->nHeight;
+    if (fDebug)
+    {
+        LogPrintf("Block %d not found\n", pindex->nHeight);
+    }
+
+    return 0;
+
 }
 
+
+int Backtoblock(int nNewHeight)
+{
+    // Backtoblock 1.1 - (C) 2019 TaliumTech & Profit Hunters Coin
+
+    if (nNewHeight < 0)
+    {
+        if (fDebug)
+        {
+            LogPrintf("Block %d not valid\n", nNewHeight);
+        }
+
+        return 0;
+    }
+
+    CBlockIndex* pindex = pindexBest;
+
+    while (pindex != NULL && pindex->nHeight > nNewHeight)
+    {
+        pindex = pindex->pprev;
+    }
+
+    if (pindex != NULL)
+    {
+        if (fDebug)
+        {
+            LogPrintf("Back to block index %d\n", nNewHeight);
+        }
+        
+        CTxDB txdbAddr("rw");
+
+        CBlock block;
+
+        block.ReadFromDisk(pindex);
+
+        block.SetBestChain(txdbAddr, pindex);
+
+        return nNewHeight;
+    }
+
+    if (fDebug)
+    {
+        LogPrintf("Block %d not found\n", nNewHeight);
+    }
+
+    return 0;
+
+}
+
+/*
+bool Chain_Shield()
+{
+    
+}
+*/
 
 bool Reorganize(CTxDB& txdb, CBlockIndex* pindexNew)
 {

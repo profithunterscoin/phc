@@ -383,13 +383,12 @@ Value prune(const Array& params, bool fHelp)
 }
 
 
-Value rollback(const Array& params, bool fHelp)
+Value rollbackchain(const Array& params, bool fHelp)
 {
-
     if (fHelp || params.size() < 1)
     {
-        throw runtime_error("rollback <blockcount>\n"
-                            "Rollback blockchain index by X blocks (100 default)"
+        throw runtime_error("rollbackchain <blockcount>\n"
+                            "Rollbackchain blockchain index by X blocks (100 default)"
                             "NOTE: Daemon or QT restart required after."
                             );
     }
@@ -405,11 +404,39 @@ Value rollback(const Array& params, bool fHelp)
 
     nBestHeight = RollbackChain(nBlockCount);
 
-    throw runtime_error(strprintf("%s : Rollback completed: %d blocks total (%d -> %d) Shutdown and reload wallet.", __FUNCTION__, nBlockCount, OldHeight, nBestHeight));
+    throw runtime_error(strprintf("%s : Rollback completed: %d blocks total (%d -> %d)", __FUNCTION__, nBlockCount, OldHeight, nBestHeight));
 
-    // Rollback chain to ensure correct sync
     return true;
 }
+
+
+Value backtoblock(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() < 1)
+    {
+        throw runtime_error("backtoblock <blockheight>\n"
+                            "Rollbacktoblock local database to block height (default: 100000)"
+                            "NOTE: Daemon or QT restart required after."
+                            );
+    }
+
+    int nNewHeight = (int)strtod(params[0].get_str().c_str(), NULL);
+
+    if (nNewHeight == 0)
+    {
+        nNewHeight = 100000;
+    }
+
+    int OldHeight = nBestHeight;
+    int nBlockCount = nBestHeight - nNewHeight;
+
+    nBestHeight = Backtoblock(nNewHeight);
+
+    throw runtime_error(strprintf("%s : Backtoblock %d completed: %d blocks total (%d -> %d)", __FUNCTION__, nNewHeight, nBlockCount, OldHeight, nBestHeight));
+
+    return true;
+}
+
 
 Value getpeeraverageheight(const Array& params, bool fHelp)
 {
