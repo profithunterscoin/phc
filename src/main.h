@@ -151,6 +151,9 @@ struct CNodeStateStats;
 /** Reorganize the chain index */
 bool Reorganize(CTxDB& txdb, CBlockIndex* pindexNew);
 
+/** Backtoblock X Blockchain Index*/
+int Backtoblock(int nNewHeight);
+
 /** Rollback Blockchain Index */
 int RollbackChain(int nBlockCount);
 
