@@ -41,6 +41,49 @@ namespace boost
     class thread_group;
 }
 
+
+inline unsigned int GetMaxInvBandwidth(int TurboSyncMax)
+{
+    switch (TurboSyncMax)
+    {
+        case 1:
+        {
+            return 100000; // Level 1
+        }
+        break;
+    }
+
+    return 50000; // Default
+}
+
+inline unsigned int GetMaxAddrBandwidth(int TurboSyncMax)
+{
+    switch (TurboSyncMax)
+    {
+        case 1:
+        {
+            return 2000; // Level 1
+        }
+        break;
+    }
+
+    return 1000; // Default
+}
+
+inline unsigned int GetMaxBlocksBandwidth(int TurboSyncMax)
+{
+    switch (TurboSyncMax)
+    {
+        case 1:
+        {
+            return 1000; // Level 1
+        }
+        break;
+    }
+
+    return 500; // Default
+}
+
 // *** Firewall Controls (General) ***
 extern bool FIREWALL_ENABLED;
 extern bool FIREWALL_LIVE_DEBUG;
@@ -117,6 +160,11 @@ extern int FIREWALL_FLOODINGWALLET_MAXCHECK;
 // * Average Blockheight among Peers */
 extern int Firewall_AverageHeight;
 
+// Turbosync
+// 0 = disabled (10000 Max Inv) (1000 Max Addr) (500 Max Blocks)
+// 1 = enabled (20000 Max Inv) (2000 Max Addr) (1000 Max Blocks)
+static const int TURBOSYNC_MAX = 1;
+
 /** Time between pings automatically sent out for latency probing and keepalive (in seconds). */
 static const int PING_INTERVAL = 1 * 60;
 
@@ -133,16 +181,16 @@ static const int DATA_TIMEOUT = 3 * 60;
 static const unsigned int MAX_SUBVERSION_LENGTH = 256;
 
 /** The maximum number of entries in an 'inv' protocol message */
-static const unsigned int MAX_INV_SZ = 50000;
+static const unsigned int MAX_INV_SZ = GetMaxInvBandwidth(TURBOSYNC_MAX);
 
 /** The maximum number of entries in mapAskFor */
 static const size_t MAPASKFOR_MAX_SZ = MAX_INV_SZ;
 
 /** The maximum number of entries in setAskFor (larger due to getdata latency)*/
-static const size_t SETASKFOR_MAX_SZ = 2 * MAX_INV_SZ;
+//static const size_t SETASKFOR_MAX_SZ = 2 * MAX_INV_SZ;
 
 /** The maximum number of new addresses to accumulate before announcing. */
-static const unsigned int MAX_ADDR_TO_SEND = 1000;
+static const unsigned int MAX_ADDR_TO_SEND = GetMaxAddrBandwidth(TURBOSYNC_MAX);
 
 inline unsigned int ReceiveFloodSize()
 {
@@ -266,40 +314,47 @@ class CNodeStats
     public:
 
         NodeId nodeid;
+        int nVersion;
+        std::string cleanSubVer;
+        std::string strSubVer;
+        std::string addrLocal;
+        std::string addrName;
+
+        int nStartingHeight;
+
         uint64_t nServices;
         int64_t nLastSend;
         int64_t nLastRecv;
         int64_t nTimeConnected;
         int64_t nTimeOffset;
-
-        std::string addrLocal;
-        std::string addrName;
-        int nVersion;
-        std::string cleanSubVer;
-        std::string strSubVer;
-
+        uint64_t nSendBytes;
+        uint64_t nRecvBytes;
+        
         bool fInbound;
+        bool fSyncNode;
+        double dPingTime;
+        double dPingWait;
 
+        // Turbosync
         int nTurboSync;
+        bool fTurboSyncSent;
+        bool fTurboSyncRecv;
 
         // Firewall Data
         double nTrafficAverage;
         double nTrafficRatio;
         int nTrafficTimestamp;
-
-        int nStartingHeight;
-        int nSyncHeight;
-        int nSyncHeightCache;
-        uint256 nSyncBlockHash;
-        uint256 nSyncBlockHashCache;
         int nInvalidRecvPackets;
-        
-        uint64_t nSendBytes;
-        uint64_t nRecvBytes;
-        
-        bool fSyncNode;
-        double dPingTime;
-        double dPingWait;
+
+        // Dynamic Checkpoints
+        uint64_t nDynamicCheckpointRecv;
+        uint64_t nDynamicCheckpointSent;
+        int nSyncHeight;
+        int nSyncHeightCheckpoint;
+        bool fSyncCheckpointSent;
+        bool fSyncCheckpointRecv;
+        uint256 nSyncBlockHash;
+        uint256 nSyncBlockHashCheckpoint;
 
 };
 
@@ -526,18 +581,26 @@ class CNode
 
         bool fStartSync;
 
+        // Turbosync
         int nTurboSync;
+        bool fTurboSyncSent;
+        bool fTurboSyncRecv;
 
         // Firewall Data
         double nTrafficAverage;
         double nTrafficRatio;
         int nTrafficTimestamp;
-
-        int nSyncHeight;
-        int nSyncHeightCache;
-        uint256 nSyncBlockHash;
-        uint256 nSyncBlockHashCache;
         int nInvalidRecvPackets;
+
+        // Dynamic Checkpoints
+        uint64_t nDynamicCheckpointRecv;
+        uint64_t nDynamicCheckpointSent;
+        int nSyncHeight;
+        int nSyncHeightCheckpoint;
+        bool fSyncCheckpointSent;
+        bool fSyncCheckpointRecv;
+        uint256 nSyncBlockHash;
+        uint256 nSyncBlockHashCheckpoint;
 
         // strSubVer is whatever byte array we read from the wire. However, this field is intended
         // to be printed out, displayed to humans in various forms and so on. So we sanitize it and
@@ -636,19 +699,28 @@ class CNode
             nPingUsecStart = 0;
             nPingUsecTime = 0;
 
-            nTurboSync = 0;
-            
             fPingQueued = false;
 
-            // Firewall CNode Data
+            // Turbosync
+            nTurboSync = 0;
+            fTurboSyncSent = false;
+            fTurboSyncRecv = false;
+
+            // Firewall Data
             nTrafficAverage = 0;
             nTrafficRatio = 0;
             nTrafficTimestamp = 0;
-            nSyncHeight = 0;
-            nSyncHeightCache = 0;
-            nSyncBlockHash = 0;
-            nSyncBlockHashCache = 0;
             nInvalidRecvPackets = 0;
+
+            // Dynamic Checkpoints
+            nDynamicCheckpointRecv = 0;
+            nDynamicCheckpointSent = 0;
+            nSyncHeight = 0;
+            nSyncHeightCheckpoint = 0;
+            fSyncCheckpointSent = false;
+            fSyncCheckpointRecv = false;
+            nSyncBlockHash = 0;
+            nSyncBlockHashCheckpoint = 0;
 
             // Global Namespace Start
             {
