@@ -1258,6 +1258,8 @@ void CDarksendPool::ChargeFees()
 
                 CWalletTx wtxCollateral = CWalletTx(pwalletMain, txCollateral);
 
+                LOCK(cs_main);
+
                 // Broadcast
                 if (!wtxCollateral.AcceptToMemoryPool(true))
                 {
@@ -3765,13 +3767,34 @@ bool CDarksendQueue::Sign()
 
 bool CDarksendQueue::Relay()
 {
-    LOCK(cs_vNodes);
+    std::vector<CNode*> vNodesCopy;
 
-    BOOST_FOREACH(CNode* pnode, vNodes)
+    // Global Namespace Start
     {
-        // always relay to everyone
+        LOCK(cs_vNodes);
+        vNodesCopy = vNodes;
+        BOOST_FOREACH(CNode* pnode, vNodesCopy)
+        {
+            pnode->AddRef();
+        }
+    }
+    // Global Namespace End
+
+    // always relay to everyone
+    BOOST_FOREACH(CNode* pnode, vNodesCopy)
+    {
         pnode->PushMessage("dsq", (*this));
     }
+
+    // Global Namespace Start
+    {
+        LOCK(cs_vNodes);
+        BOOST_FOREACH(CNode* pnode, vNodesCopy)
+        {
+            pnode->Release();
+        }
+    }
+    // Global Namespace End
 
     return true;
 }
