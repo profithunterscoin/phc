@@ -27,11 +27,11 @@ v1.0.0.7 (Pre-release)
 * Upgraded: Internal PoW Miner (Wait for approx expected block times, PrintToConsole, LogFlooding prevention)
 * FIX: Sync time minimized & Reorganize/Prune orphan blocks
 * FIX: RPC Client & Initialization Msg
-* FIX: Swapped BOOST::copy_file for STD copy_file (BOOST 1.55)
+* FIX: BOOST::copy_file & STD copy_file (BOOST 1.55 compatibility)
 * FIX: LoadblockIndex Initialization
 * Installed: OnStartup PruneOrphanBlocks
 * Installed: InitArgs Prune, Backtoblock, Rollbackchain, Clearchainfiles
-* ProcessBlock() fixed (Orphans)
+* ProcessBlock() fixed Orphan handling
 * FIX: Network specific .conf
 * Installed: New Testnet
 * FIX: PoW & PoS New Mint value (GetInfo RPC / BlockToJSON)
@@ -39,21 +39,24 @@ v1.0.0.7 (Pre-release)
 * Installed: RPC Prune & Reorganize & Backtoblock, Rollbackchain, Clearchainfiles,
 * FIX: MoneySupply (CBlockIndex)
 * FIX: Compiling on Ubuntu 16
-* Installed: MENU ITEMS -> Tools & Mining & Social Media Links in Help
 * Fixes from Talium coin (https://github.com/taliumtech/talium/commit/f673d50f41b4f5ee6f9e670d859a9de634620071)
 * Installed: Developer Fee, 10% of block reward (Hard Fork 1)
+* TurboSync 1.0.0 (2x network sync speedup, unlimited scaling)
+
 
 v1.0.0.7 (To Finish before release)
 --------
-
+* Dynamic Checkpoints
 * Installed: RPC Getpeeraverageheight, Getpeerbestheight, Getpeerbestblockhash
 * Installed: nSyncHeight && nSyncBlockhash values output to GetPeerInfo RPC
 * Masternode reward decentralization (Hard-Fork 1)
-* TurboSync
-* Dynamic Checkpoints
-* Chain Shield
+* Chain Shield (default check every 50 blocks)
 * DDoS Shield & Firewall upgrades
 * Multisig - GUI Update
+* dumpwallet > ExportWalletPrivateKeys -> GUI
+* dumpkeys > ExportAddressPrivateKey -> GUI
+* Menu Items update: File changed to Main, Added: Wallet, Tools, Mining & Social Links, ExportWalletKeys, ExportAddressKey, ChangeGenProcLimit
+
 
 v1.0.0.6
 --------

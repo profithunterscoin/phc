@@ -5541,10 +5541,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         return true;
     }
 
-    if (strCommand == "turbosync")
-    {
 
-    }
 
     if (strCommand == "version")
     {
