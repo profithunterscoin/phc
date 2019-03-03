@@ -1699,7 +1699,4 @@ class CWalletInterface
         friend void ::UnregisterAllWallets();
 };
 
-
-
-
 #endif

@@ -105,39 +105,45 @@ Value getpeerinfo(const Array& params, bool fHelp)
         
         bool fStateStats = GetNodeStateStats(stats.nodeid, statestats);
         
-        obj.push_back(Pair("addr",              stats.addrName));
+        obj.push_back(Pair("addr",                              stats.addrName));
         
         if (!(stats.addrLocal.empty()))
         {
-            obj.push_back(Pair("addrlocal",     stats.addrLocal));
+            obj.push_back(Pair("addrlocal",                     stats.addrLocal));
         }
         
-        obj.push_back(Pair("services",          strprintf("%08x", stats.nServices)));
-        obj.push_back(Pair("lastsend",          (int64_t)stats.nLastSend));
-        obj.push_back(Pair("lastrecv",          (int64_t)stats.nLastRecv));
-        obj.push_back(Pair("bytessent",         (int64_t)stats.nSendBytes));
-        obj.push_back(Pair("bytesrecv",         (int64_t)stats.nRecvBytes));
-        obj.push_back(Pair("conntime",          (int64_t)stats.nTimeConnected));
-        obj.push_back(Pair("timeoffset",        stats.nTimeOffset));
-        obj.push_back(Pair("pingtime",          stats.dPingTime));
+        obj.push_back(Pair("services",                          strprintf("%08x", stats.nServices)));
+        obj.push_back(Pair("lastsend",                          (int64_t)stats.nLastSend));
+        obj.push_back(Pair("lastrecv",                          (int64_t)stats.nLastRecv));
+        obj.push_back(Pair("bytessent",                         (int64_t)stats.nSendBytes));
+        obj.push_back(Pair("bytesrecv",                         (int64_t)stats.nRecvBytes));
+        obj.push_back(Pair("conntime",                          (int64_t)stats.nTimeConnected));
+        obj.push_back(Pair("timeoffset",                        stats.nTimeOffset));
+        obj.push_back(Pair("pingtime",                          stats.dPingTime));
         
         if (stats.dPingWait > 0.0)
         {
-            obj.push_back(Pair("pingwait",      stats.dPingWait));
+            obj.push_back(Pair("pingwait",                      stats.dPingWait));
         }
 
-        obj.push_back(Pair("version",           stats.nVersion));
-        obj.push_back(Pair("subver",            stats.strSubVer));
-        obj.push_back(Pair("inbound",           stats.fInbound));
-        obj.push_back(Pair("syncheight",        stats.nSyncHeight));
-        obj.push_back(Pair("startingheight",    stats.nStartingHeight));
+        obj.push_back(Pair("version",                           stats.nVersion));
+        obj.push_back(Pair("subver",                            stats.strSubVer));
+        obj.push_back(Pair("inbound",                           stats.fInbound));
+        obj.push_back(Pair("turbosyncmax",                      stats.nTurboSync));
+        obj.push_back(Pair("startingheight",                    stats.nStartingHeight));
+        obj.push_back(Pair("syncheight",                        stats.nSyncHeight));
+        obj.push_back(Pair("syncblockhash",                     stats.nSyncBlockHash.GetHex()));
+        obj.push_back(Pair("syncheightcheckpoint",              stats.nSyncHeightCheckpoint));
+        obj.push_back(Pair("syncblockhashcheckpoint",           stats.nSyncBlockHashCheckpoint.GetHex()));
+        obj.push_back(Pair("invalidpackets",                    stats.nInvalidRecvPackets));
+
         
         if (fStateStats)
         {
-            obj.push_back(Pair("banscore",      statestats.nMisbehavior));
+            obj.push_back(Pair("banscore",                      statestats.nMisbehavior));
         }
         
-        obj.push_back(Pair("syncnode",          stats.fSyncNode));
+        obj.push_back(Pair("syncnode",                          stats.fSyncNode));
 
         ret.push_back(obj);
     }

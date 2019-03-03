@@ -3712,7 +3712,6 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
     // ----------- masternode payments -----------
 
     bool MasternodePayments = false;
-    bool foundDevFee = false;
     bool fIsInitialDownload = IsInitialBlockDownload();
 
     if(nTime > START_MASTERNODE_PAYMENTS)
@@ -3734,6 +3733,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                 {
                     // If we don't already have its previous block, skip masternode payment step
                     CAmount masternodePaymentAmount;
+
                     for (int i = vtx[1].vout.size(); i--> 0; )
                     {
                         masternodePaymentAmount = vtx[1].vout[i].nValue;
@@ -3744,7 +3744,6 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                     bool foundPaymentAmount = false;
                     bool foundPayee = false;
                     bool foundPaymentAndPayee = false;
-                    bool foundDevFee = false;
 
                     CScript payee;
                     CTxIn vin;
@@ -3794,6 +3793,8 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                             foundPaymentAndPayee = true;
                         }
                     }
+
+                    bool foundDevFee = false;
 
                     // devfee
                     if (pindex->nHeight >= Params().GetHardFork_1())
@@ -5417,7 +5418,7 @@ void static ProcessGetData(CNode* pfrom)
                     if (mempool.lookup(inv.hash, tx))
                     {
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-                        ss.reserve(1000);
+                        ss.reserve(GetMaxAddrBandwidth(pfrom->nTurboSync));
                         ss << tx;
                         pfrom->PushMessage("tx", ss);
                         pushed = true;
@@ -5429,7 +5430,7 @@ void static ProcessGetData(CNode* pfrom)
                     if(mapTxLockVote.count(inv.hash))
                     {
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-                        ss.reserve(1000);
+                        ss.reserve(GetMaxAddrBandwidth(pfrom->nTurboSync));
                         ss << mapTxLockVote[inv.hash];
                         pfrom->PushMessage("txlvote", ss);
                         pushed = true;
@@ -5441,7 +5442,7 @@ void static ProcessGetData(CNode* pfrom)
                     if(mapTxLockReq.count(inv.hash))
                     {
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-                        ss.reserve(1000);
+                        ss.reserve(GetMaxAddrBandwidth(pfrom->nTurboSync));
                         ss << mapTxLockReq[inv.hash];
                         pfrom->PushMessage("txlreq", ss);
                         pushed = true;
@@ -5453,7 +5454,7 @@ void static ProcessGetData(CNode* pfrom)
                     if(mapSporks.count(inv.hash))
                     {
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-                        ss.reserve(1000);
+                        ss.reserve(GetMaxAddrBandwidth(pfrom->nTurboSync));
                         ss << mapSporks[inv.hash];
                         pfrom->PushMessage("spork", ss);
                         pushed = true;
@@ -5465,7 +5466,7 @@ void static ProcessGetData(CNode* pfrom)
                     if(mapSeenMasternodeVotes.count(inv.hash))
                     {
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-                        ss.reserve(1000);
+                        ss.reserve(GetMaxAddrBandwidth(pfrom->nTurboSync));
                         ss << mapSeenMasternodeVotes[inv.hash];
                         pfrom->PushMessage("mnw", ss);
                         pushed = true;
@@ -5477,7 +5478,7 @@ void static ProcessGetData(CNode* pfrom)
                     if(mapDarksendBroadcastTxes.count(inv.hash))
                     {
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-                        ss.reserve(1000);
+                        ss.reserve(GetMaxAddrBandwidth(pfrom->nTurboSync));
                         ss <<
                             mapDarksendBroadcastTxes[inv.hash].tx <<
                             mapDarksendBroadcastTxes[inv.hash].vin <<
@@ -5541,7 +5542,29 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         return true;
     }
 
+    if (strCommand == "turbosync")
+    {
+        int64_t TurboSync = 0;
 
+        if (!vRecv.empty())
+        {
+            vRecv >> TurboSync;
+
+            if (TurboSync > TURBOSYNC_MAX)
+            {
+                TurboSync = TURBOSYNC_MAX;
+            }
+
+            if (TurboSync < 0)
+            {
+                TurboSync = 0;
+            }
+
+            // Update peer with TurboSyncMax
+            pfrom->nTurboSync = TurboSync;
+            pfrom->fTurboSyncRecv = true;
+        }
+    }
 
     if (strCommand == "version")
     {
@@ -5650,7 +5673,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             }
 
             // Get recent addresses
-            if (pfrom->fOneShot || pfrom->nVersion >= CADDR_TIME_VERSION || addrman.size() < 1000)
+            if (pfrom->fOneShot || pfrom->nVersion >= CADDR_TIME_VERSION || (unsigned)addrman.size() < GetMaxAddrBandwidth(pfrom->nTurboSync))
             {
                 pfrom->PushMessage("getaddr");
                 pfrom->fGetAddr = true;
@@ -5690,7 +5713,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         {
             AddTimeData(pfrom->addr, nTime);
         }
-
     }
     else if (pfrom->nVersion == 0)
     {
@@ -5719,7 +5741,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             return true;
         }
 
-        if (vAddr.size() > 1000)
+        if (vAddr.size() > GetMaxAddrBandwidth(pfrom->nTurboSync))
         {
             Misbehaving(pfrom->GetId(), 20);
 
@@ -5794,7 +5816,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         }
 
         addrman.Add(vAddrOk, pfrom->addr, 2 * 60 * 60);
-        if (vAddr.size() < 1000)
+        if (vAddr.size() < GetMaxAddrBandwidth(pfrom->nTurboSync))
         {
             pfrom->fGetAddr = false;
         }
@@ -5874,7 +5896,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             g_signals.Inventory(inv.hash);
         }
     }
-    else if (strCommand == "getcheckpoint")
+    else if (strCommand == "sendcheckpoint")
     {
 
         /*
@@ -5882,13 +5904,16 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         vRecv >> vInv;
         if (vInv.size() > 0)
         {
+            // Update Checkpoint to CNode Data Cache
 
+            pfrom->nSyncHeight = vInv[0];
+            pfrom->nSyncBlockHash = vInv[1];
+
+            pfrom->nDynamicCheckpointRecv = GetTime();
+            pfrom->fSyncCheckpointRecv = true;
         }
 
-        // Push Inventory Height to CNode Data Cache
 
-        pnode->nSyncHeight = pindexBegin->nHeight;
-        pnode->nHashBestChain = hashEnd;
         */
     }
     else if (strCommand == "getdata")
@@ -5932,7 +5957,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             pindex = pindex->pnext;
         }
 
-        int nLimit = 500;
+        int nLimit = GetMaxBlocksBandwidth(pfrom->nTurboSync);
 
         if(fDebug)
         {
@@ -6612,6 +6637,15 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         }
 
         //
+        // Turbosync: turbosync
+        //
+        if (pto->fTurboSyncSent == false)
+        {
+            pto->fTurboSyncSent = true;
+            pto->PushMessage("turbosync", TURBOSYNC_MAX);
+        }
+
+        //
         // Message: ping
         //
         bool pingSend = false;
@@ -6711,14 +6745,15 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         {
             vector<CAddress> vAddr;
             vAddr.reserve(pto->vAddrToSend.size());
+
             BOOST_FOREACH(const CAddress& addr, pto->vAddrToSend)
             {
                 // returns true if wasn't already contained in the set
                 if (pto->setAddrKnown.insert(addr).second)
                 {
                     vAddr.push_back(addr);
-                    // receiver rejects addr messages larger than 1000
-                    if (vAddr.size() >= 1000)
+                    // receiver rejects addr messages larger than 1000 by default
+                    if (vAddr.size() >= GetMaxAddrBandwidth(pto->nTurboSync))
                     {
                         pto->PushMessage("addr", vAddr);
                         vAddr.clear();
@@ -6727,6 +6762,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
             }
 
             pto->vAddrToSend.clear();
+
             if (!vAddr.empty())
             {
                 pto->PushMessage("addr", vAddr);
@@ -6800,7 +6836,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
                 if (pto->setInventoryKnown.insert(inv).second)
                 {
                     vInv.push_back(inv);
-                    if (vInv.size() >= 1000)
+                    if (vInv.size() >= GetMaxAddrBandwidth(pto->nTurboSync))
                     {
                         pto->PushMessage("inv", vInv);
                         vInv.clear();
@@ -6819,7 +6855,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
 
         // ----------------------
         //
-        // Message: getcheckpoint
+        // Message: sendcheckpoint
         // 
 
 /*
@@ -6830,11 +6866,9 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         //peercheckpoint.type = nBestHeight;
         //peercheckpoint.hash = nBestBlockTrust;
 
-        vCheckpoint.push_back(peercheckpoint);
-
         if (!vCheckpoint.empty())
         {
-            pto->PushMessage("getcheckpoint", vCheckpoint);
+            pto->PushMessage("sendcheckpoint", vCheckpoint);
         }
 */
 
@@ -6859,7 +6893,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
                 }
 
                 vGetData.push_back(inv);
-                if (vGetData.size() >= 1000)
+                if (vGetData.size() >= GetMaxAddrBandwidth(pto->nTurboSync))
                 {
                     pto->PushMessage("getdata", vGetData);
                     vGetData.clear();
@@ -6899,4 +6933,8 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
     return ret;
 }
 
-// TODO: ChainShield
+
+void ChainShield()
+{
+    // TODO: ChainShield
+}

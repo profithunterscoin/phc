@@ -51,6 +51,7 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("client_version",            FormatFullVersion()));
     obj.push_back(Pair("protocol_version",          (int)PROTOCOL_VERSION));
     obj.push_back(Pair("protocol_testnet",          TestNet()));
+    obj.push_back(Pair("protocol_turbosyncmax",     TURBOSYNC_MAX));
     obj.push_back(Pair("timeoffset",                (int64_t)GetTimeOffset()));
 
     obj.push_back(Pair("blocks",              (int)nBestHeight));
