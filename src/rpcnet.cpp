@@ -130,6 +130,8 @@ Value getpeerinfo(const Array& params, bool fHelp)
         obj.push_back(Pair("subver",                            stats.strSubVer));
         obj.push_back(Pair("inbound",                           stats.fInbound));
         obj.push_back(Pair("turbosyncmax",                      stats.nTurboSync));
+        obj.push_back(Pair("turbosyncsent",                     stats.fTurboSyncSent));
+        obj.push_back(Pair("turbosyncrecv",                     stats.fTurboSyncRecv));
         obj.push_back(Pair("startingheight",                    stats.nStartingHeight));
         obj.push_back(Pair("syncheight",                        stats.nSyncHeight));
         obj.push_back(Pair("syncblockhash",                     stats.nSyncBlockHash.GetHex()));

@@ -29,6 +29,8 @@ namespace Checkpoints
     //    timestamp before)
     // + Contains no strange transactions
     //
+
+    // MainNet
     static MapCheckpoints mapCheckpoints = boost::assign::map_list_of
 		(0, uint256("0000b587d86da35102be091d9d303851d53130a70375a2ae6b8827ca18feb00d"))
         (5431, uint256("0ea876e7fb2834cacaf7767ad111cbca0bb94f3026bd1c8a264df68d4b4b6f70"))
@@ -40,8 +42,10 @@ namespace Checkpoints
         (760365, uint256("bf7cad650868c964204139b1ebd15e55b685ec0e43d8fa6b4bc7d912caeedcf4"))
     ;
 
-    // TestNet has no checkpoints
-    static MapCheckpoints mapCheckpointsTestnet;
+    // TestNet
+    static MapCheckpoints mapCheckpointsTestnet = boost::assign::map_list_of
+    	(0, uint256("0000ce8f49c8c59ed8a4c50cdacddc1f84b1be04e52232989887c99aad3e8e4e"))
+    ;   
 
     bool CheckHardened(int nHeight, const uint256& hash)
     {

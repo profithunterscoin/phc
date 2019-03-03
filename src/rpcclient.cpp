@@ -150,7 +150,7 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "rollbackchain",                              1 },
     { "backtoblock",                                1 },
     { "getpeerinfo",                                0 },
-//    { "getpeeraverageheight",                          0 },
+    { "getpeeraverageheight",                       0 },
 //    { "getpeerbestheight",                          0 },
 //    { "getpeerbestblockhash",                       0 },
     { "getaddednodeinfo",                           0 },

@@ -41,49 +41,6 @@ namespace boost
     class thread_group;
 }
 
-
-inline unsigned int GetMaxInvBandwidth(int TurboSyncMax)
-{
-    switch (TurboSyncMax)
-    {
-        case 1:
-        {
-            return 100000; // Level 1
-        }
-        break;
-    }
-
-    return 50000; // Default
-}
-
-inline unsigned int GetMaxAddrBandwidth(int TurboSyncMax)
-{
-    switch (TurboSyncMax)
-    {
-        case 1:
-        {
-            return 2000; // Level 1
-        }
-        break;
-    }
-
-    return 1000; // Default
-}
-
-inline unsigned int GetMaxBlocksBandwidth(int TurboSyncMax)
-{
-    switch (TurboSyncMax)
-    {
-        case 1:
-        {
-            return 1000; // Level 1
-        }
-        break;
-    }
-
-    return 500; // Default
-}
-
 // *** Firewall Controls (General) ***
 extern bool FIREWALL_ENABLED;
 extern bool FIREWALL_LIVE_DEBUG;
@@ -163,7 +120,11 @@ extern int Firewall_AverageHeight;
 // Turbosync
 // 0 = disabled (10000 Max Inv) (1000 Max Addr) (500 Max Blocks)
 // 1 = enabled (20000 Max Inv) (2000 Max Addr) (1000 Max Blocks)
-static const int TURBOSYNC_MAX = 1;
+// 2 = enabled (40000 Max Inv) (4000 Max Addr) (2000 Max Blocks)
+// 3 = enabled (80000 Max Inv) (8000 Max Addr) (4000 Max Blocks)
+// 4 = enabled (160000 Max Inv) (16000 Max Addr) (8000 Max Blocks)
+// 5 = enabled (320000 Max Inv) (32000 Max Addr) (16000 Max Blocks)
+static const int64_t TURBOSYNC_MAX = 5;
 
 /** Time between pings automatically sent out for latency probing and keepalive (in seconds). */
 static const int PING_INTERVAL = 1 * 60;
@@ -180,26 +141,15 @@ static const int DATA_TIMEOUT = 3 * 60;
 /** Maximum length of strSubVer in `version` message */
 static const unsigned int MAX_SUBVERSION_LENGTH = 256;
 
-/** The maximum number of entries in an 'inv' protocol message */
-static const unsigned int MAX_INV_SZ = GetMaxInvBandwidth(TURBOSYNC_MAX);
-
-/** The maximum number of entries in mapAskFor */
-static const size_t MAPASKFOR_MAX_SZ = MAX_INV_SZ;
-
-/** The maximum number of entries in setAskFor (larger due to getdata latency)*/
-//static const size_t SETASKFOR_MAX_SZ = 2 * MAX_INV_SZ;
-
-/** The maximum number of new addresses to accumulate before announcing. */
-static const unsigned int MAX_ADDR_TO_SEND = GetMaxAddrBandwidth(TURBOSYNC_MAX);
 
 inline unsigned int ReceiveFloodSize()
 {
-    return 1000*GetArg("-maxreceivebuffer", 5*1000);
+    return 1000 * GetArg("-maxreceivebuffer", 5*1000);
 }
 
 inline unsigned int SendBufferSize()
 {
-    return 1000*GetArg("-maxsendbuffer", 1*1000);
+    return 1000 * GetArg("-maxsendbuffer", 1*1000);
 }
 
 void AddOneShot(std::string strDest);
@@ -221,6 +171,132 @@ bool StopNode();
 void SocketSendData(CNode *pnode);
 
 typedef int NodeId;
+
+inline unsigned int GetMaxInvBandwidth(int TurboSyncMax)
+{
+    switch (TurboSyncMax)
+    {
+        case 1:
+        {
+            return 100000; // Level 1 (up to 100% faster)
+        }
+        break;
+            
+        case 2:
+        {
+            return 200000; // Level 2 (up to 200% faster)
+        }
+        break;
+
+        case 3:
+        {
+            return 300000; // Level 3 (up to 300% faster)
+        }
+        break;
+
+        case 4:
+        {
+            return 400000; // Level 4 (up to 400% faster)
+        }
+        break;
+
+        case 5:
+        {
+            return 500000; // Level 5 (up to 500% faster)
+        }
+        break;
+    }
+
+    return 50000; // Default
+}
+
+inline unsigned int GetMaxAddrBandwidth(int TurboSyncMax)
+{
+    switch (TurboSyncMax)
+    {
+        case 1:
+        {
+            return 2000; // Level 1  (up to 100% faster)
+        }
+        break;
+
+        case 2:
+        {
+            return 4000; // Level 2  (up to 200% faster)
+        }
+        break;
+
+        case 3:
+        {
+            return 8000; // Level 3  (up to 300% faster)
+        }
+        break;
+
+        case 4:
+        {
+            return 16000; // Level 4  (up to 400% faster)
+        }
+        break;
+
+        case 5:
+        {
+            return 32000; // Level 5  (up to 500% faster)
+        }
+        break;
+    }
+
+    return 1000; // Default
+}
+
+inline unsigned int GetMaxBlocksBandwidth(int TurboSyncMax)
+{
+    switch (TurboSyncMax)
+    {
+        case 1:
+        {
+            return 1000; // Level 1  (100% faster)
+        }
+        break;
+
+        case 2:
+        {
+            return 2000; // Level 2  (200% faster)
+        }
+        break;
+
+        case 3:
+        {
+            return 4000; // Level 3  (300% faster)
+        }
+        break;
+
+        case 4:
+        {
+            return 8000; // Level 4  (400% faster)
+        }
+        break;
+
+        case 5:
+        {
+            return 16000; // Level 5  (500% faster)
+        }
+        break;
+    }
+
+    return 500; // Default
+}
+
+/** The maximum number of entries in an 'inv' protocol message */
+static const unsigned int MAX_INV_SZ = GetMaxInvBandwidth(TURBOSYNC_MAX);
+
+/** The maximum number of entries in mapAskFor */
+static const size_t MAPASKFOR_MAX_SZ = MAX_INV_SZ;
+
+/** The maximum number of entries in setAskFor (larger due to getdata latency)*/
+//static const size_t SETASKFOR_MAX_SZ = 2 * MAX_INV_SZ;
+
+/** The maximum number of new addresses to accumulate before announcing. */
+static const unsigned int MAX_ADDR_TO_SEND = GetMaxAddrBandwidth(TURBOSYNC_MAX);
 
 // Signals for message handling
 struct CNodeSignals
@@ -336,7 +412,7 @@ class CNodeStats
         double dPingWait;
 
         // Turbosync
-        int nTurboSync;
+        int64_t nTurboSync;
         bool fTurboSyncSent;
         bool fTurboSyncRecv;
 
@@ -582,7 +658,7 @@ class CNode
         bool fStartSync;
 
         // Turbosync
-        int nTurboSync;
+        int64_t nTurboSync;
         bool fTurboSyncSent;
         bool fTurboSyncRecv;
 

@@ -127,7 +127,7 @@ extern json_spirit::Value getconnectioncount(const json_spirit::Array& params, b
 
 extern json_spirit::Value getpeerinfo(const json_spirit::Array& params, bool fHelp);
 
-//extern json_spirit::Value getpeeraverageheight(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getpeeraverageheight(const json_spirit::Array& params, bool fHelp);
 //extern json_spirit::Value getpeerbestheight(const json_spirit::Array& params, bool fHelp);
 //extern json_spirit::Value getpeerbestblockhash(const json_spirit::Array& params, bool fHelp);
 
