@@ -1,1351 +1,2060 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2012 The Bitcoin developers
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2018 Profit Hunters Coin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+/*
+* Qt4 bitcoin GUI.
+*
+* W.J. van der Laan 2011-2012
+*/
 
-#ifndef BITCOIN_NET_H
-#define BITCOIN_NET_H
+#include <QApplication>
 
-#include "compat.h"
-#include "core.h"
-#include "hash.h"
-#include "limitedmap.h"
-#include "mruset.h"
-#include "netbase.h"
-#include "protocol.h"
-#include "sync.h"
-#include "uint256.h"
-#include "util.h"
+#include "bitcoingui.h"
 
-#include <deque>
-#include <stdint.h>
+#include "transactiontablemodel.h"
+#include "addressbookpage.h"
+#include "sendcoinsdialog.h"
+#include "signverifymessagedialog.h"
+#include "optionsdialog.h"
+#include "aboutdialog.h"
+#include "clientmodel.h"
+#include "walletmodel.h"
+#include "editaddressdialog.h"
+#include "optionsmodel.h"
+#include "transactiondescdialog.h"
+#include "addresstablemodel.h"
+#include "transactionview.h"
+#include "overviewpage.h"
+#include "bitcoinunits.h"
+#include "guiconstants.h"
+#include "askpassphrasedialog.h"
+#include "notificator.h"
+#include "guiutil.h"
+#include "rpcconsole.h"
+#include "wallet.h"
+#include "main.h"
+#include "init.h"
+#include "ui_interface.h"
+#include "masternodemanager.h"
+#include "messagemodel.h"
+#include "messagepage.h"
+#include "blockbrowser.h"
+#include "importprivatekeydialog.h"
+//#include "tradingdialog.h"
 
-#ifndef WIN32
-#include <arpa/inet.h>
+#ifdef Q_OS_MAC
+#include "macdockiconhandler.h"
 #endif
 
-#include <boost/array.hpp>
-#include <boost/foreach.hpp>
-#include <boost/signals2/signal.hpp>
-#include <openssl/rand.h>
+#include <QMenuBar>
+#include <QMenu>
+#include <QIcon>
+#include <QVBoxLayout>
+#include <QToolBar>
+#include <QStatusBar>
+#include <QLabel>
+#include <QMessageBox>
+#include <QMimeData>
+#include <QProgressBar>
+#include <QProgressDialog>
+#include <QStackedWidget>
+#include <QDateTime>
+#include <QMovie>
+#include <QFileDialog>
+#include <QDesktopServices>
+#include <QTimer>
+#include <QDragEnterEvent>
+#include <QUrl>
+#include <QMimeData>
+#include <QStyle>
+#include <QToolButton>
+#include <QScrollArea>
+#include <QScroller>
+#include <QTextDocument>
+#include <QInputDialog>
 
-class CAddrMan;
-class CBlockIndex;
-extern int nBestHeight;
+#include <iostream>
 
-class CNode;
+extern bool fOnlyTor;
 
-namespace boost
+extern CWallet* pwalletMain;
+
+extern int64_t nLastCoinStakeSearchInterval;
+
+double GetPoSKernelPS();
+
+
+BitcoinGUI::BitcoinGUI(QWidget *parent) :
+	QMainWindow(parent),
+	clientModel(0),
+	walletModel(0),
+	toolbar(0),
+	progressBarLabel(0),
+	progressBar(0),
+	progressDialog(0),
+	encryptWalletAction(0),
+	changePassphraseAction(0),
+	unlockWalletAction(0),
+	lockWalletAction(0),
+	aboutQtAction(0),
+	trayIcon(0),
+	notificator(0),
+	rpcConsole(0),
+	prevBlocks(0),
+	nWeight(0)
 {
-    class thread_group;
-}
-
-
-inline unsigned int GetMaxInvBandwidth(int TurboSyncMax)
-{
-    switch (TurboSyncMax)
-    {
-        case 1:
-        {
-            return 100000; // Level 1
-        }
-        break;
-    }
-
-    return 50000; // Default
-}
-
-inline unsigned int GetMaxAddrBandwidth(int TurboSyncMax)
-{
-    switch (TurboSyncMax)
-    {
-        case 1:
-        {
-            return 2000; // Level 1
-        }
-        break;
-    }
-
-    return 1000; // Default
-}
-
-inline unsigned int GetMaxBlocksBandwidth(int TurboSyncMax)
-{
-    switch (TurboSyncMax)
-    {
-        case 1:
-        {
-            return 1000; // Level 1
-        }
-        break;
-    }
-
-    return 500; // Default
-}
-
-// *** Firewall Controls (General) ***
-extern bool FIREWALL_ENABLED;
-extern bool FIREWALL_LIVE_DEBUG;
-extern bool FIREWALL_CLEAR_BLACKLIST;
-extern bool FIREWALL_CLEAR_BANS;
-
-// *** Firewall Controls (General) ***
-extern bool FIREWALL_LIVEDEBUG_EXAM;
-extern bool FIREWALL_LIVEDEBUG_BANS;
-extern bool FIREWALL_LIVEDEBUG_BLACKLIST;
-extern bool FIREWALL_LIVEDEBUG_DISCONNECT;
-extern bool FIREWALL_LIVEDEBUG_BANDWIDTHABUSE;
-extern bool FIREWALL_LIVEDEBUG_NOFALSEPOSITIVE;
-extern bool FIREWALL_LIVEDEBUG_INVALIDWALLET;
-extern bool FIREWALL_LIVEDEBUG_FORKEDWALLET;
-extern bool FIREWALL_LIVEDEBUG_FLOODINGWALLET;
-
-// *** Firewall Controls (Bandwidth Abuse) ***
-extern bool FIREWALL_DETECT_BANDWIDTHABUSE;
-extern bool FIREWALL_BLACKLIST_BANDWIDTHABUSE;
-extern bool FIREWALL_BAN_BANDWIDTHABUSE;
-extern bool FIREWALL_NOFALSEPOSITIVE_BANDWIDTHABUSE;
-
-// *** Firewall Controls (Invalid Peer Wallets) ***
-extern bool FIREWALL_DETECT_INVALIDWALLET;
-extern bool FIREWALL_BLACKLIST_INVALIDWALLET;
-extern bool FIREWALL_BAN_INVALIDWALLET;
-
-// *** Firewall Controls (Forked Peer Wallets) ***
-extern bool FIREWALL_DETECT_FORKEDWALLET;
-extern bool FIREWALL_BLACKLIST_FORKEDWALLET;
-extern bool FIREWALL_BAN_FORKEDWALLET;
-
-// *** Firewall Controls (Flooding Peer Wallets) ***
-extern bool FIREWALL_DETECT_FLOODINGWALLET;
-extern bool FIREWALL_BLACKLIST_FLOODINGWALLET;
-extern bool FIREWALL_BAN_FLOODINGWALLET;
-
-// * Firewall Settings (Exam) *
-extern int FIREWALL_AVERAGE_TOLERANCE;
-extern int FIREWALL_AVERAGE_RANGE;
-extern double FIREWALL_TRAFFIC_TOLERANCE;
-extern double FIREWALL_TRAFFIC_ZONE;
-extern string FIREWALL_WHITELIST[];
-extern string FIREWALL_BLACKLIST[];
-
-// * Firewall Settings (Bandwidth Abuse) *
-extern int FIREWALL_BANTIME_BANDWIDTHABUSE;
-extern int FIREWALL_BANDWIDTHABUSE_MAXCHECK;
-extern double FIREWALL_BANDWIDTHABUSE_MINATTACK;
-extern double FIREWALL_BANDWIDTHABUSE_MAXATTACK;
-extern int FIREWALL_BANTIME_BANDWIDTHABUSE;
-
-// * Firewall Settings (Invalid Wallet)
-extern int FIREWALL_MINIMUM_PROTOCOL;
-extern int FIREWALL_BANTIME_INVALIDWALLET;
-extern int FIREWALL_INVALIDWALLET_MAXCHECK;
-extern int FIREWALL_BANTIME_INVALIDWALLET;
-
-// * Firewall Settings (Forked Wallet)
-extern int FIREWALL_BANTIME_FORKEDWALLET;
-extern int FIREWALL_FORKED_NODEHEIGHT[];
-
-// * Firewall Settings (Flooding Wallet)
-extern int FIREWALL_BANTIME_FLOODINGWALLET;
-extern int FIREWALL_FLOODINGWALLET_MINBYTES;
-extern int FIREWALL_FLOODINGWALLET_MAXBYTES;
-extern string FIREWALL_FLOODPATTERNS[];
-extern double FIREWALL_FLOODINGWALLET_MINTRAFFICAVERAGE;
-extern double FIREWALL_FLOODINGWALLET_MAXTRAFFICAVERAGE;
-extern int FIREWALL_FLOODINGWALLET_MINCHECK;
-extern int FIREWALL_FLOODINGWALLET_MAXCHECK;
-
-// * Average Blockheight among Peers */
-extern int Firewall_AverageHeight;
-
-// Turbosync
-// 0 = disabled (10000 Max Inv) (1000 Max Addr) (500 Max Blocks)
-// 1 = enabled (20000 Max Inv) (2000 Max Addr) (1000 Max Blocks)
-static const int TURBOSYNC_MAX = 1;
-
-/** Time between pings automatically sent out for latency probing and keepalive (in seconds). */
-static const int PING_INTERVAL = 1 * 60;
-
-/** Time after which to disconnect, after waiting for a ping response (or inactivity). */
-static const int TIMEOUT_INTERVAL = 20 * 60;
-
-/** Time between cycles to check for idle nodes, force disconnect (seconds) **/ 
-static const int IDLE_TIMEOUT = 4 * 60;
-
-/** Time between cycles to check for idle nodes, force disconnect (seconds) **/ 
-static const int DATA_TIMEOUT = 3 * 60;
-
-/** Maximum length of strSubVer in `version` message */
-static const unsigned int MAX_SUBVERSION_LENGTH = 256;
-
-/** The maximum number of entries in an 'inv' protocol message */
-static const unsigned int MAX_INV_SZ = GetMaxInvBandwidth(TURBOSYNC_MAX);
-
-/** The maximum number of entries in mapAskFor */
-static const size_t MAPASKFOR_MAX_SZ = MAX_INV_SZ;
-
-/** The maximum number of entries in setAskFor (larger due to getdata latency)*/
-//static const size_t SETASKFOR_MAX_SZ = 2 * MAX_INV_SZ;
-
-/** The maximum number of new addresses to accumulate before announcing. */
-static const unsigned int MAX_ADDR_TO_SEND = GetMaxAddrBandwidth(TURBOSYNC_MAX);
-
-inline unsigned int ReceiveFloodSize()
-{
-    return 1000*GetArg("-maxreceivebuffer", 5*1000);
-}
-
-inline unsigned int SendBufferSize()
-{
-    return 1000*GetArg("-maxsendbuffer", 1*1000);
-}
-
-void AddOneShot(std::string strDest);
-bool RecvLine(SOCKET hSocket, std::string& strLine);
-void AddressCurrentlyConnected(const CService& addr);
-
-CNode* FindNode(const CNetAddr& ip);
-CNode* FindNode(const CSubNet& subNet);
-CNode* FindNode(std::string addrName);
-CNode* FindNode(const CService& ip);
-CNode* ConnectNode(CAddress addrConnect, const char *strDest = NULL, bool darkSendMaster=false);
-
-bool CheckNode(CAddress addrConnect);
-void MapPort(bool fUseUPnP);
-unsigned short GetListenPort();
-bool BindListenPort(const CService &bindAddr, std::string& strError=REF(std::string()));
-void StartNode(boost::thread_group& threadGroup);
-bool StopNode();
-void SocketSendData(CNode *pnode);
-
-typedef int NodeId;
-
-// Signals for message handling
-struct CNodeSignals
-{
-    boost::signals2::signal<int ()> GetHeight;
-    boost::signals2::signal<bool (CNode*)> ProcessMessages;
-    boost::signals2::signal<bool (CNode*, bool)> SendMessages;
-    boost::signals2::signal<void (NodeId, const CNode*)> InitializeNode;
-    boost::signals2::signal<void (NodeId)> FinalizeNode;
-};
-
-CNodeSignals& GetNodeSignals();
-
-typedef int NodeId;
-
-enum
-{
-    LOCAL_NONE,   // unknown
-    LOCAL_IF,     // address a local interface listens on
-    LOCAL_BIND,   // address explicit bound to
-    LOCAL_UPNP,   // address reported by UPnP
-    LOCAL_MANUAL, // address explicitly specified (-externalip=)
-
-    LOCAL_MAX
-};
-
-bool IsPeerAddrLocalGood(CNode *pnode);
-void SetLimited(enum Network net, bool fLimited = true);
-bool IsLimited(enum Network net);
-bool IsLimited(const CNetAddr& addr);
-bool AddLocal(const CService& addr, int nScore = LOCAL_NONE);
-bool AddLocal(const CNetAddr& addr, int nScore = LOCAL_NONE);
-bool SeenLocal(const CService& addr);
-bool IsLocal(const CService& addr);
-bool GetLocal(CService &addr, const CNetAddr *paddrPeer = NULL);
-bool IsReachable(const CNetAddr &addr);
-void SetReachable(enum Network net, bool fFlag = true);
-
-CAddress GetLocalAddress(const CNetAddr *paddrPeer = NULL);
-
-enum
-{
-    MSG_TX = 1,
-    MSG_BLOCK,
-    // Nodes may always request a MSG_FILTERED_BLOCK in a getdata, however,
-    // MSG_FILTERED_BLOCK should not appear in any invs except as a part of getdata.
-    MSG_FILTERED_BLOCK,
-    MSG_TXLOCK_REQUEST,
-    MSG_TXLOCK_VOTE,
-    MSG_SPORK,
-    MSG_MASTERNODE_WINNER,
-    MSG_MASTERNODE_SCANNING_ERROR,
-    MSG_DSTX
-};
-
-extern bool fDiscover;
-extern uint64_t nLocalServices;
-extern uint64_t nLocalHostNonce;
-extern CAddrMan addrman;
-extern int nMaxConnections;
-
-extern std::vector<CNode*> vNodes;
-extern CCriticalSection cs_vNodes;
-extern std::map<CInv, CDataStream> mapRelay;
-extern std::deque<std::pair<int64_t, CInv> > vRelayExpiration;
-extern CCriticalSection cs_mapRelay;
-extern limitedmap<CInv, int64_t> mapAlreadyAskedFor;
-
-extern std::vector<std::string> vAddedNodes;
-extern CCriticalSection cs_vAddedNodes;
-
-extern NodeId nLastNodeId;
-extern CCriticalSection cs_nLastNodeId;
-
-extern NodeId nLastNodeId;
-extern CCriticalSection cs_nLastNodeId;
-struct LocalServiceInfo
-{
-    int nScore;
-    int nPort;
-};
-
-extern CCriticalSection cs_mapLocalHost;
-extern map<CNetAddr, LocalServiceInfo> mapLocalHost;
-
-/** Subversion as sent to the P2P network in `version` messages */
-extern std::string strSubVersion;
-
-class CNodeStats
-{
-    public:
-
-        NodeId nodeid;
-        int nVersion;
-        std::string cleanSubVer;
-        std::string strSubVer;
-        std::string addrLocal;
-        std::string addrName;
-
-        int nStartingHeight;
-
-        uint64_t nServices;
-        int64_t nLastSend;
-        int64_t nLastRecv;
-        int64_t nTimeConnected;
-        int64_t nTimeOffset;
-        uint64_t nSendBytes;
-        uint64_t nRecvBytes;
-        
-        bool fInbound;
-        bool fSyncNode;
-        double dPingTime;
-        double dPingWait;
-
-        // Turbosync
-        int nTurboSync;
-        bool fTurboSyncSent;
-        bool fTurboSyncRecv;
-
-        // Firewall Data
-        double nTrafficAverage;
-        double nTrafficRatio;
-        int nTrafficTimestamp;
-        int nInvalidRecvPackets;
-
-        // Dynamic Checkpoints
-        uint64_t nDynamicCheckpointRecv;
-        uint64_t nDynamicCheckpointSent;
-        int nSyncHeight;
-        int nSyncHeightCheckpoint;
-        bool fSyncCheckpointSent;
-        bool fSyncCheckpointRecv;
-        uint256 nSyncBlockHash;
-        uint256 nSyncBlockHashCheckpoint;
-
-};
-
-class CNetMessage
-{
-    public:
-
-        bool in_data;                   // parsing header (false) or data (true)
-
-        CDataStream hdrbuf;             // partially received header
-        CMessageHeader hdr;             // complete header
-        unsigned int nHdrPos;
-
-        CDataStream vRecv;              // received message data
-        unsigned int nDataPos;
-
-        CNetMessage(int nTypeIn, int nVersionIn) : hdrbuf(nTypeIn, nVersionIn), vRecv(nTypeIn, nVersionIn)
-        {
-            hdrbuf.resize(24);
-            in_data = false;
-            nHdrPos = 0;
-            nDataPos = 0;
-        }
-
-        bool complete() const
-        {
-            if (!in_data)
-            {
-                return false;
-            }
-
-            return (hdr.nMessageSize == nDataPos);
-        }
-
-        void SetVersion(int nVersionIn)
-        {
-            hdrbuf.SetVersion(nVersionIn);
-            vRecv.SetVersion(nVersionIn);
-        }
-
-        int readHeader(const char *pch, unsigned int nBytes);
-        int readData(const char *pch, unsigned int nBytes);
-};
-
-typedef enum BanReason
-{
-    BanReasonUnknown          = 0,
-    BanReasonNodeMisbehaving  = 1,
-    BanReasonManuallyAdded    = 2,
-    BanReasonBandwidthAbuse   = 3,
-    BanReasonInvalidWallet    = 4,
-    BanReasonForkedWallet     = 5,
-    BanReasonFloodingWallet   = 6,
-    BanReasonDDoSWallet       = 7
-
-} BanReason;
-
-class CBanEntry
-{
-
-    public:
-
-        static const int CURRENT_VERSION=1;
-        int nVersion;
-
-        int64_t nCreateTime;
-        int64_t nBanUntil;
-        uint8_t banReason;
-
-        CBanEntry()
-        {
-            SetNull();
-        }
-
-        CBanEntry(int64_t nCreateTimeIn)
-        {
-            SetNull();
-            nCreateTime = nCreateTimeIn;
-        }
-    
-        IMPLEMENT_SERIALIZE
-        (
-            READWRITE(this->nVersion);
-            nVersion = this->nVersion;
-            READWRITE(nCreateTime);
-            READWRITE(nBanUntil);
-            READWRITE(banReason);
-        )
-
-        void SetNull()
-        {
-            nVersion = CBanEntry::CURRENT_VERSION;
-            nCreateTime = 0;
-            nBanUntil = 0;
-            banReason = BanReasonUnknown;
-        }
-
-        std::string banReasonToString()
-        {
-            switch (banReason)
-            {
-                case BanReasonNodeMisbehaving:
-                {
-                    return "node misbehaving";
-                }
-                break;
-
-                case BanReasonManuallyAdded:
-                {
-                    return "manually added";
-                }
-
-                case BanReasonBandwidthAbuse:
-                {
-                    return "bandwidth abuse";
-                }
-
-                case BanReasonInvalidWallet:
-                {
-                    return "invalid wallet";
-                }
-
-                case BanReasonForkedWallet:
-                {
-                    return "forked wallet";
-                }
-
-                case BanReasonFloodingWallet:
-                {
-                    return "flooding wallet";
-                }
-
-                case BanReasonDDoSWallet:
-                {
-                    return "DDoS wallet";
-                }
-
-                default:
-                {
-                    return "unknown";
-                }
-            }
-        }
-};
-  
-typedef std::map<CSubNet, CBanEntry> banmap_t;
-
-class SecMsgNode
-{
-    public:
-
-        SecMsgNode()
-        {
-            lastSeen        = 0;
-            lastMatched     = 0;
-            ignoreUntil     = 0;
-            nWakeCounter    = 0;
-            nPeerId         = 0;
-            fEnabled        = false;
-        };
-        
-        ~SecMsgNode() {};
-        
-        CCriticalSection            cs_smsg_net;
-        int64_t                     lastSeen;
-        int64_t                     lastMatched;
-        int64_t                     ignoreUntil;
-        uint32_t                    nWakeCounter;
-        uint32_t                    nPeerId;
-        bool                        fEnabled;
-        
-};
-
-
-/** Information about a peer */
-class CNode
-{
-
-    protected:
-
-        // Denial-of-service detection/prevention
-        // Key is IP address, value is banned-until-time
-        static banmap_t setBanned;
-        static CCriticalSection cs_setBanned;
-        static bool setBannedIsDirty;
-
-        std::vector<std::string> vecRequestsFulfilled; //keep track of what client has asked for
-        
-    public:
-
-        // socket
-        uint64_t nServices;
-
-        SOCKET hSocket;
-        CDataStream ssSend;
-        
-        size_t nSendSize; // total size of all vSendMsg entries
-        size_t nSendOffset; // offset inside the first vSendMsg already sent
-        uint64_t nSendBytes;
-        
-        std::deque<CSerializeData> vSendMsg;
-        CCriticalSection cs_vSend;
-
-        std::deque<CInv> vRecvGetData;
-        std::deque<CNetMessage> vRecvMsg;
-        CCriticalSection cs_vRecvMsg;
-
-        CAddress addr;
-        std::string addrName;
-        CService addrLocal;
-        int nVersion;
-        int nRecvVersion;
-        int nStartingHeight;
-        int64_t nLastSend;
-        int64_t nLastRecv;
-        int64_t nLastSendEmpty;
-        int64_t nTimeConnected;
-        int64_t nTimeOffset;
-        uint64_t nRecvBytes;
-
-        CSemaphoreGrant grantOutbound;
-        int nRefCount;
-        NodeId id;
-
-        bool fStartSync;
-
-        // Turbosync
-        int nTurboSync;
-        bool fTurboSyncSent;
-        bool fTurboSyncRecv;
-
-        // Firewall Data
-        double nTrafficAverage;
-        double nTrafficRatio;
-        int nTrafficTimestamp;
-        int nInvalidRecvPackets;
-
-        // Dynamic Checkpoints
-        uint64_t nDynamicCheckpointRecv;
-        uint64_t nDynamicCheckpointSent;
-        int nSyncHeight;
-        int nSyncHeightCheckpoint;
-        bool fSyncCheckpointSent;
-        bool fSyncCheckpointRecv;
-        uint256 nSyncBlockHash;
-        uint256 nSyncBlockHashCheckpoint;
-
-        // strSubVer is whatever byte array we read from the wire. However, this field is intended
-        // to be printed out, displayed to humans in various forms and so on. So we sanitize it and
-        // store the sanitized version in cleanSubVer. The original should be used when dealing with
-        // the network or wire types and the cleaned string used when displayed or logged.
-        std::string strSubVer, cleanSubVer;
-
-        bool fOneShot;
-        bool fClient;
-        bool fInbound;
-        bool fNetworkNode;
-        bool fSuccessfullyConnected;
-        bool fDisconnect;
-
-        // We use fRelayTxes for two purposes -
-        // a) it allows us to not relay tx invs before receiving the peer's version message
-        // b) the peer may tell us in their version message that we should not relay tx invs
-        //    until they have initialized their bloom filter.
-        bool fRelayTxes;
-        bool fDarkSendMaster;
-
-        uint256 hashContinue;
-        CBlockIndex* pindexLastGetBlocksBegin;
-        uint256 hashLastGetBlocksEnd;
-
-        // flood relay
-        std::vector<CAddress> vAddrToSend;
-        mruset<CAddress> setAddrKnown;
-
-        bool fGetAddr;
-        
-        std::set<uint256> setKnown;
-        uint256 hashCheckpointKnown; // ppcoin: known sent sync-checkpoint
-
-        // inventory based relay
-        mruset<CInv> setInventoryKnown;
-        std::vector<CInv> vInventoryToSend;
-        CCriticalSection cs_inventory;
-        std::set<uint256> setAskFor;
-        std::multimap<int64_t, CInv> mapAskFor;
-
-        SecMsgNode smsgData;
-
-        // Ping time measurement:
-        // The pong reply we're expecting, or 0 if no pong expected.
-        uint64_t nPingNonceSent;
-
-        // Time (in usec) the last ping was sent, or 0 if no ping was ever sent.
-        int64_t nPingUsecStart;
-        
-        // Last measured round-trip time.
-        int64_t nPingUsecTime;
-        
-        // Whether a ping is requested.
-        bool fPingQueued;
-
-        CNode(SOCKET hSocketIn, CAddress addrIn, std::string addrNameIn = "", bool fInboundIn=false) : ssSend(SER_NETWORK, INIT_PROTO_VERSION), setAddrKnown(5000)
-        {
-            nServices = 0;
-            hSocket = hSocketIn;
-            nRecvVersion = INIT_PROTO_VERSION;
-            nLastSend = 0;
-            nLastRecv = 0;
-            nSendBytes = 0;
-            nRecvBytes = 0;
-            nLastSendEmpty = GetTime();
-            nTimeConnected = GetTime();
-            nTimeOffset = 0;
-            addr = addrIn;
-            addrName = addrNameIn == "" ? addr.ToStringIPPort() : addrNameIn;
-            nVersion = 0;
-            strSubVer = "";
-
-            fOneShot = false;
-            fClient = false; // set by version message
-            fInbound = fInboundIn;
-            fNetworkNode = false;
-            fSuccessfullyConnected = false;
-            fDisconnect = false;
-
-            nRefCount = 0;
-            nSendSize = 0;
-            nSendOffset = 0;
-            hashContinue = 0;
-            pindexLastGetBlocksBegin = 0;
-            hashLastGetBlocksEnd = 0;
-            nStartingHeight = -1;
-
-            fStartSync = false;
-            fGetAddr = false;
-            fRelayTxes = false;
-            
-            hashCheckpointKnown = 0;
-            setInventoryKnown.max_size(SendBufferSize() / 1000);
-            nPingNonceSent = 0;
-            nPingUsecStart = 0;
-            nPingUsecTime = 0;
-
-            fPingQueued = false;
-
-            // Turbosync
-            nTurboSync = 0;
-            fTurboSyncSent = false;
-            fTurboSyncRecv = false;
-
-            // Firewall Data
-            nTrafficAverage = 0;
-            nTrafficRatio = 0;
-            nTrafficTimestamp = 0;
-            nInvalidRecvPackets = 0;
-
-            // Dynamic Checkpoints
-            nDynamicCheckpointRecv = 0;
-            nDynamicCheckpointSent = 0;
-            nSyncHeight = 0;
-            nSyncHeightCheckpoint = 0;
-            fSyncCheckpointSent = false;
-            fSyncCheckpointRecv = false;
-            nSyncBlockHash = 0;
-            nSyncBlockHashCheckpoint = 0;
-
-            // Global Namespace Start
-            {
-                // Node Lock
-                LOCK(cs_nLastNodeId);
-                id = nLastNodeId++;
-            }
-            // Global Namespace End
-
-            // Be shy and don't send version until we hear
-            if (hSocket != INVALID_SOCKET && !fInbound)
-            {
-                PushVersion();
-            }
-
-            GetNodeSignals().InitializeNode(GetId(), this);
-        }
-
-        ~CNode()
-        {
-            if (hSocket != INVALID_SOCKET)
-            {
-                closesocket(hSocket);
-                hSocket = INVALID_SOCKET;
-            }
-
-            GetNodeSignals().FinalizeNode(GetId());
-        }
-
-    private:
-
-        // Network usage totals
-        static CCriticalSection cs_totalBytesRecv;
-        static CCriticalSection cs_totalBytesSent;
-        static uint64_t nTotalBytesRecv;
-        static uint64_t nTotalBytesSent;
-
-        CNode(const CNode&);
-        void operator=(const CNode&);
-
-    public:
-
-        NodeId GetId() const
-        {
-            return id;
-        }
-
-        int GetRefCount()
-        {
-            assert(nRefCount >= 0);
-
-            return nRefCount;
-        }
-
-        // requires LOCK(cs_vRecvMsg)
-        unsigned int GetTotalRecvSize()
-        {
-            unsigned int total = 0;
-            BOOST_FOREACH(const CNetMessage &msg, vRecvMsg)
-            {
-                total += msg.vRecv.size() + 24;
-            }
-
-            return total;
-        }
-
-        // requires LOCK(cs_vRecvMsg)
-        bool ReceiveMsgBytes(const char *pch, unsigned int nBytes);
-
-        // requires LOCK(cs_vRecvMsg)
-        void SetRecvVersion(int nVersionIn)
-        {
-            nRecvVersion = nVersionIn;
-            BOOST_FOREACH(CNetMessage &msg, vRecvMsg)
-            {
-                msg.SetVersion(nVersionIn);
-            }
-        }
-
-        CNode* AddRef()
-        {
-            nRefCount++;
-
-            return this;
-        }
-
-        void Release()
-        {
-            nRefCount--;
-        }
-
-        void AddAddressKnown(const CAddress& addr)
-        {
-            setAddrKnown.insert(addr);
-        }
-
-        void PushAddress(const CAddress& addr)
-        {
-            // Known checking here is only to save space from duplicates.
-            // SendMessages will filter it again for knowns that were added
-            // after addresses were pushed.
-            if (addr.IsValid() && !setAddrKnown.count(addr))
-            {
-                if (vAddrToSend.size() >= MAX_ADDR_TO_SEND)
-                {
-                    vAddrToSend[insecure_rand() % vAddrToSend.size()] = addr;
-                }
-                else
-                {
-                    vAddrToSend.push_back(addr);
-                }
-            }
-        }
-
-        void AddInventoryKnown(const CInv& inv)
-        {
-            // Global Namespace Start
-            {
-                LOCK(cs_inventory);
-                setInventoryKnown.insert(inv);
-            }
-            // Global Namespace End
-        }
-
-        int GetInventoryKnown(const CInv& inv)
-        {
-            // Global Namespace Start
-            {
-                LOCK(cs_inventory);
-                return setInventoryKnown.size();
-            }
-            // Global Namespace End
-        }
-
-        void PushInventory(const CInv& inv)
-        {
-            // Global Namespace Start
-            {
-                LOCK(cs_inventory);
-                if (!setInventoryKnown.count(inv))
-                {
-                    vInventoryToSend.push_back(inv);
-                }
-            }
-            // Global Namespace End
-        }
-
-        void AskFor(const CInv& inv, bool fImmediateRetry = false)
-        {
-            if (mapAskFor.size() > MAPASKFOR_MAX_SZ)
-            {
-                return;
-            }
-
-            // a peer may not have multiple non-responded queue positions for a single inv item
-            if (!setAskFor.insert(inv.hash).second)
-            {
-                return;
-            }
-
-            // We're using mapAskFor as a priority queue,
-            // the key is the earliest time the request can be sent
-            int64_t nRequestTime;
-            limitedmap<CInv, int64_t>::const_iterator it = mapAlreadyAskedFor.find(inv);
-            if (it != mapAlreadyAskedFor.end())
-            {
-                nRequestTime = it->second;
-            }
-            else
-            {
-                nRequestTime = 0;
-            }
-
-            if (fDebug)
-            {
-                LogPrint("net", "%s : askfor %s   %d (%s)\n", __FUNCTION__, inv.ToString().c_str(), nRequestTime, DateTimeStrFormat("%H:%M:%S", nRequestTime/1000000).c_str());
-            }
-
-            // Make sure not to reuse time indexes to keep things in the same order
-            int64_t nNow = (GetTime() - 1) * 1000000;
-            static int64_t nLastTime;
-
-            ++nLastTime;
-            nNow = std::max(nNow, nLastTime);
-            nLastTime = nNow;
-
-            // Retry immediately during initial sync otherwise retry 2 minutes after the last
-            if (fImmediateRetry)
-            {
-                nRequestTime = nNow;
-            }
-            else
-            {
-                nRequestTime = std::max(nRequestTime + 2 * 60 * 1000000, nNow);
-            }
-
-            if (it != mapAlreadyAskedFor.end())
-            {
-                mapAlreadyAskedFor.update(it, nRequestTime);
-            }
-            else
-            {
-                mapAlreadyAskedFor.insert(std::make_pair(inv, nRequestTime));
-            }
-
-            mapAskFor.insert(std::make_pair(nRequestTime, inv));
-        }
-
-        // TODO: Document the postcondition of this function.  Is cs_vSend locked?
-        void BeginMessage(const char* pszCommand) EXCLUSIVE_LOCK_FUNCTION(cs_vSend)
-        {
-            ENTER_CRITICAL_SECTION(cs_vSend);
-            assert(ssSend.size() == 0);
-            ssSend << CMessageHeader(pszCommand, 0);
- 
-            if (fDebug)
-            {
-                LogPrint("net", "%s : sending: %s ", __FUNCTION__, pszCommand);
-            }
-        }
-
-        // TODO: Document the precondition of this function.  Is cs_vSend locked?
-        void AbortMessage() UNLOCK_FUNCTION(cs_vSend)
-        {
-            ssSend.clear();
-
-            LEAVE_CRITICAL_SECTION(cs_vSend);
-
-            if (fDebug)
-            {
-                LogPrint("net", "%s : (aborted)\n", __FUNCTION__);
-            }
-        }
-
-        // TODO: Document the precondition of this function.  Is cs_vSend locked?
-        void EndMessage() UNLOCK_FUNCTION(cs_vSend)
-        {
-            // The -*messagestest options are intentionally not documented in the help message,
-            // since they are only used during development to debug the networking code and are
-            // not intended for end-users.
-            if (mapArgs.count("-dropmessagestest") && GetRand(GetArg("-dropmessagestest", 2)) == 0)
-            {
-                if (fDebug)
-                {
-                    LogPrint("net", "%s : dropmessages DROPPING SEND MESSAGE\n", __FUNCTION__);
-                }
-
-                AbortMessage();
-
-                return;
-            }
-
-            if (ssSend.size() == 0)
-            {
-                return;
-            }
-
-            // Set the size
-            unsigned int nSize = ssSend.size() - CMessageHeader::HEADER_SIZE;
-            memcpy((char*)&ssSend[CMessageHeader::MESSAGE_SIZE_OFFSET], &nSize, sizeof(nSize));
-
-            // Set the checksum
-            uint256 hash = Hash(ssSend.begin() + CMessageHeader::HEADER_SIZE, ssSend.end());
-            unsigned int nChecksum = 0;
-            memcpy(&nChecksum, &hash, sizeof(nChecksum));
-            assert(ssSend.size () >= CMessageHeader::CHECKSUM_OFFSET + sizeof(nChecksum));
-            memcpy((char*)&ssSend[CMessageHeader::CHECKSUM_OFFSET], &nChecksum, sizeof(nChecksum));
-
-            if (fDebug)
-            {
-                LogPrint("net", "%s : (%d bytes)\n", __FUNCTION__, nSize);
-            }
-            
-            std::deque<CSerializeData>::iterator it = vSendMsg.insert(vSendMsg.end(), CSerializeData());
-            ssSend.GetAndClear(*it);
-            nSendSize += (*it).size();
-
-            // If write queue empty, attempt "optimistic write"
-            if (it == vSendMsg.begin())
-            {
-                SocketSendData(this);
-            }
-
-            LEAVE_CRITICAL_SECTION(cs_vSend);
-        }
-
-        void PushVersion();
-
-
-        void PushMessage(const char* pszCommand)
-        {
-            try
-            {
-                BeginMessage(pszCommand);
-                EndMessage();
-            }
-            catch (...)
-            {
-                AbortMessage();
-
-                throw;
-            }
-        }
-
-        template<typename T1>
-        void PushMessage(const char* pszCommand, const T1& a1)
-        {
-            try
-            {
-                BeginMessage(pszCommand);
-                ssSend << a1;
-                EndMessage();
-            }
-            catch (...)
-            {
-                AbortMessage();
-
-                throw;
-            }
-        }
-
-        template<typename T1, typename T2>
-        void PushMessage(const char* pszCommand, const T1& a1, const T2& a2)
-        {
-            try
-            {
-                BeginMessage(pszCommand);
-                ssSend << a1 << a2;
-                EndMessage();
-            }
-            catch (...)
-            {
-                AbortMessage();
-
-                throw;
-            }
-        }
-
-        template<typename T1, typename T2, typename T3>
-        void PushMessage(const char* pszCommand, const T1& a1, const T2& a2, const T3& a3)
-        {
-            try
-            {
-                BeginMessage(pszCommand);
-                ssSend << a1 << a2 << a3;
-                EndMessage();
-            }
-            catch (...)
-            {
-                AbortMessage();
-
-                throw;
-            }
-        }
-
-        template<typename T1, typename T2, typename T3, typename T4>
-        void PushMessage(const char* pszCommand, const T1& a1, const T2& a2, const T3& a3, const T4& a4)
-        {
-            try
-            {
-                BeginMessage(pszCommand);
-                ssSend << a1 << a2 << a3 << a4;
-                EndMessage();
-            }
-            catch (...)
-            {
-                AbortMessage();
-
-                throw;
-            }
-        }
-
-        template<typename T1, typename T2, typename T3, typename T4, typename T5>
-        void PushMessage(const char* pszCommand, const T1& a1, const T2& a2, const T3& a3, const T4& a4, const T5& a5)
-        {
-            try
-            {
-                BeginMessage(pszCommand);
-                ssSend << a1 << a2 << a3 << a4 << a5;
-                EndMessage();
-            }
-            catch (...)
-            {
-                AbortMessage();
-
-                throw;
-            }
-        }
-
-        template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-        void PushMessage(const char* pszCommand, const T1& a1, const T2& a2, const T3& a3, const T4& a4, const T5& a5, const T6& a6)
-        {
-            try
-            {
-                BeginMessage(pszCommand);
-                ssSend << a1 << a2 << a3 << a4 << a5 << a6;
-                EndMessage();
-            }
-            catch (...)
-            {
-                AbortMessage();
-
-                throw;
-            }
-        }
-
-        template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
-        void PushMessage(const char* pszCommand, const T1& a1, const T2& a2, const T3& a3, const T4& a4, const T5& a5, const T6& a6, const T7& a7)
-        {
-            try
-            {
-                BeginMessage(pszCommand);
-                ssSend << a1 << a2 << a3 << a4 << a5 << a6 << a7;
-                EndMessage();
-            }
-            catch (...)
-            {
-                AbortMessage();
-
-                throw;
-            }
-        }
-
-        template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8>
-        void PushMessage(const char* pszCommand, const T1& a1, const T2& a2, const T3& a3, const T4& a4, const T5& a5, const T6& a6, const T7& a7, const T8& a8)
-        {
-            try
-            {
-                BeginMessage(pszCommand);
-                ssSend << a1 << a2 << a3 << a4 << a5 << a6 << a7 << a8;
-                EndMessage();
-            }
-            catch (...)
-            {
-                AbortMessage();
-
-                throw;
-            }
-        }
-
-        template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9>
-        void PushMessage(const char* pszCommand, const T1& a1, const T2& a2, const T3& a3, const T4& a4, const T5& a5, const T6& a6, const T7& a7, const T8& a8, const T9& a9)
-        {
-            try
-            {
-                BeginMessage(pszCommand);
-                ssSend << a1 << a2 << a3 << a4 << a5 << a6 << a7 << a8 << a9;
-                EndMessage();
-            }
-            catch (...)
-            {
-                AbortMessage();
-
-                throw;
-            }
-        }
-
-    template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9, typename T10>
-        void PushMessage(const char* pszCommand, const T1& a1, const T2& a2, const T3& a3, const T4& a4, const T5& a5, const T6& a6, const T7& a7, const T8& a8, const T9& a9, const T10& a10)
-        {
-            try
-            {
-                BeginMessage(pszCommand);
-                ssSend << a1 << a2 << a3 << a4 << a5 << a6 << a7 << a8 << a9 << a10;
-                EndMessage();
-            }
-            catch (...)
-            {
-                AbortMessage();
-
-                throw;
-            }
-        }
-        template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9, typename T10, typename T11>
-        void PushMessage(const char* pszCommand, const T1& a1, const T2& a2, const T3& a3, const T4& a4, const T5& a5, const T6& a6, const T7& a7, const T8& a8, const T9& a9, const T10& a10, const T11& a11)
-    {
-            try
-            {
-                BeginMessage(pszCommand);
-                ssSend << a1 << a2 << a3 << a4 << a5 << a6 << a7 << a8 << a9 << a10 << a11;
-                EndMessage();
-            }
-            catch (...)
-            {
-                AbortMessage();
-
-                throw;
-            }
-        }
-
-        template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9, typename T10, typename T11, typename T12>
-        void PushMessage(const char* pszCommand, const T1& a1, const T2& a2, const T3& a3, const T4& a4, const T5& a5, const T6& a6, const T7& a7, const T8& a8, const T9& a9, const T10& a10, const T11& a11, const T12& a12)
-        {
-            try
-            {
-                BeginMessage(pszCommand);
-                ssSend << a1 << a2 << a3 << a4 << a5 << a6 << a7 << a8 << a9 << a10 << a11 << a12;
-                EndMessage();
-            }
-            catch (...)
-            {
-                AbortMessage();
-
-                throw;
-            }
-        }
-
-        bool HasFulfilledRequest(std::string strRequest)
-        {
-            BOOST_FOREACH(std::string& type, vecRequestsFulfilled)
-            {
-                if(type == strRequest)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        void FulfilledRequest(std::string strRequest)
-        {
-            if(HasFulfilledRequest(strRequest))
-            {
-                return;
-            }
-
-            vecRequestsFulfilled.push_back(strRequest);
-        }
-
-        bool IsSubscribed(unsigned int nChannel);
-        void Subscribe(unsigned int nChannel, unsigned int nHops=0);
-        void CancelSubscribe(unsigned int nChannel);
-        void CloseSocketDisconnect();
-
-        // Denial-of-service detection/prevention
-        // The idea is to detect peers that are behaving
-        // badly and disconnect/ban them, but do it in a
-        // one-coding-mistake-won't-shatter-the-entire-network
-        // way.
-        // IMPORTANT:  There should be nothing I can give a
-        // node that it will forward on that will make that
-        // node's peers drop it. If there is, an attacker
-        // can isolate a node and/or try to split the network.
-        // Dropping a node for sending stuff that is invalid
-        // now but might be valid in a later version is also
-        // dangerous, because it can cause a network split
-        // between nodes running old code and nodes running
-        // new code.
-        static void ClearBanned(); // needed for unit testing
-        static bool IsBanned(CNetAddr ip);
-        static bool IsBanned(CSubNet subnet);
-        static void Ban(const CNetAddr &ip, const BanReason &banReason, int64_t bantimeoffset = 0, bool sinceUnixEpoch = false);
-        static void Ban(const CSubNet &subNet, const BanReason &banReason, int64_t bantimeoffset = 0, bool sinceUnixEpoch = false);
-        static bool Unban(const CNetAddr &ip);
-        static bool Unban(const CSubNet &ip);
-        static void GetBanned(banmap_t &banmap);
-        static void SetBanned(const banmap_t &banmap);
-
-        //!check is the banlist has unwritten changes
-        static bool BannedSetIsDirty();
-
-        //!set the "dirty" flag for the banlist
-        static void SetBannedSetDirty(bool dirty=true);
-
-        //!clean unused entires (if bantime has expired)
-        static void SweepBanned();
-
-        void copyStats(CNodeStats &stats);
-
-        // Network stats
-        static void RecordBytesRecv(uint64_t bytes);
-        static void RecordBytesSent(uint64_t bytes);
-
-        static uint64_t GetTotalBytesRecv();
-        static uint64_t GetTotalBytesSent();
-};
-
-inline void RelayInventory(const CInv& inv)
-{
-    // Global Namespace Start
-    {
-        // Put on lists to offer to the other nodes
-        LOCK(cs_vNodes);
-        BOOST_FOREACH(CNode* pnode, vNodes)
-        {
-            pnode->PushInventory(inv);
-        }
-    }
-    // Global Namespace End
-}
-
-class CTransaction;
-void RelayTransaction(const CTransaction& tx, const uint256& hash);
-void RelayTransaction(const CTransaction& tx, const uint256& hash, const CDataStream& ss);
-void RelayTransactionLockReq(const CTransaction& tx, bool relayToAll=false);
-
-/** Access to the (IP) address database (peers.dat) */
-class CAddrDB
-{
-    private:
-
-        boost::filesystem::path pathAddr;
-
-    public:
-
-        CAddrDB();
-        bool Write(const CAddrMan& addr);
-        bool Read(CAddrMan& addr);
-};
-
-/** Access to the banlist database (banlist.dat) */
-class CBanDB
-{
-    private:
-
-        boost::filesystem::path pathBanlist;
-
-    public:
-    
-        CBanDB();
-        bool Write(const banmap_t& banSet);
-        bool Read(banmap_t& banSet);
-};
-
-void DumpBanlist();
-
+	resize(1250, 520);
+	setWindowTitle(tr("PHC") + " - " + tr("Wallet"));
+
+	QWidget *frameBlocks = new QWidget();
+
+	if (!fUseBlackTheme)
+	{
+		// NORMAL THEME
+
+		qApp->setStyleSheet("QMainWindow"
+							"{"
+							"	background-image:url(:images/bkg);"
+							"	border:none;"
+							"	font-family:'Open Sans,sans-serif';"
+							"}"
+
+							"QMenuBar"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"}"
+
+							"QMenuBar::item"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QMenuBar::item::selected"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"}"
+
+							"QMenu"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"}"
+
+							"QMenu::item:selected"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton"
+							"{"
+							"	color:#ecf0f1;"
+							"	border-radius:5px;"
+							"	border:solid 1px #E5D738;"
+							"	background:#757575;"
+							"	padding:3px 30px;"
+							"}"
+
+							"QPushButton:hover"
+							"{"
+							"	background-color: rgb(102, 102, 102);"
+							"}"
+
+							"QPushButton:focus"
+							"{"
+							"	border:none;"
+							"	outline:none;"
+							"}"
+
+							"QPushButton:pressed"
+							"{"
+							"	background-color: rgb(80, 80, 80);"
+							"}"
+							);
+
+		frameBlocks->setStyleSheet("QWidget"
+									"{"
+									"	background: none;"
+									"	margin-bottom: 5px;"
+									"}"
+									);
+
+		// Override style sheet for progress bar for styles that have a segmented progress bar,
+		// as they make the text unreadable (workaround for issue #1071)
+		// See https://qt-project.org/doc/qt-4.8/gallery.html
+		QString curStyle = qApp->style()->metaObject()->className();
+
+		if (curStyle == "QWindowsStyle" || curStyle == "QWindowsXPStyle")
+		{
+			progressBar->setStyleSheet("QProgressBar"
+										"{"
+										"	color: #ffffff;"
+										"	background-color: #e8e8e8;"
+										"	border: 1px solid grey;"
+										"	border-radius: 7px;"
+										"	padding: 1px;"
+										"	text-align: center;"
+										"}"
+
+										"QProgressBar::chunk"
+										"{"
+										"	background: QLinearGradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 #FF8000, stop: 1 yellow);"
+										"	border-radius: 7px;"
+										"	margin: 0px;"
+										"}"
+										);
+		}
+
+		statusBar()->setStyleSheet("#statusBar"
+									"{"
+									"	color: #000000;"
+									"	background-color: qradialgradient(cx: -0.8, cy: 0, fx: -0.8, fy: 0, radius: 0.6, stop: 0 #101010, stop: 1 #A4D300);"
+									"}"
+									);
+
+	}
+	else
+	{
+		// DARK THEME
+
+		qApp->setStyleSheet("QMainWindow"
+							"{"
+							"	background-image:url(:images/bkg-dark);"
+							"	border:none;"
+							"	font-family:'Open Sans,sans-serif';"
+							"	color: #E5D738;"
+							"}"
+
+							"QPushButton"
+							"{"
+							"	color:#000000;"
+							"	border-radius:5px;"
+							"	border:solid 1px #E5D738;"
+							"	background:#E5D738;"
+							"	padding:3px 30px;"
+							"}"
+
+							"QPushButton:hover"
+							"{"
+							"	background-color: #E5D738;"
+							"	color: #000000;"
+							"}"
+
+							"QPushButton:focus"
+							"{"
+							"	border:none;"
+							"	outline:none;"
+							"}"
+
+							"QPushButton:pressed"
+							"{"
+							"	background-color: #E5D738;"
+							"	color: #000000;"
+							"}"
+
+							"QMenuBar"
+							"{"
+							"	color: #000000;"
+							"	border: 2px solid;"
+							"	border-color: #A4D300;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QMenuBar::item"
+							"{"
+							"	border: 2px solid;"
+							"	padding: 2px;"
+							"	border-color: #A4D300;"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QMenuBar::item::selected"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"}"
+
+							"QMenu"
+							"{"
+							"	border: 2px solid;"
+							"	border-color: #A4D300;"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"}"
+
+							"QMenu::item:selected"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QFrame"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"}"
+
+							"QDialog"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"}"
+
+							"QGridLayout"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"}"
+
+							"QTableWidget"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"	alternate-background-color: #000000;"
+							"}"
+
+							"QTableWidget:section"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"}"
+
+							"QTabWidget"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"}"
+
+							"QList"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"	alternate-background-color: #000000;"
+							"}"
+
+							"QLabel"
+							"{"
+							"	color: #A4D300;"
+							"}"
+
+							"QCheckBox"
+							"{"
+							"	border: none;"
+							"	color: #A4D300;"
+							"}"
+
+							"QCheckBox:unchecked"
+							"{"
+							"	border: none;"
+							"	color: #A4D300;"
+							"}"
+
+							"QCheckBox:checked"
+							"{"
+							"	border: none;"
+							"	color: #A4D300;"
+							"}"
+
+							"QHeaderView::section"
+							"{"
+							"	color: #000000;"
+							"}"
+
+							"QWidget"
+							"{"
+							"	alternate-background-color: #000000;"
+							"}"
+
+							"QRadioButton"
+							"{"
+							"	border: none;"
+							"	color: #A4D300;"
+							"}"
+						);
+
+		frameBlocks->setStyleSheet("QWidget"
+									"{"
+									"	background: none;"
+									"	margin-bottom: 5px;"
+									"	color: #A4D300;"
+									"}"
+								);
+
+		// Override style sheet for progress bar for styles that have a segmented progress bar,
+		// as they make the text unreadable (workaround for issue #1071)
+		// See https://qt-project.org/doc/qt-4.8/gallery.html
+		QString curStyle = qApp->style()->metaObject()->className();
+
+		if (curStyle == "QWindowsStyle" || curStyle == "QWindowsXPStyle")
+		{
+			progressBar->setStyleSheet("QProgressBar"
+										"{"
+										"	color: #A4D300;"
+										"	background-color: #000000;"
+										"	border: 1px solid #A4D300;"
+										"	border-radius: 7px; padding: 1px;"
+										"	text-align: center;"
+										"}"
+										"QProgressBar::chunk"
+										"{"
+										"	background: QLinearGradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 #FF8000, stop: 1 yellow);"
+										"	border-radius: 7px; margin: 0px;"
+										"}"
+									);
+		}
+
+		statusBar()->setStyleSheet("#statusBar"
+									"{"
+									"	color: #A4D300;"
+									"	background-color: qradialgradient(cx: -0.8, cy: 0, fx: -0.8, fy: 0, radius: 0.6, stop: 0 #A4D300, stop: 1 #000000);"
+									"}"
+								);
+
+	}
+
+
+#ifndef Q_OS_MAC
+			qApp->setWindowIcon(QIcon(":icons/bitcoin"));
+			setWindowIcon(QIcon(":icons/bitcoin"));
+#else
+			MacDockIconHandler::instance()->setIcon(QIcon(":icons/bitcoin"));
 #endif
+
+	setObjectName("PHC");
+
+	setStyleSheet("#PHC"
+					"{"
+					"	background-color: qradialgradient(cx: -0.8, cy: 0, fx: -0.8, fy: 0, radius: 1.4, stop: 0 #dedede, stop: 1 #efefef);"
+					"}"
+				);
+	
+	// Accept D&D of URIs
+	setAcceptDrops(true);
+
+	// Create actions for the toolbar, menu bar and tray/dock icon
+	createActions();
+
+	// Create application menu bar
+	createMenuBar();
+
+	// Create the toolbars
+	createToolBars();
+
+	// Create the tray icon (or setup the dock icon)
+	createTrayIcon();
+
+	// Create tabs
+	overviewPage = new OverviewPage();
+
+	transactionsPage = new QWidget(this);
+	QVBoxLayout *vbox = new QVBoxLayout();
+	transactionView = new TransactionView(this);
+	vbox->addWidget(transactionView);
+	transactionsPage->setLayout(vbox);
+
+	blockBrowser = new BlockBrowser(this);
+
+	addressBookPage = new AddressBookPage(AddressBookPage::ForEditing, AddressBookPage::SendingTab);
+
+	receiveCoinsPage = new AddressBookPage(AddressBookPage::ForEditing, AddressBookPage::ReceivingTab);
+
+	sendCoinsPage = new SendCoinsDialog(this);
+
+	//tradingDialogPage = new tradingDialog(this);
+	//tradingDialogPage->setObjectName("tradingDialog");
+
+	signVerifyMessageDialog = new SignVerifyMessageDialog(this);
+
+	masternodeManagerPage = new MasternodeManager(this);
+	messagePage = new MessagePage(this);
+
+	centralStackedWidget = new QStackedWidget(this);
+	centralStackedWidget->setContentsMargins(0, 0, 0, 0);
+	centralStackedWidget->addWidget(overviewPage);
+	centralStackedWidget->addWidget(transactionsPage);
+	centralStackedWidget->addWidget(addressBookPage);
+	centralStackedWidget->addWidget(receiveCoinsPage);
+	centralStackedWidget->addWidget(sendCoinsPage);
+	centralStackedWidget->addWidget(masternodeManagerPage);
+	centralStackedWidget->addWidget(messagePage);
+	centralStackedWidget->addWidget(blockBrowser);
+	//centralStackedWidget->addWidget(tradingDialogPage);
+
+	QWidget *centralWidget = new QWidget();
+	QVBoxLayout *centralLayout = new QVBoxLayout(centralWidget);
+	centralLayout->setContentsMargins(0, 0, 0, 0);
+	centralWidget->setContentsMargins(0, 0, 0, 0);
+	centralLayout->addWidget(centralStackedWidget);
+
+	setCentralWidget(centralWidget);
+
+	// Create status bar
+	statusBar();
+
+	// Disable size grip because it looks ugly and nobody needs it
+	statusBar()->setSizeGripEnabled(false);
+
+	// Status bar notification icons
+
+	frameBlocks->setContentsMargins(0, 0, 0, 0);
+	frameBlocks->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+	
+	QHBoxLayout *frameBlocksLayout = new QHBoxLayout(frameBlocks);
+	
+	frameBlocksLayout->setContentsMargins(3, 0, 3, 0);
+	frameBlocksLayout->setSpacing(3);
+	frameBlocksLayout->setAlignment(Qt::AlignHCenter);
+	
+	labelEncryptionIcon = new QLabel();
+	labelStakingIcon = new QLabel();
+	labelConnectionsIcon = new QLabel();
+	labelBlocksIcon = new QLabel();
+	frameBlocksLayout->addWidget(netLabel);
+	//frameBlocksLayout->addStretch();
+	frameBlocksLayout->addWidget(labelEncryptionIcon);
+	//frameBlocksLayout->addStretch();
+	frameBlocksLayout->addWidget(labelStakingIcon);
+	//frameBlocksLayout->addStretch();
+	frameBlocksLayout->addWidget(labelConnectionsIcon);
+	//frameBlocksLayout->addStretch();
+	frameBlocksLayout->addWidget(labelBlocksIcon);
+	//frameBlocksLayout->addStretch();
+	frameBlocksLayout->addWidget(netLabel);
+	//frameBlocksLayout->addStretch();
+
+
+	if (GetBoolArg("-staking", true))
+	{
+		QTimer *timerStakingIcon = new QTimer(labelStakingIcon);
+		connect(timerStakingIcon, SIGNAL(timeout()), this, SLOT(updateStakingIcon()));
+		timerStakingIcon->start(20 * 1000);
+		updateStakingIcon();
+	}
+
+	// Progress bar and label for blocks download
+	progressBarLabel = new QLabel();
+	progressBarLabel->setVisible(false);
+	progressBar = new QProgressBar();
+	progressBar->setAlignment(Qt::AlignCenter);
+	progressBar->setVisible(false);
+
+	if (!fUseBlackTheme)
+	{
+		progressBarLabel->setStyleSheet("QLabel"
+										"{"
+										"	color: #000000;"
+										"}"
+									);
+	}
+	else
+	{
+		progressBarLabel->setStyleSheet("QLabel"
+										"{"
+										"	color: #A4D300;"
+										"}"
+									);
+	}
+
+	statusBar()->addWidget(progressBarLabel);
+	statusBar()->addWidget(progressBar);
+	statusBar()->addPermanentWidget(frameBlocks);
+	statusBar()->setObjectName("statusBar");
+
+	syncIconMovie = new QMovie(fUseBlackTheme ? ":/movies/update_spinner_black" : ":/movies/update_spinner", "mng", this);
+
+	// Clicking on a transaction on the overview page simply sends you to transaction history page
+	connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), this, SLOT(gotoHistoryPage()));
+	connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), transactionView, SLOT(focusTransaction(QModelIndex)));
+
+	//connect(TradingAction, SIGNAL(triggered()), tradingDialogPage, SLOT(InitTrading()));
+
+	// Double-clicking on a transaction on the transaction history page shows details
+	connect(transactionView, SIGNAL(doubleClicked(QModelIndex)), transactionView, SLOT(showDetails()));
+
+	rpcConsole = new RPCConsole(0);
+	connect(openRPCConsoleAction, SIGNAL(triggered()), rpcConsole, SLOT(showConsole()));
+	connect(openInformationAction, SIGNAL(triggered()), rpcConsole, SLOT(showInfo()));
+	connect(openNetTrafficAction, SIGNAL(triggered()), rpcConsole, SLOT(showNetTraffic()));
+	connect(openPeersAction, SIGNAL(triggered()), rpcConsole, SLOT(showPeers()));
+	connect(openConfigFileAction, SIGNAL(triggered()), rpcConsole, SLOT(on_openPHCConfigfileButton_clicked()));
+	connect(openMasternodeConfigFileAction, SIGNAL(triggered()), rpcConsole, SLOT(on_openMNConfigfileButton_clicked()));
+	connect(openDebugFileAction, SIGNAL(triggered()), rpcConsole, SLOT(on_openDebugLogfileButton_clicked()));
+	connect(setgenerateTRUEAction, SIGNAL(triggered()), rpcConsole, SLOT(setgenerateTRUE()));
+	connect(setgenerateFALSEAction, SIGNAL(triggered()), rpcConsole, SLOT(setgenerateFALSE()));
+
+	// clicking on automatic backups shows details
+	connect(showBackupsAction, SIGNAL(triggered()), rpcConsole, SLOT(showBackups()));
+
+	// prevents an oben debug window from becoming stuck/unusable on client shutdown
+	connect(quitAction, SIGNAL(triggered()), rpcConsole, SLOT(hide()));
+
+	// Clicking on "Verify Message" in the address book sends you to the verify message tab
+	connect(addressBookPage, SIGNAL(verifyMessage(QString)), this, SLOT(gotoVerifyMessageTab(QString)));
+	// Clicking on "Sign Message" in the receive coins page sends you to the sign message tab
+	connect(receiveCoinsPage, SIGNAL(signMessage(QString)), this, SLOT(gotoSignMessageTab(QString)));
+
+	gotoOverviewPage();
+}
+
+
+BitcoinGUI::~BitcoinGUI()
+{
+	if (trayIcon)
+	{
+	 // Hide tray icon, as deleting will let it linger until quit (on Ubuntu)
+		trayIcon->hide();
+	}
+
+#ifdef Q_OS_MAC
+	delete appMenuBar;
+#endif
+
+	delete rpcConsole;
+}
+
+
+void BitcoinGUI::createActions()
+{
+	QActionGroup *tabGroup = new QActionGroup(this);
+
+	overviewAction = new QAction(QIcon(":/icons/overview"), tr("&Dashboard"), this);
+	overviewAction->setToolTip(tr("Show general overview of wallet"));
+	overviewAction->setCheckable(true);
+	overviewAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_1));
+	tabGroup->addAction(overviewAction);
+
+	receiveCoinsAction = new QAction(QIcon(":/icons/receiving_addresses"), tr("&Receive"), this);
+	receiveCoinsAction->setToolTip(tr("Show the list of addresses for receiving payments"));
+	receiveCoinsAction->setCheckable(true);
+	receiveCoinsAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_2));
+	tabGroup->addAction(receiveCoinsAction);
+
+	sendCoinsAction = new QAction(QIcon(":/icons/send"), tr("&Send"), this);
+	sendCoinsAction->setToolTip(tr("Send coins to a PHC address"));
+	sendCoinsAction->setCheckable(true);
+	sendCoinsAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_3));
+	tabGroup->addAction(sendCoinsAction);
+
+	historyAction = new QAction(QIcon(":/icons/history"), tr("&Transactions"), this);
+	historyAction->setToolTip(tr("Browse transaction history"));
+	historyAction->setCheckable(true);
+	historyAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_4));
+	tabGroup->addAction(historyAction);
+
+	addressBookAction = new QAction(QIcon(":/icons/address-book"), tr("&Addresses"), this);
+	addressBookAction->setToolTip(tr("Edit the list of stored addresses and labels"));
+	addressBookAction->setCheckable(true);
+	addressBookAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_5));
+	tabGroup->addAction(addressBookAction);
+
+	masternodeManagerAction = new QAction(QIcon(":/icons/masternodes"), tr("&Masternodes"), this);
+	masternodeManagerAction->setToolTip(tr("Show Master Nodes status and configure your nodes."));
+	masternodeManagerAction->setCheckable(true);
+	tabGroup->addAction(masternodeManagerAction);
+
+	messageAction = new QAction(QIcon(":/icons/edit"), tr("&Messages"), this);
+	messageAction->setToolTip(tr("View and Send Encrypted messages"));
+	messageAction->setCheckable(true);
+	tabGroup->addAction(messageAction);
+
+	blockAction = new QAction(QIcon(":/icons/block"), tr("&Block Explorer"), this);
+	blockAction->setToolTip(tr("Explore the BlockChain"));
+	blockAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_6));
+	blockAction->setCheckable(true);
+	tabGroup->addAction(blockAction);
+
+	//TradingAction = new QAction(QIcon(":/icons/trade"), tr("&Bittrex"), this);
+	//TradingAction->setToolTip(tr("Start Trading"));
+	//TradingAction->setCheckable(true);
+	//TradingAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_8));
+	//TradingAction->setProperty("objectName", "TradingAction");
+	//tabGroup->addAction(TradingAction);
+
+	showBackupsAction = new QAction(QIcon(":/icons/browse"), tr("Show Auto&Backups"), this);
+	showBackupsAction->setStatusTip(tr("S"));
+
+	//connect(TradingAction, SIGNAL(triggered()), this, SLOT(gotoTradingPage()));
+	connect(blockAction, SIGNAL(triggered()), this, SLOT(gotoBlockBrowser()));
+	connect(overviewAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+	connect(overviewAction, SIGNAL(triggered()), this, SLOT(gotoOverviewPage()));
+	connect(receiveCoinsAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+	connect(receiveCoinsAction, SIGNAL(triggered()), this, SLOT(gotoReceiveCoinsPage()));
+	connect(sendCoinsAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+	connect(sendCoinsAction, SIGNAL(triggered()), this, SLOT(gotoSendCoinsPage()));
+	connect(historyAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+	connect(historyAction, SIGNAL(triggered()), this, SLOT(gotoHistoryPage()));
+	connect(addressBookAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+	connect(addressBookAction, SIGNAL(triggered()), this, SLOT(gotoAddressBookPage()));
+	connect(masternodeManagerAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+	connect(masternodeManagerAction, SIGNAL(triggered()), this, SLOT(gotoMasternodeManagerPage()));
+	connect(messageAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+	connect(messageAction, SIGNAL(triggered()), this, SLOT(gotoMessagePage()));
+
+	quitAction = new QAction(QIcon(":/icons/quit"), tr("E&xit"), this);
+	quitAction->setToolTip(tr("Quit application"));
+	quitAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
+	quitAction->setMenuRole(QAction::QuitRole);
+
+	aboutAction = new QAction(QIcon(":/icons/bitcoin1"), tr("&About PHC"), this);
+	aboutAction->setToolTip(tr("Show information about PHC"));
+	aboutAction->setMenuRole(QAction::AboutRole);
+	
+	aboutQtAction = new QAction(QIcon(":/qt-project.org/qmessagebox/images/qtlogo-64.png"), tr("About &Qt"), this);
+	aboutQtAction->setToolTip(tr("Show information about Qt"));
+	aboutQtAction->setMenuRole(QAction::AboutQtRole);
+
+	linkWebsiteAction = new QAction(QIcon(":/icons/website"), tr("&PHC Website"), this);
+	linkWebsiteAction->setToolTip(tr("Visit the Official PHC website"));
+
+    linkBitcointalkAction = new QAction(QIcon(":/icons/bitcointalk"), tr("&Bitcointalk Discussion"), this);
+	linkBitcointalkAction->setToolTip(tr("Visit our Bitcointalk discussion thread"));
+
+	linkTwitterAction = new QAction(QIcon(":/icons/twitter"), tr("&PHC Twitter"), this);
+    linkTwitterAction->setToolTip(tr("Join PHC Twitter"));
+
+	linkFacebookAction = new QAction(QIcon(":/icons/facebook"), tr("&PHC Facebook"), this);
+    linkFacebookAction->setToolTip(tr("Join PHC Facebook"));
+
+    linkDiscordAction = new QAction(QIcon(":/icons/discord"), tr("&PHC Discord"), this);
+    linkDiscordAction->setToolTip(tr("Join PHC Discord"));
+
+	linkTelegramAction = new QAction(QIcon(":/icons/telegram"), tr("&PHC Telegram"), this);
+    linkTelegramAction->setToolTip(tr("Join PHC Telegram"));
+
+	linkSlackAction = new QAction(QIcon(":/icons/slack"), tr("&PHC Slack"), this);
+    linkSlackAction->setToolTip(tr("Join PHC Slack Group"));
+
+    linkExplorer1Action = new QAction(QIcon(":/icons/explorer"), tr("&PHC Explorer #1"), this);
+	linkExplorer1Action->setToolTip(tr("PHC Explorer #1"));	
+	
+	linkExplorer2Action = new QAction(QIcon(":/icons/explorer"), tr("&PHC Explorer #2"), this);
+	linkExplorer2Action->setToolTip(tr("PHC Explorer #2"));	
+	
+	optionsAction = new QAction(QIcon(":/icons/options"), tr("&Options..."), this);
+	optionsAction->setToolTip(tr("Modify configuration options for PHC"));
+	optionsAction->setMenuRole(QAction::PreferencesRole);
+	
+	toggleHideAction = new QAction(QIcon(":/icons/bitcoin"), tr("&Show / Hide"), this);
+	
+	encryptWalletAction = new QAction(QIcon(":/icons/lock_closed"), tr("&Encrypt Wallet..."), this);
+	encryptWalletAction->setToolTip(tr("Encrypt or decrypt wallet"));
+	
+	backupWalletAction = new QAction(QIcon(":/icons/filesave"), tr("&Backup Wallet..."), this);
+	backupWalletAction->setToolTip(tr("Backup wallet to another location"));
+	
+	importPrivateKeyAction = new QAction(QIcon(":/icons/key"), tr("&Import private key..."), this);
+    importPrivateKeyAction->setToolTip(tr("Import a private key"));	
+
+	changePassphraseAction = new QAction(QIcon(":/icons/key"), tr("&Change Passphrase..."), this);
+	changePassphraseAction->setToolTip(tr("Change the passphrase used for wallet encryption"));
+	
+	unlockWalletAction = new QAction(QIcon(":/icons/lock_open"), tr("&Unlock Wallet..."), this);
+	unlockWalletAction->setToolTip(tr("Unlock wallet"));
+	
+	lockWalletAction = new QAction(QIcon(":/icons/lock_closed"), tr("&Lock Wallet"), this);
+	lockWalletAction->setToolTip(tr("Lock wallet"));
+	
+	signMessageAction = new QAction(QIcon(":/icons/edit"), tr("Sign &message..."), this);
+	
+	verifyMessageAction = new QAction(QIcon(":/icons/transaction_0"), tr("&Verify message..."), this);
+
+	exportAction = new QAction(QIcon(":/icons/export"), tr("&Export..."), this);
+	exportAction->setToolTip(tr("Export the data in the current tab to a file"));
+	
+	openRPCConsoleAction = new QAction(QIcon(":/icons/debugwindow"), tr("&RPC Console"), this);
+	openRPCConsoleAction->setToolTip(tr("Open debugging and diagnostic console"));
+
+	openInformationAction = new QAction(QIcon(":/icons/synced"), tr("&Information"), this);
+	openInformationAction->setToolTip(tr("Open client information"));
+
+	openNetTrafficAction = new QAction(QIcon(":/icons/connect_4"), tr("&Network Traffic"), this);
+	openNetTrafficAction->setToolTip(tr("Open network traffic information"));
+
+	openPeersAction = new QAction(QIcon(":/icons/eye"), tr("&Peers"), this);
+	openPeersAction->setToolTip(tr("Open peers information"));
+
+	openConfigFileAction = new QAction(QIcon(":/icons/edit"), tr("&Open Config File"), this);
+	openConfigFileAction->setToolTip(tr("Open configuration file"));
+
+	openMasternodeConfigFileAction = new QAction(QIcon(":/icons/edit"), tr("&Open Masternode Config File"), this);
+	openMasternodeConfigFileAction->setToolTip(tr("Open masternode configuration file"));
+
+	openDebugFileAction = new QAction(QIcon(":/icons/edit"), tr("&Open Debug File"), this);
+	openDebugFileAction->setToolTip(tr("Open debug file"));
+
+	setgenerateTRUEAction = new QAction(QIcon(":/icons/tx_mined"), tr("&Start"), this);
+	setgenerateTRUEAction->setToolTip(tr("Start Internal CPU Miner"));
+
+	setgenerateFALSEAction = new QAction(QIcon(":/icons/quit"), tr("&Stop"), this);
+	setgenerateFALSEAction->setToolTip(tr("Stop Internal CPU Miner"));
+
+	connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
+	connect(aboutAction, SIGNAL(triggered()), this, SLOT(aboutClicked()));
+	connect(aboutQtAction, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
+	connect(optionsAction, SIGNAL(triggered()), this, SLOT(optionsClicked()));
+	connect(toggleHideAction, SIGNAL(triggered()), this, SLOT(toggleHidden()));
+	connect(encryptWalletAction, SIGNAL(triggered()), this, SLOT(encryptWallet()));
+	connect(backupWalletAction, SIGNAL(triggered()), this, SLOT(backupWallet()));
+	connect(importPrivateKeyAction, SIGNAL(triggered()), this, SLOT(importPrivateKey()));
+	connect(changePassphraseAction, SIGNAL(triggered()), this, SLOT(changePassphrase()));
+	connect(unlockWalletAction, SIGNAL(triggered()), this, SLOT(unlockWallet()));
+	connect(lockWalletAction, SIGNAL(triggered()), this, SLOT(lockWallet()));
+	connect(signMessageAction, SIGNAL(triggered()), this, SLOT(gotoSignMessageTab()));
+	connect(verifyMessageAction, SIGNAL(triggered()), this, SLOT(gotoVerifyMessageTab()));
+
+	connect(linkWebsiteAction, SIGNAL(triggered()), this, SLOT(linkWebsiteClicked()));
+	connect(linkBitcointalkAction, SIGNAL(triggered()), this, SLOT(linkBitcointalkClicked()));
+	connect(linkTwitterAction, SIGNAL(triggered()), this, SLOT(linkTwitterClicked()));
+	connect(linkFacebookAction, SIGNAL(triggered()), this, SLOT(linkFacebookClicked()));
+	connect(linkDiscordAction, SIGNAL(triggered()), this, SLOT(linkDiscordClicked()));
+	connect(linkTelegramAction, SIGNAL(triggered()), this, SLOT(linkTelegramClicked()));
+	connect(linkSlackAction, SIGNAL(triggered()), this, SLOT(linkSlackClicked()));
+	connect(linkExplorer1Action, SIGNAL(triggered()), this, SLOT(linkExplorer1Clicked()));
+	connect(linkExplorer2Action, SIGNAL(triggered()), this, SLOT(linkExplorer2Clicked()));
+}
+
+
+void BitcoinGUI::createMenuBar()
+{
+#ifdef Q_OS_MAC
+	appMenuBar = new QMenuBar();
+#else
+	appMenuBar = menuBar();
+#endif
+
+	// Configure the menus
+	QMenu *main = appMenuBar->addMenu(tr("&Main"));
+	main->addAction(masternodeManagerAction);
+
+	if (!fLiteMode)
+	{
+		main->addAction(messageAction);
+	}
+
+	main->addAction(blockAction);
+
+	main->addSeparator();
+	main->addAction(quitAction);
+
+	QMenu *wallet = appMenuBar->addMenu(tr("&Wallet"));
+	wallet->addAction(overviewAction);
+	wallet->addAction(addressBookAction);
+	wallet->addAction(receiveCoinsAction);
+	wallet->addAction(sendCoinsAction);
+	wallet->addAction(historyAction);
+	wallet->addSeparator();
+	wallet->addAction(signMessageAction);
+	wallet->addAction(verifyMessageAction);
+	wallet->addSeparator();
+	wallet->addAction(encryptWalletAction);
+	wallet->addAction(changePassphraseAction);
+	wallet->addAction(unlockWalletAction);
+	wallet->addAction(lockWalletAction);
+	wallet->addSeparator();
+	wallet->addAction(backupWalletAction);
+	wallet->addAction(importPrivateKeyAction);
+	wallet->addAction(exportAction);
+
+
+	QMenu *tools = appMenuBar->addMenu(tr("&Tools"));
+	tools->addAction(optionsAction);
+	tools->addSeparator();
+	tools->addAction(openInformationAction);
+	tools->addAction(openRPCConsoleAction);
+	tools->addAction(openNetTrafficAction);
+	tools->addAction(openPeersAction);
+	tools->addAction(showBackupsAction);
+	tools->addSeparator();
+	tools->addAction(openConfigFileAction);
+	tools->addAction(openMasternodeConfigFileAction);
+	tools->addAction(openDebugFileAction);
+
+	QMenu *mining = appMenuBar->addMenu(tr("&Mining"));
+	mining->addAction(setgenerateTRUEAction);
+	mining->addAction(setgenerateFALSEAction);
+	//mining->addAction(setgenproclimitAction);
+
+	QMenu *help = appMenuBar->addMenu(tr("&Help"));
+	help->addAction(aboutAction);
+	help->addAction(aboutQtAction);
+	help->addSeparator();
+	help->addAction(linkWebsiteAction);
+    help->addAction(linkBitcointalkAction);
+	help->addAction(linkTwitterAction);
+	help->addAction(linkFacebookAction);
+	help->addAction(linkDiscordAction);
+	help->addAction(linkTelegramAction);
+	help->addAction(linkSlackAction);
+	help->addAction(linkExplorer1Action);
+	help->addAction(linkExplorer2Action);
+}
+
+
+static QWidget* makeToolBarSpacer()
+{
+	QWidget* spacer = new QWidget();
+	spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	spacer->setStyleSheet("QWidget { background: none; }");
+	
+	return spacer;
+}
+
+
+void BitcoinGUI::createToolBars()
+{
+	fLiteMode = GetBoolArg("-litemode", false);
+
+	toolbar = new QToolBar(tr("Tabs toolbar"));
+	
+	toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+	
+	toolbar->setContextMenuPolicy(Qt::PreventContextMenu);
+	
+	toolbar->setObjectName("tabs");
+	
+	toolbar->setStyleSheet("QToolButton"
+							"{"
+							"	background-color: #A4D300;"
+							"	color: #000000;"
+							"	font-size: 13px;"
+							"	font-weight: 400;"
+							"	padding:5px; font-family: 'Verdana';"
+							"	border: none;"
+							"}"
+
+							"QToolButton:hover"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"	border: none;"
+							"	padding-top: 5px;"
+							"	padding-bottom: 5px;"
+							"}"
+
+							"QToolButton:checked"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"	border: none;"
+							"	padding-top: 5px;"
+							"	padding-bottom: 5px;"
+							"}"
+							
+							"QToolButton:pressed"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"	border: none;"
+							"	padding-top: 5px;"
+							"	padding-bottom: 5px;"
+							"}"
+							
+							"#tabs"
+							"{"
+							"	background-color: #A4D300;"
+							"	color: #000000;"
+							"	border: none;"
+							"	padding-top: 0px;"
+							"	padding-bottom: 0px;"
+							"}"
+						);
+
+	//	QLabel* header = new QLabel();
+	//	header->setMinimumSize(152, 152);
+	//	header->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	//	header->setPixmap(QPixmap(":/images/header"));
+	//	header->setScaledContents(false);
+	//	header->setObjectName("header");
+	//	header->setStyleSheet("#header { border: none; }");
+	//	toolbar->addWidget(header);
+
+	//QMenu *toolbarMenu = new QMenu();
+	
+	toolbar->addAction(overviewAction);
+	toolbar->addAction(receiveCoinsAction);
+	toolbar->addAction(sendCoinsAction);
+	toolbar->addAction(historyAction);
+	toolbar->addAction(addressBookAction);
+	toolbar->addAction(masternodeManagerAction);
+
+	if (!fLiteMode)
+	{
+		toolbar->addAction(messageAction);
+	}
+
+	toolbar->addAction(blockAction);
+	
+	//toolbar->addAction(TradingAction);
+	
+	netLabel = new QLabel();
+
+	QWidget *spacer = makeToolBarSpacer();
+	
+	netLabel->setObjectName("netLabel");
+	
+	if (!fUseBlackTheme)
+	{
+		netLabel->setStyleSheet("#netLabel"
+								"{"
+								"	color: #000000;"
+								"}"
+							);
+	}
+	else
+	{
+		netLabel->setStyleSheet("#netLabel"
+								"{"
+								"	color: #A4D300;"
+								"}"
+							);
+	}
+
+	toolbar->addWidget(spacer);
+	toolbar->setOrientation(Qt::Vertical);
+	toolbar->setMovable(false);
+
+	addToolBar(Qt::TopToolBarArea, toolbar);
+
+	foreach(QAction *action, toolbar->actions())
+	{
+		toolbar->widgetForAction(action)->setFixedWidth(152);
+	}
+}
+
+
+void BitcoinGUI::setClientModel(ClientModel *clientModel)
+{
+	if (!fOnlyTor)
+	{
+		netLabel->setText("CLEARNET");
+	}
+	else
+	{
+		if (!IsLimited(NET_TOR))
+		{
+			netLabel->setText("TOR");
+		}
+	}
+
+	this->clientModel = clientModel;
+	if (clientModel)
+	{
+		// Replace some strings and icons, when using the testnet
+		if (clientModel->isTestNet())
+		{
+			setWindowTitle(windowTitle() + QString(" ") + tr("[testnet]"));
+#ifndef Q_OS_MAC
+			qApp->setWindowIcon(QIcon(":icons/bitcoin_testnet"));
+			setWindowIcon(QIcon(":icons/bitcoin_testnet"));
+#else
+			MacDockIconHandler::instance()->setIcon(QIcon(":icons/bitcoin_testnet"));
+#endif
+			if (trayIcon)
+			{
+				trayIcon->setToolTip(tr("PHC client") + QString(" ") + tr("[testnet]"));
+				trayIcon->setIcon(QIcon(":/icons/toolbar_testnet"));
+				toggleHideAction->setIcon(QIcon(":/icons/toolbar_testnet"));
+			}
+		}
+
+		// Keep up to date with client
+		setNumConnections(clientModel->getNumConnections());
+		connect(clientModel, SIGNAL(numConnectionsChanged(int)), this, SLOT(setNumConnections(int)));
+
+		setNumBlocks(clientModel->getNumBlocks());
+		connect(clientModel, SIGNAL(numBlocksChanged(int)), this, SLOT(setNumBlocks(int)));
+
+		// Receive and report messages from network/worker thread
+		connect(clientModel, SIGNAL(message(QString, QString, bool, unsigned int)), this, SLOT(message(QString, QString, bool, unsigned int)));
+
+		// Show progress dialog
+		connect(clientModel, SIGNAL(showProgress(QString, int)), this, SLOT(showProgress(QString, int)));
+		connect(walletModel, SIGNAL(showProgress(QString, int)), this, SLOT(showProgress(QString, int)));
+
+		overviewPage->setClientModel(clientModel);
+		rpcConsole->setClientModel(clientModel);
+		addressBookPage->setOptionsModel(clientModel->getOptionsModel());
+		receiveCoinsPage->setOptionsModel(clientModel->getOptionsModel());
+	}
+}
+
+
+void BitcoinGUI::setWalletModel(WalletModel *walletModel)
+{
+	this->walletModel = walletModel;
+	
+	if (walletModel)
+	{
+		// Receive and report messages from wallet thread
+		connect(walletModel, SIGNAL(message(QString, QString, bool, unsigned int)), this, SLOT(message(QString, QString, bool, unsigned int)));
+		connect(sendCoinsPage, SIGNAL(message(QString, QString, bool, unsigned int)), this, SLOT(message(QString, QString, bool, unsigned int)));
+
+		// Put transaction list in tabs
+		transactionView->setModel(walletModel);
+		overviewPage->setWalletModel(walletModel);
+		addressBookPage->setModel(walletModel->getAddressTableModel());
+		receiveCoinsPage->setModel(walletModel->getAddressTableModel());
+		sendCoinsPage->setModel(walletModel);
+		signVerifyMessageDialog->setModel(walletModel);
+		blockBrowser->setModel(walletModel);
+		//tradingDialogPage->setModel(walletModel);
+
+		setEncryptionStatus(walletModel->getEncryptionStatus());
+		connect(walletModel, SIGNAL(encryptionStatusChanged(int)), this, SLOT(setEncryptionStatus(int)));
+
+		// Balloon pop-up for new transaction
+		connect(walletModel->getTransactionTableModel(), SIGNAL(rowsInserted(QModelIndex, int, int)), this, SLOT(incomingTransaction(QModelIndex, int, int)));
+
+		// Ask for passphrase if needed
+		connect(walletModel, SIGNAL(requireUnlock()), this, SLOT(unlockWallet()));
+	}
+}
+
+
+void BitcoinGUI::setMessageModel(MessageModel *messageModel)
+{
+	this->messageModel = messageModel;
+
+	if (messageModel)
+	{
+		// Report errors from message thread
+		connect(messageModel, SIGNAL(error(QString, QString, bool)), this, SLOT(error(QString, QString, bool)));
+
+		// Put transaction list in tabs
+		messagePage->setModel(messageModel);
+
+		// Balloon pop-up for new message
+		connect(messageModel, SIGNAL(rowsInserted(QModelIndex, int, int)), this, SLOT(incomingMessage(QModelIndex, int, int)));
+	}
+}
+
+
+void BitcoinGUI::createTrayIcon()
+{
+	QMenu *trayIconMenu;
+#ifndef Q_OS_MAC
+	trayIcon = new QSystemTrayIcon(this);
+	trayIconMenu = new QMenu(this);
+	trayIcon->setContextMenu(trayIconMenu);
+	trayIcon->setToolTip(tr("PHC client"));
+	trayIcon->setIcon(QIcon(":/icons/toolbar"));
+	connect(trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(trayIconActivated(QSystemTrayIcon::ActivationReason)));
+	trayIcon->show();
+#else
+	// Note: On Mac, the dock icon is used to provide the tray's functionality.
+	MacDockIconHandler *dockIconHandler = MacDockIconHandler::instance();
+	dockIconHandler->setMainWindow((QMainWindow *)this);
+	trayIconMenu = dockIconHandler->dockMenu();
+#endif
+
+	// Configuration of the tray icon (or dock icon) icon menu
+	trayIconMenu->addAction(toggleHideAction);
+	trayIconMenu->addSeparator();
+	trayIconMenu->addAction(receiveCoinsAction);
+	trayIconMenu->addAction(sendCoinsAction);
+	trayIconMenu->addSeparator();
+	trayIconMenu->addAction(signMessageAction);
+	trayIconMenu->addAction(verifyMessageAction);
+	trayIconMenu->addSeparator();
+	trayIconMenu->addAction(optionsAction);
+	trayIconMenu->addAction(openRPCConsoleAction);
+	trayIconMenu->addAction(showBackupsAction);
+#ifndef Q_OS_MAC // This is built-in on Mac
+	trayIconMenu->addSeparator();
+	trayIconMenu->addAction(quitAction);
+#endif
+
+	notificator = new Notificator(qApp->applicationName(), trayIcon);
+}
+
+
+#ifndef Q_OS_MAC
+void BitcoinGUI::trayIconActivated(QSystemTrayIcon::ActivationReason reason)
+{
+	if (reason == QSystemTrayIcon::Trigger)
+	{
+		// Click on system tray icon triggers show/hide of the main window
+		toggleHideAction->trigger();
+	}
+}
+#endif
+
+
+void BitcoinGUI::optionsClicked()
+{
+	if (!clientModel || !clientModel->getOptionsModel())
+	{
+		return;
+	}
+
+	OptionsDialog dlg;
+	dlg.setModel(clientModel->getOptionsModel());
+	dlg.exec();
+}
+
+
+void BitcoinGUI::aboutClicked()
+{
+	AboutDialog dlg;
+	dlg.setModel(clientModel);
+	dlg.exec();
+}
+
+
+void BitcoinGUI::setNumConnections(int count)
+{
+	QString icon;
+
+	switch (count)
+	{
+		case 0:
+		{
+			icon = fUseBlackTheme ? ":/icons/black/connect_0" : ":/icons/connect_0";
+		} 
+		break;
+		
+		case 1: case 2: case 3:
+		{
+ 			icon = fUseBlackTheme ? ":/icons/black/connect_1" : ":/icons/connect_1";
+		}
+		break;
+		
+		case 4: case 5: case 6: 
+		{
+			icon = fUseBlackTheme ? ":/icons/black/connect_2" : ":/icons/connect_2";
+		}
+		break;
+		
+		case 7: case 8: case 9:
+		{
+			icon = fUseBlackTheme ? ":/icons/black/connect_3" : ":/icons/connect_3";
+		}
+		break;
+		
+		default:
+		{
+ 			icon = fUseBlackTheme ? ":/icons/black/connect_4" : ":/icons/connect_4";
+		}
+		break;
+	}
+
+	labelConnectionsIcon->setPixmap(QIcon(icon).pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
+	labelConnectionsIcon->setToolTip(tr("%n active connection(s) to PHC network", "", count));
+}
+
+
+void BitcoinGUI::setNumBlocks(int count)
+{
+	QString tooltip;
+
+	QDateTime lastBlockDate = clientModel->getLastBlockDate();
+	QDateTime currentDate = QDateTime::currentDateTime();
+	
+	int totalSecs = GetTime() - Params().GenesisBlock().GetBlockTime();
+	int secs = lastBlockDate.secsTo(currentDate);
+
+	tooltip = tr("Processed %1 blocks of transaction history.").arg(count);
+
+	// Set icon state: spinning if catching up, tick otherwise
+	if (secs < 90 * 60)
+	{
+		tooltip = tr("Up to date") + QString(".<br>") + tooltip;
+		labelBlocksIcon->setPixmap(QIcon(fUseBlackTheme ? ":/icons/black/synced" : ":/icons/synced").pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
+
+		overviewPage->showOutOfSyncWarning(false);
+
+		progressBarLabel->setVisible(false);
+		progressBar->setVisible(false);
+	}
+	else
+	{
+		// Represent time from last generated block in human readable text
+		QString timeBehindText;
+		
+		const int HOUR_IN_SECONDS = 60 * 60;
+		const int DAY_IN_SECONDS = 24 * 60 * 60;
+		const int WEEK_IN_SECONDS = 7 * 24 * 60 * 60;
+		const int YEAR_IN_SECONDS = 31556952; // Average length of year in Gregorian calendar
+		
+		if (secs < 2 * DAY_IN_SECONDS)
+		{
+			timeBehindText = tr("%n hour(s)", "", secs / HOUR_IN_SECONDS);
+		}
+		else if (secs < 2 * WEEK_IN_SECONDS)
+		{
+			timeBehindText = tr("%n day(s)", "", secs / DAY_IN_SECONDS);
+		}
+		else if (secs < YEAR_IN_SECONDS)
+		{
+			timeBehindText = tr("%n week(s)", "", secs / WEEK_IN_SECONDS);
+		}
+		else
+		{
+			int years = secs / YEAR_IN_SECONDS;
+			int remainder = secs % YEAR_IN_SECONDS;
+			
+			timeBehindText = tr("%1 and %2").arg(tr("%n year(s)", "", years)).arg(tr("%n week(s)", "", remainder / WEEK_IN_SECONDS));
+		}
+
+		progressBarLabel->setText(tr(clientModel->isImporting() ? "Importing blocks..." : "Synchronizing with network..."));
+		progressBarLabel->setVisible(true);
+
+		progressBar->setFormat(tr("%1 behind").arg(timeBehindText));
+		progressBar->setMaximum(totalSecs);
+		progressBar->setValue(totalSecs - secs);
+		progressBar->setVisible(true);
+
+		tooltip = tr("Catching up...") + QString("<br>") + tooltip;
+		labelBlocksIcon->setMovie(syncIconMovie);
+
+		if (count != prevBlocks)
+		{
+			syncIconMovie->jumpToNextFrame();
+		}
+		
+		prevBlocks = count;
+
+		overviewPage->showOutOfSyncWarning(true);
+
+		tooltip += QString("<br>");
+		tooltip += tr("Last received block was generated %1 ago.").arg(timeBehindText);
+		tooltip += QString("<br>");
+		tooltip += tr("Transactions after this will not yet be visible.");
+	}
+
+	// Don't word-wrap this (fixed-width) tooltip
+	tooltip = QString("<nobr>") + tooltip + QString("</nobr>");
+
+	labelBlocksIcon->setToolTip(tooltip);
+	progressBarLabel->setToolTip(tooltip);
+	progressBar->setToolTip(tooltip);
+
+	statusBar()->setVisible(true);
+}
+
+
+void BitcoinGUI::message(const QString &title, const QString &message, bool modal, unsigned int style)
+{
+	QString strTitle = tr("PHC") + " - ";
+
+	// Default to information icon
+	int nMBoxIcon = QMessageBox::Information;
+	int nNotifyIcon = Notificator::Information;
+
+	// Check for usage of predefined title
+	switch (style)
+	{
+		case CClientUIInterface::MSG_ERROR:
+		{
+			strTitle += tr("Error");
+		}
+		break;
+		
+		case CClientUIInterface::MSG_WARNING:
+		{
+			strTitle += tr("Warning");
+		}
+		break;
+
+		case CClientUIInterface::MSG_INFORMATION:
+		{
+			strTitle += tr("Information");
+		}
+		break;
+
+		default:
+		{
+			strTitle += title; // Use supplied title
+		}
+	}
+
+	// Check for error/warning icon
+	if (style & CClientUIInterface::ICON_ERROR)
+	{
+		nMBoxIcon = QMessageBox::Critical;
+		nNotifyIcon = Notificator::Critical;
+	}
+	else if (style & CClientUIInterface::ICON_WARNING)
+	{
+		nMBoxIcon = QMessageBox::Warning;
+		nNotifyIcon = Notificator::Warning;
+	}
+
+	// Display message
+	if (modal)
+	{
+		// Check for buttons, use OK as default, if none was supplied
+		QMessageBox::StandardButton buttons;
+
+		if (!(buttons = (QMessageBox::StandardButton)(style & CClientUIInterface::BTN_MASK)))
+		{
+			buttons = QMessageBox::Ok;
+		}
+
+		QMessageBox mBox((QMessageBox::Icon)nMBoxIcon, strTitle, message, buttons);
+		mBox.exec();
+	}
+	else
+	{
+		notificator->notify((Notificator::Class)nNotifyIcon, strTitle, message);
+	}
+
+}
+
+
+void BitcoinGUI::error(const QString &title, const QString &message, bool modal)
+{
+	// Report errors from network/worker thread
+	if (modal)
+	{
+		QMessageBox::critical(this, title, message, QMessageBox::Ok, QMessageBox::Ok);
+	}
+	else
+	{
+		notificator->notify(Notificator::Critical, title, message);
+	}
+}
+
+
+void BitcoinGUI::changeEvent(QEvent *e)
+{
+	QMainWindow::changeEvent(e);
+#ifndef Q_OS_MAC // Ignored on Mac
+	if (e->type() == QEvent::WindowStateChange)
+	{
+		if (clientModel && clientModel->getOptionsModel()->getMinimizeToTray())
+		{
+			QWindowStateChangeEvent *wsevt = static_cast<QWindowStateChangeEvent*>(e);
+			if (!(wsevt->oldState() & Qt::WindowMinimized) && isMinimized())
+			{
+				QTimer::singleShot(0, this, SLOT(hide()));
+				e->ignore();
+			}
+		}
+	}
+#endif
+}
+
+
+void BitcoinGUI::closeEvent(QCloseEvent *event)
+{
+	if (clientModel)
+	{
+#ifndef Q_OS_MAC // Ignored on Mac
+		if (!clientModel->getOptionsModel()->getMinimizeToTray() && !clientModel->getOptionsModel()->getMinimizeOnClose())
+		{
+			// close rpcConsole in case it was open to make some space for the shutdown window
+			rpcConsole->close();
+
+			qApp->quit();
+		}
+#endif
+	}
+
+	QMainWindow::closeEvent(event);
+}
+
+
+void BitcoinGUI::askFee(qint64 nFeeRequired, bool *payFee)
+{
+	if (!clientModel || !clientModel->getOptionsModel())
+	{
+		return;
+
+	}
+
+	QString strMessage = tr("This transaction is over the size limit. You can still send it for a fee of %1, "
+		"which goes to the nodes that process your transaction and helps to support the network. "
+		"Do you want to pay the fee?").arg(BitcoinUnits::formatWithUnit(clientModel->getOptionsModel()->getDisplayUnit(), nFeeRequired));
+
+	QMessageBox::StandardButton retval = QMessageBox::question(this, tr("Confirm transaction fee"), strMessage, QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Yes);
+	
+	*payFee = (retval == QMessageBox::Yes);
+}
+
+
+void BitcoinGUI::incomingTransaction(const QModelIndex & parent, int start, int end)
+{
+	// Prevent balloon-spam when initial block download is in progress
+	if (!walletModel || !clientModel || clientModel->inInitialBlockDownload() || walletModel->processingQueuedTransactions())
+	{
+		return;
+	}
+
+	TransactionTableModel *ttm = walletModel->getTransactionTableModel();
+
+	qint64 amount = ttm->index(start, TransactionTableModel::Amount, parent).data(Qt::EditRole).toULongLong();
+	
+	QString date = ttm->index(start, TransactionTableModel::Date, parent).data().toString();
+	QString type = ttm->index(start, TransactionTableModel::Type, parent).data().toString();
+	QString address = ttm->index(start, TransactionTableModel::ToAddress, parent).data().toString();
+	QIcon icon = qvariant_cast<QIcon>(ttm->index(start, TransactionTableModel::ToAddress, parent).data(Qt::DecorationRole));
+
+	// On new transaction, make an info balloon
+	notificator->notify(Notificator::Information, (amount)<0 ? tr("Sent transaction") :	tr("Incoming transaction"), tr("Date: %1\n" "Amount: %2\n" "Type: %3\n" "Address: %4\n")
+		.arg(date) .arg(BitcoinUnits::formatWithUnit(walletModel->getOptionsModel()->getDisplayUnit(), amount, true)) .arg(type) .arg(address), icon);
+}
+
+
+void BitcoinGUI::incomingMessage(const QModelIndex & parent, int start, int end)
+{
+	if (!messageModel)
+	{
+		return;
+	}
+
+	MessageModel *mm = messageModel;
+
+	if (mm->index(start, MessageModel::TypeInt, parent).data().toInt() == MessageTableEntry::Received)
+	{
+		QString sent_datetime = mm->index(start, MessageModel::ReceivedDateTime, parent).data().toString();
+		QString from_address = mm->index(start, MessageModel::FromAddress, parent).data().toString();
+		QString to_address = mm->index(start, MessageModel::ToAddress, parent).data().toString();
+		QString message = mm->index(start, MessageModel::Message, parent).data().toString();
+		
+		QTextDocument html;
+		
+		html.setHtml(message);
+		
+		QString messageText(html.toPlainText());
+		
+		notificator->notify(Notificator::Information, tr("Incoming Message"), tr("Date: %1\n"	"From Address: %2\n" "To Address: %3\n" "Message: %4\n")
+			.arg(sent_datetime) .arg(from_address) .arg(to_address) .arg(messageText));
+	};
+}
+
+
+void BitcoinGUI::clearWidgets()
+{
+	centralStackedWidget->setCurrentWidget(centralStackedWidget->widget(0));
+
+	for (int i = centralStackedWidget->count(); i>0; i--)
+	{
+		QWidget* widget = centralStackedWidget->widget(i);
+		
+		centralStackedWidget->removeWidget(widget);
+		widget->deleteLater();
+	}
+}
+
+
+void BitcoinGUI::gotoMasternodeManagerPage()
+{
+	masternodeManagerAction->setChecked(true);
+	centralStackedWidget->setCurrentWidget(masternodeManagerPage);
+
+	exportAction->setEnabled(false);
+	disconnect(exportAction, SIGNAL(triggered()), 0, 0);
+}
+
+
+void BitcoinGUI::gotoBlockBrowser()
+{
+	blockAction->setChecked(true);
+	centralStackedWidget->setCurrentWidget(blockBrowser);
+
+	exportAction->setEnabled(false);
+	disconnect(exportAction, SIGNAL(triggered()), 0, 0);
+}
+
+
+void BitcoinGUI::gotoOverviewPage()
+{
+	overviewAction->setChecked(true);
+	centralStackedWidget->setCurrentWidget(overviewPage);
+
+	exportAction->setEnabled(false);
+	disconnect(exportAction, SIGNAL(triggered()), 0, 0);
+}
+
+
+void BitcoinGUI::gotoHistoryPage()
+{
+	historyAction->setChecked(true);
+	centralStackedWidget->setCurrentWidget(transactionsPage);
+
+	exportAction->setEnabled(true);
+	disconnect(exportAction, SIGNAL(triggered()), 0, 0);
+	connect(exportAction, SIGNAL(triggered()), transactionView, SLOT(exportClicked()));
+}
+
+
+void BitcoinGUI::gotoAddressBookPage()
+{
+	addressBookAction->setChecked(true);
+	centralStackedWidget->setCurrentWidget(addressBookPage);
+
+	exportAction->setEnabled(true);
+	disconnect(exportAction, SIGNAL(triggered()), 0, 0);
+	connect(exportAction, SIGNAL(triggered()), addressBookPage, SLOT(exportClicked()));
+}
+
+
+//void BitcoinGUI::gotoTradingPage()
+//{
+
+	//TradingAction->setChecked(true);
+	//centralStackedWidget->setCurrentWidget(tradingDialogPage);
+
+	//  exportAction->setEnabled(false);
+	//  disconnect(exportAction, SIGNAL(triggered()), 0, 0);
+//}
+
+
+void BitcoinGUI::gotoReceiveCoinsPage()
+{
+	receiveCoinsAction->setChecked(true);
+	centralStackedWidget->setCurrentWidget(receiveCoinsPage);
+
+	exportAction->setEnabled(true);
+	disconnect(exportAction, SIGNAL(triggered()), 0, 0);
+	connect(exportAction, SIGNAL(triggered()), receiveCoinsPage, SLOT(exportClicked()));
+}
+
+
+void BitcoinGUI::gotoSendCoinsPage()
+{
+	sendCoinsAction->setChecked(true);
+	centralStackedWidget->setCurrentWidget(sendCoinsPage);
+
+	exportAction->setEnabled(false);
+	disconnect(exportAction, SIGNAL(triggered()), 0, 0);
+}
+
+
+void BitcoinGUI::gotoSignMessageTab(QString addr)
+{
+	// call show() in showTab_SM()
+	signVerifyMessageDialog->showTab_SM(true);
+
+	if (!addr.isEmpty())
+	{
+		signVerifyMessageDialog->setAddress_SM(addr);
+	}
+}
+
+
+void BitcoinGUI::gotoVerifyMessageTab(QString addr)
+{
+	// call show() in showTab_VM()
+	signVerifyMessageDialog->showTab_VM(true);
+
+	if (!addr.isEmpty())
+	{
+		signVerifyMessageDialog->setAddress_VM(addr);
+	}
+}
+
+
+void BitcoinGUI::gotoMessagePage()
+{
+	messageAction->setChecked(true);
+	centralStackedWidget->setCurrentWidget(messagePage);
+
+	exportAction->setEnabled(true);
+	disconnect(exportAction, SIGNAL(triggered()), 0, 0);
+	connect(exportAction, SIGNAL(triggered()), messagePage, SLOT(exportClicked()));
+}
+
+
+void BitcoinGUI::dragEnterEvent(QDragEnterEvent *event)
+{
+	// Accept only URIs
+	if (event->mimeData()->hasUrls())
+	{
+		event->acceptProposedAction();
+	}
+}
+
+
+void BitcoinGUI::dropEvent(QDropEvent *event)
+{
+	if (event->mimeData()->hasUrls())
+	{
+		int nValidUrisFound = 0;
+		
+		QList<QUrl> uris = event->mimeData()->urls();
+		
+		foreach(const QUrl &uri, uris)
+		{
+			if (sendCoinsPage->handleURI(uri.toString()))
+			{
+				nValidUrisFound++;
+			}
+		}
+
+		// if valid URIs were found
+		if (nValidUrisFound)
+		{
+			gotoSendCoinsPage();
+		}
+		else
+		{
+			notificator->notify(Notificator::Warning, tr("URI handling"), tr("URI can not be parsed! This can be caused by an invalid PHC address or malformed URI parameters."));
+		}
+	}
+
+	event->acceptProposedAction();
+}
+
+
+void BitcoinGUI::handleURI(QString strURI)
+{
+	// URI has to be valid
+	if (sendCoinsPage->handleURI(strURI))
+	{
+		showNormalIfMinimized();
+		gotoSendCoinsPage();
+	}
+	else
+	{
+		notificator->notify(Notificator::Warning, tr("URI handling"), tr("URI can not be parsed! This can be caused by an invalid PHC address or malformed URI parameters."));
+	}
+}
+
+
+void BitcoinGUI::setEncryptionStatus(int status)
+{
+	if (fWalletUnlockStakingOnly)
+	{
+		labelEncryptionIcon->setPixmap(QIcon(fUseBlackTheme ? ":/icons/black/lock_open" : ":/icons/lock_open").pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
+		labelEncryptionIcon->setToolTip(tr("Wallet is <b>encrypted</b> and currently <b>unlocked for staking only</b>"));
+		changePassphraseAction->setEnabled(false);
+		unlockWalletAction->setVisible(true);
+		lockWalletAction->setVisible(true);
+		encryptWalletAction->setEnabled(false);
+
+	}
+	else
+	{
+
+		switch (status)
+		{
+			case WalletModel::Unencrypted:
+			{
+				labelEncryptionIcon->setPixmap(QIcon(fUseBlackTheme ? ":/icons/black/lock_open" : ":/icons/lock_open").pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
+				labelEncryptionIcon->setToolTip(tr("Wallet is <b>not encrypted</b>"));
+				changePassphraseAction->setEnabled(false);
+				unlockWalletAction->setVisible(false);
+				lockWalletAction->setVisible(false);
+				encryptWalletAction->setEnabled(true);
+			}
+			break;
+
+			case WalletModel::Unlocked:
+			{
+				labelEncryptionIcon->setPixmap(QIcon(fUseBlackTheme ? ":/icons/black/lock_open" : ":/icons/lock_open").pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
+				labelEncryptionIcon->setToolTip(tr("Wallet is <b>encrypted</b> and currently <b>unlocked</b>"));
+				changePassphraseAction->setEnabled(true);
+				unlockWalletAction->setVisible(false);
+				lockWalletAction->setVisible(true);
+				encryptWalletAction->setEnabled(false); // TODO: decrypt currently not supported
+			}
+			break;
+
+			case WalletModel::Locked:
+			{
+				labelEncryptionIcon->setPixmap(QIcon(fUseBlackTheme ? ":/icons/black/lock_closed" : ":/icons/lock_closed").pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
+				labelEncryptionIcon->setToolTip(tr("Wallet is <b>encrypted</b> and currently <b>locked</b>"));
+				changePassphraseAction->setEnabled(true);
+				unlockWalletAction->setVisible(true);
+				lockWalletAction->setVisible(false);
+				encryptWalletAction->setEnabled(false); // TODO: decrypt currently not supported
+			}
+			break;
+		}
+
+	}
+}
+
+
+void BitcoinGUI::encryptWallet()
+{
+	if (!walletModel)
+	{
+		return;
+	}
+
+	AskPassphraseDialog dlg(AskPassphraseDialog::Encrypt, this);
+	dlg.setModel(walletModel);
+	dlg.exec();
+
+	setEncryptionStatus(walletModel->getEncryptionStatus());
+}
+
+
+void BitcoinGUI::backupWallet()
+{
+	QString saveDir = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
+	QString filename = QFileDialog::getSaveFileName(this, tr("Backup Wallet"), saveDir, tr("Wallet Data (*.dat)"));
+	
+	if (!filename.isEmpty())
+	{
+		if (!walletModel->backupWallet(filename))
+		{
+			QMessageBox::warning(this, tr("Backup Failed"), tr("There was an error trying to save the wallet data to the new location."));
+		}
+	}
+}
+
+
+void BitcoinGUI::importPrivateKey()
+{
+    ImportPrivateKeyDialog dlg(this);
+    dlg.setModel(walletModel->getAddressTableModel());
+    dlg.exec();
+}
+
+
+void BitcoinGUI::changePassphrase()
+{
+	AskPassphraseDialog dlg(AskPassphraseDialog::ChangePass, this);
+	dlg.setModel(walletModel);
+	dlg.exec();
+}
+
+
+void BitcoinGUI::unlockWallet()
+{
+	if (!walletModel)
+	{
+		return;
+	}
+
+	// Unlock wallet when requested by wallet model
+	if (walletModel->getEncryptionStatus() == WalletModel::Locked)
+	{
+		AskPassphraseDialog::Mode mode = sender() == unlockWalletAction ? AskPassphraseDialog::UnlockStaking : AskPassphraseDialog::Unlock;
+		AskPassphraseDialog dlg(mode, this);
+		dlg.setModel(walletModel);
+		dlg.exec();
+	}
+}
+
+
+void BitcoinGUI::lockWallet()
+{
+	if (!walletModel)
+	{
+		return;
+	}
+
+	walletModel->setWalletLocked(true);
+}
+
+
+void BitcoinGUI::showNormalIfMinimized(bool fToggleHidden)
+{
+	// activateWindow() (sometimes) helps with keyboard focus on Windows
+	if (isHidden())
+	{
+		show();
+		activateWindow();
+	}
+	else if (isMinimized())
+	{
+		showNormal();
+		activateWindow();
+	}
+	else if (GUIUtil::isObscured(this))
+	{
+		raise();
+		activateWindow();
+	}
+	else if (fToggleHidden)
+	{
+		hide();
+	}
+}
+
+
+void BitcoinGUI::toggleHidden()
+{
+	showNormalIfMinimized(true);
+}
+
+
+void BitcoinGUI::updateWeight()
+{
+	if (!pwalletMain)
+	{
+		return;
+	}
+
+	TRY_LOCK(cs_main, lockMain);
+	if (!lockMain)
+	{
+		return;
+	}
+
+	TRY_LOCK(pwalletMain->cs_wallet, lockWallet);
+	if (!lockWallet)
+	{
+		return;
+	}
+
+	nWeight = pwalletMain->GetStakeWeight();
+}
+
+
+void BitcoinGUI::updateStakingIcon()
+{
+	updateWeight();
+
+	if (nLastCoinStakeSearchInterval && nWeight)
+	{
+		uint64_t nWeight = this->nWeight;
+		uint64_t nNetworkWeight = GetPoSKernelPS();
+		
+		unsigned nEstimateTime = 0;
+		
+		nEstimateTime = TARGET_SPACING * nNetworkWeight / nWeight;
+
+		QString text;
+		
+		if (nEstimateTime < 60)
+		{
+			text = tr("%n second(s)", "", nEstimateTime);
+		}
+		else if (nEstimateTime < 60 * 60)
+		{
+			text = tr("%n minute(s)", "", nEstimateTime / 60);
+		}
+		else if (nEstimateTime < 24 * 60 * 60)
+		{
+			text = tr("%n hour(s)", "", nEstimateTime / (60 * 60));
+		}
+		else
+		{
+			text = tr("%n day(s)", "", nEstimateTime / (60 * 60 * 24));
+		}
+
+		nWeight /= COIN;
+		nNetworkWeight /= COIN;
+
+		labelStakingIcon->setPixmap(QIcon(fUseBlackTheme ? ":/icons/black/staking_on" : ":/icons/staking_on").pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
+		labelStakingIcon->setToolTip(tr("Staking.<br>Your weight is %1<br>Network weight is %2<br>Expected time to earn reward is %3").arg(nWeight).arg(nNetworkWeight).arg(text));
+	}
+	else
+	{
+		labelStakingIcon->setPixmap(QIcon(fUseBlackTheme ? ":/icons/black/staking_off" : ":/icons/staking_off").pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
+		
+		if (pwalletMain && pwalletMain->IsLocked())
+		{
+			labelStakingIcon->setToolTip(tr("Not staking because wallet is locked"));
+		}
+		else if (vNodes.empty())
+		{
+			labelStakingIcon->setToolTip(tr("Not staking because wallet is offline"));
+		}
+		else if (IsInitialBlockDownload())
+		{
+			labelStakingIcon->setToolTip(tr("Not staking because wallet is syncing"));
+		}
+		else if (!nWeight)
+		{
+			labelStakingIcon->setToolTip(tr("Not staking because you don't have mature coins"));
+		}
+		else
+		{
+			labelStakingIcon->setToolTip(tr("Not staking"));
+		}
+	}
+}
+
+
+void BitcoinGUI::detectShutdown()
+{
+	if (ShutdownRequested())
+	{
+		QMetaObject::invokeMethod(QCoreApplication::instance(), "quit", Qt::QueuedConnection);
+	}
+}
+
+
+void BitcoinGUI::showProgress(const QString &title, int nProgress)
+{
+	if (nProgress == 0)
+	{
+		progressDialog = new QProgressDialog(title, "", 0, 100);
+		progressDialog->setWindowModality(Qt::ApplicationModal);
+		progressDialog->setMinimumDuration(0);
+		progressDialog->setCancelButton(0);
+		progressDialog->setAutoClose(false);
+		progressDialog->setValue(0);
+	}
+	else if (nProgress == 100)
+	{
+		if (progressDialog)
+		{
+			progressDialog->close();
+			progressDialog->deleteLater();
+		}
+	}
+	else if (progressDialog)
+	{
+		progressDialog->setValue(nProgress);
+	}
+}
+
+
+void BitcoinGUI::linkWebsiteClicked()
+{
+	QDesktopServices::openUrl(QUrl("https://profithunterscoin.com", QUrl::TolerantMode));
+}
+
+
+void BitcoinGUI::linkBitcointalkClicked()
+{
+    QDesktopServices::openUrl(QUrl("https://bitcointalk.org/index.php?topic=2786295.0", QUrl::TolerantMode));
+}
+
+
+void BitcoinGUI::linkTwitterClicked()
+{
+    QDesktopServices::openUrl(QUrl("https://twitter.com/phcadmin", QUrl::TolerantMode));
+}
+
+
+void BitcoinGUI::linkFacebookClicked()
+{
+    QDesktopServices::openUrl(QUrl("https://www.facebook.com/ProfitHuntersCoin/", QUrl::TolerantMode));
+}
+
+
+void BitcoinGUI::linkDiscordClicked()
+{
+    QDesktopServices::openUrl(QUrl("https://discordapp.com/invite/Abwhbw2", QUrl::TolerantMode));
+}
+
+
+void BitcoinGUI::linkTelegramClicked()
+{
+    QDesktopServices::openUrl(QUrl("https://t.me/profithunterscoin", QUrl::TolerantMode));
+}
+
+
+void BitcoinGUI::linkSlackClicked()
+{
+    QDesktopServices::openUrl(QUrl("https://profithunterscoin.slack.com/join/shared_invite/enQ%20tMjk1NTU0NjI4NjMxLWE5NmM1MWYyN2Y4NTY4ZjE0ZTgxYzJiNGYyNDYwODh%20iNGQwODQ1OTFkYTY4OTZkODFjN2Y0NDA4MWEwY2FiNWU"));
+}
+
+
+void BitcoinGUI::linkExplorer1Clicked()
+{
+    QDesktopServices::openUrl(QUrl("http://explorer.profithunterscoin.com", QUrl::TolerantMode));
+}
+
+
+void BitcoinGUI::linkExplorer2Clicked()
+{
+    QDesktopServices::openUrl(QUrl("http://explorer2.profithunterscoin.com", QUrl::TolerantMode));
+}

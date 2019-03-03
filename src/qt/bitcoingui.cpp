@@ -261,12 +261,17 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 
 							"QMenuBar"
 							"{"
-							"	color: #A4D300;"
-							"	background-color: #000000;"
+							"	color: #000000;"
+							"	border: 2px solid;"
+							"	border-color: #A4D300;"
+							"	background-color: #A4D300;"
 							"}"
 
 							"QMenuBar::item"
 							"{"
+							"	border: 2px solid;"
+							"	padding: 2px;"
+							"	border-color: #A4D300;"
 							"	color: #000000;"
 							"	background-color: #A4D300;"
 							"}"
@@ -279,6 +284,8 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 
 							"QMenu"
 							"{"
+							"	border: 2px solid;"
+							"	border-color: #A4D300;"
 							"	color: #A4D300;"
 							"	background-color: #000000;"
 							"}"
@@ -825,11 +832,6 @@ void BitcoinGUI::createMenuBar()
 
 	// Configure the menus
 	QMenu *main = appMenuBar->addMenu(tr("&Main"));
-	main->addAction(overviewAction);
-	main->addAction(receiveCoinsAction);
-	main->addAction(sendCoinsAction);
-	main->addAction(historyAction);
-	main->addAction(addressBookAction);
 	main->addAction(masternodeManagerAction);
 
 	if (!fLiteMode)
@@ -838,20 +840,29 @@ void BitcoinGUI::createMenuBar()
 	}
 
 	main->addAction(blockAction);
-	main->addAction(signMessageAction);
-	main->addAction(verifyMessageAction);
+
 	main->addSeparator();
 	main->addAction(quitAction);
 
 	QMenu *wallet = appMenuBar->addMenu(tr("&Wallet"));
+	wallet->addAction(overviewAction);
+	wallet->addAction(addressBookAction);
+	wallet->addAction(receiveCoinsAction);
+	wallet->addAction(sendCoinsAction);
+	wallet->addAction(historyAction);
+	wallet->addSeparator();
+	wallet->addAction(signMessageAction);
+	wallet->addAction(verifyMessageAction);
+	wallet->addSeparator();
 	wallet->addAction(encryptWalletAction);
 	wallet->addAction(changePassphraseAction);
 	wallet->addAction(unlockWalletAction);
 	wallet->addAction(lockWalletAction);
+	wallet->addSeparator();
 	wallet->addAction(backupWalletAction);
 	wallet->addAction(importPrivateKeyAction);
 	wallet->addAction(exportAction);
-	wallet->addSeparator();
+
 
 	QMenu *tools = appMenuBar->addMenu(tr("&Tools"));
 	tools->addAction(optionsAction);

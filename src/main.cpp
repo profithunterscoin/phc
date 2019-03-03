@@ -3094,12 +3094,6 @@ int Backtoblock(int nNewHeight)
 
 }
 
-/*
-bool Chain_Shield()
-{
-    
-}
-*/
 
 bool Reorganize(CTxDB& txdb, CBlockIndex* pindexNew)
 {
@@ -5831,6 +5825,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
     {
         vector<CInv> vInv;
         vRecv >> vInv;
+
         if (vInv.size() > MAX_INV_SZ)
         {
             Misbehaving(pfrom->GetId(), 20);
@@ -6642,7 +6637,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         if (pto->fTurboSyncSent == false)
         {
             pto->fTurboSyncSent = true;
-            pto->PushMessage("turbosync", TURBOSYNC_MAX);
+            pto->PushMessage("turbosync", (int64_t)TURBOSYNC_MAX);
         }
 
         //
@@ -6787,6 +6782,29 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
             State(pto->GetId())->fShouldBan = false;
         }
 
+
+        // ----------------------
+        //
+        // Message: sendcheckpoint
+        //
+        /*
+        if (fSyncCheckpointSent == false)
+        {
+            vector<CInv> vCheckpoint;
+
+            CInv peercheckpoint;
+
+            //peercheckpoint.type = pindexbest->nHeight;
+            //peercheckpoint.hash = hashBestChain;
+
+            if (!vCheckpoint.empty())
+            {
+                pto->PushMessage("sendcheckpoint", vCheckpoint);
+            }
+        }
+        */
+
+
         // ----------------------
         //
         // Message: inventory
@@ -6855,25 +6873,6 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
 
         // ----------------------
         //
-        // Message: sendcheckpoint
-        // 
-
-/*
-        vector<CInv> vCheckpoint;
-
-        CInv peercheckpoint;
-
-        //peercheckpoint.type = nBestHeight;
-        //peercheckpoint.hash = nBestBlockTrust;
-
-        if (!vCheckpoint.empty())
-        {
-            pto->PushMessage("sendcheckpoint", vCheckpoint);
-        }
-*/
-
-        // ----------------------
-        //
         // Message: getdata
         //
         vector<CInv> vGetData;
@@ -6937,4 +6936,24 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
 void ChainShield()
 {
     // TODO: ChainShield
+
+    // Force Resync
+
+    /*
+    LOCK(cs_vNodes);
+    
+    BOOST_FOREACH(CNode* pnode, vNodes)
+    {
+        if (pnode->fSuccessfullyConnected)
+        {
+            CAddress addrLocal = GetLocalAddress(&pnode->addr);
+            if (addrLocal.IsRoutable() && (CService)addrLocal != (CService)pnode->addrLocal)
+            {
+                pnode->PushAddress(addrLocal);
+                pnode->addrLocal = addrLocal;
+            }
+        }
+    }
+    */
 }
+
