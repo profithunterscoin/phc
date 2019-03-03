@@ -123,6 +123,7 @@ class BitcoinGUI : public QMainWindow
         QAction *exportAction;
         QAction *encryptWalletAction;
         QAction *backupWalletAction;
+        QAction *importPrivateKeyAction;
         QAction *changePassphraseAction;
         QAction *unlockWalletAction;
         QAction *lockWalletAction;
@@ -297,6 +298,9 @@ class BitcoinGUI : public QMainWindow
         
         /** Backup the wallet */
         void backupWallet();
+
+        /** Import a private key */
+        void importPrivateKey();
         
         /** Change encrypted wallet passphrase */
         void changePassphrase();

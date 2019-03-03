@@ -143,6 +143,11 @@ class CChainParams
             return strDarksendPoolDummyAddress;
         }
 
+        std::string DevRewardAddress() const
+        {
+            return strDevRewardAddress;
+        }
+
         int GetHardFork_1() const
         {
             return nHardFork_1;
@@ -185,6 +190,8 @@ class CChainParams
         int nHardFork_2;
 
         std::string strDarksendPoolDummyAddress;
+        std::string strDevRewardAddress;
+
         //std::string strSporkKey;
         //std::string strMasternodePaymentsPubKey;
 };

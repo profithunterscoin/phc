@@ -800,7 +800,7 @@ void SendCoinsDialog::processSendCoinsReturn(const WalletModel::SendCoinsReturn 
         break;
     }
 
-    emit message(tr("Send Coins"), msgParams.first, false, msgParams.second);
+    emit message(tr("Send Coins"), msgParams.first, true, msgParams.second);
 }
 /*
 void SendCoinsDialog::minimizeFeeSection(bool fMinimize)

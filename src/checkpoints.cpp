@@ -17,6 +17,7 @@
 
 static const int nCheckpointSpan = 5000;
 
+
 namespace Checkpoints
 {
     typedef std::map<int, uint256> MapCheckpoints;
@@ -28,8 +29,7 @@ namespace Checkpoints
     //    timestamp before)
     // + Contains no strange transactions
     //
-    static MapCheckpoints mapCheckpoints =
-        boost::assign::map_list_of
+    static MapCheckpoints mapCheckpoints = boost::assign::map_list_of
 		(0, uint256("0000b587d86da35102be091d9d303851d53130a70375a2ae6b8827ca18feb00d"))
         (5431, uint256("0ea876e7fb2834cacaf7767ad111cbca0bb94f3026bd1c8a264df68d4b4b6f70"))
         (11674, uint256("95cf94609fc418fa377db5399527dd862d83d95d8d0f6a18c37366ce2f886de8"))
@@ -37,6 +37,7 @@ namespace Checkpoints
         (59557, uint256("f9006b868e12f990ff5b8732bd126aaeef260617a4b384a4e55a0bc97076210d"))
         (105260, uint256("f4dc914767a9bdd700fc7ee05782a2a06320ef875c602127852423e7a6104b10"))
         (169254, uint256("866ed020ac69c2e10bf7d80b2d99b44251d549cf008fdea0e37eb1447ebefb0d"))
+        (760365, uint256("bf7cad650868c964204139b1ebd15e55b685ec0e43d8fa6b4bc7d912caeedcf4"))
     ;
 
     // TestNet has no checkpoints

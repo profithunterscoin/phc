@@ -1005,22 +1005,22 @@ Value getbalance(const Array& params, bool fHelp)
             
             string strSentAccount;
             
-            list<pair<CTxDestination, int64_t> > listReceived;
-            list<pair<CTxDestination, int64_t> > listSent;
+            list<COutputEntry> listReceived;
+            list<COutputEntry> listSent;
             
             wtx.GetAmounts(listReceived, listSent, allFee, strSentAccount, filter);
             
             if (wtx.GetDepthInMainChain() >= nMinDepth)
             {
-                BOOST_FOREACH(const PAIRTYPE(CTxDestination,int64_t)& r, listReceived)
+                BOOST_FOREACH (const COutputEntry& r, listReceived)
                 {
-                    nBalance += r.second;
+                    nBalance += r.amount;
                 }
             }
             
-            BOOST_FOREACH(const PAIRTYPE(CTxDestination,int64_t)& r, listSent)
+            BOOST_FOREACH (const COutputEntry& s, listSent)
             {
-                nBalance -= r.second;
+                nBalance -= s.amount;
             }
             
             nBalance -= allFee;
@@ -1774,8 +1774,8 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
 
     string strSentAccount;
     
-    list<pair<CTxDestination, int64_t> > listReceived;
-    list<pair<CTxDestination, int64_t> > listSent;
+    list<COutputEntry> listReceived;
+    list<COutputEntry> listSent;
 
     wtx.GetAmounts(listReceived, listSent, nFee, strSentAccount, filter);
 
@@ -1786,23 +1786,24 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
     // Sent
     if ((!wtx.IsCoinStake()) && (!listSent.empty() || nFee != 0) && (fAllAccounts || strAccount == strSentAccount))
     {
-        BOOST_FOREACH(const PAIRTYPE(CTxDestination, int64_t)& s, listSent)
+        BOOST_FOREACH(const COutputEntry& s, listSent)
         {
             Object entry;
 
-            if(involvesWatchonly || (::IsMine(*pwalletMain, s.first) & ISMINE_WATCH_ONLY))
+            if(involvesWatchonly || (::IsMine(*pwalletMain, s.destination) & ISMINE_WATCH_ONLY))
             {
                 entry.push_back(Pair("involvesWatchonly",           true));
             }
 
             entry.push_back(Pair("account",                         strSentAccount));
             
-            MaybePushAddress(entry, s.first);
+            MaybePushAddress(entry, s.destination);
             
             std::map<std::string, std::string>::const_iterator it = wtx.mapValue.find("DS");
 
             entry.push_back(Pair("category",                        (it != wtx.mapValue.end() && it->second == "1") ? "darksent" : "send"));
-            entry.push_back(Pair("amount",                          ValueFromAmount(-s.second)));
+            entry.push_back(Pair("amount", ValueFromAmount(-s.amount)));
+            entry.push_back(Pair("vout", s.vout));
             entry.push_back(Pair("fee",                             ValueFromAmount(-nFee)));
 
             if (fLong)
@@ -1819,26 +1820,26 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
     {
         bool stop = false;
 
-        BOOST_FOREACH(const PAIRTYPE(CTxDestination, int64_t)& r, listReceived)
+        BOOST_FOREACH (const COutputEntry& r, listReceived)
         {
             string account;
 
-            if (pwalletMain->mapAddressBook.count(r.first))
+            if (pwalletMain->mapAddressBook.count(r.destination))
             {
-                account = pwalletMain->mapAddressBook[r.first];
+                account = pwalletMain->mapAddressBook[r.destination];
             }
             
             if (fAllAccounts || (account == strAccount))
             {
                 Object entry;
-                if(involvesWatchonly || (::IsMine(*pwalletMain, r.first) & ISMINE_WATCH_ONLY))
+                if(involvesWatchonly || (::IsMine(*pwalletMain, r.destination) & ISMINE_WATCH_ONLY))
                 {
                     entry.push_back(Pair("involvesWatchonly",   true));
                 }
                 
                 entry.push_back(Pair("account",                 account));
                 
-                MaybePushAddress(entry, r.first);
+                MaybePushAddress(entry, r.destination);
                 
                 if (wtx.IsCoinBase() || wtx.IsCoinStake())
                 {
@@ -1862,7 +1863,7 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
                 
                 if (!wtx.IsCoinStake())
                 {
-                    entry.push_back(Pair("amount",              ValueFromAmount(r.second)));
+                    entry.push_back(Pair("amount", ValueFromAmount(r.amount)));
                 }
                 else
                 {
@@ -2133,8 +2134,8 @@ Value listaccounts(const Array& params, bool fHelp)
         
         string strSentAccount;
         
-        list<pair<CTxDestination, int64_t> > listReceived;
-        list<pair<CTxDestination, int64_t> > listSent;
+        list<COutputEntry> listReceived;
+        list<COutputEntry> listSent;
         
         int nDepth = wtx.GetDepthInMainChain();
         
@@ -2147,22 +2148,22 @@ Value listaccounts(const Array& params, bool fHelp)
         
         mapAccountBalances[strSentAccount] -= nFee;
         
-        BOOST_FOREACH(const PAIRTYPE(CTxDestination, int64_t)& s, listSent)
+        BOOST_FOREACH (const COutputEntry& s, listSent)
         {
-            mapAccountBalances[strSentAccount] -= s.second;
+            mapAccountBalances[strSentAccount] -= s.amount;
         }
 
         if (nDepth >= nMinDepth && wtx.GetBlocksToMaturity() == 0)
         {
-            BOOST_FOREACH(const PAIRTYPE(CTxDestination, int64_t)& r, listReceived)
+            BOOST_FOREACH (const COutputEntry& r, listReceived)
             {
-                if (pwalletMain->mapAddressBook.count(r.first))
+                if (pwalletMain->mapAddressBook.count(r.destination))
                 {
-                    mapAccountBalances[pwalletMain->mapAddressBook[r.first]] += r.second;
+                    mapAccountBalances[pwalletMain->mapAddressBook[r.destination]] += r.amount;
                 }
                 else
                 {
-                    mapAccountBalances[""] += r.second;
+                    mapAccountBalances[""] += r.amount;
                 }
             }
         }
@@ -2570,6 +2571,14 @@ Value walletpassphrase(const Array& params, bool fHelp)
     pwalletMain->TopUpKeyPool();
 
     int64_t nSleepTime = params[1].get_int64();
+
+    // If the timeout value is too large or negative, the conversion from nSleepTime to seconds
+    // results in a negative value and the wallet unlocking will fail.
+    if (nSleepTime > INT32_MAX || nSleepTime < 0)
+    {
+		pwalletMain->Lock();
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Error: The timeout value entered was incorrect.");
+    }
     
     LOCK(cs_nWalletUnlockTime);
     

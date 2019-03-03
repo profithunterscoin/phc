@@ -178,41 +178,10 @@ Value importprivkey(const Array& params, bool fHelp)
         throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "Wallet is unlocked for staking only.");
     }
 
-    CKey key = vchSecret.GetKey();
-    CPubKey pubkey = key.GetPubKey();
-    assert(key.VerifyPubKey(pubkey));
-    CKeyID vchAddress = pubkey.GetID();
-    
-    // Global Namespace Start
+    if (!pwalletMain->ImportPrivateKey(vchSecret, strLabel, fRescan))
     {
-        LOCK2(cs_main, pwalletMain->cs_wallet);
-
-        pwalletMain->MarkDirty();
-        pwalletMain->SetAddressBookName(vchAddress, strLabel);
-
-        // Don't throw error in case a key is already there
-        if (pwalletMain->HaveKey(vchAddress))
-        {
-            return Value::null;
-        }
-
-        pwalletMain->mapKeyMetadata[vchAddress].nCreateTime = 1;
-
-        if (!pwalletMain->AddKeyPubKey(key, pubkey))
-        {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Error adding key to wallet");
-        }
-
-        // whenever a key is imported, we need to scan the whole chain
-        pwalletMain->nTimeFirstKey = 1; // 0 would be considered 'no value'
-
-        if (fRescan)
-        {
-            pwalletMain->ScanForWalletTransactions(pindexGenesisBlock, true);
-            pwalletMain->ReacceptWalletTransactions();
-        }
+        throw JSONRPCError(RPC_WALLET_ERROR, "Error adding key to wallet");
     }
-    // Global Namespace End 
 
     return Value::null;
 }

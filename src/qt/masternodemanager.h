@@ -22,7 +22,6 @@
 namespace Ui
 {
     class MasternodeManager;
-
 }
 
 class ClientModel;

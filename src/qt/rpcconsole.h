@@ -16,6 +16,7 @@
 #include "peertablemodel.h"
 
 #include <QWidget>
+#include <QCompleter>
 
 namespace Ui
 {
@@ -202,6 +203,7 @@ class RPCConsole: public QWidget
         
         QMenu *peersTableContextMenu;
         QMenu *banTableContextMenu;
+        QCompleter *autoCompleter;
 
 };
 

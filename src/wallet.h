@@ -22,6 +22,7 @@
 #include "ui_interface.h"
 #include "util.h"
 #include "stealth.h"
+#include "base58.h"
 
 // Settings
 extern int64_t nTransactionFee;
@@ -40,6 +41,7 @@ class CWalletDB;
 typedef std::map<CKeyID, CStealthKeyMetadata> StealthKeyMetaMap;
 typedef std::map<std::string, std::string> mapValue_t;
 
+extern int64_t GetStakeCombineThreshold();
 
 /** (client) version numbers for particular wallet features */
 enum WalletFeature
@@ -257,7 +259,7 @@ class CWallet : public CCryptoKeyStore, public CWalletInterface
         bool LoadWatchOnly(const CScript &dest);
 
         bool Lock();
-        bool Unlock(const SecureString& strWalletPassphrase, bool anonimizeOnly = false);
+        bool Unlock(const SecureString& strWalletPassphrase, bool anonymizeOnly = false, bool stakingOnly = false);
         bool ChangeWalletPassphrase(const SecureString& strOldWalletPassphrase, const SecureString& strNewWalletPassphrase);
         bool EncryptWallet(const SecureString& strWalletPassphrase);
 
@@ -272,12 +274,13 @@ class CWallet : public CCryptoKeyStore, public CWalletInterface
         void MarkDirty();
 
         bool AddToWallet(const CWalletTx& wtxIn, bool fFromLoadWallet=false);
-        void SyncTransaction(const CTransaction& tx, const CBlock* pblock, bool fConnect = true);
+        void SyncTransaction(const CTransaction& tx, const CBlock* pblock, bool fConnect = true, bool fFixSpentCoins = false);
         bool AddToWalletIfInvolvingMe(const CTransaction& tx, const CBlock* pblock, bool fUpdate);
         void EraseFromWallet(const uint256 &hash);
         int ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate = false);
         void ReacceptWalletTransactions();
         void ResendWalletTransactions(bool fForce = false);
+        bool ImportPrivateKey(CPHCcoinSecret vchSecret, string strLabel = "", bool fRescan = true);
 
         CAmount GetStake() const;
         CAmount GetNewPOWMint() const;
@@ -559,6 +562,15 @@ class CReserveKey
 
 
 typedef std::map<std::string, std::string> mapValue_t;
+
+
+struct COutputEntry
+{
+    CTxDestination destination;
+    CAmount amount;
+
+    int vout;
+};
 
 
 static void ReadOrderPos(int64_t& nOrderPos, mapValue_t& mapValue)
@@ -1249,7 +1261,7 @@ class CWalletTx : public CMerkleTx
             return nChangeCached;
         }
 
-        void GetAmounts(std::list<std::pair<CTxDestination, int64_t> >& listReceived, std::list<std::pair<CTxDestination, int64_t> >& listSent, CAmount& nFee, std::string& strSentAccount, const isminefilter& filter) const;
+        void GetAmounts(std::list<COutputEntry>& listReceived, std::list<COutputEntry>& listSent, CAmount& nFee, std::string& strSentAccount, const isminefilter& filter) const;
 
         void GetAccountAmounts(const std::string& strAccount, CAmount& nReceived, CAmount& nSent, CAmount& nFee, const isminefilter& filter) const;
 

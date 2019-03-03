@@ -277,8 +277,10 @@ class CMainParams : public CChainParams
             //strSporkKey = "046f78dcf911fbd61910136f7f0f8d90578f68d0b3ac973b5040fb7afb501b5939f39b108b0569dca71488f5bbf498d92e4d1194f6f941307ffd95f75e76869f0e";
             //strMasternodePaymentsPubKey = "046f78dcf911fbd61910136f7f0f8d90578f68d0b3ac973b5040fb7afb501b5939f39b108b0569dca71488f5bbf498d92e4d1194f6f941307ffd95f75e76869f0e";
             strDarksendPoolDummyAddress = "PXeU4EGgDEnFJHuNptvqsWHs4qsdYg3Ypu";
+
+            strDevRewardAddress = "PTxSxCoYi7nVs5hhDMKE5B8JuBVFdgWFaz";
             
-            nLastPOWBlock = 5184001;
+            nLastPOWBlock = 0x7fffffff;
             nPOSStartBlock = 10000;
             //nStakeMaxAge = 9999; // 9999 days
 
@@ -408,7 +410,9 @@ class CTestNetParams : public CMainParams
 
             strDarksendPoolDummyAddress = "PXeU4EGgDEnFJHuNptvqsWHs4qsdYg3Ypu";
 
-            nLastPOWBlock = 5184000;
+            strDevRewardAddress = "tDFQKd4v6GoqjmoimRAmgH33fn5NnGLuYm";
+
+            nLastPOWBlock = 0x7fffffff;
             nPOSStartBlock = 10000;
 
             //nStakeMaxAge = 9999; // 9999 days

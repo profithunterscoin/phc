@@ -121,7 +121,7 @@ namespace
     {
 
         // Notifies listeners of updated transaction data (passing hash, transaction, and optionally the block it is found in.
-        boost::signals2::signal<void (const CTransaction &, const CBlock *, bool)> SyncTransaction;
+        boost::signals2::signal<void (const CTransaction &, const CBlock *, bool, bool)> SyncTransaction;
         // Notifies listeners of an erased transaction (currently disabled, requires transaction replacement).
         boost::signals2::signal<void (const uint256 &)> EraseTransaction;
         // Notifies listeners of an updated transaction without new data (for now: a coinbase potentially becoming visible).
@@ -138,7 +138,7 @@ namespace
 
 void RegisterWallet(CWalletInterface* pwalletIn)
 {
-    g_signals.SyncTransaction.connect(boost::bind(&CWalletInterface::SyncTransaction, pwalletIn, _1, _2, _3));
+    g_signals.SyncTransaction.connect(boost::bind(&CWalletInterface::SyncTransaction, pwalletIn, _1, _2, _3, _4));
     g_signals.EraseTransaction.connect(boost::bind(&CWalletInterface::EraseFromWallet, pwalletIn, _1));
     g_signals.UpdatedTransaction.connect(boost::bind(&CWalletInterface::UpdatedTransaction, pwalletIn, _1));
     g_signals.SetBestChain.connect(boost::bind(&CWalletInterface::SetBestChain, pwalletIn, _1));
@@ -153,7 +153,7 @@ void UnregisterWallet(CWalletInterface* pwalletIn)
     g_signals.SetBestChain.disconnect(boost::bind(&CWalletInterface::SetBestChain, pwalletIn, _1));
     g_signals.UpdatedTransaction.disconnect(boost::bind(&CWalletInterface::UpdatedTransaction, pwalletIn, _1));
     g_signals.EraseTransaction.disconnect(boost::bind(&CWalletInterface::EraseFromWallet, pwalletIn, _1));
-    g_signals.SyncTransaction.disconnect(boost::bind(&CWalletInterface::SyncTransaction, pwalletIn, _1, _2, _3));
+    g_signals.SyncTransaction.disconnect(boost::bind(&CWalletInterface::SyncTransaction, pwalletIn, _1, _2, _3, _4));
 }
 
 void UnregisterAllWallets()
@@ -166,9 +166,9 @@ void UnregisterAllWallets()
     g_signals.SyncTransaction.disconnect_all_slots();
 }
 
-void SyncWithWallets(const CTransaction &tx, const CBlock *pblock, bool fConnect)
+void SyncWithWallets(const CTransaction &tx, const CBlock *pblock, bool fConnect, bool fFixSpentCoins)
 {
-    g_signals.SyncTransaction(tx, pblock, fConnect);
+	g_signals.SyncTransaction(tx, pblock, fConnect, fFixSpentCoins);
 }
 
 void ResendWalletTransactions(bool fForce)
@@ -975,7 +975,7 @@ int64_t GetMinFee(const CTransaction& tx, unsigned int nBytes, bool fAllowFree, 
 }
 
 
-bool AcceptToMemoryPool(CTxMemPool& pool, CTransaction &tx, bool fLimitFree, bool* pfMissingInputs, bool fRejectInsaneFee, bool ignoreFees)
+bool AcceptToMemoryPool(CTxMemPool& pool, CTransaction &tx, bool fLimitFree, bool* pfMissingInputs, bool fRejectInsaneFee, bool ignoreFees, bool fFixSpentCoins)
 {
     AssertLockHeld(cs_main);
 
@@ -1185,7 +1185,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CTransaction &tx, bool fLimitFree, boo
     pool.addUnchecked(hash, tx);
     setValidatedTx.insert(hash);
 
-    SyncWithWallets(tx, NULL);
+    SyncWithWallets(tx, NULL, true, fFixSpentCoins);
 
     if (fDebug)
     {
@@ -1830,6 +1830,12 @@ void PruneOrphanBlocks()
 static CBigNum GetProofOfStakeLimit(int nHeight)
 {
     return bnProofOfStakeLimit;
+}
+
+
+string getDevRewardAddress(int nHeight)
+{
+    return Params().DevRewardAddress();
 }
 
 
@@ -3003,7 +3009,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 int RollbackChain(int nBlockCount)
 {
     // Rollbackchain 1.1 - (C) 2019 Profit Hunters Coin
-    // Thanks to TaliumTech for various fixes
+    // Thanks to TaliumTech for crash fixes
 
     CBlockIndex* pindex = pindexBest;
 
@@ -3067,7 +3073,7 @@ int Backtoblock(int nNewHeight)
         {
             LogPrintf("Back to block index %d\n", nNewHeight);
         }
-        
+
         CTxDB txdbAddr("rw");
 
         CBlock block;
@@ -3706,6 +3712,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
     // ----------- masternode payments -----------
 
     bool MasternodePayments = false;
+    bool foundDevFee = false;
     bool fIsInitialDownload = IsInitialBlockDownload();
 
     if(nTime > START_MASTERNODE_PAYMENTS)
@@ -3737,6 +3744,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                     bool foundPaymentAmount = false;
                     bool foundPayee = false;
                     bool foundPaymentAndPayee = false;
+                    bool foundDevFee = false;
 
                     CScript payee;
                     CTxIn vin;
@@ -3752,9 +3760,9 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
 
                         if (pindexBest->nHeight+1 >= DeActivationHeight)
                         {
-                            foundPayee = true; //doesn't require a specific payee
-                            foundPaymentAmount = true;
-                            foundPaymentAndPayee = true;
+                            foundPayee = false; //doesn't require a specific payee
+                            foundPaymentAmount = false;
+                            foundPaymentAndPayee = false;
                         }
                         else
                         {
@@ -3787,25 +3795,52 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                         }
                     }
 
+                    // devfee
+                    if (pindex->nHeight >= Params().GetHardFork_1())
+                    {
+                        CPHCcoinAddress devRewardAddress(getDevRewardAddress(pindex->nHeight + 1));
+                        CScript devRewardscriptPubKey = GetScriptForDestination(devRewardAddress.Get());
+
+                        foundDevFee = false;
+
+                        for (unsigned int i = 0; i < vtx[1].vout.size(); i++)
+                        {
+                            if(vtx[1].vout[i].scriptPubKey == devRewardscriptPubKey)
+                            {
+                                foundDevFee = true;
+                            }
+                        }
+                    }
+
                     CTxDestination address1;
                     ExtractDestination(payee, address1);
                     CPHCcoinAddress address2(address1);
 
+                    if (pindex->nHeight >= Params().GetHardFork_1())
+                    {
+                        if (!foundDevFee)
+                        {
+                            if(fDebug)
+                            {
+                                LogPrintf("CheckBlock() : Couldn't find devfee payment(%d|%d) or payee(%d|%s) nHeight %d. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, address2.ToString().c_str(), pindexBest->nHeight+1);
+                            }
+
+                            return DoS(100, error("CheckBlock() : Couldn't find devfee payment or payee"));
+                        }
+                    }
+                    
                     if(!foundPaymentAndPayee)
                     {
                         if(fDebug)
                         {
-                            LogPrint("core", "%s : Couldn't find masternode payment(%d|%d) or payee(%d|%s) nHeight %d. \n", __FUNCTION__, foundPaymentAmount, masternodePaymentAmount, foundPayee, address2.ToString().c_str(), pindexBest->nHeight+1);
+                            LogPrintf("CheckBlock() : Couldn't find masternode payment(%d|%d) or payee(%d|%s) nHeight %d. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, address2.ToString().c_str(), pindexBest->nHeight+1);
                         }
-                        
+
                         return DoS(100, error("CheckBlock() : Couldn't find masternode payment or payee"));
                     }
                     else
                     {
-                        if(fDebug)
-                        { 
-                            LogPrint("core", "%s : Found payment(%d|%d) or payee(%d|%s) nHeight %d. \n", __FUNCTION__, foundPaymentAmount, masternodePaymentAmount, foundPayee, address2.ToString().c_str(), pindexBest->nHeight+1);
-                        }
+                        LogPrintf("CheckBlock() : Found payment(%d|%d) or payee(%d|%s) nHeight %d. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, address2.ToString().c_str(), pindexBest->nHeight+1);
                     }
                 }
                 else
