@@ -84,6 +84,7 @@ class CRPCTable
         * @throws an exception (json_spirit::Value) when an error happens.
         */
         json_spirit::Value execute(const std::string &method, const json_spirit::Array &params) const;
+        std::vector<std::string> listCommands() const;
 };
 
 
@@ -126,7 +127,9 @@ extern json_spirit::Value getconnectioncount(const json_spirit::Array& params, b
 
 extern json_spirit::Value getpeerinfo(const json_spirit::Array& params, bool fHelp);
 
-extern json_spirit::Value getpeeraverageheight(const json_spirit::Array& params, bool fHelp);
+//extern json_spirit::Value getpeeraverageheight(const json_spirit::Array& params, bool fHelp);
+//extern json_spirit::Value getpeerbestheight(const json_spirit::Array& params, bool fHelp);
+//extern json_spirit::Value getpeerbestblockhash(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value ping(const json_spirit::Array& params, bool fHelp);
 

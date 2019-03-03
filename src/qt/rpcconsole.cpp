@@ -397,6 +397,17 @@ bool RPCConsole::eventFilter(QObject* obj, QEvent *event)
                 }
             }
             break;
+
+            case Qt::Key_Enter:
+            {
+                if (obj == autoCompleter->popup())
+                {
+                    QApplication::postEvent(ui->lineEdit, new QKeyEvent(*keyevt));
+
+                    return true;
+                }
+            }
+            break;
             
             default:
             {
@@ -526,6 +537,19 @@ void RPCConsole::setClientModel(ClientModel *model)
 
         setNumConnections(model->getNumConnections());
         ui->isTestNet->setChecked(model->isTestNet());
+
+        // Set up autocomplete and attach
+        QStringList wordList;
+        std::vector<std::string> commandList = tableRPC.listCommands();
+
+        for (size_t i = 0; i < commandList.size(); ++i)
+        {
+            wordList << commandList[i].c_str();
+        }
+
+        autoCompleter = new QCompleter(wordList, this);
+        ui->lineEdit->setCompleter(autoCompleter);
+        autoCompleter->popup()->installEventFilter(this);
     }
 }
 

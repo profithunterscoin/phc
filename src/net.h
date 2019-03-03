@@ -272,16 +272,27 @@ class CNodeStats
         int64_t nTimeConnected;
         int64_t nTimeOffset;
 
-        int nTurboSync;
-
+        std::string addrLocal;
         std::string addrName;
         int nVersion;
         std::string cleanSubVer;
         std::string strSubVer;
+
         bool fInbound;
+
+        int nTurboSync;
+
+        // Firewall Data
+        double nTrafficAverage;
+        double nTrafficRatio;
+        int nTrafficTimestamp;
 
         int nStartingHeight;
         int nSyncHeight;
+        int nSyncHeightCache;
+        uint256 nSyncBlockHash;
+        uint256 nSyncBlockHashCache;
+        int nInvalidRecvPackets;
         
         uint64_t nSendBytes;
         uint64_t nRecvBytes;
@@ -289,8 +300,7 @@ class CNodeStats
         bool fSyncNode;
         double dPingTime;
         double dPingWait;
-        
-        std::string addrLocal;
+
 };
 
 class CNetMessage
@@ -342,7 +352,8 @@ typedef enum BanReason
     BanReasonBandwidthAbuse   = 3,
     BanReasonInvalidWallet    = 4,
     BanReasonForkedWallet     = 5,
-    BanReasonFloodingWallet   = 6
+    BanReasonFloodingWallet   = 6,
+    BanReasonDDoSWallet       = 7
 
 } BanReason;
 
@@ -421,6 +432,11 @@ class CBanEntry
                     return "flooding wallet";
                 }
 
+                case BanReasonDDoSWallet:
+                {
+                    return "DDoS wallet";
+                }
+
                 default:
                 {
                     return "unknown";
@@ -461,6 +477,17 @@ class SecMsgNode
 /** Information about a peer */
 class CNode
 {
+
+    protected:
+
+        // Denial-of-service detection/prevention
+        // Key is IP address, value is banned-until-time
+        static banmap_t setBanned;
+        static CCriticalSection cs_setBanned;
+        static bool setBannedIsDirty;
+
+        std::vector<std::string> vecRequestsFulfilled; //keep track of what client has asked for
+        
     public:
 
         // socket
@@ -480,8 +507,24 @@ class CNode
         std::deque<CNetMessage> vRecvMsg;
         CCriticalSection cs_vRecvMsg;
 
-        uint64_t nRecvBytes;
+        CAddress addr;
+        std::string addrName;
+        CService addrLocal;
+        int nVersion;
         int nRecvVersion;
+        int nStartingHeight;
+        int64_t nLastSend;
+        int64_t nLastRecv;
+        int64_t nLastSendEmpty;
+        int64_t nTimeConnected;
+        int64_t nTimeOffset;
+        uint64_t nRecvBytes;
+
+        CSemaphoreGrant grantOutbound;
+        int nRefCount;
+        NodeId id;
+
+        bool fStartSync;
 
         int nTurboSync;
 
@@ -490,20 +533,11 @@ class CNode
         double nTrafficRatio;
         int nTrafficTimestamp;
 
-        uint256 nHashBestChain;
         int nSyncHeight;
-        int nSyncHeightOld;
-
-        int64_t nLastSend;
-        int64_t nLastRecv;
-        int64_t nLastSendEmpty;
-        int64_t nTimeConnected;
-        int64_t nTimeOffset;
-
-        CAddress addr;
-        std::string addrName;
-        CService addrLocal;
-        int nVersion;
+        int nSyncHeightCache;
+        uint256 nSyncBlockHash;
+        uint256 nSyncBlockHashCache;
+        int nInvalidRecvPackets;
 
         // strSubVer is whatever byte array we read from the wire. However, this field is intended
         // to be printed out, displayed to humans in various forms and so on. So we sanitize it and
@@ -525,28 +559,9 @@ class CNode
         bool fRelayTxes;
         bool fDarkSendMaster;
 
-        CSemaphoreGrant grantOutbound;
-        int nRefCount;
-        NodeId id;
-
-    protected:
-
-        // Denial-of-service detection/prevention
-        // Key is IP address, value is banned-until-time
-        static banmap_t setBanned;
-        static CCriticalSection cs_setBanned;
-        static bool setBannedIsDirty;
-
-        std::vector<std::string> vecRequestsFulfilled; //keep track of what client has asked for
-
-    public:
-
         uint256 hashContinue;
         CBlockIndex* pindexLastGetBlocksBegin;
         uint256 hashLastGetBlocksEnd;
-
-        int nStartingHeight;
-        bool fStartSync;
 
         // flood relay
         std::vector<CAddress> vAddrToSend;
@@ -630,7 +645,10 @@ class CNode
             nTrafficRatio = 0;
             nTrafficTimestamp = 0;
             nSyncHeight = 0;
-            nSyncHeightOld = 0;
+            nSyncHeightCache = 0;
+            nSyncBlockHash = 0;
+            nSyncBlockHashCache = 0;
+            nInvalidRecvPackets = 0;
 
             // Global Namespace Start
             {

@@ -148,8 +148,8 @@ void MasternodeManager::updateAdrenalineNode(QString alias, QString addr, QStrin
 
     ui->tableWidget_2->setItem(nodeRow, 0, aliasItem);
     ui->tableWidget_2->setItem(nodeRow, 1, addrItem);
-    ui->tableWidget_2->setItem(nodeRow, 2, rewardPercentageItem);
-    ui->tableWidget_2->setItem(nodeRow, 3, rewardAddressItem);
+    //ui->tableWidget_2->setItem(nodeRow, 2, rewardPercentageItem);
+    //ui->tableWidget_2->setItem(nodeRow, 3, rewardAddressItem);
     ui->tableWidget_2->setItem(nodeRow, 4, statusItem);
 }
 
@@ -271,9 +271,11 @@ void MasternodeManager::on_startButton_clicked()
     QItemSelectionModel* selectionModel = ui->tableWidget_2->selectionModel();
     
     QModelIndexList selected = selectionModel->selectedRows();
+    
     if(selected.count() == 0)
     {
         statusObj += "<br>Select a Masternode alias to start" ;
+
         QMessageBox msg;
         msg.setText(QString::fromStdString(statusObj));
         msg.exec();

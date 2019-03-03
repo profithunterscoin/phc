@@ -15,12 +15,13 @@ started with peer to peer profits from trading coins on our decentralized exchan
 v1.0.0.7 (Pre-release)
 --------
 * Cleaned Core and QT source files
-* OpenSSL 1.1 Support
+* OpenSSL 1.1 Support from Ignition coin (https://github.com/ignitioncoin/ignitioncoin/commit/8c08f09ef639a9c48b00661297619c23b9514966)
 * FIX: Excessive CPU use during mining
 * Upgrade: Debug to Logfile (Disabled by default, Added Categories and Function Names)
 * FIX: Removed peer banning ProcessBlock, upgraded some Misbehaving calls in main.cpp
 * Installed: Retarget Hard Fork (TimeFrame changed from 120 to 60 seconds) (Hard-Fork 1)
 * Installed: Block Shield 1.2.1 (Hard-Fork 1)
+* Installed: ASIC Choker 1.0.1 (Hard-Fork 1)
 * FIX: Blank Masternode Payee in CBlock::AddToBlockIndex() (Hard-Fork 1)
 * Installed: Internal PoW Miner (setgenerate)
 * Upgraded: Internal PoW Miner (Wait for approx expected block times, PrintToConsole, LogFlooding prevention)
@@ -30,17 +31,29 @@ v1.0.0.7 (Pre-release)
 * FIX: LoadblockIndex Initialization
 * Installed: OnStartup PruneOrphanBlocks
 * Installed: InitArgs Prune, Backtoblock, Rollbackchain, Clearchainfiles
-* Installed: RPC Prune & Reorganize & Backtoblock, Rollbackchain, Clearchainfiles
 * ProcessBlock() fixed (Orphans)
 * FIX: Network specific .conf
 * Installed: New Testnet
-* Installed: ASIC Choker 1.0.1
-* Installed: nSyncHeight value output to GetPeerInfo RPC
-* FIX: PoW & POS New Mint value (GetInfo RPC / BlockToJSON)
+* FIX: PoW & PoS New Mint value (GetInfo RPC / BlockToJSON)
 * Installed GetNewPOWMint & GetNewPOSMint in CWallet
+* Installed: RPC Prune & Reorganize & Backtoblock, Rollbackchain, Clearchainfiles,
 * FIX: MoneySupply (CBlockIndex)
 * FIX: Compiling on Ubuntu 16
 * Installed: MENU ITEMS -> Tools & Mining & Social Media Links in Help
+* Fixes from Talium coin (https://github.com/taliumtech/talium/commit/f673d50f41b4f5ee6f9e670d859a9de634620071)
+* Installed: Developer Fee, 10% of block reward (Hard Fork 1)
+
+v1.0.0.7 (To Finish before release)
+--------
+
+* Installed: RPC Getpeeraverageheight, Getpeerbestheight, Getpeerbestblockhash
+* Installed: nSyncHeight && nSyncBlockhash values output to GetPeerInfo RPC
+* Masternode reward decentralization (Hard-Fork 1)
+* TurboSync
+* Dynamic Checkpoints
+* Chain Shield
+* DDoS Shield & Firewall upgrades
+* Multisig - GUI Update
 
 v1.0.0.6
 --------

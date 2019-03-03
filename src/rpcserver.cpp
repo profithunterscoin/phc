@@ -356,7 +356,9 @@ static const CRPCCommand vRPCCommands[] =
     { "getblockcount",                                  &getblockcount,                                 true,      false,     false },
     { "getconnectioncount",                             &getconnectioncount,                            true,      false,     false },
     { "getpeerinfo",                                    &getpeerinfo,                                   true,      false,     false },
-    { "getpeeraverageheight",                           &getpeeraverageheight,                          true,      false,     false },
+    //{ "getpeeraverageheight",                           &getpeeraverageheight,                          true,      false,     false },
+    //{ "getpeerbestheight",                              &getpeerbestheight,                             true,      false,     false },
+    //{ "getpeerbestblockhash",                           &getpeerbestblockhash,                          true,      false,     false },
     { "addnode",                                        &addnode,                                       true,      true,      false },
     { "getaddednodeinfo",                               &getaddednodeinfo,                              true,      true,      false },
     { "ping",                                           &ping,                                          true,      false,     false },
@@ -1218,6 +1220,17 @@ json_spirit::Value CRPCTable::execute(const std::string &strMethod, const json_s
     {
         throw JSONRPCError(RPC_MISC_ERROR, e.what());
     }
+}
+
+
+std::vector<std::string> CRPCTable::listCommands() const
+{
+    std::vector<std::string> commandList;
+    typedef std::map<std::string, const CRPCCommand*> commandMap;
+
+    std::transform(mapCommands.begin(), mapCommands.end(), std::back_inserter(commandList), boost::bind(&commandMap::value_type::first, _1));
+    
+    return commandList;
 }
 
 

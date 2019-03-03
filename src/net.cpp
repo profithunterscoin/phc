@@ -42,7 +42,7 @@
 using namespace std;
 using namespace boost;
 
-static const int MAX_OUTBOUND_CONNECTIONS = 15;
+static const int MAX_OUTBOUND_CONNECTIONS = 25;
 
 
 bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant *grantOutbound = NULL, const char *strDest = NULL, bool fOneShot = false);
@@ -697,12 +697,12 @@ bool CheckAttack(CNode *pnode, string FromFunction)
         //// Resetting sync Height
         //if (nTimeConnected > 60)
         //{
-            //if (pnode->nSyncHeight > pnode->nSyncHeightOld)
+            //if (pnode->nSyncHeight > pnode->nSyncHeightCache)
             //{
-                //pnode->nSyncHeightOld = pnode->nSyncHeight;
+                //pnode->nSyncHeightCache = pnode->nSyncHeight;
             //}
 
-            //if (pnode->nSyncHeight < pnode->nSyncHeightOld - FIREWALL_AVERAGE_RANGE)
+            //if (pnode->nSyncHeight < pnode->nSyncHeightCache - FIREWALL_AVERAGE_RANGE)
             //{
                 // Trigger Blacklisting
                 //DETECTED = true;
@@ -3054,21 +3054,36 @@ void MapPort(bool fUseUPnP)
     {
         if (upnp_thread)
         {
-            upnp_thread->interrupt();
-            upnp_thread->join();
+            // Check if the thread is still running or not
+            bool fThreadStopped = upnp_thread->timed_join(boost::posix_time::seconds(0));
 
-            delete upnp_thread;
+            if (fThreadStopped)
+            {
+                delete upnp_thread;
+
+                upnp_thread = NULL;
+            }
         }
 
-        upnp_thread = new boost::thread(boost::bind(&TraceThread<void (*)()>, "upnp", &ThreadMapPort));
+        if (!upnp_thread)
+        {
+            // Start the UPnP thread if not running
+            upnp_thread = new boost::thread(boost::bind(&TraceThread<void (*)()>, "upnp", &ThreadMapPort));
+        }
     }
     else if (upnp_thread)
     {
         upnp_thread->interrupt();
-        upnp_thread->join();
 
-        delete upnp_thread;
-        upnp_thread = NULL;
+        if (ShutdownRequested())
+        {
+            // Only wait for the thread to finish if a shutdown is requested
+            upnp_thread->join();
+
+            delete upnp_thread;
+            
+            upnp_thread = NULL;
+        }
     }
 }
 
