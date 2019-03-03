@@ -132,6 +132,24 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 							"	padding:3px 30px;"
 							"}"
 
+							"QMenuBar"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"}"
+
+							"QMenuBar::item"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QMenuBar::item::selected"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"}"
+
 							"QMenu"
 							"{"
 							"	color: #A4D300;"
@@ -239,6 +257,24 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 							"{"
 							"	background-color: #E5D738;"
 							"	color: #000000;"
+							"}"
+
+							"QMenuBar"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"}"
+
+							"QMenuBar::item"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QMenuBar::item::selected"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
 							"}"
 
 							"QMenu"
