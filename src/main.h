@@ -106,6 +106,8 @@ inline const char * const BoolToString(bool b)
     return b ? "true" : "false";
 }
 
+extern int64_t TURBOSYNC_MAX;
+
 extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
 extern CTxMemPool mempool;

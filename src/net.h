@@ -117,14 +117,7 @@ extern int FIREWALL_FLOODINGWALLET_MAXCHECK;
 // * Average Blockheight among Peers */
 extern int Firewall_AverageHeight;
 
-// Turbosync
-// 0 = disabled (10000 Max Inv) (1000 Max Addr) (500 Max Blocks)
-// 1 = enabled (20000 Max Inv) (2000 Max Addr) (1000 Max Blocks)
-// 2 = enabled (40000 Max Inv) (4000 Max Addr) (2000 Max Blocks)
-// 3 = enabled (80000 Max Inv) (8000 Max Addr) (4000 Max Blocks)
-// 4 = enabled (160000 Max Inv) (16000 Max Addr) (8000 Max Blocks)
-// 5 = enabled (320000 Max Inv) (32000 Max Addr) (16000 Max Blocks)
-static const int64_t TURBOSYNC_MAX = 5;
+extern int64_t TURBOSYNC_MAX;
 
 /** Time between pings automatically sent out for latency probing and keepalive (in seconds). */
 static const int PING_INTERVAL = 1 * 60;
@@ -172,7 +165,7 @@ void SocketSendData(CNode *pnode);
 
 typedef int NodeId;
 
-inline unsigned int GetMaxInvBandwidth(int TurboSyncMax)
+inline int GetMaxInvBandwidth(int64_t TurboSyncMax)
 {
     switch (TurboSyncMax)
     {
@@ -210,7 +203,7 @@ inline unsigned int GetMaxInvBandwidth(int TurboSyncMax)
     return 50000; // Default
 }
 
-inline unsigned int GetMaxAddrBandwidth(int TurboSyncMax)
+inline int GetMaxAddrBandwidth(int64_t TurboSyncMax)
 {
     switch (TurboSyncMax)
     {
@@ -248,7 +241,7 @@ inline unsigned int GetMaxAddrBandwidth(int TurboSyncMax)
     return 1000; // Default
 }
 
-inline unsigned int GetMaxBlocksBandwidth(int TurboSyncMax)
+inline int GetMaxBlocksBandwidth(int64_t TurboSyncMax)
 {
     switch (TurboSyncMax)
     {

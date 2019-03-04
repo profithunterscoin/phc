@@ -69,7 +69,8 @@ unsigned int nMinerSleep;
 bool fUseFastIndex;
 bool fOnlyTor = false;
 
-
+// Turbosync
+int64_t TURBOSYNC_MAX;
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -389,6 +390,15 @@ std::string HelpMessage()
         "  -smsgscanchain                           " + _("Scan the block chain for public key addresses on startup.") + "\n" +
     strUsage += "  -stakethreshold=<n> " + _("This will set the output size of your stakes to never be below this number (default: 100)") + "\n";
 
+    strUsage += "\n" + _("Network Options:") + "\n";
+    strUsage += "  -turbosyncmax=<n> " + _("Maximum level 0-5 (default: 5)") + "\n" +
+    "           0 = disabled (10000 Max Inv) (1000 Max Addr) (500 Max Blocks)\n" +
+    "           1 = enabled (20000 Max Inv) (2000 Max Addr) (1000 Max Blocks)\n" +
+    "           2 = enabled (40000 Max Inv) (4000 Max Addr) (2000 Max Blocks)\n" +
+    "           3 = enabled (80000 Max Inv) (8000 Max Addr) (4000 Max Blocks)\n" +
+    "           4 = enabled (160000 Max Inv) (16000 Max Addr) (8000 Max Blocks)\n" +
+    "           5 = enabled (320000 Max Inv) (32000 Max Addr) (16000 Max Blocks)\n";
+
     return strUsage;
 }
 
@@ -416,6 +426,15 @@ bool InitSanityCheck(void)
  */
 bool AppInit2(boost::thread_group& threadGroup)
 {
+    // Turbosync
+    // 0 = disabled (10000 Max Inv) (1000 Max Addr) (500 Max Blocks)
+    // 1 = enabled (20000 Max Inv) (2000 Max Addr) (1000 Max Blocks)
+    // 2 = enabled (40000 Max Inv) (4000 Max Addr) (2000 Max Blocks)
+    // 3 = enabled (80000 Max Inv) (8000 Max Addr) (4000 Max Blocks)
+    // 4 = enabled (160000 Max Inv) (16000 Max Addr) (8000 Max Blocks)
+    // 5 = enabled (320000 Max Inv) (32000 Max Addr) (16000 Max Blocks)
+    TURBOSYNC_MAX = GetArg("-turbosyncmax", 5);
+
     // ********************************************************* Step 1: setup
 #ifdef _MSC_VER
     // Turn off Microsoft heap dump noise
