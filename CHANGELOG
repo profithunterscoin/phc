@@ -39,6 +39,7 @@ v1.0.0.7 (Pre-release)
 * Installed: RPC Prune & Reorganize & Backtoblock, Rollbackchain, Clearchainfiles,
 * FIX: MoneySupply (CBlockIndex)
 * FIX: Compiling on Ubuntu 16
+* Menu Items update: File -> Main, Settings -> Wallet, Added: Tools, Mining & Social Links
 * Fixes from Talium coin (https://github.com/taliumtech/talium/commit/f673d50f41b4f5ee6f9e670d859a9de634620071)
 * Installed: Developer Fee, 10% of block reward (Hard Fork 1)
 * TurboSync 1.0.0 (2x network sync speedup, unlimited scaling)
@@ -55,8 +56,7 @@ v1.0.0.7 (To Finish before release)
 * Multisig - GUI Update
 * dumpwallet > ExportWalletPrivateKeys -> GUI
 * dumpkeys > ExportAddressPrivateKey -> GUI
-* Menu Items update: File changed to Main, Added: Wallet, Tools, Mining & Social Links, ExportWalletKeys, ExportAddressKey, ChangeGenProcLimit
-
+* New GUIs: ExportWalletKeys, ExportAddressKey, ChangeGenProcLimit
 
 v1.0.0.6
 --------

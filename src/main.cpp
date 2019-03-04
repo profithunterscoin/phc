@@ -5667,7 +5667,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             }
 
             // Get recent addresses
-            if (pfrom->fOneShot || pfrom->nVersion >= CADDR_TIME_VERSION || (unsigned)addrman.size() < GetMaxAddrBandwidth(pfrom->nTurboSync))
+            if (pfrom->fOneShot || pfrom->nVersion >= CADDR_TIME_VERSION || (signed)addrman.size() < (signed)GetMaxAddrBandwidth(pfrom->nTurboSync))
             {
                 pfrom->PushMessage("getaddr");
                 pfrom->fGetAddr = true;
@@ -5735,7 +5735,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             return true;
         }
 
-        if (vAddr.size() > GetMaxAddrBandwidth(pfrom->nTurboSync))
+        if ((signed)vAddr.size() > (signed)GetMaxAddrBandwidth(pfrom->nTurboSync))
         {
             Misbehaving(pfrom->GetId(), 20);
 
@@ -5810,7 +5810,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         }
 
         addrman.Add(vAddrOk, pfrom->addr, 2 * 60 * 60);
-        if (vAddr.size() < GetMaxAddrBandwidth(pfrom->nTurboSync))
+        if ((signed)vAddr.size() < (signed)GetMaxAddrBandwidth(pfrom->nTurboSync))
         {
             pfrom->fGetAddr = false;
         }
@@ -6748,7 +6748,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
                 {
                     vAddr.push_back(addr);
                     // receiver rejects addr messages larger than 1000 by default
-                    if (vAddr.size() >= GetMaxAddrBandwidth(pto->nTurboSync))
+                    if ((signed)vAddr.size() >= (signed)GetMaxAddrBandwidth(pto->nTurboSync))
                     {
                         pto->PushMessage("addr", vAddr);
                         vAddr.clear();
@@ -6854,7 +6854,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
                 if (pto->setInventoryKnown.insert(inv).second)
                 {
                     vInv.push_back(inv);
-                    if (vInv.size() >= GetMaxAddrBandwidth(pto->nTurboSync))
+                    if ((signed)vInv.size() >= (signed)GetMaxAddrBandwidth(pto->nTurboSync))
                     {
                         pto->PushMessage("inv", vInv);
                         vInv.clear();
@@ -6892,7 +6892,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
                 }
 
                 vGetData.push_back(inv);
-                if (vGetData.size() >= GetMaxAddrBandwidth(pto->nTurboSync))
+                if ((signed)vGetData.size() >= (signed)GetMaxAddrBandwidth(pto->nTurboSync))
                 {
                     pto->PushMessage("getdata", vGetData);
                     vGetData.clear();
