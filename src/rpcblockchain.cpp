@@ -448,3 +448,14 @@ Value getpeeraverageheight(const Array& params, bool fHelp)
    
     return Firewall_AverageHeight;
 }
+
+Value forcesync(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 0)
+    {
+        throw runtime_error("forcesync\n"
+                            "Forces nodes to sync from current local block height.");
+    }
+
+    return strprintf("ForceSync nodes: %d", ForceSync());
+}

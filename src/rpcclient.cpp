@@ -153,6 +153,7 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "getpeeraverageheight",                       0 },
 //    { "getpeerbestheight",                          0 },
 //    { "getpeerbestblockhash",                       0 },
+    { "forcesync",                                  0 },
     { "getaddednodeinfo",                           0 },
     { "sendtoaddress",                              1 },
     { "settxfee",                                   0 },

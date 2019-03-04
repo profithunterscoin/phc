@@ -162,6 +162,9 @@ int RollbackChain(int nBlockCount);
 /** Prune Orphan blocks from index */
 void PruneOrphanBlocks();
 
+/** Force Sync from current Block (Request all connected nodes) */
+int ForceSync();
+
 /** Register a wallet to receive updates from core */
 void RegisterWallet(CWalletInterface* pwalletIn);
 
@@ -1702,3 +1705,5 @@ class CWalletInterface
 };
 
 #endif
+
+

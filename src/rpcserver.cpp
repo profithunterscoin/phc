@@ -352,6 +352,7 @@ static const CRPCCommand vRPCCommands[] =
     { "prune",                                          &prune,                                         true,      true,      false },
     { "rollbackchain",                                  &rollbackchain,                                 true,      true,      false },
     { "backtoblock",                                    &backtoblock,                                   true,      true,      false },
+    { "forcesync",                                      &forcesync,                                     true,      true,      false },
     { "getbestblockhash",                               &getbestblockhash,                              true,      false,     false },
     { "getblockcount",                                  &getblockcount,                                 true,      false,     false },
     { "getconnectioncount",                             &getconnectioncount,                            true,      false,     false },

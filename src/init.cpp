@@ -69,7 +69,7 @@ unsigned int nMinerSleep;
 bool fUseFastIndex;
 bool fOnlyTor = false;
 
-// Turbosync
+// Turbosync (C) 2019 - Profit Hunters Coin
 int64_t TURBOSYNC_MAX;
 
 //////////////////////////////////////////////////////////////////////////////
@@ -426,7 +426,7 @@ bool InitSanityCheck(void)
  */
 bool AppInit2(boost::thread_group& threadGroup)
 {
-    // Turbosync
+    // Turbosync (C) 2019 - Profit Hunters Coin
     // 0 = disabled (10000 Max Inv) (1000 Max Addr) (500 Max Blocks)
     // 1 = enabled (20000 Max Inv) (2000 Max Addr) (1000 Max Blocks)
     // 2 = enabled (40000 Max Inv) (4000 Max Addr) (2000 Max Blocks)
