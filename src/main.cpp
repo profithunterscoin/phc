@@ -6935,6 +6935,7 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
 
 void ChainShield()
 {
+    // (C) 2019 Profit Hunters Coin
     // TODO: ChainShield
 
     // Force Resync
@@ -6957,3 +6958,22 @@ void ChainShield()
     */
 }
 
+int ForceSync()
+{
+    // (C) 2019 Profit Hunters Coin
+
+    LOCK(cs_vNodes);
+
+    int NodeCount = 0;
+
+    BOOST_FOREACH(CNode* pnode, vNodes)
+    {
+        pnode->fStartSync = false;
+
+        PushGetBlocks(pnode, pindexBest, uint256(0));
+
+        NodeCount++;
+    }
+
+    return NodeCount;
+}

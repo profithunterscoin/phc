@@ -4678,9 +4678,7 @@ int SecureMsgValidate(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
     }
     else
     {
-        if (sha256Hash[31] == 0
-            && sha256Hash[30] == 0
-            && (~(sha256Hash[29]) & ((1<<0) || (1<<1) || (1<<2)) ))
+        if (sha256Hash[31] == 0 && sha256Hash[30] == 0 && (~(sha256Hash[29]) & ((1<0) || (1<1) || (1<2)) ))
         {
             if (fDebugSmsg)
             {
@@ -4803,10 +4801,7 @@ int SecureMsgSetHash(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
         };
         */
 
-        if (sha256Hash[31] == 0
-            && sha256Hash[30] == 0
-            && (~(sha256Hash[29]) & ((1<<0) || (1<<1) || (1<<2)) ))
-        //    && sha256Hash[29] == 0)
+        if (sha256Hash[31] == 0 && sha256Hash[30] == 0 && (~(sha256Hash[29]) & ((1<0) || (1<1) || (1<2)) ))         //    && sha256Hash[29] == 0)
         {
             found = true;
             

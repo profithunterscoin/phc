@@ -134,7 +134,6 @@ static const int DATA_TIMEOUT = 3 * 60;
 /** Maximum length of strSubVer in `version` message */
 static const unsigned int MAX_SUBVERSION_LENGTH = 256;
 
-
 inline unsigned int ReceiveFloodSize()
 {
     return 1000 * GetArg("-maxreceivebuffer", 5*1000);
@@ -404,18 +403,18 @@ class CNodeStats
         double dPingTime;
         double dPingWait;
 
-        // Turbosync
+        // Turbosync (C) 2019 - Profit Hunters Coin
         int64_t nTurboSync;
         bool fTurboSyncSent;
         bool fTurboSyncRecv;
 
-        // Firewall Data
+        // Firewall (C) 2017 - Biznatch Enterprises & BATA.io & Profit Hunters Coin
         double nTrafficAverage;
         double nTrafficRatio;
         int nTrafficTimestamp;
         int nInvalidRecvPackets;
 
-        // Dynamic Checkpoints
+        // Dynamic Checkpoints (C) 2019 - Profit Hunters Coin
         uint64_t nDynamicCheckpointRecv;
         uint64_t nDynamicCheckpointSent;
         int nSyncHeight;
@@ -650,18 +649,18 @@ class CNode
 
         bool fStartSync;
 
-        // Turbosync
+        // Turbosync (C) 2019 - Profit Hunters Coin
         int64_t nTurboSync;
         bool fTurboSyncSent;
         bool fTurboSyncRecv;
 
-        // Firewall Data
+        // Firewall (C) 2017 - Biznatch Enterprises & BATA.io & Profit Hunters Coin
         double nTrafficAverage;
         double nTrafficRatio;
         int nTrafficTimestamp;
         int nInvalidRecvPackets;
 
-        // Dynamic Checkpoints
+        // Dynamic Checkpoints (C) 2019 - Profit Hunters Coin
         uint64_t nDynamicCheckpointRecv;
         uint64_t nDynamicCheckpointSent;
         int nSyncHeight;
@@ -770,18 +769,18 @@ class CNode
 
             fPingQueued = false;
 
-            // Turbosync
+            // Turbosync (C) 2019 - Profit Hunters Coin
             nTurboSync = 0;
             fTurboSyncSent = false;
             fTurboSyncRecv = false;
 
-            // Firewall Data
+            // Firewall (C) 2017 - Biznatch Enterprises & BATA.io & Profit Hunters Coin
             nTrafficAverage = 0;
             nTrafficRatio = 0;
             nTrafficTimestamp = 0;
             nInvalidRecvPackets = 0;
 
-            // Dynamic Checkpoints
+            // Dynamic Checkpoints (C) 2019 - Profit Hunters Coin
             nDynamicCheckpointRecv = 0;
             nDynamicCheckpointSent = 0;
             nSyncHeight = 0;

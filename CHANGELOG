@@ -43,12 +43,13 @@ v1.0.0.7 (Pre-release)
 * Fixes from Talium coin (https://github.com/taliumtech/talium/commit/f673d50f41b4f5ee6f9e670d859a9de634620071)
 * Installed: Developer Fee, 10% of block reward (Hard Fork 1)
 * TurboSync 1.0.0 (2x network sync speedup, unlimited scaling)
+* Installed: RPC forceSync, getpeeraverageheight
 
 
 v1.0.0.7 (To Finish before release)
 --------
 * Dynamic Checkpoints
-* Installed: RPC Getpeeraverageheight, Getpeerbestheight, Getpeerbestblockhash
+* Installed: RPC getpeerbestheight, getpeerbestblockhash
 * Installed: nSyncHeight && nSyncBlockhash values output to GetPeerInfo RPC
 * Masternode reward decentralization (Hard-Fork 1)
 * Chain Shield (default check every 50 blocks)
