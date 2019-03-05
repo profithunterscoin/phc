@@ -1854,89 +1854,42 @@ double GetDynamicBlockReward3(int nHeight)
     int nSubsidyMod = 0;
     int TightForkHeight = 0;
 
-    if (!TestNet())
+    TightForkHeight = Params().GetHardFork_1();;
+
+    /* ------ Pre-Mining Phase: Block #0 (Start) ------ */
+    if (nHeight == 0)
     {
-        // MAIN-NET
-
-        TightForkHeight = 120000;
-
-        /* ------ Pre-Mining Phase: Block #0 (Start) ------ */
-        if (nHeight == 0)
-        {
-            nSubsidyMax = 1;
-        }
-        /* ------ Initial Mining Phase: Blocks Bigger than 0 ------ */
-        if (nHeight > 0)
-        {
-            nSubsidyMax = 100;
-        }
-        /* ------ Initial Mining Phase: Blocks Bigger than 50000 ------ */
-        if (nHeight > 50000)
-        {
-            nSubsidyMax = 50;
-        }
-        /* ------ Tight-Fork Mining Phase: Blocks Bigger than 120000 ------ */
-        if (nHeight > TightForkHeight)
-        {
-            nSubsidyMax = 25;
-        }
-        /* ------ Regular Mining Phase: Blocks Bigger than 200000 ------ */
-        if (nHeight > 150000)
-        {
-            nSubsidyMax = 12.5;
-        }
-        /* ------ Regular Mining Phase: Blocks Bigger than 200000 ------ */
-        if (nHeight > 200000)
-        {
-            nSubsidyMax = 6.25;
-        }
-        /* ------ Regular Mining Phase: Blocks Bigger than 250000 ------ */
-        if (nHeight > 250000)
-        {
-            nSubsidyMax = 3.125;
-        }
+        nSubsidyMax = 1;
     }
-    else
+    /* ------ Initial Mining Phase: Blocks Bigger than 0 ------ */
+    if (nHeight > 0)
     {
-        // TESNET
-
-        TightForkHeight = 1200;
-
-        /* ------ Pre-Mining Phase: Block #0 (Start) ------ */
-        if (nHeight == 0)
-        {
-            nSubsidyMax = 1;
-        }
-        /* ------ Initial Mining Phase: Blocks Bigger than 0 ------ */
-        if (nHeight > 0)
-        {
-            nSubsidyMax = 100;
-        }
-        /* ------ Initial Mining Phase: Blocks Bigger than 500 ------ */
-        if (nHeight > 500)
-        {
-            nSubsidyMax = 50;
-        }
-        /* ------ Tight-Fork Mining Phase: Blocks Bigger than 1200 ------ */
-        if (nHeight > TightForkHeight)
-        {
-            nSubsidyMax = 25;
-        }
-        /* ------ Regular Mining Phase: Blocks Bigger than 1500 ------ */
-        if (nHeight > 1500)
-        {
-            nSubsidyMax = 12.5;
-        }
-        /* ------ Regular Mining Phase: Blocks Bigger than 2000 ------ */
-        if (nHeight > 2000)
-        {
-            nSubsidyMax = 6.25;
-        }
-        /* ------ Regular Mining Phase: Blocks Bigger than 2500 ------ */
-        if (nHeight > 2500)
-        {
-            nSubsidyMax = 3.125;
-        }
+        nSubsidyMax = 100;
+    }
+    /* ------ Initial Mining Phase: Blocks Bigger than 50000 ------ */
+    if (nHeight > 50000)
+    {
+        nSubsidyMax = 50;
+    }
+    /* ------ Tight-Fork Mining Phase: Blocks Bigger than 120000 ------ */
+    if (nHeight > TightForkHeight)
+    {
+        nSubsidyMax = 25;
+    }
+    /* ------ Regular Mining Phase: Blocks Bigger than 200000 ------ */
+    if (nHeight > 150000)
+    {
+        nSubsidyMax = 12.5;
+    }
+    /* ------ Regular Mining Phase: Blocks Bigger than 200000 ------ */
+    if (nHeight > 200000)
+    {
+        nSubsidyMax = 6.25;
+    }
+    /* ------ Regular Mining Phase: Blocks Bigger than 250000 ------ */
+    if (nHeight > 250000)
+    {
+        nSubsidyMax = 3.125;
     }
 
     nSubsidyMod = nNetworkHashPS / nDifficulty;
@@ -2111,7 +2064,7 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
 {
     // TargetTimespan correction after development testing
     // PHC 1.0.0.7 Hard_Fork 1
-    if (nBestHeight >= Params().GetHardFork_1())
+    if (nBestHeight >= Params().GetHardFork_2())
     {
         nTargetTimespan = 60; // 1 Minute
     }
@@ -3749,7 +3702,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                         // PHC 1.0.0.7 Hard_Fork 1
                         //* Do not allow blank payments
                         
-                        DeActivationHeight = Params().GetHardFork_1(); // DeActivation
+                        DeActivationHeight = Params().GetHardFork_2(); // DeActivation
 
                         if (pindexBest->nHeight+1 >= DeActivationHeight)
                         {
@@ -3791,7 +3744,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                     bool foundDevFee = false;
 
                     // devfee
-                    if (pindex->nHeight >= Params().GetHardFork_1())
+                    if (pindex->nHeight >= Params().GetHardFork_2())
                     {
                         CPHCcoinAddress devRewardAddress(getDevRewardAddress(pindex->nHeight + 1));
                         CScript devRewardscriptPubKey = GetScriptForDestination(devRewardAddress.Get());
@@ -3811,7 +3764,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                     ExtractDestination(payee, address1);
                     CPHCcoinAddress address2(address1);
 
-                    if (pindex->nHeight >= Params().GetHardFork_1())
+                    if (pindex->nHeight >= Params().GetHardFork_2())
                     {
                         if (!foundDevFee)
                         {
@@ -3935,7 +3888,7 @@ bool CBlock::BlockShield(int Block_nHeight) const
     std::string TempLogCache;
 
     // PHC 1.0.0.7 Hard_Fork 1
-    ActivationHeight = Params().GetHardFork_1();
+    ActivationHeight = Params().GetHardFork_2();
 
     if (Block_nHeight >= ActivationHeight)
     {
@@ -4432,7 +4385,7 @@ bool ASIC_Choker(std::string addrname, CBlock* pblock)
     int nHeight = 0;
 
     // PHC 1.0.0.7 Hard_Fork 1
-    ActivationHeight = Params().GetHardFork_1();
+    ActivationHeight = Params().GetHardFork_2();
 
     uint256 hash = pblock->GetHash();
 
@@ -5846,6 +5799,54 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
     }
     /////////////////////
     //
+    // Get Message: sendcheckpoint
+    //
+    else if (strCommand == "sendcheckpoint")
+    {
+        bool UpdateNodeCheckpoint = false;
+       
+        if (pfrom->dCheckpointRecv.synced == false && pfrom->dCheckpointRecv.timestamp == 0)
+        {
+            UpdateNodeCheckpoint = true; // Update first time
+        }
+
+        if (pfrom->dCheckpointRecv.synced == true)
+        {
+            if (GetTime() - pfrom->dCheckpointRecv.timestamp > DYNAMICCHECKPOINTS_INTERVAL) // Auto-update
+            {
+                UpdateNodeCheckpoint = true;
+            }
+        }
+
+        if (pfrom->nVersion < MIN_PEER_DCHECKPOINTS_VERSION)
+        {
+            UpdateNodeCheckpoint = false; // Skip sending to older versions
+        }
+
+        if (UpdateNodeCheckpoint == true)
+        {
+            if (!vRecv.empty())
+            {
+                vector<DynamicCheckpoints::Checkpoint> vCheckpoint;
+
+                vRecv >> vCheckpoint;
+
+                if (vCheckpoint[0].height > 0)
+                {
+                    if (vCheckpoint[0].hash > 0)
+                    {
+                        // Update Checkpoint to CNode Data Cache
+                        pfrom->dCheckpointRecv.height = vCheckpoint[0].height;
+                        pfrom->dCheckpointRecv.hash = vCheckpoint[0].hash;
+                        pfrom->dCheckpointRecv.timestamp = GetTime();
+                        pfrom->dCheckpointRecv.synced = true;
+                    }
+                }
+            }
+        }
+    }
+    /////////////////////
+    //
     // Get Message: inv
     //
     else if (strCommand == "inv")
@@ -5916,52 +5917,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
             // Track requests for our stuff
             g_signals.Inventory(inv.hash);
-        }
-    }
-    /////////////////////
-    //
-    // Get Message: sendcheckpoint
-    //
-    else if (strCommand == "sendcheckpoint")
-    {
-        bool UpdateNodeCheckpoint = false;
-       
-        if (pfrom->dCheckpointRecv.synced == false && pfrom->dCheckpointRecv.timestamp == 0)
-        {
-            UpdateNodeCheckpoint = true; // Update first time
-        }
-
-        if (pfrom->dCheckpointRecv.synced == true)
-        {
-            if (GetTime() - pfrom->dCheckpointRecv.timestamp > DYNAMICCHECKPOINTS_INTERVAL) // Auto-update
-            {
-                UpdateNodeCheckpoint = true;
-            }
-        }
-
-        if (pfrom->nVersion < MIN_PEER_DCHECKPOINTS_VERSION)
-        {
-            UpdateNodeCheckpoint = false; // Skip sending to older versions
-        }
-
-        if (UpdateNodeCheckpoint == true)
-        {
-            DynamicCheckpoints::Checkpoint vCheckpoint;
-
-            if (!vRecv.empty())
-            {
-                vRecv >> vCheckpoint;
-
-                if (vCheckpoint.height > 0)
-                {
-                    // Update Checkpoint to CNode Data Cache
-                    pfrom->dCheckpointRecv.height = vCheckpoint.height;
-                    pfrom->dCheckpointRecv.hash = vCheckpoint.hash;
-                    pfrom->dCheckpointRecv.timestamp = GetTime();
-                    pfrom->dCheckpointRecv.synced = true;
-
-                }
-            }
         }
     }
     /////////////////////
@@ -6926,7 +6881,14 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
             pto->dCheckpointSent.timestamp = GetTime();
             pto->dCheckpointSent.synced = true;
 
-            pto->PushMessage("sendcheckpoint", pto->dCheckpointSent);
+            vector<DynamicCheckpoints::Checkpoint> vCheckpoint;
+
+            vCheckpoint.push_back(pto->dCheckpointSent);
+
+            if (!vCheckpoint.empty())
+            {
+                pto->PushMessage("sendcheckpoint", vCheckpoint);
+            }
         }
 
 

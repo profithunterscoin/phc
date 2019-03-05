@@ -285,8 +285,8 @@ class CMainParams : public CChainParams
             //nStakeMaxAge = 9999; // 9999 days
 
             // 1.0.0.7 - Hard Forks
-            nHardFork_1 = 10000000; // Block #10000000 Activation (HardFork_1) (UNDECIDED)
-            //nHardFork_2 = 10000000; // Block #10000000 Activation (HardFork_2) (UNDECIDED)
+            nHardFork_1 = 120000; // Block #120000 Activation (HardFork_1)
+            nHardFork_2 = 10000000; // Block #10000000 Activation (HardFork_2) (UNDECIDED)
         }
 
         virtual const CBlock& GenesisBlock() const
@@ -418,8 +418,8 @@ class CTestNetParams : public CMainParams
             //nStakeMaxAge = 9999; // 9999 days
 
             // 1.0.0.7 - Hard Forks
-            nHardFork_1 = 1; // Block #1 Activation (HardFork_1)
-            //nHardFork_2 = 1; // Block #1 Activation (HardFork_2)
+            nHardFork_1 = 1200; // Block #1 Activation (HardFork_1)
+            nHardFork_2 = 1; // Block #1 Activation (HardFork_2)
         }
 
         virtual Network NetworkID() const

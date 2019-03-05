@@ -2059,16 +2059,16 @@ void CNode::copyStats(CNodeStats &stats)
     stats.addrLocal = addrLocal.IsValid() ? addrLocal.ToString() : "";
 
     // Dynamic Checkpoints (C) 2019 - Profit Hunters Coin
-    // Sent
-    stats.Checkpoint_Sent = dCheckpointSent.synced;;
-    stats.CheckpointHeight_Sent = dCheckpointSent.height;
-    stats.CheckpointTimestamp_Sent = (int64_t)dCheckpointSent.timestamp;
-    stats.CheckpointBlock_Sent = dCheckpointSent.hash;
     // Received
     stats.Checkpoint_Recv = dCheckpointRecv.synced;
     stats.CheckpointHeight_Recv= dCheckpointRecv.height;
     stats.CheckpointTimestamp_Recv = (int64_t)dCheckpointRecv.timestamp;
     stats.CheckpointBlock_Recv = dCheckpointRecv.hash;
+    // Sent
+    stats.Checkpoint_Sent = dCheckpointSent.synced;;
+    stats.CheckpointHeight_Sent = dCheckpointSent.height;
+    stats.CheckpointTimestamp_Sent = (int64_t)dCheckpointSent.timestamp;
+    stats.CheckpointBlock_Sent = dCheckpointSent.hash;
 
 }
 #undef X
