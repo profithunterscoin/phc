@@ -32,7 +32,6 @@ static const int64_t TARGET_SPACING = 60; //60 sec
 #define INSTANTX_SIGNATURES_REQUIRED           10
 #define INSTANTX_SIGNATURES_TOTAL              15
 
-
 class CBlock;
 class CBlockIndex;
 class CInv;
@@ -107,6 +106,8 @@ inline const char * const BoolToString(bool b)
 }
 
 extern int64_t TURBOSYNC_MAX;
+
+static const int64_t DYNAMICCHECKPOINTS_INTERVAL = 60 * 60 * 3;  // 3 minutes
 
 extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
@@ -1703,6 +1704,8 @@ class CWalletInterface
         friend void ::UnregisterWallet(CWalletInterface*);
         friend void ::UnregisterAllWallets();
 };
+
+
 
 #endif
 

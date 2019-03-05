@@ -18,6 +18,10 @@
 static const int nCheckpointSpan = 5000;
 
 
+// namespace dynamic checkpoints
+
+
+
 namespace Checkpoints
 {
     typedef std::map<int, uint256> MapCheckpoints;
