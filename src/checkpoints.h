@@ -9,7 +9,7 @@
 #define  BITCOIN_CHECKPOINT_H
 
 #include <map>
-#include "net.h"
+#include "uint256.h"
 #include "util.h"
 
 class uint256;
@@ -34,6 +34,39 @@ namespace Checkpoints
 
     const CBlockIndex* AutoSelectSyncCheckpoint();
 
+}
+
+namespace DynamicCheckpoints
+{
+    // Dynamic Checkpoints 1.0.0
+    // (C) 2019 - Profit Hunters Coin
+
+    class Checkpoint
+    {
+        public:
+
+        Checkpoint()
+        {
+        }
+
+        Checkpoint(int64_t height);
+        Checkpoint(int64_t height, const uint256& hash);
+        Checkpoint(int64_t height, const uint256& hash, int64_t timestamp);
+        Checkpoint(int64_t height, const uint256& hash, int64_t timestamp, bool synced);
+
+        IMPLEMENT_SERIALIZE
+        (
+            READWRITE(height);
+            READWRITE(hash);
+            READWRITE(timestamp);
+            READWRITE(synced);
+        )
+
+        int64_t height;
+        uint256 hash;
+        int64_t timestamp;
+        bool synced;
+    };
 }
 
 #endif

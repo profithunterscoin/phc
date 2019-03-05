@@ -488,16 +488,16 @@ bool CheckAttack(CNode *pnode, string FromFunction)
 
     int NodeHeight;
 
-    if (pnode->nSyncHeight == 0)
+    if (pnode->dCheckpointRecv.height == 0)
     {
         NodeHeight = pnode->nStartingHeight;
     }
     else
     {
-        NodeHeight = pnode->nSyncHeight;
+        NodeHeight = pnode->dCheckpointRecv.height;
     }
 
-    if (pnode->nSyncHeight < pnode->nStartingHeight)
+    if (pnode->dCheckpointRecv.height < pnode->nStartingHeight)
     {
         NodeHeight = pnode->nStartingHeight;
     }
@@ -761,7 +761,7 @@ bool CheckAttack(CNode *pnode, string FromFunction)
                 }
 
                 // Check for Forked Wallet (stuck on blocks)
-                if (pnode->nSyncHeight == (int)FIREWALL_FORKED_NODEHEIGHT[i])
+                if (pnode->dCheckpointRecv.height == (int)FIREWALL_FORKED_NODEHEIGHT[i])
                 {
                     DETECTED_ATTACK = true;
                     ATTACK_TYPE = ATTACK_CHECK_NAME;
@@ -914,7 +914,7 @@ bool CheckAttack(CNode *pnode, string FromFunction)
         }
 
         // WARNING #18 - Starting Height = SyncHeight above max
-        if (pnode->nStartingHeight == pnode->nSyncHeight)
+        if (pnode->nStartingHeight == pnode->dCheckpointRecv.height)
         {
             WARNINGS = WARNINGS + "18";
         }
@@ -953,9 +953,9 @@ bool CheckAttack(CNode *pnode, string FromFunction)
         }
 
         // WARNING #24 - 
-        if (pnode->nSyncHeight < Firewall_AverageTraffic_Max)
+        if (pnode->dCheckpointRecv.height < Firewall_AverageTraffic_Max)
         {
-            if (pnode->nSyncHeight > Firewall_AverageHeight_Min)
+            if (pnode->dCheckpointRecv.height > Firewall_AverageHeight_Min)
             {
                 WARNINGS = WARNINGS + "24";
             }
@@ -1048,12 +1048,12 @@ bool CheckAttack(CNode *pnode, string FromFunction)
     {
         if (FIREWALL_LIVE_DEBUG == true)
         {
-            cout << ModuleName << " [Attack Type: " << ATTACK_TYPE << "] [Detected from: " << pnode->addrName << "] [Node Traffic: " << pnode->nTrafficRatio << "] [Node Traffic Avrg: " << pnode->nTrafficAverage << "] [Traffic Avrg: " << Firewall_AverageTraffic << "] [Sent Bytes: " << pnode->nSendBytes << "] [Recv Bytes: " << pnode->nRecvBytes << "] [Sync Height: " << pnode->nSyncHeight << "] [Protocol: " << pnode->nRecvVersion <<"\n" << endl;
+            cout << ModuleName << " [Attack Type: " << ATTACK_TYPE << "] [Detected from: " << pnode->addrName << "] [Node Traffic: " << pnode->nTrafficRatio << "] [Node Traffic Avrg: " << pnode->nTrafficAverage << "] [Traffic Avrg: " << Firewall_AverageTraffic << "] [Sent Bytes: " << pnode->nSendBytes << "] [Recv Bytes: " << pnode->nRecvBytes << "] [Sync Height: " << pnode->dCheckpointRecv.height << "] [Protocol: " << pnode->nRecvVersion <<"\n" << endl;
         }
 
         if (fDebug)
         {
-            LogPrint("firewall", "%s [Attack Type: %s] [Detected from: %s] [Node Traffic: %d] [Node Traffic Avrg: %d] [Traffic Avrg: %d] [Sent Bytes: %d] [Recv Bytes: %d] [Sync Height: %i] [Protocol: %i\n", ModuleName.c_str(), ATTACK_TYPE.c_str(), pnode->addrName.c_str(), pnode->nTrafficRatio, pnode->nTrafficAverage, Firewall_AverageTraffic, pnode->nSendBytes, pnode->nRecvBytes, pnode->nSyncHeight, pnode->nRecvVersion);
+            LogPrint("firewall", "%s [Attack Type: %s] [Detected from: %s] [Node Traffic: %d] [Node Traffic Avrg: %d] [Traffic Avrg: %d] [Sent Bytes: %d] [Recv Bytes: %d] [Sync Height: %i] [Protocol: %i\n", ModuleName.c_str(), ATTACK_TYPE.c_str(), pnode->addrName.c_str(), pnode->nTrafficRatio, pnode->nTrafficAverage, Firewall_AverageTraffic, pnode->nSendBytes, pnode->nRecvBytes, pnode->dCheckpointRecv.height, pnode->nRecvVersion);
         }
 
         // Blacklist IP on Attack detection
@@ -1094,16 +1094,16 @@ void Examination(CNode *pnode, string FromFunction)
     bool UpdateNodeStats = false;
     int NodeHeight;
 
-    if (pnode->nSyncHeight == 0)
+    if (pnode->dCheckpointRecv.height == 0)
     {
         NodeHeight = pnode->nStartingHeight;
     }
     else
     {
-        NodeHeight = pnode->nSyncHeight;
+        NodeHeight = pnode->dCheckpointRecv.height;
     }
 
-    if (pnode->nSyncHeight < pnode->nStartingHeight)
+    if (pnode->dCheckpointRecv.height < pnode->nStartingHeight)
     {
         NodeHeight = pnode->nStartingHeight;
     }
@@ -2033,14 +2033,6 @@ void CNode::copyStats(CNodeStats &stats)
     X(nTrafficRatio);
     X(nTrafficTimestamp);
     X(nStartingHeight);
-    X(nDynamicCheckpointRecv);
-    X(nDynamicCheckpointSent);
-    X(nSyncHeight);
-    X(nSyncHeightCheckpoint);
-    X(fSyncCheckpointSent);
-    X(fSyncCheckpointRecv);
-    X(nSyncBlockHash);
-    X(nSyncBlockHashCheckpoint);
     X(nInvalidRecvPackets);
     X(nSendBytes);
     X(nRecvBytes);
@@ -2065,6 +2057,19 @@ void CNode::copyStats(CNodeStats &stats)
 
     // Leave string empty if addrLocal invalid (not filled in yet)
     stats.addrLocal = addrLocal.IsValid() ? addrLocal.ToString() : "";
+
+    // Dynamic Checkpoints (C) 2019 - Profit Hunters Coin
+    // Sent
+    stats.Checkpoint_Sent = dCheckpointSent.synced;;
+    stats.CheckpointHeight_Sent = dCheckpointSent.height;
+    stats.CheckpointTimestamp_Sent = (int64_t)dCheckpointSent.timestamp;
+    stats.CheckpointBlock_Sent = dCheckpointSent.hash;
+    // Received
+    stats.Checkpoint_Recv = dCheckpointRecv.synced;
+    stats.CheckpointHeight_Recv= dCheckpointRecv.height;
+    stats.CheckpointTimestamp_Recv = (int64_t)dCheckpointRecv.timestamp;
+    stats.CheckpointBlock_Recv = dCheckpointRecv.hash;
+
 }
 #undef X
 

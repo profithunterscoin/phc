@@ -13,10 +13,12 @@
 #include "limitedmap.h"
 #include "mruset.h"
 #include "netbase.h"
+#include "checkpoints.h"
 #include "protocol.h"
 #include "sync.h"
 #include "uint256.h"
 #include "util.h"
+
 
 #include <deque>
 #include <stdint.h>
@@ -415,14 +417,16 @@ class CNodeStats
         int nInvalidRecvPackets;
 
         // Dynamic Checkpoints (C) 2019 - Profit Hunters Coin
-        uint64_t nDynamicCheckpointRecv;
-        uint64_t nDynamicCheckpointSent;
-        int nSyncHeight;
-        int nSyncHeightCheckpoint;
-        bool fSyncCheckpointSent;
-        bool fSyncCheckpointRecv;
-        uint256 nSyncBlockHash;
-        uint256 nSyncBlockHashCheckpoint;
+        // Sent
+        bool Checkpoint_Sent;
+        int64_t CheckpointHeight_Sent;
+        int64_t CheckpointTimestamp_Sent;
+        uint256 CheckpointBlock_Sent;
+        // Received
+        bool Checkpoint_Recv;
+        int64_t CheckpointHeight_Recv;
+        int64_t CheckpointTimestamp_Recv;
+        uint256 CheckpointBlock_Recv;
 
 };
 
@@ -661,14 +665,8 @@ class CNode
         int nInvalidRecvPackets;
 
         // Dynamic Checkpoints (C) 2019 - Profit Hunters Coin
-        uint64_t nDynamicCheckpointRecv;
-        uint64_t nDynamicCheckpointSent;
-        int nSyncHeight;
-        int nSyncHeightCheckpoint;
-        bool fSyncCheckpointSent;
-        bool fSyncCheckpointRecv;
-        uint256 nSyncBlockHash;
-        uint256 nSyncBlockHashCheckpoint;
+        DynamicCheckpoints::Checkpoint dCheckpointSent;
+        DynamicCheckpoints::Checkpoint dCheckpointRecv;
 
         // strSubVer is whatever byte array we read from the wire. However, this field is intended
         // to be printed out, displayed to humans in various forms and so on. So we sanitize it and
@@ -780,15 +778,16 @@ class CNode
             nTrafficTimestamp = 0;
             nInvalidRecvPackets = 0;
 
-            // Dynamic Checkpoints (C) 2019 - Profit Hunters Coin
-            nDynamicCheckpointRecv = 0;
-            nDynamicCheckpointSent = 0;
-            nSyncHeight = 0;
-            nSyncHeightCheckpoint = 0;
-            fSyncCheckpointSent = false;
-            fSyncCheckpointRecv = false;
-            nSyncBlockHash = 0;
-            nSyncBlockHashCheckpoint = 0;
+            // Dynamic Checkpoints 1.0.0
+            dCheckpointSent.height = 0;
+            dCheckpointSent.hash = 0;
+            dCheckpointSent.timestamp = 0;
+            dCheckpointSent.synced = false;
+            dCheckpointRecv.height = 0;
+            dCheckpointRecv.hash = 0;
+            dCheckpointRecv.timestamp = 0;
+            dCheckpointRecv.synced = false;
+
 
             // Global Namespace Start
             {

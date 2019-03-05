@@ -129,14 +129,21 @@ Value getpeerinfo(const Array& params, bool fHelp)
         obj.push_back(Pair("version",                           stats.nVersion));
         obj.push_back(Pair("subver",                            stats.strSubVer));
         obj.push_back(Pair("inbound",                           stats.fInbound));
-        obj.push_back(Pair("turbosyncmax",                      stats.nTurboSync));
-        obj.push_back(Pair("turbosyncsent",                     stats.fTurboSyncSent));
-        obj.push_back(Pair("turbosyncrecv",                     stats.fTurboSyncRecv));
+        obj.push_back(Pair("turbosync_max",                     stats.nTurboSync));
+        obj.push_back(Pair("turbosync_sent",                    stats.fTurboSyncSent));
+        obj.push_back(Pair("turbosync_recv",                    stats.fTurboSyncRecv));
         obj.push_back(Pair("startingheight",                    stats.nStartingHeight));
-        obj.push_back(Pair("syncheight",                        stats.nSyncHeight));
-        obj.push_back(Pair("syncblockhash",                     stats.nSyncBlockHash.GetHex()));
-        obj.push_back(Pair("syncheightcheckpoint",              stats.nSyncHeightCheckpoint));
-        obj.push_back(Pair("syncblockhashcheckpoint",           stats.nSyncBlockHashCheckpoint.GetHex()));
+
+        // Dynamic Checkpoints (C) 2019 - Profit Hunters Coin
+        obj.push_back(Pair("checkpoint_recv",                   stats.Checkpoint_Recv));
+        obj.push_back(Pair("checkpointheight_recv",             stats.CheckpointHeight_Recv));
+        obj.push_back(Pair("checkpointtimestamp_recv",          stats.CheckpointTimestamp_Recv));
+        obj.push_back(Pair("checkpointblock_recv",              stats.CheckpointBlock_Recv.GetHex()));
+        obj.push_back(Pair("checkpoint_sent",                   stats.Checkpoint_Sent));
+        obj.push_back(Pair("checkpointheight_sent",             stats.CheckpointHeight_Sent));
+        obj.push_back(Pair("checkpointtimestamp_sent",          stats.CheckpointTimestamp_Sent));
+        obj.push_back(Pair("checkpointblock_sent",              stats.CheckpointBlock_Sent.GetHex()));
+
         obj.push_back(Pair("invalidpackets",                    stats.nInvalidRecvPackets));
 
         

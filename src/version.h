@@ -50,6 +50,12 @@ static const int MIN_INSTANTX_PROTO_VERSION = 10006;
 static const int MIN_MASTERNODE_PAYMENT_PROTO_VERSION_1 = 10006;
 static const int MIN_MASTERNODE_PAYMENT_PROTO_VERSION_2 = 10006;
 
+// Dynamic Checkpoints starting at version #
+static const int MIN_PEER_DCHECKPOINTS_VERSION = 10007;
+
+// Dynamic Checkpoints starting at version #
+static const int MIN_PEER_TURBOSYNC_VERSION = 10007;
+
 // nTime field added to CAddress, starting with this version;
 // if possible, avoid requesting addresses nodes older than this
 static const int CADDR_TIME_VERSION = 31402;

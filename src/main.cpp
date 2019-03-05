@@ -5536,31 +5536,42 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         return true;
     }
 
+    /////////////////////
+    //
+    // Get Message: turbosync
+    //
     if (strCommand == "turbosync")
     {
-        int64_t TurboSync = 0;
-
-        if (!vRecv.empty())
+        if (pfrom->nVersion >= MIN_PEER_TURBOSYNC_VERSION)
         {
-            vRecv >> TurboSync;
+            int64_t TurboSync = 0;          
 
-            if (TurboSync > TURBOSYNC_MAX)
+            if (!vRecv.empty())
             {
-                TurboSync = TURBOSYNC_MAX;
-            }
+                vRecv >> TurboSync;
 
-            if (TurboSync < 0)
-            {
-                TurboSync = 0;
-            }
+                if (TurboSync > TURBOSYNC_MAX)
+                {
+                    TurboSync = TURBOSYNC_MAX;
+                }
 
-            // Update peer with TurboSyncMax
-            pfrom->nTurboSync = TurboSync;
-            pfrom->fTurboSyncRecv = true;
+                if (TurboSync < 0)
+                {
+                    TurboSync = 0;
+                }
+
+                // Update peer with TurboSyncMax
+                pfrom->nTurboSync = TurboSync;
+                pfrom->fTurboSyncRecv = true;
+            }
         }
     }
 
-    if (strCommand == "version")
+    /////////////////////
+    //
+    // Get Message: version
+    //
+    else if (strCommand == "version")
     {
         // Each connection can only send one version message
         if (pfrom->nVersion != 0)
@@ -5708,6 +5719,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             AddTimeData(pfrom->addr, nTime);
         }
     }
+    /////////////////////
+    //
+    // Get Message: version = (NULL)
+    //
     else if (pfrom->nVersion == 0)
     {
         // Must have a version message before anything else
@@ -5720,10 +5735,18 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
         return false;
     }
+    /////////////////////
+    //
+    // Get Message: verack
+    //
     else if (strCommand == "verack")
     {
         pfrom->SetRecvVersion(min(pfrom->nVersion, PROTOCOL_VERSION));
     }
+    /////////////////////
+    //
+    // Get Message: addr
+    //
     else if (strCommand == "addr")
     {
         vector<CAddress> vAddr;
@@ -5821,6 +5844,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         }
 
     }
+    /////////////////////
+    //
+    // Get Message: inv
+    //
     else if (strCommand == "inv")
     {
         vector<CInv> vInv;
@@ -5891,26 +5918,56 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             g_signals.Inventory(inv.hash);
         }
     }
+    /////////////////////
+    //
+    // Get Message: sendcheckpoint
+    //
     else if (strCommand == "sendcheckpoint")
     {
-
-        /*
-        vector<CInv> vInv;
-        vRecv >> vInv;
-        if (vInv.size() > 0)
+        bool UpdateNodeCheckpoint = false;
+       
+        if (pfrom->dCheckpointRecv.synced == false && pfrom->dCheckpointRecv.timestamp == 0)
         {
-            // Update Checkpoint to CNode Data Cache
-
-            pfrom->nSyncHeight = vInv[0];
-            pfrom->nSyncBlockHash = vInv[1];
-
-            pfrom->nDynamicCheckpointRecv = GetTime();
-            pfrom->fSyncCheckpointRecv = true;
+            UpdateNodeCheckpoint = true; // Update first time
         }
 
+        if (pfrom->dCheckpointRecv.synced == true)
+        {
+            if (GetTime() - pfrom->dCheckpointRecv.timestamp > DYNAMICCHECKPOINTS_INTERVAL) // Auto-update
+            {
+                UpdateNodeCheckpoint = true;
+            }
+        }
 
-        */
+        if (pfrom->nVersion < MIN_PEER_DCHECKPOINTS_VERSION)
+        {
+            UpdateNodeCheckpoint = false; // Skip sending to older versions
+        }
+
+        if (UpdateNodeCheckpoint == true)
+        {
+            DynamicCheckpoints::Checkpoint vCheckpoint;
+
+            if (!vRecv.empty())
+            {
+                vRecv >> vCheckpoint;
+
+                if (vCheckpoint.height > 0)
+                {
+                    // Update Checkpoint to CNode Data Cache
+                    pfrom->dCheckpointRecv.height = vCheckpoint.height;
+                    pfrom->dCheckpointRecv.hash = vCheckpoint.hash;
+                    pfrom->dCheckpointRecv.timestamp = GetTime();
+                    pfrom->dCheckpointRecv.synced = true;
+
+                }
+            }
+        }
     }
+    /////////////////////
+    //
+    // Get Message: getdata
+    //
     else if (strCommand == "getdata")
     {
         vector<CInv> vInv;
@@ -5935,6 +5992,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         pfrom->vRecvGetData.insert(pfrom->vRecvGetData.end(), vInv.begin(), vInv.end());
         ProcessGetData(pfrom);
     }
+    /////////////////////
+    //
+    // Get Message: getblocks
+    //
     else if (strCommand == "getblocks")
     {
         CBlockLocator locator;
@@ -5989,6 +6050,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             }
         }
     }
+    /////////////////////
+    //
+    // Get Message: getheaders
+    //
     else if (strCommand == "getheaders")
     {
         CBlockLocator locator;
@@ -6044,6 +6109,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
         pfrom->PushMessage("headers", vHeaders);
     }
+    /////////////////////
+    //
+    // Get Message: tx or dstx
+    //
     else if (strCommand == "tx"|| strCommand == "dstx")
     {
         vector<uint256> vWorkQueue;
@@ -6221,6 +6290,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             Misbehaving(pfrom->GetId(), tx.nDoS);
         }
     }
+    /////////////////////
+    //
+    // Get Message: block
+    //
     else if (strCommand == "block" && !fImporting && !fReindex) // Ignore blocks received while importing
     {
         CBlock block;
@@ -6255,6 +6328,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         }
 
     }
+    /////////////////////
+    //
+    // Get Message: getaddr
+    //
     else if ((strCommand == "getaddr") && (pfrom->fInbound))
     {
         // This asymmetric behavior for inbound and outbound connections was introduced
@@ -6276,6 +6353,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             }
         }
     }
+    /////////////////////
+    //
+    // Get Message: mempool
+    //
     else if (strCommand == "mempool")
     {
         LOCK(cs_main);
@@ -6301,6 +6382,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         }
 
     }
+    /////////////////////
+    //
+    // Get Message: ping
+    //
     else if (strCommand == "ping")
     {
         if (pfrom->nVersion > BIP0031_VERSION)
@@ -6322,6 +6407,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             pfrom->PushMessage("pong", nonce);
         }
     }
+    /////////////////////
+    //
+    // Get Message: pong
+    //
     else if (strCommand == "pong")
     {
         int64_t pingUsecEnd = GetTimeMicros();
@@ -6391,6 +6480,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             pfrom->nPingNonceSent = 0;
         }
     }
+    /////////////////////
+    //
+    // Get Message: alert
+    //
     else if (strCommand == "alert")
     {
         CAlert alert;
@@ -6423,6 +6516,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             }
         }
     }
+    /////////////////////
+    //
+    // Get Message: unknown
+    //
     else
     {
         if (fSecMsgEnabled)
@@ -6438,6 +6535,9 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         ProcessSpork(pfrom, strCommand, vRecv);
 
         // Ignore unknown commands for extensibility
+
+
+        // TODO: Invalidpacket count if all above fail
     }
 
     // Update the last seen time for this node's address
@@ -6631,17 +6731,22 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
             return true;
         }
 
+        /////////////////////
         //
-        // Turbosync: turbosync
+        // Send Message: turbosync
         //
-        if (pto->fTurboSyncSent == false)
+        if (pto->nVersion >= MIN_PEER_TURBOSYNC_VERSION)
         {
-            pto->fTurboSyncSent = true;
-            pto->PushMessage("turbosync", (int64_t)TURBOSYNC_MAX);
+            if (pto->fTurboSyncSent == false)
+            {
+                pto->fTurboSyncSent = true;
+                pto->PushMessage("turbosync", (int64_t)TURBOSYNC_MAX);
+            }
         }
 
+        /////////////////////
         //
-        // Message: ping
+        // Send Message: ping
         //
         bool pingSend = false;
 
@@ -6680,6 +6785,11 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
                 pto->PushMessage("ping");
             }
         }
+
+        /////////////////////
+        //
+        // Send Message: getblocks
+        //
 
         TRY_LOCK(cs_main, lockMain); // Acquire cs_main for IsInitialBlockDownload() and CNodeState()
         if (!lockMain)
@@ -6733,8 +6843,9 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
             nLastRebroadcast = GetTime();
         }
 
+        /////////////////////
         //
-        // Message: addr
+        // Send Message: addr
         //
         if (fSendTrickle)
         {
@@ -6783,31 +6894,45 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         }
 
 
-        // ----------------------
+        /////////////////////
         //
-        // Message: sendcheckpoint
+        // Send Message: sendcheckpoint
         //
-        /*
-        if (fSyncCheckpointSent == false)
+
+        bool SendCheckpoint = false;
+
+        if (pto->dCheckpointSent.synced == false && pto->dCheckpointSent.timestamp == 0)
         {
-            vector<CInv> vCheckpoint;
+            SendCheckpoint = true; // First checkpoint send
+        }
 
-            CInv peercheckpoint;
-
-            //peercheckpoint.type = pindexbest->nHeight;
-            //peercheckpoint.hash = hashBestChain;
-
-            if (!vCheckpoint.empty())
+        if (pto->dCheckpointSent.synced == true)
+        {
+            if (GetTime() - pto->dCheckpointSent.timestamp > DYNAMICCHECKPOINTS_INTERVAL * 60)
             {
-                pto->PushMessage("sendcheckpoint", vCheckpoint);
+                SendCheckpoint = true; // Auto-resend
             }
         }
-        */
+
+        if (pto->nVersion < MIN_PEER_DCHECKPOINTS_VERSION)
+        {
+            SendCheckpoint = false; // Skip sending to older versions
+        }
+
+        if (SendCheckpoint == true)
+        {
+            pto->dCheckpointSent.height = pindexBest->nHeight;
+            pto->dCheckpointSent.hash = pindexBest->GetBlockHash();
+            pto->dCheckpointSent.timestamp = GetTime();
+            pto->dCheckpointSent.synced = true;
+
+            pto->PushMessage("sendcheckpoint", pto->dCheckpointSent);
+        }
 
 
-        // ----------------------
+        /////////////////////
         //
-        // Message: inventory
+        // Send Message: inv
         //
         vector<CInv> vInv;
         vector<CInv> vInvWait;
@@ -6871,9 +6996,9 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
             pto->PushMessage("inv", vInv);
         }
 
-        // ----------------------
+        /////////////////////
         //
-        // Message: getdata
+        // Send Message: getdata
         //
         vector<CInv> vGetData;
         int64_t nNow = GetTime() * 1000000;
@@ -6933,6 +7058,9 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
 }
 
 
+// Class ChainActive
+
+
 void ChainShield()
 {
     // (C) 2019 Profit Hunters Coin
@@ -6960,7 +7088,13 @@ void ChainShield()
 
 int ForceSync()
 {
+    // ForceSync - Forces all connected nodes to resend blocks
     // (C) 2019 Profit Hunters Coin
+
+    if (vNodes.size() < 1)
+    {
+        return 0;
+    }
 
     LOCK(cs_vNodes);
 
@@ -6971,6 +7105,8 @@ int ForceSync()
         pnode->fStartSync = false;
 
         PushGetBlocks(pnode, pindexBest, uint256(0));
+
+        MilliSleep(500);
 
         NodeCount++;
     }
