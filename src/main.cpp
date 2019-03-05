@@ -5825,12 +5825,12 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
         if (UpdateNodeCheckpoint == true)
         {
-            if (!vRecv.empty())
+            vector<DynamicCheckpoints::Checkpoint> vCheckpoint;
+
+            vRecv >> vCheckpoint;
+
+            if (vCheckpoint.size() > 0)
             {
-                vector<DynamicCheckpoints::Checkpoint> vCheckpoint;
-
-                vRecv >> vCheckpoint;
-
                 if (vCheckpoint[0].height > 0)
                 {
                     if (vCheckpoint[0].hash > 0)
