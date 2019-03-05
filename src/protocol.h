@@ -147,6 +147,4 @@ class CInv
         uint256 hash;
 };
 
-
-
 #endif // __INCLUDED_PROTOCOL_H__

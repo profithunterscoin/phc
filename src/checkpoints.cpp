@@ -123,3 +123,39 @@ namespace Checkpoints
         return true;
     }
 }
+
+
+namespace DynamicCheckpoints
+{
+    Checkpoint::Checkpoint()
+    {
+        height = 0;
+        hash = 0;
+        timestamp = 0;
+        synced = false;
+    }
+
+    Checkpoint::Checkpoint(int64_t heightin, const uint256& hashin)
+    {
+        height = heightin;
+        hash = hashin;
+        timestamp = 0;
+        synced = false;
+    }
+
+    Checkpoint::Checkpoint(int64_t heightin, const uint256& hashin, int64_t timestampin)
+    {
+        height = heightin;
+        hash = hashin;
+        timestamp = timestampin;
+        synced = false;
+    }
+
+    Checkpoint::Checkpoint(int64_t heightin, const uint256& hashin, int64_t timestampin, bool syncedin)
+    {
+        height = heightin;
+        hash = hashin;
+        timestamp = timestampin;
+        synced = syncedin;
+    }
+}

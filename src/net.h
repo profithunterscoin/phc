@@ -417,16 +417,16 @@ class CNodeStats
         int nInvalidRecvPackets;
 
         // Dynamic Checkpoints (C) 2019 - Profit Hunters Coin
-        // Sent
-        bool Checkpoint_Sent;
-        int64_t CheckpointHeight_Sent;
-        int64_t CheckpointTimestamp_Sent;
-        uint256 CheckpointBlock_Sent;
         // Received
         bool Checkpoint_Recv;
         int64_t CheckpointHeight_Recv;
         int64_t CheckpointTimestamp_Recv;
         uint256 CheckpointBlock_Recv;
+        // Sent
+        bool Checkpoint_Sent;
+        int64_t CheckpointHeight_Sent;
+        int64_t CheckpointTimestamp_Sent;
+        uint256 CheckpointBlock_Sent;
 
 };
 
