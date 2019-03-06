@@ -5799,9 +5799,9 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
     }
     /////////////////////
     //
-    // Get Message: sendcheckpoint
+    // Get Message: checkpoint
     //
-    else if (strCommand == "sendcheckpoint")
+    else if (strCommand == "checkpoint")
     {
         bool UpdateNodeCheckpoint = false;
        
@@ -6851,7 +6851,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
 
         /////////////////////
         //
-        // Send Message: sendcheckpoint
+        // Send Message: checkpoint
         //
 
         bool SendCheckpoint = false;
@@ -6887,7 +6887,8 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
 
             if (!vCheckpoint.empty())
             {
-                pto->PushMessage("sendcheckpoint", vCheckpoint);
+                pto->PushMessage("checkpoint", vCheckpoint);
+                vCheckpoint.clear();
             }
         }
 
