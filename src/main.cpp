@@ -6863,7 +6863,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
 
         if (pto->dCheckpointSent.synced == true)
         {
-            if (GetTime() - pto->dCheckpointSent.timestamp > DYNAMICCHECKPOINTS_INTERVAL * 60)
+            if (GetTime() - pto->dCheckpointSent.timestamp > DYNAMICCHECKPOINTS_INTERVAL)
             {
                 SendCheckpoint = true; // Auto-resend
             }
@@ -7021,32 +7021,106 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
 }
 
 
-// Class ChainActive
+namespace Consensus
+{
+    // Consensus Class 1.0.0 (C) 2019 Profit Hunters Coin
+    // Satoshi Vision 2.0
+
+    /*
+    class ChainActive
+    {
+        public:
+
+            DynamicCheckpoints::Checkpoint ConsensusCheckpoint;
+            
+            vector<std::pair<DynamicCheckpoints::Checkpoint, int>> ConsensusCheckpointMap;
+
+            uint256 FindHashConsensus()
+            {
+                return;
+            }
+
+            uint256 SetHashConsensus(uint256 hash)
+            {
+                return;
+            }
+
+            int FindHash(uint256 hash)
+            {
+                int nFind;
+
+                for (auto & elem : ConsensusCheckpointMap)
+                {
+                    if (elem.first.hash == "")
+                    {
+
+                    }
+                }
+
+                return nFind;
+            }
+
+            int GetNodeCount(uint256 hash)
+            {
+
+                return 0;
+            }
+
+            int SetNodeCount(uint256 hash, int NewCount)
+            {
+                return 0;
+            }
+
+            int AddHash(int NodeCount, uint256 hash)
+            {
+                return 0;
+            }
+
+    }
+    */
+    
+}
 
 
 void ChainShield()
 {
-    // (C) 2019 Profit Hunters Coin
-    // TODO: ChainShield
+    // ChainShield 1.0.0 (C) 2019 Profit Hunters Coin
+    // Peer to peer Satoshi Consensus to prevent local wallet from getting stuck on a forked chain
+    // WARNING: This does not prevent chain reorganize attacks (double-spend)
+    // Requirements: Dynamic Checkpoints 1.0.0
+    // Recommended: Implemented with Bitcoin Firewall X.X.X
 
-    // Force Resync
+    //  Only execute every 10 blocks
+
+
+
 
     /*
+    // Find the consensuscheckpoint among peers
     LOCK(cs_vNodes);
-    
+
     BOOST_FOREACH(CNode* pnode, vNodes)
     {
         if (pnode->fSuccessfullyConnected)
         {
-            CAddress addrLocal = GetLocalAddress(&pnode->addr);
-            if (addrLocal.IsRoutable() && (CService)addrLocal != (CService)pnode->addrLocal)
-            {
-                pnode->PushAddress(addrLocal);
-                pnode->addrLocal = addrLocal;
-            }
+
+
+
         }
     }
     */
+
+    // if consensuscheckpoint among peers = +1 to localcheckpoint && different hashvalues
+
+    // disable mining/pos
+
+    // rollback 2 blocks
+
+    // Force Resync
+
+    // enable mining/pos
+
+
 }
 
 int ForceSync()
@@ -7067,7 +7141,7 @@ int ForceSync()
     {
         pnode->fStartSync = false;
 
-        PushGetBlocks(pnode, pindexBest, uint256(0));
+        PushGetBlocks(pnode, pindexBest, pnode->dCheckpointRecv.hash);
 
         MilliSleep(500);
 
