@@ -7024,7 +7024,9 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
 namespace Consensus
 {
     // Consensus Class 1.0.0 (C) 2019 Profit Hunters Coin
+    // Satoshi Vision 2.0
 
+    /*
     class ChainActive
     {
         public:
@@ -7035,12 +7037,12 @@ namespace Consensus
 
             uint256 FindHashConsensus()
             {
-
+                return;
             }
 
             uint256 SetHashConsensus(uint256 hash)
             {
-
+                return;
             }
 
             int FindHash(uint256 hash)
@@ -7061,22 +7063,22 @@ namespace Consensus
             int GetNodeCount(uint256 hash)
             {
 
+                return 0;
             }
 
             int SetNodeCount(uint256 hash, int NewCount)
             {
-
+                return 0;
             }
 
             int AddHash(int NodeCount, uint256 hash)
             {
-
+                return 0;
             }
 
-
-
     }
-
+    */
+    
 }
 
 
