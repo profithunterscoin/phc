@@ -7021,27 +7021,104 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
 }
 
 
-// Class ChainActive
+namespace Consensus
+{
+    // Consensus Class 1.0.0 (C) 2019 Profit Hunters Coin
+
+    class ChainActive
+    {
+        public:
+
+            DynamicCheckpoints::Checkpoint ConsensusCheckpoint;
+            
+            vector<std::pair<DynamicCheckpoints::Checkpoint, int>> ConsensusCheckpointMap;
+
+            uint256 FindHashConsensus()
+            {
+
+            }
+
+            uint256 SetHashConsensus(uint256 hash)
+            {
+
+            }
+
+            int FindHash(uint256 hash)
+            {
+                int nFind;
+
+                for (auto & elem : ConsensusCheckpointMap)
+                {
+                    if (elem.first.hash == "")
+                    {
+
+                    }
+                }
+
+                return nFind;
+            }
+
+            int GetNodeCount(uint256 hash)
+            {
+
+            }
+
+            int SetNodeCount(uint256 hash, int NewCount)
+            {
+
+            }
+
+            int AddHash(int NodeCount, uint256 hash)
+            {
+
+            }
+
+
+
+    }
+
+}
 
 
 void ChainShield()
 {
-    // (C) 2019 Profit Hunters Coin
-    // TODO: ChainShield
+    // ChainShield 1.0.0 (C) 2019 Profit Hunters Coin
+    // Peer to peer Satoshi Consensus to prevent local wallet from getting stuck on a forked chain
+    // WARNING: This does not prevent chain reorganize attacks (double-spend)
+    // Requirements: Dynamic Checkpoints 1.0.0
+    // Recommended: Implemented with Bitcoin Firewall X.X.X
 
-    // Force Resync
+    //  Only execute every 10 blocks
+
+
+
 
     /*
+    // Find the consensuscheckpoint among peers
     LOCK(cs_vNodes);
-    
+
     BOOST_FOREACH(CNode* pnode, vNodes)
     {
         if (pnode->fSuccessfullyConnected)
         {
 
+
+
         }
     }
     */
+
+    // if consensuscheckpoint among peers = +1 to localcheckpoint && different hashvalues
+
+    // disable mining/pos
+
+    // rollback 2 blocks
+
+    // Force Resync
+
+    // enable mining/pos
+
+
 }
 
 int ForceSync()
