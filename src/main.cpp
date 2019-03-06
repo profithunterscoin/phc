@@ -6863,7 +6863,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
 
         if (pto->dCheckpointSent.synced == true)
         {
-            if (GetTime() - pto->dCheckpointSent.timestamp > DYNAMICCHECKPOINTS_INTERVAL * 60)
+            if (GetTime() - pto->dCheckpointSent.timestamp > DYNAMICCHECKPOINTS_INTERVAL)
             {
                 SendCheckpoint = true; // Auto-resend
             }
@@ -7067,7 +7067,7 @@ int ForceSync()
     {
         pnode->fStartSync = false;
 
-        PushGetBlocks(pnode, pindexBest, uint256(0));
+        PushGetBlocks(pnode, pindexBest, pnode->dCheckpointRecv.hash);
 
         MilliSleep(500);
 

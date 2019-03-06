@@ -107,7 +107,7 @@ inline const char * const BoolToString(bool b)
 
 extern int64_t TURBOSYNC_MAX;
 
-static const int64_t DYNAMICCHECKPOINTS_INTERVAL = 60 * 60 * 3;  // 3 minutes
+static const int64_t DYNAMICCHECKPOINTS_INTERVAL = 60 * 60 * 2;  // 2 minutes
 
 extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
