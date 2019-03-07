@@ -151,20 +151,45 @@ class CTxIndex;
 class CWalletInterface;
 struct CNodeStateStats;
 
-/** Reorganize the chain index */
-bool Reorganize(CTxDB& txdb, CBlockIndex* pindexNew);
 
-/** Backtoblock X Blockchain Index*/
-int Backtoblock(int nNewHeight);
+class CChain
+{
 
-/** Rollback Blockchain Index */
-int RollbackChain(int nBlockCount);
+    public:
 
-/** Prune Orphan blocks from index */
-void PruneOrphanBlocks();
+        /** Backtoblock X Blockchain Index*/
+        static int Backtoblock(int nNewHeight);
 
-/** Force Sync from current Block (Request all connected nodes) */
-int ForceSync();
+        /** Rollback Blockchain Index */
+        static int RollbackChain(int nBlockCount);
+
+        /** Force Sync from current Block (Request all connected nodes) */
+        static int ForceSync();
+
+        /** Prune Orphan blocks from index */
+        static void PruneOrphanBlocks();
+
+        /** Reorganize the chain index */
+        static bool Reorganize(CTxDB& txdb, CBlockIndex* pindexNew);
+
+};
+
+class ChainShield
+{
+    // ChainShield 1.0.0 (C) 2019 Profit Hunters Coin
+    // Peer to peer Satoshi Consensus to prevent local wallet from getting stuck on a forked chain
+    // Requirements: Dynamic Checkpoints 1.0.0
+    // Recommended: Implemented with Bitcoin Firewall X.X.X 
+
+        public:
+
+            static int ChainShieldCache; // Last Block Height protected
+
+            static bool DisableNewBlocks; // Disable PoW/PoS/Masternode block creation
+
+            static bool Protect();
+
+};
 
 /** Register a wallet to receive updates from core */
 void RegisterWallet(CWalletInterface* pwalletIn);

@@ -3052,7 +3052,7 @@ bool SecureMsgScanBlock(CBlock& block)
 
     if (nDuplicates > 0)
     {
-        PruneOrphanBlocks();
+        CChain::PruneOrphanBlocks();
     }
 
     return true;

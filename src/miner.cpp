@@ -143,11 +143,19 @@ typedef boost::tuple<double, double, CTransaction*> TxPriority; class TxPriority
 
 CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
 {
+    if (ChainShield::DisableNewBlocks == true)
+    {
+        return NULL;
+    }
+
     int64_t pFees = 0;
 
     CPubKey pubkey;
+
     if (!reservekey.GetReservedKey(pubkey))
+    {
         return NULL;
+    }
 
     CScript scriptPubKey = CScript() << ToByteVector(pubkey) << OP_CHECKSIG;
 
@@ -465,6 +473,11 @@ CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
 // CreateNewBlock: create new block (without proof-of-work/proof-of-stake)
 CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFees)
 {
+    if (ChainShield::DisableNewBlocks == true)
+    {
+        return NULL;
+    }
+
     // Create new block
     auto_ptr<CBlock> pblock(new CBlock());
     if (!pblock.get())
@@ -931,6 +944,8 @@ bool ProcessBlockStake(CBlock* pblock, CWallet& wallet)
     }
     // Global Namespace End
 
+    ChainShield::Protect();
+
     return true;
 }
 
@@ -1067,6 +1082,8 @@ bool ProcessBlockFound(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
         }
     }
     // Global Namespace End
+
+    ChainShield::Protect();
 
     return true;
 }

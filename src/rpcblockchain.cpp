@@ -16,6 +16,7 @@ using namespace json_spirit;
 using namespace std;
 
 
+
 extern void TxToJSON(const CTransaction& tx, const uint256 hashBlock, json_spirit::Object& entry);
 
 
@@ -377,7 +378,7 @@ Value prune(const Array& params, bool fHelp)
                             );
     }
     
-    PruneOrphanBlocks();
+    CChain::PruneOrphanBlocks();
 
     return true;
 }
@@ -402,7 +403,7 @@ Value rollbackchain(const Array& params, bool fHelp)
 
     int OldHeight = nBestHeight;
 
-    nBestHeight = RollbackChain(nBlockCount);
+    nBestHeight = CChain::RollbackChain(nBlockCount);
 
     throw runtime_error(strprintf("%s : Rollback completed: %d blocks total (%d -> %d)", __FUNCTION__, nBlockCount, OldHeight, nBestHeight));
 
@@ -430,7 +431,7 @@ Value backtoblock(const Array& params, bool fHelp)
     int OldHeight = nBestHeight;
     int nBlockCount = nBestHeight - nNewHeight;
 
-    nBestHeight = Backtoblock(nNewHeight);
+    nBestHeight = CChain::Backtoblock(nNewHeight);
 
     throw runtime_error(strprintf("%s : Backtoblock %d completed: %d blocks total (%d -> %d)", __FUNCTION__, nNewHeight, nBlockCount, OldHeight, nBestHeight));
 
@@ -457,5 +458,5 @@ Value forcesync(const Array& params, bool fHelp)
                             "Forces nodes to sync from current local block height.");
     }
 
-    return strprintf("ForceSync nodes: %d", ForceSync());
+    return strprintf("ForceSync nodes: %d", CChain::ForceSync());
 }
