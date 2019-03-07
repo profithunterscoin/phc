@@ -7161,7 +7161,12 @@ bool ChainShield::Protect()
             }
             else
             {
-                Disagreed++;  // Local Wallet and Node DO NOT have consensus
+                // use quick nodes with little no one sync lag that's off by more than 1 block
+                if (pnode->dCheckpointSent.timestamp - pnode->dCheckpointRecv.timestamp < 500
+                    && pnode->dCheckpointSent.height - pnode->dCheckpointRecv.height > 1)
+                {
+                    Disagreed++;  // Local Wallet and Node DO NOT have consensus
+                }
             }
         }
     }
