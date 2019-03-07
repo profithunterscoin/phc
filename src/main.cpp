@@ -1788,45 +1788,6 @@ uint256 WantedByOrphan(const COrphanBlock* pblockOrphan)
 }
 
 
-// Remove a random orphan block (which does not have any dependent orphans).
-void PruneOrphanBlocks()
-{
-    if (mapOrphanBlocksByPrev.size() <= (size_t)std::max((int64_t)0, GetArg("-maxorphanblocks", DEFAULT_MAX_ORPHAN_BLOCKS)))
-    {
-        return;
-    }
-
-    // Pick a random orphan block.
-    int pos = insecure_rand() % mapOrphanBlocksByPrev.size();
-    std::multimap<uint256, COrphanBlock*>::iterator it = mapOrphanBlocksByPrev.begin();
-    while (pos--)
-    {
-        it++;
-    }
-
-    // As long as this block has other orphans depending on it, move to one of those successors.
-    do
-    {
-        std::multimap<uint256, COrphanBlock*>::iterator it2 = mapOrphanBlocksByPrev.find(it->second->hashBlock);
-        if (it2 == mapOrphanBlocksByPrev.end())
-        {
-            break;
-        }
-
-        it = it2;
-    }
-    while(1);
-
-    setStakeSeenOrphan.erase(it->second->stake);
-    uint256 hash = it->second->hashBlock;
-
-    delete it->second;
-    
-    mapOrphanBlocksByPrev.erase(it);
-    mapOrphanBlocks.erase(hash);
-}
-
-
 static CBigNum GetProofOfStakeLimit(int nHeight)
 {
     return bnProofOfStakeLimit;
@@ -2177,6 +2138,8 @@ void static InvalidChainFound(CBlockIndex* pindexNew)
         LogPrint("core", "%s : current best=%s  height=%d  trust=%s  blocktrust=%d  date=%s\n", __FUNCTION__,
         hashBestChain.ToString(), nBestHeight, CBigNum(pindexBest->nChainTrust).ToString(), nBestBlockTrust.Get64(), DateTimeStrFormat("%x %H:%M:%S", pindexBest->GetBlockTime()));
     }
+
+    ChainShield::Protect();
 }
 
 
@@ -2955,254 +2918,8 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
         SyncWithWallets(tx, this);
     }
 
-    return true;
-}
 
 
-int RollbackChain(int nBlockCount)
-{
-    // Rollbackchain 1.1 - (C) 2019 Profit Hunters Coin
-    // Thanks to TaliumTech for crash fixes
-
-    CBlockIndex* pindex = pindexBest;
-
-    for (int counter = 1; counter != nBlockCount + 1; counter = counter + 1)
-    {
-        pindex = pindex->pprev;
-    }
-
-    if (pindex != NULL)
-    {
-        if (fDebug)
-        {
-            LogPrintf("Back to block index %d rolled back by: %d blocks\n", pindex->nHeight, nBlockCount);
-        }
-
-        CTxDB txdbAddr("rw");
-
-        CBlock block;
-
-        block.ReadFromDisk(pindex);
-
-        block.SetBestChain(txdbAddr, pindex);
-
-        return pindex->nHeight;
-    }
-
-    if (fDebug)
-    {
-        LogPrintf("Block %d not found\n", pindex->nHeight);
-    }
-
-    return 0;
-
-}
-
-
-int Backtoblock(int nNewHeight)
-{
-    // Backtoblock 1.1 - (C) 2019 TaliumTech & Profit Hunters Coin
-
-    if (nNewHeight < 0)
-    {
-        if (fDebug)
-        {
-            LogPrintf("Block %d not valid\n", nNewHeight);
-        }
-
-        return 0;
-    }
-
-    CBlockIndex* pindex = pindexBest;
-
-    while (pindex != NULL && pindex->nHeight > nNewHeight)
-    {
-        pindex = pindex->pprev;
-    }
-
-    if (pindex != NULL)
-    {
-        if (fDebug)
-        {
-            LogPrintf("Back to block index %d\n", nNewHeight);
-        }
-
-        CTxDB txdbAddr("rw");
-
-        CBlock block;
-
-        block.ReadFromDisk(pindex);
-
-        block.SetBestChain(txdbAddr, pindex);
-
-        return nNewHeight;
-    }
-
-    if (fDebug)
-    {
-        LogPrintf("Block %d not found\n", nNewHeight);
-    }
-
-    return 0;
-
-}
-
-
-bool Reorganize(CTxDB& txdb, CBlockIndex* pindexNew)
-{
-    if (fDebug)
-    {
-        LogPrint("core", "%s : REORGANIZE\n", __FUNCTION__);
-    }
-
-    // Find the fork
-    CBlockIndex* pfork = pindexBest;
-    CBlockIndex* plonger = pindexNew;
-
-    while (pfork != plonger)
-    {
-        while (plonger->nHeight > pfork->nHeight)
-        {
-            if (!(plonger = plonger->pprev))
-            {
-                return error("%s : plonger->pprev is null", __FUNCTION__);
-            }
-        }
-
-        if (pfork == plonger)
-        {
-            break;
-        }
-
-        if (!(pfork = pfork->pprev))
-        {
-            return error("%s : pfork->pprev is null", __FUNCTION__);
-        }
-
-    }
-
-    // List of what to disconnect
-    vector<CBlockIndex*> vDisconnect;
-    for (CBlockIndex* pindex = pindexBest; pindex != pfork; pindex = pindex->pprev)
-    {
-        vDisconnect.push_back(pindex);
-    }
-
-    // List of what to connect
-    vector<CBlockIndex*> vConnect;
-    for (CBlockIndex* pindex = pindexNew; pindex != pfork; pindex = pindex->pprev)
-    {
-        vConnect.push_back(pindex);
-    }
-
-    reverse(vConnect.begin(), vConnect.end());
-
-    if (fDebug)
-    {
-        LogPrint("core", "%s : REORGANIZE: Disconnect %u blocks; %s..%s\n", __FUNCTION__, vDisconnect.size(), pfork->GetBlockHash().ToString(), pindexBest->GetBlockHash().ToString());
-        LogPrint("core", "%s : REORGANIZE: Connect %u blocks; %s..%s\n", __FUNCTION__, vConnect.size(), pfork->GetBlockHash().ToString(), pindexNew->GetBlockHash().ToString());
-    }
-
-    // Disconnect shorter branch
-    list<CTransaction> vResurrect;
-    BOOST_FOREACH(CBlockIndex* pindex, vDisconnect)
-    {
-        CBlock block;
-        if (!block.ReadFromDisk(pindex))
-        {
-            return error("%s : ReadFromDisk for disconnect failed", __FUNCTION__);
-        }
-
-        if (!block.DisconnectBlock(txdb, pindex))
-        {
-            return error("%s : DisconnectBlock %s failed", __FUNCTION__, pindex->GetBlockHash().ToString());
-        }
-
-        // Queue memory transactions to resurrect.
-        // We only do this for blocks after the last checkpoint (reorganisation before that
-        // point should only happen with -reindex/-loadblock, or a misbehaving peer.
-        BOOST_REVERSE_FOREACH(const CTransaction& tx, block.vtx)
-        {
-            if (!(tx.IsCoinBase() || tx.IsCoinStake()) && pindex->nHeight > Checkpoints::GetTotalBlocksEstimate())
-            {
-                vResurrect.push_front(tx);
-            }
-        }
-
-    }
-
-    // Connect longer branch
-    vector<CTransaction> vDelete;
-    for (unsigned int i = 0; i < vConnect.size(); i++)
-    {
-        CBlockIndex* pindex = vConnect[i];
-        CBlock block;
-        if (!block.ReadFromDisk(pindex))
-        {
-            return error("%s : ReadFromDisk for connect failed", __FUNCTION__);
-        }
-
-        if (!block.ConnectBlock(txdb, pindex))
-        {
-            // Invalid block
-            return error("%s : ConnectBlock %s failed", __FUNCTION__, pindex->GetBlockHash().ToString());
-        }
-
-        // Queue memory transactions to delete
-        BOOST_FOREACH(const CTransaction& tx, block.vtx)
-        {
-            vDelete.push_back(tx);
-        }
-
-    }
-
-    if (!txdb.WriteHashBestChain(pindexNew->GetBlockHash()))
-    {
-        return error("%s : WriteHashBestChain failed", __FUNCTION__);
-    }
-
-    // Make sure it's successfully written to disk before changing memory structure
-    if (!txdb.TxnCommit())
-    {
-        return error("%s : TxnCommit failed", __FUNCTION__);
-    }
-
-    // Disconnect shorter branch
-    BOOST_FOREACH(CBlockIndex* pindex, vDisconnect)
-    {
-        if (pindex->pprev)
-        {
-            pindex->pprev->pnext = NULL;
-        }
-    }
-
-    // Connect longer branch
-    BOOST_FOREACH(CBlockIndex* pindex, vConnect)
-    {
-        if (pindex->pprev)
-        {
-            pindex->pprev->pnext = pindex;
-        }
-    }
-
-    // Resurrect memory transactions that were in the disconnected branch
-    BOOST_FOREACH(CTransaction& tx, vResurrect)
-    {
-        AcceptToMemoryPool(mempool, tx, false, NULL);
-    }
-
-    // Delete redundant memory transactions that are in the connected branch
-    BOOST_FOREACH(CTransaction& tx, vDelete)
-    {
-        mempool.remove(tx);
-        mempool.removeConflicts(tx);
-    }
-
-    if (fDebug)
-    {
-        LogPrint("core", "%s : REORGANIZE: done\n", __FUNCTION__);
-    }
-    
     return true;
 }
 
@@ -3289,7 +3006,7 @@ bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
         }
 
         // Switch to new best branch
-        if (!Reorganize(txdb, pindexIntermediate))
+        if (!CChain::Reorganize(txdb, pindexIntermediate))
         {
             txdb.TxnAbort();
             InvalidChainFound(pindexNew);
@@ -3331,6 +3048,7 @@ bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
 
     // Update best block in wallet (so we can detect restored wallets)
     bool fIsInitialDownload = IsInitialBlockDownload();
+
     if ((pindexNew->nHeight % 20160) == 0 || (!fIsInitialDownload && (pindexNew->nHeight % 144) == 0))
     {
         const CBlockLocator locator(pindexNew);
@@ -4128,7 +3846,6 @@ bool CBlock::BlockShield(int Block_nHeight) const
         ////////////////////
     }
 
-
     // Passed all checks
     return false;
 }
@@ -4556,7 +4273,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 }
             }
 
-            PruneOrphanBlocks();
+            CChain::PruneOrphanBlocks();
             
             COrphanBlock* pblock2 = new COrphanBlock();
             
@@ -7021,11 +6738,328 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
 }
 
 
+
+
+int CChain::ForceSync()
+{
+    // ForceSync - Forces all connected nodes to resend blocks
+    // (C) 2019 Profit Hunters Coin
+
+    if (vNodes.size() < 1)
+    {
+        return 0;
+    }
+
+    LOCK(cs_vNodes);
+
+    int NodeCount = 0;
+
+    BOOST_FOREACH(CNode* pnode, vNodes)
+    {
+        pnode->fStartSync = false;
+
+        PushGetBlocks(pnode, pindexBest, pnode->dCheckpointRecv.hash);
+
+        MilliSleep(500);
+
+        NodeCount++;
+    }
+
+    return NodeCount;
+}
+    
+int CChain::Backtoblock(int nNewHeight)
+{
+    // Backtoblock 1.1 - (C) 2019 TaliumTech & Profit Hunters Coin
+
+    if (nNewHeight < 0)
+    {
+        if (fDebug)
+        {
+            LogPrintf("Block %d not valid\n", nNewHeight);
+        }
+
+        return 0;
+    }
+
+    CBlockIndex* pindex = pindexBest;
+
+    while (pindex != NULL && pindex->nHeight > nNewHeight)
+    {
+        pindex = pindex->pprev;
+    }
+
+    if (pindex != NULL)
+    {
+        if (fDebug)
+        {
+            LogPrintf("Back to block index %d\n", nNewHeight);
+        }
+
+        CTxDB txdbAddr("rw");
+
+        CBlock block;
+
+        block.ReadFromDisk(pindex);
+
+        block.SetBestChain(txdbAddr, pindex);
+
+        return nNewHeight;
+    }
+
+    if (fDebug)
+    {
+        LogPrintf("Block %d not found\n", nNewHeight);
+    }
+
+    return 0;
+
+}
+
+int CChain::RollbackChain(int nBlockCount)
+{
+    // Rollbackchain 1.1 - (C) 2019 Profit Hunters Coin
+    // Thanks to TaliumTech for crash fixes
+
+    CBlockIndex* pindex = pindexBest;
+
+    for (int counter = 1; counter != nBlockCount + 1; counter = counter + 1)
+    {
+        pindex = pindex->pprev;
+    }
+
+    if (pindex != NULL)
+    {
+        if (fDebug)
+        {
+            LogPrintf("Back to block index %d rolled back by: %d blocks\n", pindex->nHeight, nBlockCount);
+        }
+
+        CTxDB txdbAddr("rw");
+
+        CBlock block;
+
+        block.ReadFromDisk(pindex);
+
+        block.SetBestChain(txdbAddr, pindex);
+
+        return pindex->nHeight;
+    }
+
+    if (fDebug)
+    {
+        LogPrintf("Block %d not found\n", pindex->nHeight);
+    }
+
+    return 0;
+
+}
+
+
+// Remove a random orphan block (which does not have any dependent orphans).
+void CChain::PruneOrphanBlocks()
+{
+    if (mapOrphanBlocksByPrev.size() <= (size_t)std::max((int64_t)0, GetArg("-maxorphanblocks", DEFAULT_MAX_ORPHAN_BLOCKS)))
+    {
+        return;
+    }
+
+    // Pick a random orphan block.
+    int pos = insecure_rand() % mapOrphanBlocksByPrev.size();
+    std::multimap<uint256, COrphanBlock*>::iterator it = mapOrphanBlocksByPrev.begin();
+    while (pos--)
+    {
+        it++;
+    }
+
+    // As long as this block has other orphans depending on it, move to one of those successors.
+    do
+    {
+        std::multimap<uint256, COrphanBlock*>::iterator it2 = mapOrphanBlocksByPrev.find(it->second->hashBlock);
+        if (it2 == mapOrphanBlocksByPrev.end())
+        {
+            break;
+        }
+
+        it = it2;
+    }
+    while(1);
+
+    setStakeSeenOrphan.erase(it->second->stake);
+    uint256 hash = it->second->hashBlock;
+
+    delete it->second;
+    
+    mapOrphanBlocksByPrev.erase(it);
+    mapOrphanBlocks.erase(hash);
+}
+
+
+bool CChain::Reorganize(CTxDB& txdb, CBlockIndex* pindexNew)
+{
+    if (fDebug)
+    {
+        LogPrint("core", "%s : REORGANIZE\n", __FUNCTION__);
+    }
+
+    // Find the fork
+    CBlockIndex* pfork = pindexBest;
+    CBlockIndex* plonger = pindexNew;
+
+    while (pfork != plonger)
+    {
+        while (plonger->nHeight > pfork->nHeight)
+        {
+            if (!(plonger = plonger->pprev))
+            {
+                return error("%s : plonger->pprev is null", __FUNCTION__);
+            }
+        }
+
+        if (pfork == plonger)
+        {
+            break;
+        }
+
+        if (!(pfork = pfork->pprev))
+        {
+            return error("%s : pfork->pprev is null", __FUNCTION__);
+        }
+
+    }
+
+    // List of what to disconnect
+    vector<CBlockIndex*> vDisconnect;
+    for (CBlockIndex* pindex = pindexBest; pindex != pfork; pindex = pindex->pprev)
+    {
+        vDisconnect.push_back(pindex);
+    }
+
+    // List of what to connect
+    vector<CBlockIndex*> vConnect;
+    for (CBlockIndex* pindex = pindexNew; pindex != pfork; pindex = pindex->pprev)
+    {
+        vConnect.push_back(pindex);
+    }
+
+    reverse(vConnect.begin(), vConnect.end());
+
+    if (fDebug)
+    {
+        LogPrint("core", "%s : REORGANIZE: Disconnect %u blocks; %s..%s\n", __FUNCTION__, vDisconnect.size(), pfork->GetBlockHash().ToString(), pindexBest->GetBlockHash().ToString());
+        LogPrint("core", "%s : REORGANIZE: Connect %u blocks; %s..%s\n", __FUNCTION__, vConnect.size(), pfork->GetBlockHash().ToString(), pindexNew->GetBlockHash().ToString());
+    }
+
+    // Disconnect shorter branch
+    list<CTransaction> vResurrect;
+    BOOST_FOREACH(CBlockIndex* pindex, vDisconnect)
+    {
+        CBlock block;
+        if (!block.ReadFromDisk(pindex))
+        {
+            return error("%s : ReadFromDisk for disconnect failed", __FUNCTION__);
+        }
+
+        if (!block.DisconnectBlock(txdb, pindex))
+        {
+            return error("%s : DisconnectBlock %s failed", __FUNCTION__, pindex->GetBlockHash().ToString());
+        }
+
+        // Queue memory transactions to resurrect.
+        // We only do this for blocks after the last checkpoint (reorganisation before that
+        // point should only happen with -reindex/-loadblock, or a misbehaving peer.
+        BOOST_REVERSE_FOREACH(const CTransaction& tx, block.vtx)
+        {
+            if (!(tx.IsCoinBase() || tx.IsCoinStake()) && pindex->nHeight > Checkpoints::GetTotalBlocksEstimate())
+            {
+                vResurrect.push_front(tx);
+            }
+        }
+
+    }
+
+    // Connect longer branch
+    vector<CTransaction> vDelete;
+    for (unsigned int i = 0; i < vConnect.size(); i++)
+    {
+        CBlockIndex* pindex = vConnect[i];
+        CBlock block;
+        if (!block.ReadFromDisk(pindex))
+        {
+            return error("%s : ReadFromDisk for connect failed", __FUNCTION__);
+        }
+
+        if (!block.ConnectBlock(txdb, pindex))
+        {
+            // Invalid block
+            return error("%s : ConnectBlock %s failed", __FUNCTION__, pindex->GetBlockHash().ToString());
+        }
+
+        // Queue memory transactions to delete
+        BOOST_FOREACH(const CTransaction& tx, block.vtx)
+        {
+            vDelete.push_back(tx);
+        }
+
+    }
+
+    if (!txdb.WriteHashBestChain(pindexNew->GetBlockHash()))
+    {
+        return error("%s : WriteHashBestChain failed", __FUNCTION__);
+    }
+
+    // Make sure it's successfully written to disk before changing memory structure
+    if (!txdb.TxnCommit())
+    {
+        return error("%s : TxnCommit failed", __FUNCTION__);
+    }
+
+    // Disconnect shorter branch
+    BOOST_FOREACH(CBlockIndex* pindex, vDisconnect)
+    {
+        if (pindex->pprev)
+        {
+            pindex->pprev->pnext = NULL;
+        }
+    }
+
+    // Connect longer branch
+    BOOST_FOREACH(CBlockIndex* pindex, vConnect)
+    {
+        if (pindex->pprev)
+        {
+            pindex->pprev->pnext = pindex;
+        }
+    }
+
+    // Resurrect memory transactions that were in the disconnected branch
+    BOOST_FOREACH(CTransaction& tx, vResurrect)
+    {
+        AcceptToMemoryPool(mempool, tx, false, NULL);
+    }
+
+    // Delete redundant memory transactions that are in the connected branch
+    BOOST_FOREACH(CTransaction& tx, vDelete)
+    {
+        mempool.remove(tx);
+        mempool.removeConflicts(tx);
+    }
+
+    if (fDebug)
+    {
+        LogPrint("core", "%s : REORGANIZE: done\n", __FUNCTION__);
+    }
+    
+    return true;
+}
+
+
 namespace Consensus
 {
     // Consensus Class 1.0.0 (C) 2019 Profit Hunters Coin
     // Satoshi Vision 2.0
 
+            // Find the consensuscheckpoint among peers
     /*
     class ChainActive
     {
@@ -7076,77 +7110,81 @@ namespace Consensus
                 return 0;
             }
 
+            bool FindConsensus(uint256 hash)
+            {
+
+            }
+
+            bool FindConsensus(Cnode pnode)
+            {
+
+            }
     }
     */
-    
+
 }
 
+int ChainShield::ChainShieldCache; // Last Block Height protected
 
-void ChainShield()
+bool ChainShield::DisableNewBlocks; // Disable PoW/PoS/Masternode block creation
+
+
+bool ChainShield::Protect()
 {
-    // ChainShield 1.0.0 (C) 2019 Profit Hunters Coin
-    // Peer to peer Satoshi Consensus to prevent local wallet from getting stuck on a forked chain
-    // WARNING: This does not prevent chain reorganize attacks (double-spend)
-    // Requirements: Dynamic Checkpoints 1.0.0
-    // Recommended: Implemented with Bitcoin Firewall X.X.X
-
     //  Only execute every 10 blocks
+    if (ChainShieldCache > 0 && ChainShieldCache + 10 < pindexBest->nHeight)
+    {
+        return false; // Skip and wait for more blocks
+    }
 
+    if (ChainShieldCache > pindexBest->nHeight)
+    {
+        return false;
+    }
 
+    ChainShieldCache = pindexBest->nHeight;
 
+    int Agreed = 0;
+    int Disagreed = 0;
 
-    /*
-    // Find the consensuscheckpoint among peers
     LOCK(cs_vNodes);
 
+    // Find if nodes are synced (agreed to local wallet checkpoint or not)
     BOOST_FOREACH(CNode* pnode, vNodes)
     {
         if (pnode->fSuccessfullyConnected)
         {
-
-
-
+            if (pnode->dCheckpointRecv.height == pnode->dCheckpointSent.height
+                && pnode->dCheckpointRecv.hash == pnode->dCheckpointSent.hash)
+            {
+                Agreed++; // Local Wallet and Node have consensus
+            }
+            else
+            {
+                Disagreed++;  // Local Wallet and Node DO NOT have consensus
+            }
         }
     }
-    */
 
-    // if consensuscheckpoint among peers = +1 to localcheckpoint && different hashvalues
-
-    // disable mining/pos
-
-    // rollback 2 blocks
-
-    // Force Resync
-
-    // enable mining/pos
-
-
-}
-
-int ForceSync()
-{
-    // ForceSync - Forces all connected nodes to resend blocks
-    // (C) 2019 Profit Hunters Coin
-
-    if (vNodes.size() < 1)
+    if (Disagreed > Agreed)
     {
-        return 0;
+        // TODO: Check if current pindexBest->hash is NOT on the right chain (skip actions below if true)
+
+        DisableNewBlocks = true;
+
+        CChain::RollbackChain(50);
+
+        MilliSleep(10000);
+
+        CChain::ForceSync();
+
+        MilliSleep(60000);
+
+        DisableNewBlocks = false;
+
+        return true;
     }
 
-    LOCK(cs_vNodes);
-
-    int NodeCount = 0;
-
-    BOOST_FOREACH(CNode* pnode, vNodes)
-    {
-        pnode->fStartSync = false;
-
-        PushGetBlocks(pnode, pindexBest, pnode->dCheckpointRecv.hash);
-
-        MilliSleep(500);
-
-        NodeCount++;
-    }
-
-    return NodeCount;
+    return false;
 }
+

@@ -44,12 +44,12 @@ v1.0.0.7 (Pre-release)
 * Installed: Developer Fee, 10% of block reward (Hard Fork 1)
 * TurboSync 1.0.0 (2x network sync speedup, unlimited scaling)
 * Installed: RPC forcesync, getpeeraverageheight
-* Dynamic Checkpoints 1.0.0.
+* Dynamic Checkpoints 1.0.0
+* Chain Shield (default check every 10 blocks)
 
 
 v1.0.0.7 (To Finish before release)
 --------
-* Chain Shield (default check every 50 blocks)
 * Installed: RPC getpeerbestheight, getpeerbestblockhash, getasicchokerlog
 * Installed: nSyncHeight && nSyncBlockhash values output to GetPeerInfo RPC
 * New GUIs: ExportWalletKeys (umpwallet), ExportAddressKey(dumpkeys), ChangeGenProcLimit

@@ -36,7 +36,6 @@ namespace Checkpoints
 
 }
 
-
 namespace DynamicCheckpoints
 {
     // Dynamic Checkpoints 1.0.0
@@ -67,6 +66,5 @@ namespace DynamicCheckpoints
 
     };
 }
-
 
 #endif

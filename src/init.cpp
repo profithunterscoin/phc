@@ -72,6 +72,7 @@ bool fOnlyTor = false;
 // Turbosync (C) 2019 - Profit Hunters Coin
 int64_t TURBOSYNC_MAX;
 
+
 //////////////////////////////////////////////////////////////////////////////
 //
 // Shutdown
@@ -1206,7 +1207,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     if (nBlockCount > 0)
     {
-        nBestHeight = RollbackChain(nBlockCount);
+        nBestHeight = CChain::RollbackChain(nBlockCount);
 
         return InitError(strprintf("%s : Rollback completed: %d blocks total removed from local height.", __FUNCTION__, nBlockCount));
     }
@@ -1214,7 +1215,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     // Rollbacktoblock local database to block height (default: 100000)
     if (mapArgs.count("-backtoblock"))
     {
-        int nNewHeight = Backtoblock(GetArg("-backtoblock", 100000));
+        int nNewHeight = CChain::Backtoblock(GetArg("-backtoblock", 100000));
 
         return InitError(strprintf("%s : Backtoblock completed: %d is the new local block height.", __FUNCTION__, nNewHeight));
     }
@@ -1254,7 +1255,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     }
 
     uiInterface.InitMessage(_("Prune Orphans in block index..."));
-    PruneOrphanBlocks();
+    CChain::PruneOrphanBlocks();
 
     //uiInterface.InitMessage(_("Rolling back block index..."));
     //RollbackChain(101);
