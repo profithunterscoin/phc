@@ -18,10 +18,6 @@
 
 using namespace std;
 
-double dHashesPerSec = 0.0;
-
-int64_t nHPSTimerStart = 0;
-
 bool fDebugConsoleOutputMining = false;
 
 std::string MinerLogCache;
@@ -143,7 +139,12 @@ typedef boost::tuple<double, double, CTransaction*> TxPriority; class TxPriority
 
 CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
 {
-    if (ChainShield::DisableNewBlocks == true)
+    if (Consensus::ChainBuddy::WalletHasConsensus() == false)
+    {
+        Consensus::ChainShield::Protect();
+    }
+
+    if (Consensus::ChainShield::DisableNewBlocks == true)
     {
         return NULL;
     }
@@ -444,9 +445,7 @@ CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
         }
         
         // >PHC< POW
-
         pblock->vtx[0].vout[0].nValue = GetProofOfWorkReward(pindexPrev->nHeight + 1, nFees);
-
 
         if (pFees)
         {
@@ -473,7 +472,12 @@ CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
 // CreateNewBlock: create new block (without proof-of-work/proof-of-stake)
 CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFees)
 {
-    if (ChainShield::DisableNewBlocks == true)
+    if (Consensus::ChainBuddy::WalletHasConsensus() == false)
+    {
+        Consensus::ChainShield::Protect();
+    }
+
+    if (Consensus::ChainShield::DisableNewBlocks == true)
     {
         return NULL;
     }
@@ -944,8 +948,6 @@ bool ProcessBlockStake(CBlock* pblock, CWallet& wallet)
     }
     // Global Namespace End
 
-    ChainShield::Protect();
-
     return true;
 }
 
@@ -1082,8 +1084,6 @@ bool ProcessBlockFound(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
         }
     }
     // Global Namespace End
-
-    ChainShield::Protect();
 
     return true;
 }

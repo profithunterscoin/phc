@@ -45,12 +45,12 @@ v1.0.0.7 (Pre-release)
 * TurboSync 1.0.0 (2x network sync speedup, unlimited scaling)
 * Installed: RPC forcesync, getpeeraverageheight
 * Dynamic Checkpoints 1.0.0
-* Chain Shield (default check every 10 blocks)
-
+* Chain Shield 1.0.0 (default check every 1 blocks)
+* Consensus::ChainBuddy 1.0.0 (Satoshi's Vision 2.0 - Wallet & Network Consensus)
 
 v1.0.0.7 (To Finish before release)
 --------
-* Installed: RPC getpeerbestheight, getpeerbestblockhash, getasicchokerlog
+* Installed: RPC getpeerbestheight, getpeerbestblockhash, getasicchokerlog, getdynamiccheckpoint, getchainshield, getchainbuddy
 * Installed: nSyncHeight && nSyncBlockhash values output to GetPeerInfo RPC
 * New GUIs: ExportWalletKeys (umpwallet), ExportAddressKey(dumpkeys), ChangeGenProcLimit
 * Multisig - GUI Update

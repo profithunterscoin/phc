@@ -167,19 +167,24 @@ Value setgenerate(const Array& params, bool fHelp)
     return Value::null;
 }
 
-/*
+
 Value gethashespersec(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
+    {
         throw runtime_error(
             "gethashespersec\n"
             "Returns a recent hashes per second performance measurement while generating.");
+    }
 
     if (GetTimeMillis() - nHPSTimerStart > 8000)
+    {
         return (boost::int64_t)0;
+    }
+
     return (boost::int64_t)dHashesPerSec;
 }
-*/
+
 
 Value getmininginfo(const Array& params, bool fHelp)
 {
@@ -189,41 +194,41 @@ Value getmininginfo(const Array& params, bool fHelp)
             "getmininginfo\n"
             "Returns an object containing mining-related information.");
     }
+   
+    Object obj, diff, weight, chainshield, chainbuddy;
 
-    uint64_t nWeight = 0;
+    obj.push_back(Pair("errors",                                    GetWarnings("statusbar")));
+    obj.push_back(Pair("protocol_testnet",                          TestNet()));
+
+    obj.push_back(Pair("blocks",                                    (int)nBestHeight));
+    obj.push_back(Pair("bestblockhash",                             pindexBest->GetBlockHash().GetHex()));
+    obj.push_back(Pair("blockvalue",                                (int64_t)GetProofOfWorkReward(pindexBest->nHeight, false)));
+    obj.push_back(Pair("currentblocksize",                          (uint64_t)nLastBlockSize));
+    obj.push_back(Pair("currentblocktx",                            (uint64_t)nLastBlockTx));
+    obj.push_back(Pair("pooledtx",                                  (uint64_t)mempool.size()));
+
+    diff.push_back(Pair("proof-of-work minimum",                    GetDifficulty()));
     
-    if (pwalletMain)
-    {
-        nWeight = pwalletMain->GetStakeWeight();
-    }
-
-    Object obj, diff, weight;
-    obj.push_back(Pair("blocks",                (int)nBestHeight));
-    obj.push_back(Pair("currentblocksize",      (uint64_t)nLastBlockSize));
-    obj.push_back(Pair("currentblocktx",        (uint64_t)nLastBlockTx));
-
-    diff.push_back(Pair("proof-of-work",        GetDifficulty()));
-    diff.push_back(Pair("proof-of-stake",       GetDifficulty(GetLastBlockIndex(pindexBest, true))));
-    diff.push_back(Pair("search-interval",      (int)nLastCoinStakeSearchInterval));
-    obj.push_back(Pair("difficulty",            GetDifficulty(GetLastBlockIndex(pindexBest, true))));
-
-    obj.push_back(Pair("generate",              GetBoolArg("-gen", false)));
-    obj.push_back(Pair("genproclimit",          (int)GetArg("-genproclimit", -1)));
-    //obj.push_back(Pair("hashespersec",        gethashespersec(params, false)));
-
-    obj.push_back(Pair("blockvalue",            (int64_t)GetProofOfStakeReward(pindexBest->pprev, 0, 0)));
-    obj.push_back(Pair("netmhashps",            GetPoWMHashPS()));
-    obj.push_back(Pair("netstakeweight",        GetPoSKernelPS()));
-    obj.push_back(Pair("errors",                GetWarnings("statusbar")));
-    obj.push_back(Pair("pooledtx",              (uint64_t)mempool.size()));
-
-    weight.push_back(Pair("minimum",            (uint64_t)nWeight));
-    weight.push_back(Pair("maximum",            (uint64_t)0));
-    weight.push_back(Pair("combined",           (uint64_t)nWeight));
-    obj.push_back(Pair("stakeweight",           weight));
-
-    obj.push_back(Pair("testnet",               TestNet()));
+    diff.push_back(Pair("search-interval",                          (int)nLastCoinStakeSearchInterval));
     
+    obj.push_back(Pair("difficulty",                                GetDifficulty(GetLastBlockIndex(pindexBest, true))));
+    obj.push_back(Pair("netmhashps",                                GetPoWMHashPS()));
+
+    obj.push_back(Pair("generate",                                  GetBoolArg("-gen", false)));
+    obj.push_back(Pair("genproclimit",                              (int)GetArg("-genproclimit", -1)));
+    obj.push_back(Pair("hashespersec",                              gethashespersec(params, false)));
+
+    chainshield.push_back(Pair("disablenewblocks",                  Consensus::ChainShield::DisableNewBlocks));
+    chainshield.push_back(Pair("cacheheight",                       Consensus::ChainShield::ChainShieldCache));
+    obj.push_back(Pair("chainshield",                               chainshield));
+
+    chainbuddy.push_back(Pair("wallethasconsensus",                 Consensus::ChainBuddy::WalletHasConsensus()));
+    chainbuddy.push_back(Pair("nodeshaveconsensus",                 Consensus::ChainBuddy::GetNodeCount(Consensus::ChainBuddy::BestCheckpoint.hash)));
+    chainbuddy.push_back(Pair("bestcheckpointheight",               (int)Consensus::ChainBuddy::BestCheckpoint.height));
+    chainbuddy.push_back(Pair("bestcheckpointhash",                 Consensus::ChainBuddy::BestCheckpoint.hash.GetHex()));
+    chainbuddy.push_back(Pair("bestcheckpointtimestamp",            Consensus::ChainBuddy::BestCheckpoint.timestamp));
+    obj.push_back(Pair("chainbuddy",                                chainbuddy));
+
     return obj;
 }
 
@@ -244,30 +249,50 @@ Value getstakinginfo(const Array& params, bool fHelp)
         nWeight = pwalletMain->GetStakeWeight();
     }
 
+
     uint64_t nNetworkWeight = GetPoSKernelPS();
     
     bool staking = nLastCoinStakeSearchInterval && nWeight;
     
     nExpectedTime = staking ? (TARGET_SPACING * nNetworkWeight / nWeight) : 0;
 
-    Object obj;
+    Object obj, weight, chainshield, chainbuddy;
 
-    obj.push_back(Pair("enabled",           GetBoolArg("-staking", true)));
-    obj.push_back(Pair("staking",           staking));
-    obj.push_back(Pair("errors",            GetWarnings("statusbar")));
+    obj.push_back(Pair("errors",                                    GetWarnings("statusbar")));
+    obj.push_back(Pair("protocol_testnet",                          TestNet()));
 
-    obj.push_back(Pair("currentblocksize",  (uint64_t)nLastBlockSize));
-    obj.push_back(Pair("currentblocktx",    (uint64_t)nLastBlockTx));
-    obj.push_back(Pair("pooledtx",          (uint64_t)mempool.size()));
+    obj.push_back(Pair("enabled",                                   GetBoolArg("-staking", true)));
+    obj.push_back(Pair("staking",                                   staking));
 
-    obj.push_back(Pair("difficulty",        GetDifficulty(GetLastBlockIndex(pindexBest, true))));
-    obj.push_back(Pair("search-interval",   (int)nLastCoinStakeSearchInterval));
+    obj.push_back(Pair("blocks",                                    (int)nBestHeight));
+    obj.push_back(Pair("bestblockhash",                             pindexBest->GetBlockHash().GetHex()));
+    obj.push_back(Pair("blockvalue",                                (int64_t)GetProofOfWorkReward(pindexBest->nHeight, false)));
+    obj.push_back(Pair("currentblocksize",                          (uint64_t)nLastBlockSize));
+    obj.push_back(Pair("currentblocktx",                            (uint64_t)nLastBlockTx));
+    obj.push_back(Pair("pooledtx",                                  (uint64_t)mempool.size()));
 
-    obj.push_back(Pair("weight",            (uint64_t)nWeight));
-    obj.push_back(Pair("netstakeweight",    (uint64_t)nNetworkWeight));
+    obj.push_back(Pair("difficulty",                                GetDifficulty(GetLastBlockIndex(pindexBest, true))));
+    obj.push_back(Pair("search-interval",                           (int)nLastCoinStakeSearchInterval));
 
-    obj.push_back(Pair("expectedtime",      nExpectedTime));
-    obj.push_back(Pair("stakethreshold",    GetStakeCombineThreshold() / COIN));
+    weight.push_back(Pair("minimum",                                (uint64_t)nWeight));
+    weight.push_back(Pair("maximum",                                (uint64_t)0));
+    weight.push_back(Pair("combined",                               (uint64_t)nWeight));
+    obj.push_back(Pair("stakeweight",                               weight));
+    obj.push_back(Pair("stakethreshold",                            GetStakeCombineThreshold() / COIN));
+
+    obj.push_back(Pair("netstakeweight",                            (uint64_t)nNetworkWeight));
+    obj.push_back(Pair("expectedtime",                              nExpectedTime));
+
+    chainshield.push_back(Pair("disablenewblocks",                  Consensus::ChainShield::DisableNewBlocks));
+    chainshield.push_back(Pair("cacheheight",                       Consensus::ChainShield::ChainShieldCache));
+    obj.push_back(Pair("chainshield",                               chainshield));
+
+    chainbuddy.push_back(Pair("wallethasconsensus",                 Consensus::ChainBuddy::WalletHasConsensus()));
+    chainbuddy.push_back(Pair("nodeshaveconsensus",                 Consensus::ChainBuddy::GetNodeCount(Consensus::ChainBuddy::BestCheckpoint.hash)));
+    chainbuddy.push_back(Pair("bestcheckpointheight",               (int)Consensus::ChainBuddy::BestCheckpoint.height));
+    chainbuddy.push_back(Pair("bestcheckpointhash",                 Consensus::ChainBuddy::BestCheckpoint.hash.GetHex()));
+    chainbuddy.push_back(Pair("bestcheckpointtimestamp",            Consensus::ChainBuddy::BestCheckpoint.timestamp));
+    obj.push_back(Pair("chainbuddy",                                chainbuddy));
 
     return obj;
 }

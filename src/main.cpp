@@ -106,6 +106,9 @@ CScript COINBASE_FLAGS;
 
 const string strMessageMagic = "PHC Signed Message:\n";
 
+double dHashesPerSec;
+int64_t nHPSTimerStart;
+
 std::set<uint256> setValidatedTx;
 
 //////////////////////////////////////////////////////////////////////////////
@@ -480,12 +483,12 @@ bool IsStandardTx(const CTransaction& tx, string& reason)
     // the next block.
     //
     // However, IsFinalTx() is confusing... Without arguments, it uses
-    // chainActive.Height() to evaluate nLockTime; when a block is accepted, chainActive.Height()
+    // ChainBuddy.Height() to evaluate nLockTime; when a block is accepted, ChainBuddy.Height()
     // is set to the value of nHeight in the block. However, when IsFinalTx()
     // is called within CBlock::AcceptBlock(), the height of the block *being*
     // evaluated is what is used. Thus if we want to know if a transaction can
     // be part of the *next* block, we need to call IsFinalTx() with one more
-    // than chainActive.Height().
+    // than ChainBuddy.Height().
     //
     // Timestamps on the other hand don't get any special treatment, because we
     // can't know what timestamp the next block will have, and there aren't
@@ -2139,7 +2142,7 @@ void static InvalidChainFound(CBlockIndex* pindexNew)
         hashBestChain.ToString(), nBestHeight, CBigNum(pindexBest->nChainTrust).ToString(), nBestBlockTrust.Get64(), DateTimeStrFormat("%x %H:%M:%S", pindexBest->GetBlockTime()));
     }
 
-    ChainShield::Protect();
+    Consensus::ChainShield::Protect();
 }
 
 
@@ -4000,6 +4003,9 @@ bool CBlock::AcceptBlock()
             }
         }
     }
+
+    // Double check to make sure local blockchain remains in sync with new blocks from nodes & new blocks mines or staked
+    Consensus::ChainBuddy::WalletHasConsensus();
 
     return true;
 }
@@ -6758,7 +6764,7 @@ int CChain::ForceSync()
     {
         pnode->fStartSync = false;
 
-        PushGetBlocks(pnode, pindexBest, pnode->dCheckpointRecv.hash);
+        PushGetBlocks(pnode, pindexBest->pprev, pnode->dCheckpointRecv.hash);
 
         MilliSleep(500);
 
@@ -7054,95 +7060,193 @@ bool CChain::Reorganize(CTxDB& txdb, CBlockIndex* pindexNew)
 }
 
 
-namespace Consensus
+DynamicCheckpoints::Checkpoint Consensus::ChainBuddy::BestCheckpoint; // Best Chain                  
+vector<std::pair<int, DynamicCheckpoints::Checkpoint>> Consensus::ChainBuddy::ConsensusCheckpointMap; // History
+
+bool Consensus::ChainBuddy::FindHash(uint256 hash)
 {
-    // Consensus Class 1.0.0 (C) 2019 Profit Hunters Coin
-    // Satoshi Vision 2.0
-
-            // Find the consensuscheckpoint among peers
-    /*
-    class ChainActive
+    if (ConsensusCheckpointMap.size() > 0)
     {
-        public:
-
-            DynamicCheckpoints::Checkpoint ConsensusCheckpoint;
-            
-            vector<std::pair<DynamicCheckpoints::Checkpoint, int>> ConsensusCheckpointMap;
-
-            uint256 FindHashConsensus()
+        for (int item = 0; item <= (signed)ConsensusCheckpointMap.size(); ++item)
+        {
+            if (ConsensusCheckpointMap[item].second.hash == hash)
             {
-                return;
+                return true;
             }
-
-            uint256 SetHashConsensus(uint256 hash)
-            {
-                return;
-            }
-
-            int FindHash(uint256 hash)
-            {
-                int nFind;
-
-                for (auto & elem : ConsensusCheckpointMap)
-                {
-                    if (elem.first.hash == "")
-                    {
-
-                    }
-                }
-
-                return nFind;
-            }
-
-            int GetNodeCount(uint256 hash)
-            {
-
-                return 0;
-            }
-
-            int SetNodeCount(uint256 hash, int NewCount)
-            {
-                return 0;
-            }
-
-            int AddHash(int NodeCount, uint256 hash)
-            {
-                return 0;
-            }
-
-            bool FindConsensus(uint256 hash)
-            {
-
-            }
-
-            bool FindConsensus(Cnode pnode)
-            {
-
-            }
+        }
     }
-    */
 
+    return false;
 }
 
-int ChainShield::ChainShieldCache; // Last Block Height protected
 
-bool ChainShield::DisableNewBlocks; // Disable PoW/PoS/Masternode block creation
-
-
-bool ChainShield::Protect()
+bool Consensus::ChainBuddy::AddHashCheckpoint(CNode *pnode)
 {
-    //  Only execute every 10 blocks
-    if (ChainShieldCache > 0 && ChainShieldCache + 10 < pindexBest->nHeight)
+    bool found;
+    found = Consensus::ChainBuddy::FindHash(pnode->dCheckpointRecv.hash);
+
+    if (found == false)
     {
-        return false; // Skip and wait for more blocks
+        ConsensusCheckpointMap.push_back(make_pair(1, pnode->dCheckpointRecv));
+
+        return true;
     }
 
-    if (ChainShieldCache > pindexBest->nHeight)
+    return false;
+}
+
+
+int Consensus::ChainBuddy::GetNodeCount(uint256 hash)
+{
+    if (ConsensusCheckpointMap.size() > 0)
+    {
+        for (int item = 0; item <= (signed)ConsensusCheckpointMap.size(); ++item)
+        {
+            if (ConsensusCheckpointMap[item].second.hash == hash)
+            {
+                return ConsensusCheckpointMap[item].first;
+            }
+        }
+    }
+
+    return 0;
+}
+
+
+bool Consensus::ChainBuddy::IncrementCheckpointNodeCount(CNode *pnode)
+{
+    if (ConsensusCheckpointMap.size() > 0)
+    {
+        for (int item = 0; item <= (signed)ConsensusCheckpointMap.size(); ++item)
+        {
+            if (ConsensusCheckpointMap[item].second.hash == pnode->dCheckpointRecv.hash)
+            {
+                size_t found;
+                found = 0;
+
+                if (pnode->addrName != "")
+                {
+                    found = ConsensusCheckpointMap[item].second.fromNode.find(pnode->addrName); 
+                }
+
+                if ((int)found < 1)
+                {
+                    ConsensusCheckpointMap[item].first = ConsensusCheckpointMap[item].first + 1;
+
+                    if (pnode->addrName != "")
+                    {
+                        ConsensusCheckpointMap[item].second.fromNode.append(pnode->addrName);
+                    }
+
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+
+bool Consensus::ChainBuddy::FindConsensus()
+{
+    std::sort(ConsensusCheckpointMap.begin(), ConsensusCheckpointMap.end(),
+        [](std::pair<int, DynamicCheckpoints::Checkpoint> &p1,
+        std::pair<int, DynamicCheckpoints::Checkpoint> &p2)
+        { 
+            return p1.first < p2.first;
+        });
+
+    if (ConsensusCheckpointMap.size() == 0)
     {
         return false;
     }
 
-    ChainShieldCache = pindexBest->nHeight;
+    for (int item = 0; item <= (signed)ConsensusCheckpointMap.size(); ++item)
+    {
+        if (ConsensusCheckpointMap[item].second.height > BestCheckpoint.height)
+        {
+            if (BestCheckpoint.height + 2 < ConsensusCheckpointMap[item].second.height
+                && BestCheckpoint.height + 3 > ConsensusCheckpointMap[item].second.height)
+            {
+                BestCheckpoint.height = ConsensusCheckpointMap[item].second.height;
+                BestCheckpoint.hash = ConsensusCheckpointMap[item].second.hash;
+                BestCheckpoint.timestamp = ConsensusCheckpointMap[item].second.timestamp;
+                BestCheckpoint.fromNode = ConsensusCheckpointMap[item].second.fromNode;
+
+                return true;
+            }
+            else
+            {
+                if (Consensus::ChainBuddy::BestCheckpoint.height == 0)
+                {
+                    BestCheckpoint.height = ConsensusCheckpointMap[item].second.height;
+                    BestCheckpoint.hash = ConsensusCheckpointMap[item].second.hash;
+                    BestCheckpoint.timestamp = ConsensusCheckpointMap[item].second.timestamp;
+                    BestCheckpoint.fromNode = ConsensusCheckpointMap[item].second.fromNode;
+
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+
+bool Consensus::ChainBuddy::WalletHasConsensus()
+{
+    Consensus::ChainBuddy::FindConsensus();
+
+    // find last known common ansesessor checkpoint
+    if (mapBlockIndex.find(BestCheckpoint.hash) != mapBlockIndex.end()
+        && mapBlockIndex[BestCheckpoint.hash]->nHeight == (int)BestCheckpoint.height)
+    {
+        Consensus::ChainShield::DisableNewBlocks = false;
+
+        return true;
+    }
+
+    Consensus::ChainShield::DisableNewBlocks = true;
+
+    return false;
+}
+
+
+// TO-DO also add CheckPointHistory vector to pnode
+/*
+bool Consensus::ChainBuddy::NodeHasConsensus(CNode* pnode)
+{
+    if (pnode->dCheckpointRecv.hash == BestCheckpoint.hash
+        && pnode->dCheckpointRecv.height == BestCheckpoint.height
+        && pnode->dCheckpointRecv.timestamp == BestCheckpoint.timestamp)
+    {
+        return true;
+    }
+
+    return false;
+}
+*/
+
+
+int Consensus::ChainShield::ChainShieldCache = 0; // Last Block Height protected
+bool Consensus::ChainShield::DisableNewBlocks = false; // Disable PoW/PoS/Masternode block creation
+
+bool Consensus::ChainShield::Protect()
+{
+    //  Only execute every 1 blocks
+    if (Consensus::ChainShield::ChainShieldCache > 0 && Consensus::ChainShield::ChainShieldCache + 1 < pindexBest->nHeight)
+    {
+        return false; // Skip and wait for more blocks
+    }
+
+    if (Consensus::ChainShield::ChainShieldCache > pindexBest->nHeight)
+    {
+        return false;
+    }
+
+    Consensus::ChainShield::ChainShieldCache = pindexBest->nHeight;
 
     int Agreed = 0;
     int Disagreed = 0;
@@ -7157,11 +7261,33 @@ bool ChainShield::Protect()
             if (pnode->dCheckpointRecv.height == pnode->dCheckpointSent.height
                 && pnode->dCheckpointRecv.hash == pnode->dCheckpointSent.hash)
             {
-                Agreed++; // Local Wallet and Node have consensus
+                Agreed++; // Local Wallet and Node have consensus (increment temp counter)
+
+                // Find if this hash is in current Consensus::ChainBuddy::BestCheckpoint
+                if (Consensus::ChainBuddy::FindHash(pnode->dCheckpointRecv.hash) == true)
+                {
+                    if (Consensus::ChainBuddy::IncrementCheckpointNodeCount(pnode) == false)
+                    {
+                        if (fDebug)
+                        {
+                            LogPrint("chainshield", "%s : Warning: IncrementCheckpoint Failed %d.\n", __FUNCTION__, pnode->dCheckpointRecv.height);
+                        }
+                    }
+                }
+                else
+                {
+                    if (Consensus::ChainBuddy::AddHashCheckpoint(pnode) == false)
+                    {
+                        if (fDebug)
+                        {
+                            LogPrint("chainshield", "%s : Warning: AddHashCheckpoint Failed %d.\n", __FUNCTION__, pnode->dCheckpointRecv.height);
+                        }
+                    }
+                }
             }
             else
             {
-                // use quick nodes with little no one sync lag that's off by more than 1 block
+                // use quick nodes with little to no sync lag that's off by more than 1 block & no more than 500 milliseconds
                 if (pnode->dCheckpointSent.timestamp - pnode->dCheckpointRecv.timestamp < 500
                     && pnode->dCheckpointSent.height - pnode->dCheckpointRecv.height > 1)
                 {
@@ -7171,25 +7297,22 @@ bool ChainShield::Protect()
         }
     }
 
-    if (Disagreed > Agreed)
+    if (Disagreed > Agreed) // compare both Agreed and Disagreed temp counters and attempt to repair local wallet if no consensus is found among peers
     {
-        // TODO: Check if current pindexBest->hash is NOT on the right chain (skip actions below if true)
+        if (Consensus::ChainBuddy::WalletHasConsensus() == true)
+        {
+            return false; // No Shielding Required
+        }
 
-        DisableNewBlocks = true;
-
-        CChain::RollbackChain(50);
+        CChain::RollbackChain(5);
 
         MilliSleep(10000);
 
         CChain::ForceSync();
 
-        MilliSleep(60000);
-
-        DisableNewBlocks = false;
-
-        return true;
+        return true; // Shielding forced to protect local blockchain database
     }
 
-    return false;
+    return false; // No Shielding Required
 }
 

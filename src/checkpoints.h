@@ -50,6 +50,7 @@ namespace DynamicCheckpoints
             Checkpoint(int64_t height, const uint256& hash);
             Checkpoint(int64_t height, const uint256& hash, int64_t timestamp);
             Checkpoint(int64_t height, const uint256& hash, int64_t timestamp, bool synced);
+            Checkpoint(int64_t height, const uint256& hash, int64_t timestamp, bool synced, std::string fromNode);
 
             IMPLEMENT_SERIALIZE
             (
@@ -57,12 +58,14 @@ namespace DynamicCheckpoints
                 READWRITE(hash);
                 READWRITE(timestamp);
                 READWRITE(synced);
+                READWRITE(fromNode);
             )
 
             int64_t height;
             uint256 hash;
             int64_t timestamp;
             bool synced;
+            std::string fromNode;
 
     };
 }
