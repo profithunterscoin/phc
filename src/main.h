@@ -107,7 +107,7 @@ inline const char * const BoolToString(bool b)
 
 extern int64_t TURBOSYNC_MAX;
 
-static const int64_t DYNAMICCHECKPOINTS_INTERVAL = 60 * 2;  // 2 minutes
+static const int64_t DYNAMICCHECKPOINTS_INTERVAL = 60 * 2;  // 2 minute
 
 extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
@@ -128,6 +128,8 @@ extern uint64_t nLastBlockTx;
 extern uint64_t nLastBlockSize;
 extern int64_t nLastCoinStakeSearchInterval;
 extern const std::string strMessageMagic;
+extern double dHashesPerSec;
+extern int64_t nHPSTimerStart;
 extern int64_t nTimeBestReceived;
 extern bool fImporting;
 extern bool fReindex;
@@ -174,12 +176,45 @@ class CChain
 
 };
 
-class ChainShield
+
+namespace Consensus
 {
-    // ChainShield 1.0.0 (C) 2019 Profit Hunters Coin
-    // Peer to peer Satoshi Consensus to prevent local wallet from getting stuck on a forked chain
-    // Requirements: Dynamic Checkpoints 1.0.0
-    // Recommended: Implemented with Bitcoin Firewall X.X.X 
+    // Consensus Class 1.0.0 (C) 2019 Profit Hunters Coin
+    // Satoshi Vision 2.0 - Find the best Dynamic Checkpoint among peers
+    // Most valid chain decided by the network, not block height+1 or elevated proof of work
+
+        class ChainBuddy
+        {
+            public:
+
+                    static DynamicCheckpoints::Checkpoint BestCheckpoint; // Best Chain
+                            
+                    static vector<std::pair<int, DynamicCheckpoints::Checkpoint>> ConsensusCheckpointMap; // History
+
+                    static bool FindHash(uint256 hash);
+
+                    static bool AddHashCheckpoint(CNode *pnode);
+
+                    static int GetNodeCount(uint256 hash);
+
+                    static bool IncrementCheckpointNodeCount(CNode *pnode);
+
+                    static bool FindConsensus();
+
+                    static bool WalletHasConsensus();
+
+                    static bool NodeHasConsensus(CNode* pnode);
+
+        };
+
+
+    class ChainShield
+    {
+        // ChainShield 1.0.0 (C) 2019 Profit Hunters Coin
+        // Peer to peer Satoshi Consensus to prevent local wallet from getting stuck on a forked chain
+        // Forces local blockchain rollback and resync to organize most valid chain
+        // Requirements: Dynamic Checkpoints 1.0.0
+        // Recommended: Implemented with Bitcoin Firewall X.X.X & Blockshield & ASIC Choker
 
         public:
 
@@ -189,7 +224,9 @@ class ChainShield
 
             static bool Protect();
 
-};
+    };
+}
+
 
 /** Register a wallet to receive updates from core */
 void RegisterWallet(CWalletInterface* pwalletIn);

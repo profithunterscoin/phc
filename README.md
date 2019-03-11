@@ -66,14 +66,14 @@ XUVCoin, BATA, and Crypostle and other projects to help further advance the fiel
 
 ## Block Rewards
 
-| Start Block | End Block | Proof-of-Work Max | Proof-of-Stake Max |
+| Start Block | End Block | Proof-of-Work Max | Proof-of-Stake Max +10% network average|
 | --- | --- | --- | --- |
-| 1 | 50000 | 100 PHC | 1000% annually |
-| 50001 | 120000 | 50 PHC | 500% annually |
-| 120001 | 150000 | 25 PHC | 250% annually |
-| 150000 | 200000 | 12.5 PHC | 125% annually |
-| 200001 | 250000 | 6.25 PHC | 62% annually |
-| 250001 | unlimited | 3 PHC | 31% annually |
+| 1 | 50000 | 100 PHC | Coinage + Fees |
+| 50001 | 120000 | 50 PHC | Coinage + Fees |
+| 120001 | 150000 | 25 PHC | Coinage + Fees |
+| 150001 | 200000 | 12.5 PHC | Coinage + Fees |
+| 200001 | 250000 | 6.25 PHC | Coinage + Fees |
+| 250001 | unlimited | 3 PHC | Coinage + Fees |
 
 ## Proprietary Security Upgrades
 
