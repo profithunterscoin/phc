@@ -370,7 +370,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getdifficulty",                                  &getdifficulty,                                 true,      false,     false },
     { "getgenerate",                                    &getgenerate,                                   true,      false,     false },
     { "setgenerate",                                    &setgenerate,                                   true,      false,     true  },
-    //{ "gethashespersec",                              &gethashespersec,                               true,      false,     false },
+    { "gethashespersec",                                &gethashespersec,                               true,      false,     false },
     { "getinfo",                                        &getinfo,                                       true,      false,     false },
     { "getrawmempool",                                  &getrawmempool,                                 true,      false,     false },
     { "getblock",                                       &getblock,                                      false,     false,     false },
@@ -528,6 +528,19 @@ static const CRPCCommand vRPCCommands[] =
     { "smsgoutbox",                                     &smsgoutbox,                                    false,     false,     false },
     { "smsgbuckets",                                    &smsgbuckets,                                   false,     false,     false },
 #endif
+
+/* Dynamic Checkpoints */
+/* Block Shield */
+/* ASIC Choker */
+
+/* Chain Buddy */
+    { "getchainbuddyinfo",                             &getchainbuddyinfo,                              false,     false,     false },
+    { "chainbuddyenabled",                             &chainbuddyenabled,                              false,     false,     false },
+
+/* Chain Shield */
+    { "getchainshieldinfo",                             &getchainshieldinfo,                             false,     false,     false },
+    { "chainshieldenabled",                             &chainshieldenabled,                             false,     false,     false },
+
 };
 
 

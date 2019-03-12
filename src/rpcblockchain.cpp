@@ -394,7 +394,7 @@ Value rollbackchain(const Array& params, bool fHelp)
                             );
     }
 
-    int nBlockCount = (int)strtod(params[0].get_str().c_str(), NULL);
+    int nBlockCount = (int)params[0].get_int();
 
     if (nBlockCount == 0)
     {
@@ -421,7 +421,7 @@ Value backtoblock(const Array& params, bool fHelp)
                             );
     }
 
-    int nNewHeight = (int)strtod(params[0].get_str().c_str(), NULL);
+    int nNewHeight = (int)params[0].get_int();
 
     if (nNewHeight == 0)
     {
@@ -460,3 +460,71 @@ Value forcesync(const Array& params, bool fHelp)
 
     return strprintf("ForceSync nodes: %d", CChain::ForceSync());
 }
+
+
+Value getchainbuddyinfo(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 0)
+    {
+        throw runtime_error("getchainbuddyinfo\n"
+                            "Show info of Chain Buddy.\n");
+    }
+
+    Object result;
+
+    result.push_back(Pair("enabled",                            Consensus::ChainBuddy::Enabled));
+    result.push_back(Pair("wallethasconsensus",                 Consensus::ChainBuddy::WalletHasConsensus()));
+    result.push_back(Pair("nodeshaveconsensus",                 Consensus::ChainBuddy::GetNodeCount(Consensus::ChainBuddy::BestCheckpoint.hash)));
+    result.push_back(Pair("bestcheckpointheight",               (int)Consensus::ChainBuddy::BestCheckpoint.height));
+    result.push_back(Pair("bestcheckpointhash",                 Consensus::ChainBuddy::BestCheckpoint.hash.GetHex()));
+    result.push_back(Pair("bestcheckpointtimestamp",            Consensus::ChainBuddy::BestCheckpoint.timestamp));
+
+    return result;
+}
+
+
+Value chainbuddyenabled(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 1)
+    {
+        throw runtime_error("chainbuddyenabled\n"
+                            "Set Chain Buddy Enabled: TRUE/FALSE.");
+    }
+
+    Consensus::ChainBuddy::Enabled = (bool)params[0].get_bool();;
+
+    return strprintf("Consensus::ChainBuddy::Enabled %d", Consensus::ChainBuddy::Enabled);
+}
+
+
+Value getchainshieldinfo(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 0)
+    {
+        throw runtime_error("getchainshieldinfo\n"
+                            "Show info of Chain Shield.\n");
+    }
+
+    Object result;
+    
+    result.push_back(Pair("enabled",                           Consensus::ChainShield::Enabled));
+    result.push_back(Pair("disablenewblocks",                  Consensus::ChainShield::DisableNewBlocks));
+    result.push_back(Pair("cacheheight",                       Consensus::ChainShield::ChainShieldCache));
+
+    return result;
+}
+
+
+Value chainshieldenabled(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 1)
+    {
+        throw runtime_error("chainshieldenabled\n"
+                            "Set Chain Shield Enabled: TRUE/FALSE.");
+    }
+
+    Consensus::ChainShield::Enabled = (bool)params[0].get_bool();;
+
+    return strprintf("Consensus::ChainShield::Enabled %d", Consensus::ChainShield::Enabled);
+}
+

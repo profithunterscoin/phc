@@ -139,16 +139,19 @@ typedef boost::tuple<double, double, CTransaction*> TxPriority; class TxPriority
 
 CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
 {
-    if (TestNet()) // DISABLE ON MAINNET UNTIL 1.0.0.8
+    if (!fReindex || !fImporting || !IsInitialBlockDownload() || TestNet()) // DISABLE ON MAINNET UNTIL 1.0.0.8
     {
-        if (Consensus::ChainBuddy::WalletHasConsensus() == false)
+        if (Consensus::ChainShield::Enabled == true && Consensus::ChainBuddy::Enabled == true)
         {
-            Consensus::ChainShield::Protect();
-        }
+            if (Consensus::ChainBuddy::WalletHasConsensus() == false)
+            {
+                Consensus::ChainShield::Protect();
+            }
 
-        if (Consensus::ChainShield::DisableNewBlocks == true)
-        {
-            return NULL;
+            if (Consensus::ChainShield::DisableNewBlocks == true)
+            {
+                return NULL;
+            }
         }
     }
 
@@ -475,16 +478,19 @@ CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
 // CreateNewBlock: create new block (without proof-of-work/proof-of-stake)
 CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFees)
 {
-    if (TestNet()) // DISABLE ON MAINNET UNTIL 1.0.0.8
+    if (!fReindex || !fImporting || !IsInitialBlockDownload() || TestNet()) // DISABLE ON MAINNET UNTIL 1.0.0.8
     {
-        if (Consensus::ChainBuddy::WalletHasConsensus() == false)
+        if (Consensus::ChainShield::Enabled == true && Consensus::ChainBuddy::Enabled == true)
         {
-            Consensus::ChainShield::Protect();
-        }
+            if (Consensus::ChainBuddy::WalletHasConsensus() == false)
+            {
+                Consensus::ChainShield::Protect();
+            }
 
-        if (Consensus::ChainShield::DisableNewBlocks == true)
-        {
-            return NULL;
+            if (Consensus::ChainShield::DisableNewBlocks == true)
+            {
+                return NULL;
+            }
         }
     }
 

@@ -186,6 +186,8 @@ namespace Consensus
         class ChainBuddy
         {
             public:
+            
+                    static bool Enabled; // ChainShield Enabled = TRUE/FALSE
 
                     static DynamicCheckpoints::Checkpoint BestCheckpoint; // Best Chain
                             
@@ -217,6 +219,8 @@ namespace Consensus
         // Recommended: Implemented with Bitcoin Firewall X.X.X & Blockshield & ASIC Choker
 
         public:
+
+            static bool Enabled; // ChainShield Enabled = TRUE/FALSE
 
             static int ChainShieldCache; // Last Block Height protected
 
