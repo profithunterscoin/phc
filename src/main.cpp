@@ -2142,7 +2142,10 @@ void static InvalidChainFound(CBlockIndex* pindexNew)
         hashBestChain.ToString(), nBestHeight, CBigNum(pindexBest->nChainTrust).ToString(), nBestBlockTrust.Get64(), DateTimeStrFormat("%x %H:%M:%S", pindexBest->GetBlockTime()));
     }
 
-    Consensus::ChainShield::Protect();
+    if (TestNet()) // DISABLE ON MAINNET UNTIL 1.0.0.8
+    {
+        Consensus::ChainShield::Protect();
+    }
 }
 
 
@@ -4004,11 +4007,14 @@ bool CBlock::AcceptBlock()
         }
     }
 
-    Consensus::ChainShield::Protect();
+    if (TestNet()) // DISABLE ON MAINNET UNTIL 1.0.0.8
+    {
+        Consensus::ChainShield::Protect();
 
-    // Double check to make sure local blockchain remains in sync with new blocks from nodes & new blocks mines or staked
-    Consensus::ChainBuddy::WalletHasConsensus();
-
+        // Double check to make sure local blockchain remains in sync with new blocks from nodes & new blocks mines or staked
+        Consensus::ChainBuddy::WalletHasConsensus();
+    }
+    
     return true;
 }
 
