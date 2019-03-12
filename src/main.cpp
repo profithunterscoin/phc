@@ -4004,6 +4004,8 @@ bool CBlock::AcceptBlock()
         }
     }
 
+    Consensus::ChainShield::Protect();
+
     // Double check to make sure local blockchain remains in sync with new blocks from nodes & new blocks mines or staked
     Consensus::ChainBuddy::WalletHasConsensus();
 
