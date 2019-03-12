@@ -139,14 +139,17 @@ typedef boost::tuple<double, double, CTransaction*> TxPriority; class TxPriority
 
 CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
 {
-    if (Consensus::ChainBuddy::WalletHasConsensus() == false)
+    if (TestNet()) // DISABLE ON MAINNET UNTIL 1.0.0.8
     {
-        Consensus::ChainShield::Protect();
-    }
+        if (Consensus::ChainBuddy::WalletHasConsensus() == false)
+        {
+            Consensus::ChainShield::Protect();
+        }
 
-    if (Consensus::ChainShield::DisableNewBlocks == true)
-    {
-        return NULL;
+        if (Consensus::ChainShield::DisableNewBlocks == true)
+        {
+            return NULL;
+        }
     }
 
     int64_t pFees = 0;
@@ -472,14 +475,17 @@ CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
 // CreateNewBlock: create new block (without proof-of-work/proof-of-stake)
 CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFees)
 {
-    if (Consensus::ChainBuddy::WalletHasConsensus() == false)
+    if (TestNet()) // DISABLE ON MAINNET UNTIL 1.0.0.8
     {
-        Consensus::ChainShield::Protect();
-    }
+        if (Consensus::ChainBuddy::WalletHasConsensus() == false)
+        {
+            Consensus::ChainShield::Protect();
+        }
 
-    if (Consensus::ChainShield::DisableNewBlocks == true)
-    {
-        return NULL;
+        if (Consensus::ChainShield::DisableNewBlocks == true)
+        {
+            return NULL;
+        }
     }
 
     // Create new block

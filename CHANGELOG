@@ -47,15 +47,16 @@ v1.0.0.7 (Pre-release)
 * Dynamic Checkpoints 1.0.0
 * Chain Shield 1.0.0 (default check every 1 blocks)
 * Consensus::ChainBuddy 1.0.0 (Satoshi's Vision 2.0 - Wallet & Network Consensus)
+* Installed: DynamicCheckpointRecv && DynamicCheckpointSent values output from CNode to GetPeerInfo RPC
 
 v1.0.0.7 (To Finish before release)
 --------
-* Installed: RPC getpeerbestheight, getpeerbestblockhash, getasicchokerlog, getdynamiccheckpoint, getchainshield, getchainbuddy
-* Installed: nSyncHeight && nSyncBlockhash values output to GetPeerInfo RPC
-* New GUIs: ExportWalletKeys (umpwallet), ExportAddressKey(dumpkeys), ChangeGenProcLimit
+* DDoS Shield & Firewall upgrades
 * Multisig - GUI Update
 * Masternode reward decentralization (Hard-Fork 1)
-* DDoS Shield & Firewall upgrades
+* New GUIs: ExportWalletKeys (umpwallet), ExportAddressKey(dumpkeys), ChangeGenProcLimit
+* New RPC: getasicchokerlog, getdynamiccheckpoint,
+    getchainshield, getchainbuddy, checkpointmap, bestcheckpoint
 
 v1.0.0.6
 --------
