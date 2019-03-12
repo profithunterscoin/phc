@@ -108,11 +108,13 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("ip",                                        GetLocalAddress(NULL).ToStringIP()));
 
     //obj.push_back(Pair("firewall_averagechainblocks",             Firewall_AverageHeight));
-
+    
+    chainshield.push_back(Pair("enabled",                           Consensus::ChainShield::Enabled));
     chainshield.push_back(Pair("disablenewblocks",                  Consensus::ChainShield::DisableNewBlocks));
     chainshield.push_back(Pair("cacheheight",                       Consensus::ChainShield::ChainShieldCache));
     obj.push_back(Pair("chainshield",                               chainshield));
 
+    chainbuddy.push_back(Pair("enabled",                            Consensus::ChainBuddy::Enabled));
     chainbuddy.push_back(Pair("wallethasconsensus",                 Consensus::ChainBuddy::WalletHasConsensus()));
     chainbuddy.push_back(Pair("nodeshaveconsensus",                 Consensus::ChainBuddy::GetNodeCount(Consensus::ChainBuddy::BestCheckpoint.hash)));
     chainbuddy.push_back(Pair("bestcheckpointheight",               (int)Consensus::ChainBuddy::BestCheckpoint.height));

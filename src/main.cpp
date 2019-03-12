@@ -2142,9 +2142,15 @@ void static InvalidChainFound(CBlockIndex* pindexNew)
         hashBestChain.ToString(), nBestHeight, CBigNum(pindexBest->nChainTrust).ToString(), nBestBlockTrust.Get64(), DateTimeStrFormat("%x %H:%M:%S", pindexBest->GetBlockTime()));
     }
 
-    if (TestNet()) // DISABLE ON MAINNET UNTIL 1.0.0.8
+    if (!fReindex || !fImporting || !IsInitialBlockDownload() || TestNet() || Consensus::ChainShield::ChainShieldCache < pindexBest->nHeight)
     {
-        Consensus::ChainShield::Protect();
+        if (Consensus::ChainShield::Enabled == true && Consensus::ChainBuddy::Enabled == true) // DISABLE ON MAINNET UNTIL 1.0.0.8
+        {
+            // Double check to make sure local blockchain remains in sync with new blocks from nodes & new blocks mines or staked
+            Consensus::ChainBuddy::WalletHasConsensus();
+
+            Consensus::ChainShield::Protect();
+        }
     }
 }
 
@@ -4007,12 +4013,15 @@ bool CBlock::AcceptBlock()
         }
     }
 
-    if (TestNet()) // DISABLE ON MAINNET UNTIL 1.0.0.8
+    if (!fReindex || !fImporting || !IsInitialBlockDownload() || TestNet() || Consensus::ChainShield::ChainShieldCache < pindexBest->nHeight)
     {
-        Consensus::ChainShield::Protect();
+        if (Consensus::ChainShield::Enabled == true && Consensus::ChainBuddy::Enabled == true) // DISABLE ON MAINNET UNTIL 1.0.0.8
+        {
+            // Double check to make sure local blockchain remains in sync with new blocks from nodes & new blocks mines or staked
+            Consensus::ChainBuddy::WalletHasConsensus();
 
-        // Double check to make sure local blockchain remains in sync with new blocks from nodes & new blocks mines or staked
-        Consensus::ChainBuddy::WalletHasConsensus();
+            Consensus::ChainShield::Protect();
+        }
     }
 
     return true;
@@ -4095,7 +4104,6 @@ bool ASIC_Choker(std::string addrname, CBlock* pblock)
 {
     // Version 1.0.1 (C) 2019 Profit Hunters Coin in collaboration with Crypostle
     // Prevents consecutive blocks from the same node (decentralized coin distribution regardless of hash-power)
-
 
     if (fReindex && fImporting)
     {
@@ -7067,12 +7075,17 @@ bool CChain::Reorganize(CTxDB& txdb, CBlockIndex* pindexNew)
     return true;
 }
 
-
+bool Consensus::ChainBuddy::Enabled = false;
 DynamicCheckpoints::Checkpoint Consensus::ChainBuddy::BestCheckpoint; // Best Chain                  
 vector<std::pair<int, DynamicCheckpoints::Checkpoint>> Consensus::ChainBuddy::ConsensusCheckpointMap; // History
 
 bool Consensus::ChainBuddy::FindHash(uint256 hash)
 {
+    if (Consensus::ChainBuddy::Enabled == false)
+    {
+        return false;
+    }
+    
     if (ConsensusCheckpointMap.size() > 0)
     {
         for (int item = 0; item <= (signed)ConsensusCheckpointMap.size() - 1; ++item)
@@ -7090,6 +7103,11 @@ bool Consensus::ChainBuddy::FindHash(uint256 hash)
 
 bool Consensus::ChainBuddy::AddHashCheckpoint(CNode *pnode)
 {
+    if (Consensus::ChainBuddy::Enabled == false)
+    {
+        return false;
+    }
+
     bool found;
     found = Consensus::ChainBuddy::FindHash(pnode->dCheckpointRecv.hash);
 
@@ -7106,6 +7124,11 @@ bool Consensus::ChainBuddy::AddHashCheckpoint(CNode *pnode)
 
 int Consensus::ChainBuddy::GetNodeCount(uint256 hash)
 {
+    if (Consensus::ChainBuddy::Enabled == false)
+    {
+        return 0;
+    }
+    
     if (ConsensusCheckpointMap.size() > 0)
     {
         for (int item = 0; item <= (signed)ConsensusCheckpointMap.size() - 1; ++item)
@@ -7123,6 +7146,11 @@ int Consensus::ChainBuddy::GetNodeCount(uint256 hash)
 
 bool Consensus::ChainBuddy::IncrementCheckpointNodeCount(CNode *pnode)
 {
+    if (Consensus::ChainBuddy::Enabled == false)
+    {
+        return false;
+    }
+
     if (ConsensusCheckpointMap.size() > 0)
     {
         for (int item = 0; item <= (signed)ConsensusCheckpointMap.size() - 1; ++item)
@@ -7158,6 +7186,11 @@ bool Consensus::ChainBuddy::IncrementCheckpointNodeCount(CNode *pnode)
 
 bool Consensus::ChainBuddy::FindConsensus()
 {
+    if (Consensus::ChainBuddy::Enabled == false)
+    {
+        return false;
+    }
+
     if (ConsensusCheckpointMap.size() == 0)
     {
         return false;
@@ -7201,7 +7234,6 @@ bool Consensus::ChainBuddy::FindConsensus()
     // Decide consensus among peers and most valid checkpoint then pdate BestCheckpoint
     if (ItemSelected > 0)
     {
-
         if (ConsensusCheckpointMap[ItemSelected].second.height < pindexBest->nHeight + 1)
         {
             BestCheckpoint.height = ConsensusCheckpointMap[ItemSelected].second.height;
@@ -7219,7 +7251,22 @@ bool Consensus::ChainBuddy::FindConsensus()
 
 bool Consensus::ChainBuddy::WalletHasConsensus()
 {
+    if (Consensus::ChainBuddy::Enabled == false)
+    {
+        return false;
+    }
+
     Consensus::ChainBuddy::FindConsensus();
+
+    if (pindexBest->nHeight - BestCheckpoint.height > 5)
+    {
+        if (Consensus::ChainShield::ChainShieldCache - BestCheckpoint.height > 5)
+        {
+            Consensus::ChainShield::DisableNewBlocks = true;
+
+            return false; // Local wallet is out of sync from network consensus
+        }
+    }
 
     // find last known common ansesessor checkpoint
     if (mapBlockIndex.find(BestCheckpoint.hash) != mapBlockIndex.end()
@@ -7251,12 +7298,17 @@ bool Consensus::ChainBuddy::NodeHasConsensus(CNode* pnode)
 }
 */
 
-
+bool Consensus::ChainShield::Enabled = false; // ChainShield  Enabled/Disabled
 int Consensus::ChainShield::ChainShieldCache = 0; // Last Block Height protected
 bool Consensus::ChainShield::DisableNewBlocks = false; // Disable PoW/PoS/Masternode block creation
 
 bool Consensus::ChainShield::Protect()
 {
+    if (Consensus::ChainShield::Enabled == false)
+    {
+        return false; // Skip until enabled
+    }
+
     //  Only execute every 1 blocks
     if (Consensus::ChainShield::ChainShieldCache > 0 && Consensus::ChainShield::ChainShieldCache + 1 < pindexBest->nHeight)
     {
@@ -7273,6 +7325,9 @@ bool Consensus::ChainShield::Protect()
     int Agreed = 0;
     int Disagreed = 0;
 
+    int MaxHeight = 0;
+    int MaxHeightNodes = 0;
+
     LOCK(cs_vNodes);
 
     // Find if nodes are synced (agreed to local wallet checkpoint or not)
@@ -7284,6 +7339,12 @@ bool Consensus::ChainShield::Protect()
                 && pnode->dCheckpointRecv.hash == pnode->dCheckpointSent.hash)
             {
                 Agreed++; // Local Wallet and Node have consensus (increment temp counter)
+
+                if (MaxHeight > pnode->dCheckpointSent.height)
+                {
+                    MaxHeight = pnode->dCheckpointSent.height;
+                    MaxHeightNodes++;
+                }
 
                 // Find if this hash is in current Consensus::ChainBuddy::BestCheckpoint
                 if (Consensus::ChainBuddy::FindHash(pnode->dCheckpointRecv.hash) == true)
@@ -7314,18 +7375,46 @@ bool Consensus::ChainShield::Protect()
                     && pnode->dCheckpointSent.height - pnode->dCheckpointRecv.height > 1)
                 {
                     Disagreed++;  // Local Wallet and Node DO NOT have consensus
+
+                    if (MaxHeight > pnode->dCheckpointSent.height)
+                    {
+                        MaxHeight = pnode->dCheckpointSent.height;
+                        MaxHeightNodes++;
+                    }
                 }
             }
         }
     }
 
+    bool trigger;
+
+    if (Consensus::ChainBuddy::WalletHasConsensus() == true)
+    {
+        return false; // No Shielding Required
+    }
+    else
+    {
+        trigger = true; // Local wallet is out of sync, try to auto-correct
+    }
+
     if (Disagreed > Agreed) // compare both Agreed and Disagreed temp counters and attempt to repair local wallet if no consensus is found among peers
     {
-        if (Consensus::ChainBuddy::WalletHasConsensus() == true)
-        {
-            return false; // No Shielding Required
-        }
+        trigger = true; // Peers are not in consensus try to auto-correct if they're below current blockchain height
+    }
 
+    if (pindexBest->nHeight < Consensus::ChainShield::ChainShieldCache)
+    {
+        trigger = false; // Skip
+    }
+
+    if (pindexBest->nHeight < MaxHeight && MaxHeight > 0)
+    {
+        trigger = false; // Skip
+    }
+
+    // Forked wallet auto-correction
+    if (trigger == true)
+    {
         CChain::RollbackChain(5);
 
         MilliSleep(10000);
