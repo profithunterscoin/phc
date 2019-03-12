@@ -102,7 +102,12 @@ extern double GetDifficulty(const CBlockIndex* blockindex = NULL);
 
 extern json_spirit::Value getgenerate(const json_spirit::Array& params, bool fHelp); // in rpcmining.cpp
 extern json_spirit::Value setgenerate(const json_spirit::Array& params, bool fHelp);
-//extern json_spirit::Value gethashespersec(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value gethashespersec(const json_spirit::Array& params, bool fHelp);
+
+extern json_spirit::Value getchainbuddyinfo(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value chainbuddyenabled(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getchainshieldinfo(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value chainshieldenabled(const json_spirit::Array& params, bool fHelp);
 
 extern double GetPoWMHashPS();
 extern double GetPoSKernelPS();
