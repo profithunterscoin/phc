@@ -7075,7 +7075,7 @@ bool Consensus::ChainBuddy::FindHash(uint256 hash)
 {
     if (ConsensusCheckpointMap.size() > 0)
     {
-        for (int item = 0; item <= (signed)ConsensusCheckpointMap.size() + 1; ++item)
+        for (int item = 0; item <= (signed)ConsensusCheckpointMap.size() - 1; ++item)
         {
             if (ConsensusCheckpointMap[item].second.hash == hash)
             {
@@ -7108,7 +7108,7 @@ int Consensus::ChainBuddy::GetNodeCount(uint256 hash)
 {
     if (ConsensusCheckpointMap.size() > 0)
     {
-        for (int item = 0; item <= (signed)ConsensusCheckpointMap.size() + 1; ++item)
+        for (int item = 0; item <= (signed)ConsensusCheckpointMap.size() - 1; ++item)
         {
             if (ConsensusCheckpointMap[item].second.hash == hash)
             {
@@ -7125,7 +7125,7 @@ bool Consensus::ChainBuddy::IncrementCheckpointNodeCount(CNode *pnode)
 {
     if (ConsensusCheckpointMap.size() > 0)
     {
-        for (int item = 0; item <= (signed)ConsensusCheckpointMap.size() + 1; ++item)
+        for (int item = 0; item <= (signed)ConsensusCheckpointMap.size() - 1; ++item)
         {
             if (ConsensusCheckpointMap[item].second.hash == pnode->dCheckpointRecv.hash)
             {
@@ -7171,31 +7171,29 @@ bool Consensus::ChainBuddy::FindConsensus()
     int ItemSelected;
     ItemSelected = 0;
 
-    for (int item = 0; item <= (signed)ConsensusCheckpointMap.size() + 1; ++item)
+    for (int item = 0; item <= (signed)ConsensusCheckpointMap.size() - 1; ++item)
     {
-        if (ConsensusCheckpointMap[item].second.timestamp > 0)
+        bool trigger;
+        trigger = false;
+
+        // Find Checkpoint with highest amount of node confirmations
+        if (ConsensusCheckpointMap[item].second.height > MaxHeight)
         {
-            bool trigger;
-            trigger = false;
-
-            // Find Checkpoint with highest amount of node confirmations
-            if (ConsensusCheckpointMap[item].second.height > MaxHeight)
-            {
-                MaxHeight = ConsensusCheckpointMap[item].second.height;
-                trigger = true;
-            }
-
-            if (ConsensusCheckpointMap[item].first > MaxNodes)
-            {
-                MaxNodes = ConsensusCheckpointMap[item].first;
-                trigger = true;
-            }
-
-            if (trigger == true)
-            {
-                ItemSelected = item;
-            }
+            MaxHeight = ConsensusCheckpointMap[item].second.height;
+            trigger = true;
         }
+
+        if (ConsensusCheckpointMap[item].first > MaxNodes)
+        {
+            MaxNodes = ConsensusCheckpointMap[item].first;
+            trigger = true;
+        }
+
+        if (trigger == true)
+        {
+            ItemSelected = item;
+        }
+
     }
 
     //cout << "MapSize:" << ConsensusCheckpointMap.size() << " Item:" << ItemSelected << endl;
