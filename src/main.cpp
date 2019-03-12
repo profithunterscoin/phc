@@ -4014,7 +4014,7 @@ bool CBlock::AcceptBlock()
         // Double check to make sure local blockchain remains in sync with new blocks from nodes & new blocks mines or staked
         Consensus::ChainBuddy::WalletHasConsensus();
     }
-    
+
     return true;
 }
 
@@ -7075,7 +7075,7 @@ bool Consensus::ChainBuddy::FindHash(uint256 hash)
 {
     if (ConsensusCheckpointMap.size() > 0)
     {
-        for (int item = 0; item <= (signed)ConsensusCheckpointMap.size(); ++item)
+        for (int item = 0; item <= (signed)ConsensusCheckpointMap.size() + 1; ++item)
         {
             if (ConsensusCheckpointMap[item].second.hash == hash)
             {
@@ -7108,7 +7108,7 @@ int Consensus::ChainBuddy::GetNodeCount(uint256 hash)
 {
     if (ConsensusCheckpointMap.size() > 0)
     {
-        for (int item = 0; item <= (signed)ConsensusCheckpointMap.size(); ++item)
+        for (int item = 0; item <= (signed)ConsensusCheckpointMap.size() + 1; ++item)
         {
             if (ConsensusCheckpointMap[item].second.hash == hash)
             {
@@ -7125,7 +7125,7 @@ bool Consensus::ChainBuddy::IncrementCheckpointNodeCount(CNode *pnode)
 {
     if (ConsensusCheckpointMap.size() > 0)
     {
-        for (int item = 0; item <= (signed)ConsensusCheckpointMap.size(); ++item)
+        for (int item = 0; item <= (signed)ConsensusCheckpointMap.size() + 1; ++item)
         {
             if (ConsensusCheckpointMap[item].second.hash == pnode->dCheckpointRecv.hash)
             {
@@ -7158,44 +7158,60 @@ bool Consensus::ChainBuddy::IncrementCheckpointNodeCount(CNode *pnode)
 
 bool Consensus::ChainBuddy::FindConsensus()
 {
-    std::sort(ConsensusCheckpointMap.begin(), ConsensusCheckpointMap.end(),
-        [](std::pair<int, DynamicCheckpoints::Checkpoint> &p1,
-        std::pair<int, DynamicCheckpoints::Checkpoint> &p2)
-        { 
-            return p1.first < p2.first;
-        });
-
     if (ConsensusCheckpointMap.size() == 0)
     {
         return false;
     }
 
-    for (int item = 0; item <= (signed)ConsensusCheckpointMap.size(); ++item)
+    int MaxHeight;
+    MaxHeight = 0;
+    int MaxNodes;
+    MaxNodes = 0;
+
+    int ItemSelected;
+    ItemSelected = 0;
+
+    for (int item = 0; item <= (signed)ConsensusCheckpointMap.size() + 1; ++item)
     {
-        if (ConsensusCheckpointMap[item].second.height > BestCheckpoint.height)
+        if (ConsensusCheckpointMap[item].second.timestamp > 0)
         {
-            if (BestCheckpoint.height + 2 < ConsensusCheckpointMap[item].second.height
-                && BestCheckpoint.height + 3 > ConsensusCheckpointMap[item].second.height)
-            {
-                BestCheckpoint.height = ConsensusCheckpointMap[item].second.height;
-                BestCheckpoint.hash = ConsensusCheckpointMap[item].second.hash;
-                BestCheckpoint.timestamp = ConsensusCheckpointMap[item].second.timestamp;
-                BestCheckpoint.fromNode = ConsensusCheckpointMap[item].second.fromNode;
+            bool trigger;
+            trigger = false;
 
-                return true;
-            }
-            else
+            // Find Checkpoint with highest amount of node confirmations
+            if (ConsensusCheckpointMap[item].second.height > MaxHeight)
             {
-                if (Consensus::ChainBuddy::BestCheckpoint.height == 0)
-                {
-                    BestCheckpoint.height = ConsensusCheckpointMap[item].second.height;
-                    BestCheckpoint.hash = ConsensusCheckpointMap[item].second.hash;
-                    BestCheckpoint.timestamp = ConsensusCheckpointMap[item].second.timestamp;
-                    BestCheckpoint.fromNode = ConsensusCheckpointMap[item].second.fromNode;
-
-                    return true;
-                }
+                MaxHeight = ConsensusCheckpointMap[item].second.height;
+                trigger = true;
             }
+
+            if (ConsensusCheckpointMap[item].first > MaxNodes)
+            {
+                MaxNodes = ConsensusCheckpointMap[item].first;
+                trigger = true;
+            }
+
+            if (trigger == true)
+            {
+                ItemSelected = item;
+            }
+        }
+    }
+
+    //cout << "MapSize:" << ConsensusCheckpointMap.size() << " Item:" << ItemSelected << endl;
+
+    // Decide consensus among peers and most valid checkpoint then pdate BestCheckpoint
+    if (ItemSelected > 0)
+    {
+
+        if (ConsensusCheckpointMap[ItemSelected].second.height < pindexBest->nHeight + 1)
+        {
+            BestCheckpoint.height = ConsensusCheckpointMap[ItemSelected].second.height;
+            BestCheckpoint.hash = ConsensusCheckpointMap[ItemSelected].second.hash;
+            BestCheckpoint.timestamp = ConsensusCheckpointMap[ItemSelected].second.timestamp;
+            BestCheckpoint.fromNode = ConsensusCheckpointMap[ItemSelected].second.fromNode;
+
+            return true;
         }
     }
 
