@@ -47,7 +47,7 @@ Value getinfo(const Array& params, bool fHelp)
     proxyType proxy;
     GetProxy(NET_IPV4, proxy);
 
-    Object obj, diff, chainshield, chainbuddy;
+    Object obj, diff, chainshield, chainbuddy, map, mapitem;
 
     obj.push_back(Pair("client_version",                            FormatFullVersion()));
     obj.push_back(Pair("protocol_version",                          (int)PROTOCOL_VERSION));
@@ -112,6 +112,7 @@ Value getinfo(const Array& params, bool fHelp)
     chainshield.push_back(Pair("enabled",                           Consensus::ChainShield::Enabled));
     chainshield.push_back(Pair("disablenewblocks",                  Consensus::ChainShield::DisableNewBlocks));
     chainshield.push_back(Pair("cacheheight",                       Consensus::ChainShield::ChainShieldCache));
+    chainshield.push_back(Pair("rollbackrunaway",                   Consensus::ChainShield::Rollback_Runaway));
     obj.push_back(Pair("chainshield",                               chainshield));
 
     chainbuddy.push_back(Pair("enabled",                            Consensus::ChainBuddy::Enabled));
@@ -120,9 +121,31 @@ Value getinfo(const Array& params, bool fHelp)
     chainbuddy.push_back(Pair("bestcheckpointheight",               (int)Consensus::ChainBuddy::BestCheckpoint.height));
     chainbuddy.push_back(Pair("bestcheckpointhash",                 Consensus::ChainBuddy::BestCheckpoint.hash.GetHex()));
     chainbuddy.push_back(Pair("bestcheckpointtimestamp",            Consensus::ChainBuddy::BestCheckpoint.timestamp));
+    
+        if (Consensus::ChainBuddy::ConsensusCheckpointMap.size() > 0)
+        {
+            int cnt = 0;
+
+            for (int item = 0; item <= (signed)Consensus::ChainBuddy::ConsensusCheckpointMap.size() - 1; ++item)
+            {
+                cnt++;
+                Object mapitem;
+
+                    mapitem.push_back(Pair("hash",              Consensus::ChainBuddy::ConsensusCheckpointMap[item].second.hash.GetHex()));
+                    mapitem.push_back(Pair("nodes",             Consensus::ChainBuddy::ConsensusCheckpointMap[item].first));
+                    mapitem.push_back(Pair("height",            Consensus::ChainBuddy::ConsensusCheckpointMap[item].second.height));
+                    mapitem.push_back(Pair("timestamp",         Consensus::ChainBuddy::ConsensusCheckpointMap[item].second.timestamp));
+                    //mapitem.push_back(Pair("synced",            Consensus::ChainBuddy::ConsensusCheckpointMap[item].second.synced));
+                    mapitem.push_back(Pair("nodelog",            Consensus::ChainBuddy::ConsensusCheckpointMap[item].second.fromnode));
+                
+                map.push_back(Pair(strprintf("#%d checkpoint", cnt),         mapitem));       
+            }
+        }
+
+        chainbuddy.push_back(Pair("checkpointmap",                      map));
+
+    
     obj.push_back(Pair("chainbuddy",                                chainbuddy));
-
-
 
     return obj;
 }

@@ -23,10 +23,6 @@
 using namespace json_spirit;
 using namespace std;
 
-extern int CountStringArray(string *ArrayName);
-extern int CountIntArray(int *ArrayName);
-
-
 Value getconnectioncount(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
@@ -614,8 +610,6 @@ Value clearbanned(const Array& params, bool fHelp)
 
 Value firewallstatus(const Array& params, bool fHelp)
 {
-    string strCommand = "true";
-
     if (fHelp || params.size() != 0)
     {
         throw runtime_error("firewallstatus \"\n"
@@ -661,8 +655,6 @@ Value firewallstatus(const Array& params, bool fHelp)
 
 Value firewallenabled(const Array& params, bool fHelp)
 {
-    string strCommand = "true";
-
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallenabled \"true|false\"\n"
@@ -678,20 +670,11 @@ Value firewallenabled(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        strCommand = params[0].get_str();
-    }
-
-    if (strCommand == "true")
-    {
-        FIREWALL_ENABLED = true;
-    }
-    else
-    {
-        FIREWALL_ENABLED = false;
+        FIREWALL_ENABLED = StringToBool(params[0].get_str());
     }
 
     Object result;
-    result.push_back(Pair("enabled", strCommand));
+    result.push_back(Pair("enabled", FIREWALL_ENABLED));
 
     return result;
 }
@@ -699,8 +682,6 @@ Value firewallenabled(const Array& params, bool fHelp)
 
 Value firewallclearblacklist(const Array& params, bool fHelp)
 {
-    string strCommand = "true";
-
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallclearblacklist \"true|false\"\n"
@@ -716,20 +697,11 @@ Value firewallclearblacklist(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        strCommand = params[0].get_str();
-    }
-
-    if (strCommand == "true")
-    {
-        FIREWALL_CLEAR_BLACKLIST = true;
-    }
-    else
-    {
-        FIREWALL_CLEAR_BLACKLIST = false;
+        FIREWALL_CLEAR_BLACKLIST = StringToBool(params[0].get_str());
     }
 
     Object result;
-    result.push_back(Pair("clear-blacklist", strCommand));
+    result.push_back(Pair("clear-blacklist", FIREWALL_CLEAR_BLACKLIST));
 
     return result;
 }
@@ -737,8 +709,6 @@ Value firewallclearblacklist(const Array& params, bool fHelp)
 
 Value firewallclearbanlist(const Array& params, bool fHelp)
 {
-    string strCommand = "true";
-
     if (fHelp || params.size() == 0)
     {
         throw runtime_error(
@@ -755,20 +725,11 @@ Value firewallclearbanlist(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        strCommand = params[0].get_str();
-    }
-
-    if (strCommand == "true")
-    {
-        FIREWALL_CLEAR_BANS = true;
-    }
-    else
-    {
-        FIREWALL_CLEAR_BANS = false;
+        FIREWALL_CLEAR_BANS = StringToBool(params[0].get_str());
     }
 
     Object result;
-    result.push_back(Pair("clear-banlist", strCommand));
+    result.push_back(Pair("clear-banlist", FIREWALL_CLEAR_BANS));
 
     return result;
 }
@@ -776,8 +737,6 @@ Value firewallclearbanlist(const Array& params, bool fHelp)
 
 Value firewalldebug(const Array& params, bool fHelp)
 {
-    string strCommand = "true";
-
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewalldebug \"true|false\"\n"
@@ -793,20 +752,11 @@ Value firewalldebug(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        strCommand = params[0].get_str();
-    }
-
-    if (strCommand == "true")
-    {
-        FIREWALL_LIVE_DEBUG = true;
-    }
-    else
-    {
-        FIREWALL_LIVE_DEBUG = false;
+        FIREWALL_LIVE_DEBUG = StringToBool(params[0].get_str());
     }
 
     Object result;
-    result.push_back(Pair("live-debug", strCommand));
+    result.push_back(Pair("live-debug", FIREWALL_LIVE_DEBUG));
 
     return result;
 }
@@ -814,8 +764,6 @@ Value firewalldebug(const Array& params, bool fHelp)
 
 Value firewalldebugexam(const Array& params, bool fHelp)
 {
-    string strCommand = "true";
-
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewalldebugexam \"true|false\"\n"
@@ -831,20 +779,11 @@ Value firewalldebugexam(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        strCommand = params[0].get_str();
-    }
-
-    if (strCommand == "true")
-    {
-        FIREWALL_LIVEDEBUG_EXAM = true;
-    }
-    else
-    {
-        FIREWALL_LIVEDEBUG_EXAM = false;
+        FIREWALL_LIVEDEBUG_EXAM = StringToBool(params[0].get_str());
     }
 
     Object result;
-    result.push_back(Pair("live-debug-exam", strCommand));
+    result.push_back(Pair("live-debug-exam", FIREWALL_LIVEDEBUG_EXAM));
 
     return result;
 }
@@ -852,8 +791,6 @@ Value firewalldebugexam(const Array& params, bool fHelp)
 
 Value firewalldebugbans(const Array& params, bool fHelp)
 {
-    string strCommand = "true";
-
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewalldebugbans \"true|false\"\n"
@@ -869,20 +806,11 @@ Value firewalldebugbans(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        strCommand = params[0].get_str();
-    }
-
-    if (strCommand == "true")
-    {
-        FIREWALL_LIVEDEBUG_BANS = true;
-    }
-    else
-    {
-        FIREWALL_LIVEDEBUG_BANS = false;
+        FIREWALL_LIVEDEBUG_BANS = StringToBool(params[0].get_str());
     }
 
     Object result;
-    result.push_back(Pair("live-debug-bans", strCommand));
+    result.push_back(Pair("live-debug-bans", FIREWALL_LIVEDEBUG_BANS));
 
     return result;
 }
@@ -890,8 +818,6 @@ Value firewalldebugbans(const Array& params, bool fHelp)
 
 Value firewalldebugblacklist(const Array& params, bool fHelp)
 {
-    string strCommand = "true";
-
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewalldebugblacklist \"true|false\"\n"
@@ -907,20 +833,11 @@ Value firewalldebugblacklist(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        strCommand = params[0].get_str();
-    }
-
-    if (strCommand == "true")
-    {
-        FIREWALL_LIVEDEBUG_BLACKLIST = true;
-    }
-    else
-    {
-        FIREWALL_LIVEDEBUG_BLACKLIST = false;
+        FIREWALL_LIVEDEBUG_BLACKLIST = StringToBool(params[0].get_str());
     }
 
     Object result;
-    result.push_back(Pair("live-debug-blacklist", strCommand));
+    result.push_back(Pair("live-debug-blacklist", FIREWALL_LIVEDEBUG_BLACKLIST));
 
     return result;
 }
@@ -928,8 +845,6 @@ Value firewalldebugblacklist(const Array& params, bool fHelp)
 
 Value firewalldebugdisconnect(const Array& params, bool fHelp)
 {
-    string strCommand = "true";
-
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewalldebugdisconnect \"true|false\"\n"
@@ -946,20 +861,11 @@ Value firewalldebugdisconnect(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        strCommand = params[0].get_str();
-    }
-
-    if (strCommand == "true")
-    {
-        FIREWALL_LIVEDEBUG_DISCONNECT = true;
-    }
-    else
-    {
-        FIREWALL_LIVEDEBUG_DISCONNECT = false;
+        FIREWALL_LIVEDEBUG_DISCONNECT = StringToBool(params[0].get_str());
     }
 
     Object result;
-    result.push_back(Pair("live-debug-disconnect", strCommand));
+    result.push_back(Pair("live-debug-disconnect", FIREWALL_LIVEDEBUG_DISCONNECT));
 
     return result;
 }
@@ -967,8 +873,6 @@ Value firewalldebugdisconnect(const Array& params, bool fHelp)
 
 Value firewalldebugbandwidthabuse(const Array& params, bool fHelp)
 {
-    string strCommand = "true";
-
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewalldebugbandwidthabuse \"true|false\"\n"
@@ -984,20 +888,11 @@ Value firewalldebugbandwidthabuse(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        strCommand = params[0].get_str();
-    }
-
-    if (strCommand == "true")
-    {
-        FIREWALL_LIVEDEBUG_BANDWIDTHABUSE = true;
-    }
-    else
-    {
-        FIREWALL_LIVEDEBUG_BANDWIDTHABUSE = false;
+        FIREWALL_LIVEDEBUG_BANDWIDTHABUSE = StringToBool(params[0].get_str());
     }
 
     Object result;
-    result.push_back(Pair("live-debug-bandwidthabuse", strCommand));
+    result.push_back(Pair("live-debug-bandwidthabuse", FIREWALL_LIVEDEBUG_BANDWIDTHABUSE));
 
     return result;
 }
@@ -1005,8 +900,6 @@ Value firewalldebugbandwidthabuse(const Array& params, bool fHelp)
 
 Value firewalldebugnofalsepositivebandwidthabuse(const Array& params, bool fHelp)
 {
-    string strCommand = "true";
-
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewalldebugnofalsepositivebandwidthabuse \"true|false\"\n"
@@ -1022,20 +915,11 @@ Value firewalldebugnofalsepositivebandwidthabuse(const Array& params, bool fHelp
 
     if (params.size() == 1)
     {
-        strCommand = params[0].get_str();
-    }
-
-    if (strCommand == "true")
-    {
-        FIREWALL_LIVEDEBUG_NOFALSEPOSITIVE = true;
-    }
-    else
-    {
-        FIREWALL_LIVEDEBUG_NOFALSEPOSITIVE = false;
+        FIREWALL_LIVEDEBUG_NOFALSEPOSITIVE = StringToBool(params[0].get_str());
     }
 
     Object result;
-    result.push_back(Pair("live-debug-nofalsepositive", strCommand));
+    result.push_back(Pair("live-debug-nofalsepositive", FIREWALL_LIVEDEBUG_NOFALSEPOSITIVE));
 
     return result;
 }
@@ -1043,8 +927,6 @@ Value firewalldebugnofalsepositivebandwidthabuse(const Array& params, bool fHelp
 
 Value firewalldebuginvalidwallet(const Array& params, bool fHelp)
 {
-    string strCommand = "true";
-
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewalldebuginvalidwallet \"true|false\"\n"
@@ -1060,20 +942,11 @@ Value firewalldebuginvalidwallet(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        strCommand = params[0].get_str();
-    }
-
-    if (strCommand == "true")
-    {
-        FIREWALL_LIVEDEBUG_INVALIDWALLET = true;
-    }
-    else
-    {
-        FIREWALL_LIVEDEBUG_INVALIDWALLET = false;
+        FIREWALL_LIVEDEBUG_INVALIDWALLET = StringToBool(params[0].get_str());
     }
 
     Object result;
-    result.push_back(Pair("live-debug-invalidwallet", strCommand));
+    result.push_back(Pair("live-debug-invalidwallet", FIREWALL_LIVEDEBUG_INVALIDWALLET));
 
     return result;
 }
@@ -1081,8 +954,6 @@ Value firewalldebuginvalidwallet(const Array& params, bool fHelp)
 
 Value firewalldebugforkedwallet(const Array& params, bool fHelp)
 {
-    string strCommand = "true";
-
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewalldebugforkedwallet \"true|false\"\n"
@@ -1098,20 +969,11 @@ Value firewalldebugforkedwallet(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        strCommand = params[0].get_str();
-    }
-
-    if (strCommand == "true")
-    {
-        FIREWALL_LIVEDEBUG_FORKEDWALLET = true;
-    }
-    else
-    {
-        FIREWALL_LIVEDEBUG_FORKEDWALLET = false;
+        FIREWALL_LIVEDEBUG_FORKEDWALLET = StringToBool(params[0].get_str());
     }
 
     Object result;
-    result.push_back(Pair("live-debug-forkedwallet", strCommand));
+    result.push_back(Pair("live-debug-forkedwallet", FIREWALL_LIVEDEBUG_FORKEDWALLET));
 
     return result;
 }
@@ -1119,8 +981,6 @@ Value firewalldebugforkedwallet(const Array& params, bool fHelp)
 
 Value firewalldebugfloodingwallet(const Array& params, bool fHelp)
 {
-    string strCommand = "true";
-
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewalldebugfloodingwallet \"true|false\"\n"
@@ -1135,20 +995,11 @@ Value firewalldebugfloodingwallet(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        strCommand = params[0].get_str();
-    }
-
-    if (strCommand == "true")
-    {
-        FIREWALL_LIVEDEBUG_FLOODINGWALLET = true;
-    }
-    else
-    {
-        FIREWALL_LIVEDEBUG_FLOODINGWALLET = false;
+        FIREWALL_LIVEDEBUG_FLOODINGWALLET = StringToBool(params[0].get_str());
     }
 
     Object result;
-    result.push_back(Pair("live-debug-floodingwallet", strCommand));
+    result.push_back(Pair("live-debug-floodingwallet", FIREWALL_LIVEDEBUG_FLOODINGWALLET));
 
     return result;
 }
@@ -1337,8 +1188,6 @@ Value firewalladdtoblacklist(const Array& params, bool fHelp)
 
 Value firewalldetectbandwidthabuse(const Array& params, bool fHelp)
 {
-    string strCommand = "true";
-
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewalldetectbandwidthabuse \"true|false\"\n"
@@ -1353,20 +1202,11 @@ Value firewalldetectbandwidthabuse(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        strCommand = params[0].get_str();
-    }
-
-    if (strCommand == "true")
-    {
-        FIREWALL_DETECT_BANDWIDTHABUSE = true;
-    }
-    else
-    {
-        FIREWALL_DETECT_BANDWIDTHABUSE = false;
+        FIREWALL_DETECT_BANDWIDTHABUSE = StringToBool(params[0].get_str());
     }
 
     Object result;
-    result.push_back(Pair("detect-bandwidthabuse", strCommand));
+    result.push_back(Pair("detect-bandwidthabuse", FIREWALL_DETECT_BANDWIDTHABUSE));
 
     return result;
 }
@@ -1374,8 +1214,6 @@ Value firewalldetectbandwidthabuse(const Array& params, bool fHelp)
 
 Value firewallblacklistbandwidthabuse(const Array& params, bool fHelp)
 {
-    string strCommand = "true";
-
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallblacklistbandwidthabuse \"true|false\"\n"
@@ -1390,20 +1228,11 @@ Value firewallblacklistbandwidthabuse(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        strCommand = params[0].get_str();
-    }
-
-    if (strCommand == "true")
-    {
-        FIREWALL_BLACKLIST_BANDWIDTHABUSE = true;
-    }
-    else
-    {
-        FIREWALL_BLACKLIST_BANDWIDTHABUSE = false;
+        FIREWALL_BLACKLIST_BANDWIDTHABUSE = StringToBool(params[0].get_str());
     }
 
     Object result;
-    result.push_back(Pair("blacklist-bandwidthabuse", strCommand));
+    result.push_back(Pair("blacklist-bandwidthabuse", FIREWALL_BLACKLIST_BANDWIDTHABUSE));
 
     return result;
 }
@@ -1411,8 +1240,6 @@ Value firewallblacklistbandwidthabuse(const Array& params, bool fHelp)
 
 Value firewallbanbandwidthabuse(const Array& params, bool fHelp)
 {
-    string strCommand = "true";
-
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallbanbandwidthabuse \"true|false\"\n"
@@ -1427,20 +1254,11 @@ Value firewallbanbandwidthabuse(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        strCommand = params[0].get_str();
-    }
-
-    if (strCommand == "true")
-    {
-        FIREWALL_BAN_BANDWIDTHABUSE = true;
-    }
-    else
-    {
-        FIREWALL_BAN_BANDWIDTHABUSE = false;
+        FIREWALL_BAN_BANDWIDTHABUSE = StringToBool(params[0].get_str());
     }
 
     Object result;
-    result.push_back(Pair("ban-bandwidthabuse", strCommand));
+    result.push_back(Pair("ban-bandwidthabuse", FIREWALL_BAN_BANDWIDTHABUSE));
 
     return result;
 }
@@ -1448,8 +1266,6 @@ Value firewallbanbandwidthabuse(const Array& params, bool fHelp)
 
 Value firewallnofalsepositivebandwidthabuse(const Array& params, bool fHelp)
 {
-    string strCommand = "true";
-
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallnofalsepositivebandwidthabuse \"true|false\"\n"
@@ -1464,20 +1280,11 @@ Value firewallnofalsepositivebandwidthabuse(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        strCommand = params[0].get_str();
-    }
-
-    if (strCommand == "true")
-    {
-        FIREWALL_NOFALSEPOSITIVE_BANDWIDTHABUSE = true;
-    }
-    else
-    {
-        FIREWALL_NOFALSEPOSITIVE_BANDWIDTHABUSE = false;
+        FIREWALL_NOFALSEPOSITIVE_BANDWIDTHABUSE = StringToBool(params[0].get_str());
     }
 
     Object result;
-    result.push_back(Pair("firewallnofalsepositivebandwidthabuse", strCommand));
+    result.push_back(Pair("firewallnofalsepositivebandwidthabuse", FIREWALL_NOFALSEPOSITIVE_BANDWIDTHABUSE));
 
     return result;
 }
@@ -1593,8 +1400,6 @@ Value firewallbandwidthabusemaxattack(const Array& params, bool fHelp)
 
 Value firewalldetectinvalidwallet(const Array& params, bool fHelp)
 {
-    string strCommand = "true";
-
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewalldetectinvalidwallet \"true|false\"\n"
@@ -1609,20 +1414,11 @@ Value firewalldetectinvalidwallet(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        strCommand = params[0].get_str();
-    }
-
-    if (strCommand == "true")
-    {
-        FIREWALL_DETECT_INVALIDWALLET  = true;
-    }
-    else
-    {
-        FIREWALL_DETECT_INVALIDWALLET  = false;
+        FIREWALL_DETECT_INVALIDWALLET = StringToBool(params[0].get_str());
     }
 
     Object result;
-    result.push_back(Pair("detect-invalidwallet", strCommand));
+    result.push_back(Pair("detect-invalidwallet", FIREWALL_DETECT_INVALIDWALLET));
 
     return result;
 }
@@ -1630,8 +1426,6 @@ Value firewalldetectinvalidwallet(const Array& params, bool fHelp)
 
 Value firewallblacklistinvalidwallet(const Array& params, bool fHelp)
 {
-    string strCommand = "true";
-
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallblacklistinvalidwallet \"true|false\"\n"
@@ -1646,20 +1440,11 @@ Value firewallblacklistinvalidwallet(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        strCommand = params[0].get_str();
-    }
-
-    if (strCommand == "true")
-    {
-        FIREWALL_BLACKLIST_INVALIDWALLET = true;
-    }
-    else
-    {
-        FIREWALL_BLACKLIST_INVALIDWALLET = false;
+        FIREWALL_BLACKLIST_INVALIDWALLET = StringToBool(params[0].get_str());
     }
 
     Object result;
-    result.push_back(Pair("blacklist-invalidwallet", strCommand));
+    result.push_back(Pair("blacklist-invalidwallet", FIREWALL_BLACKLIST_INVALIDWALLET));
 
     return result;
 }
@@ -1667,8 +1452,6 @@ Value firewallblacklistinvalidwallet(const Array& params, bool fHelp)
 
 Value firewallbaninvalidwallet(const Array& params, bool fHelp)
 {
-    string strCommand = "true";
-
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallbaninvalidwallet \"true|false\"\n"
@@ -1683,20 +1466,11 @@ Value firewallbaninvalidwallet(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        strCommand = params[0].get_str();
-    }
-
-    if (strCommand == "true")
-    {
-        FIREWALL_BAN_INVALIDWALLET = true;
-    }
-    else
-    {
-        FIREWALL_BAN_INVALIDWALLET = false;
+        FIREWALL_BAN_INVALIDWALLET = StringToBool(params[0].get_str());
     }
 
     Object result;
-    result.push_back(Pair("ban-invalidwallet", strCommand));
+    result.push_back(Pair("ban-invalidwallet", FIREWALL_BAN_INVALIDWALLET));
 
     return result;
 }
@@ -1785,8 +1559,6 @@ Value firewallinvalidwalletmaxcheck(const Array& params, bool fHelp)
 
 Value firewalldetectforkedwallet(const Array& params, bool fHelp)
 {
-    string strCommand = "true";
-
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewalldetectforkedwallet \"true|false\"\n"
@@ -1801,20 +1573,11 @@ Value firewalldetectforkedwallet(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        strCommand = params[0].get_str();
-    }
-
-    if (strCommand == "true")
-    {
-        FIREWALL_DETECT_FORKEDWALLET = true;
-    }
-    else
-    {
-        FIREWALL_DETECT_FORKEDWALLET = false;
+        FIREWALL_DETECT_FORKEDWALLET = StringToBool(params[0].get_str());
     }
 
     Object result;
-    result.push_back(Pair("detect-forkedwallet", strCommand));
+    result.push_back(Pair("detect-forkedwallet", FIREWALL_DETECT_FORKEDWALLET));
 
     return result;
 }
@@ -1822,8 +1585,6 @@ Value firewalldetectforkedwallet(const Array& params, bool fHelp)
 
 Value firewallblacklistforkedwallet(const Array& params, bool fHelp)
 {
-    string strCommand = "true";
-
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallblacklistforkedwallet \"true|false\"\n"
@@ -1838,20 +1599,11 @@ Value firewallblacklistforkedwallet(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        strCommand = params[0].get_str();
-    }
-
-    if (strCommand == "true")
-    {
-        FIREWALL_BLACKLIST_FORKEDWALLET = true;
-    }
-    else
-    {
-        FIREWALL_BLACKLIST_FORKEDWALLET = false;
+        FIREWALL_BLACKLIST_FORKEDWALLET = StringToBool(params[0].get_str());
     }
 
     Object result;
-    result.push_back(Pair("blacklist-forkedwallet", strCommand));
+    result.push_back(Pair("blacklist-forkedwallet", FIREWALL_BLACKLIST_FORKEDWALLET));
 
     return result;
 }
@@ -1859,8 +1611,6 @@ Value firewallblacklistforkedwallet(const Array& params, bool fHelp)
 
 Value firewallbanforkedwallet(const Array& params, bool fHelp)
 {
-    string strCommand = "true";
-
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallbanforkedwallet \"true|false\"\n"
@@ -1875,20 +1625,11 @@ Value firewallbanforkedwallet(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        strCommand = params[0].get_str();
-    }
-
-    if (strCommand == "true")
-    {
-        FIREWALL_BAN_FORKEDWALLET = true;
-    }
-    else
-    {
-        FIREWALL_BAN_FORKEDWALLET = false;
+        FIREWALL_BAN_FORKEDWALLET = StringToBool(params[0].get_str());
     }
 
     Object result;
-    result.push_back(Pair("ban-forkedwallet", strCommand));
+    result.push_back(Pair("ban-forkedwallet", FIREWALL_BAN_FORKEDWALLET));
 
     return result;
 }
@@ -1962,8 +1703,6 @@ Value firewallforkedwalletnodeheight(const Array& params, bool fHelp)
 
 Value firewalldetectfloodingwallet(const Array& params, bool fHelp)
 {
-    string strCommand = "true";
-
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewalldetectfloodingwallet \"true|false\"\n"
@@ -1978,20 +1717,11 @@ Value firewalldetectfloodingwallet(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        strCommand = params[0].get_str();
-    }
-
-    if (strCommand == "true")
-    {
-        FIREWALL_DETECT_FLOODINGWALLET = true;
-    }
-    else
-    {
-        FIREWALL_DETECT_FLOODINGWALLET = false;
+        FIREWALL_DETECT_FLOODINGWALLET = StringToBool(params[0].get_str());
     }
 
     Object result;
-    result.push_back(Pair("detect-floodingwallet", strCommand));
+    result.push_back(Pair("detect-floodingwallet", FIREWALL_DETECT_FLOODINGWALLET));
 
     return result;
 }
@@ -1999,8 +1729,6 @@ Value firewalldetectfloodingwallet(const Array& params, bool fHelp)
 
 Value firewallblacklistfloodingwallet(const Array& params, bool fHelp)
 {
-    string strCommand = "true";
-
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallblacklistfloodingwallet \"true|false\"\n"
@@ -2015,20 +1743,11 @@ Value firewallblacklistfloodingwallet(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        strCommand = params[0].get_str();
-    }
-
-    if (strCommand == "true")
-    {
-        FIREWALL_BLACKLIST_FLOODINGWALLET = true;
-    }
-    else
-    {
-        FIREWALL_BLACKLIST_FLOODINGWALLET = false;
+        FIREWALL_BLACKLIST_FLOODINGWALLET = StringToBool(params[0].get_str());
     }
 
     Object result;
-    result.push_back(Pair("blacklist-floodingwallet", strCommand));
+    result.push_back(Pair("blacklist-floodingwallet", FIREWALL_BLACKLIST_FLOODINGWALLET));
 
     return result;
 }
@@ -2036,8 +1755,6 @@ Value firewallblacklistfloodingwallet(const Array& params, bool fHelp)
 
 Value firewallbanfloodingwallet(const Array& params, bool fHelp)
 {
-    string strCommand = "true";
-
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallbanfloodingwallet \"true|false\"\n"
@@ -2052,20 +1769,11 @@ Value firewallbanfloodingwallet(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        strCommand = params[0].get_str();
-    }
-
-    if (strCommand == "true")
-    {
-        FIREWALL_BAN_FLOODINGWALLET = true;
-    }
-    else
-    {
-        FIREWALL_BAN_FLOODINGWALLET = false;
+        FIREWALL_BAN_FLOODINGWALLET = StringToBool(params[0].get_str());
     }
 
     Object result;
-    result.push_back(Pair("ban-floodingwallet", strCommand));
+    result.push_back(Pair("ban-floodingwallet", FIREWALL_BAN_FLOODINGWALLET));
 
     return result;
 }

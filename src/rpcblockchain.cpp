@@ -470,7 +470,7 @@ Value getchainbuddyinfo(const Array& params, bool fHelp)
                             "Show info of Chain Buddy.\n");
     }
 
-    Object result;
+    Object result, map, mapitem;
 
     result.push_back(Pair("enabled",                            Consensus::ChainBuddy::Enabled));
     result.push_back(Pair("wallethasconsensus",                 Consensus::ChainBuddy::WalletHasConsensus()));
@@ -478,6 +478,30 @@ Value getchainbuddyinfo(const Array& params, bool fHelp)
     result.push_back(Pair("bestcheckpointheight",               (int)Consensus::ChainBuddy::BestCheckpoint.height));
     result.push_back(Pair("bestcheckpointhash",                 Consensus::ChainBuddy::BestCheckpoint.hash.GetHex()));
     result.push_back(Pair("bestcheckpointtimestamp",            Consensus::ChainBuddy::BestCheckpoint.timestamp));
+    result.push_back(Pair("bestcheckpointaddrlog",              Consensus::ChainBuddy::BestCheckpoint.fromnode));
+    result.push_back(Pair("checkpointmapsize",                  Consensus::ChainBuddy::ConsensusCheckpointMap.size()));
+
+        if (Consensus::ChainBuddy::ConsensusCheckpointMap.size() > 0)
+        {
+            int cnt;
+
+            for (int item = 0; item <= (signed)Consensus::ChainBuddy::ConsensusCheckpointMap.size() - 1; ++item)
+            {
+                cnt = cnt + 1;
+                Object mapitem;
+
+                    mapitem.push_back(Pair("hash",              Consensus::ChainBuddy::ConsensusCheckpointMap[item].second.hash.GetHex()));
+                    mapitem.push_back(Pair("nodes",             Consensus::ChainBuddy::ConsensusCheckpointMap[item].first));
+                    mapitem.push_back(Pair("height",            Consensus::ChainBuddy::ConsensusCheckpointMap[item].second.height));
+                    mapitem.push_back(Pair("timestamp",         Consensus::ChainBuddy::ConsensusCheckpointMap[item].second.timestamp));
+                    //mapitem.push_back(Pair("synced",            Consensus::ChainBuddy::ConsensusCheckpointMap[item].second.synced));
+                    mapitem.push_back(Pair("nodelog",            Consensus::ChainBuddy::ConsensusCheckpointMap[item].second.fromnode));
+                
+                map.push_back(Pair(strprintf("%d", cnt),         mapitem));       
+            }
+        }
+
+    result.push_back(Pair("checkpointmap",                      map));
 
     return result;
 }
@@ -491,7 +515,10 @@ Value chainbuddyenabled(const Array& params, bool fHelp)
                             "Set Chain Buddy Enabled: TRUE/FALSE.");
     }
 
-    Consensus::ChainBuddy::Enabled = (bool)params[0].get_bool();;
+    if (params.size()  == 1)
+    {
+        Consensus::ChainBuddy::Enabled = StringToBool(params[0].get_str());
+    }
 
     return strprintf("Consensus::ChainBuddy::Enabled %d", Consensus::ChainBuddy::Enabled);
 }
@@ -510,7 +537,8 @@ Value getchainshieldinfo(const Array& params, bool fHelp)
     result.push_back(Pair("enabled",                           Consensus::ChainShield::Enabled));
     result.push_back(Pair("disablenewblocks",                  Consensus::ChainShield::DisableNewBlocks));
     result.push_back(Pair("cacheheight",                       Consensus::ChainShield::ChainShieldCache));
-
+    result.push_back(Pair("rollbackrunaway",                   Consensus::ChainShield::Rollback_Runaway));
+    
     return result;
 }
 
@@ -523,8 +551,21 @@ Value chainshieldenabled(const Array& params, bool fHelp)
                             "Set Chain Shield Enabled: TRUE/FALSE.");
     }
 
-    Consensus::ChainShield::Enabled = (bool)params[0].get_bool();;
+    Consensus::ChainShield::Enabled = StringToBool(params[0].get_str());
 
     return strprintf("Consensus::ChainShield::Enabled %d", Consensus::ChainShield::Enabled);
+}
+
+Value chainshieldrollbackrunaway(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 1)
+    {
+        throw runtime_error("chainshieldrollbackrunaway\n"
+                            "Set Chain Shield Rollback Runaway Exception (Auto-Fix) Enabled: TRUE/FALSE.");
+    }
+
+    Consensus::ChainShield::Rollback_Runaway = StringToBool(params[0].get_str());
+
+    return strprintf("Consensus::ChainShield::Rollback_Runaway %d", Consensus::ChainShield::Rollback_Runaway);
 }
 

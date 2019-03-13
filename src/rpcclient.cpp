@@ -262,6 +262,12 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "firewallfloodingwalletmaxtrafficavg",        1 },
     { "firewallfloodingwalletmincheck",             1 },
     { "firewallfloodingwalletmaxcheck",             1 },
+    { "getchainbuddyinfo",                          0 },
+    { "chainbuddyenabled",                          1 },
+    { "getshainchieldinfo",                         0 },
+    { "chainshieldenabled",                         1 },
+    { "chainshieldrollbackrunaway",                 1 },
+
 };
 
 

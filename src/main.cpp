@@ -7075,7 +7075,7 @@ bool CChain::Reorganize(CTxDB& txdb, CBlockIndex* pindexNew)
     return true;
 }
 
-bool Consensus::ChainBuddy::Enabled = false;
+bool Consensus::ChainBuddy::Enabled = true;
 DynamicCheckpoints::Checkpoint Consensus::ChainBuddy::BestCheckpoint; // Best Chain                  
 vector<std::pair<int, DynamicCheckpoints::Checkpoint>> Consensus::ChainBuddy::ConsensusCheckpointMap; // History
 
@@ -7108,11 +7108,16 @@ bool Consensus::ChainBuddy::AddHashCheckpoint(CNode *pnode)
         return false;
     }
 
-    bool found;
-    found = Consensus::ChainBuddy::FindHash(pnode->dCheckpointRecv.hash);
+    bool found = Consensus::ChainBuddy::FindHash(pnode->dCheckpointRecv.hash);
 
     if (found == false)
     {
+
+        if (Consensus::ChainBuddy::ConsensusCheckpointMap.size() > 50)
+        {
+            ConsensusCheckpointMap.erase(ConsensusCheckpointMap.begin());
+        }
+
         ConsensusCheckpointMap.push_back(make_pair(1, pnode->dCheckpointRecv));
 
         return true;
@@ -7162,7 +7167,7 @@ bool Consensus::ChainBuddy::IncrementCheckpointNodeCount(CNode *pnode)
 
                 if (pnode->addrName != "")
                 {
-                    found = ConsensusCheckpointMap[item].second.fromNode.find(pnode->addrName); 
+                    found = ConsensusCheckpointMap[item].second.fromnode.find(pnode->addrName); 
                 }
 
                 if ((int)found < 1)
@@ -7171,7 +7176,14 @@ bool Consensus::ChainBuddy::IncrementCheckpointNodeCount(CNode *pnode)
 
                     if (pnode->addrName != "")
                     {
-                        ConsensusCheckpointMap[item].second.fromNode.append(pnode->addrName);
+                        std::string starter = "";
+                        
+                        if (ConsensusCheckpointMap[item].second.fromnode.size() > 0)
+                        {
+                            starter = ", ";
+                        }
+
+                        ConsensusCheckpointMap[item].second.fromnode.append(starter + pnode->addrName);
                     }
 
                     return true;
@@ -7196,13 +7208,10 @@ bool Consensus::ChainBuddy::FindConsensus()
         return false;
     }
 
-    int MaxHeight;
-    MaxHeight = 0;
-    int MaxNodes;
-    MaxNodes = 0;
+    int MaxHeight = 0;
+    int MaxNodes = 0;
 
-    int ItemSelected;
-    ItemSelected = 0;
+    int ItemSelected = 0;
 
     for (int item = 0; item <= (signed)ConsensusCheckpointMap.size() - 1; ++item)
     {
@@ -7239,7 +7248,7 @@ bool Consensus::ChainBuddy::FindConsensus()
             BestCheckpoint.height = ConsensusCheckpointMap[ItemSelected].second.height;
             BestCheckpoint.hash = ConsensusCheckpointMap[ItemSelected].second.hash;
             BestCheckpoint.timestamp = ConsensusCheckpointMap[ItemSelected].second.timestamp;
-            BestCheckpoint.fromNode = ConsensusCheckpointMap[ItemSelected].second.fromNode;
+            BestCheckpoint.fromnode = ConsensusCheckpointMap[ItemSelected].second.fromnode;
 
             return true;
         }
@@ -7298,9 +7307,10 @@ bool Consensus::ChainBuddy::NodeHasConsensus(CNode* pnode)
 }
 */
 
-bool Consensus::ChainShield::Enabled = false; // ChainShield  Enabled/Disabled
+bool Consensus::ChainShield::Enabled = true; // ChainShield  Enabled/Disabled
 int Consensus::ChainShield::ChainShieldCache = 0; // Last Block Height protected
 bool Consensus::ChainShield::DisableNewBlocks = false; // Disable PoW/PoS/Masternode block creation
+bool Consensus::ChainShield::Rollback_Runaway = true; // Disable PoW/PoS/Masternode block creation
 
 bool Consensus::ChainShield::Protect()
 {
@@ -7412,9 +7422,30 @@ bool Consensus::ChainShield::Protect()
         trigger = false; // Skip
     }
 
+    if (Consensus::ChainBuddy::BestCheckpoint.height == 0)
+    {
+        trigger = false; // skip if no bestcheckpoint is selected yet
+    }
+
+    if (Consensus::ChainBuddy::BestCheckpoint.height < pindexBest->nHeight
+        && Consensus::ChainShield::ChainShieldCache == pindexBest->nHeight)
+    {
+        trigger = false; // skip if no bestcheckpoint if checkpoint is too old
+    }
+
+    if (Consensus::ChainShield::Rollback_Runaway == false)
+    {
+        trigger = false; // skip if because user disabled it
+    }
+
     // Forked wallet auto-correction
     if (trigger == true)
     {
+        if (fDebug)
+        {
+            LogPrint("chainshield", "%s Fork Detected (Runaway Exception), Rolling back 5 blocks, force resync %d\n", __FUNCTION__, pindexBest->nHeight);
+        }
+
         CChain::RollbackChain(5);
 
         MilliSleep(10000);
