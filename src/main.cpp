@@ -7369,7 +7369,7 @@ bool Consensus::ChainShield::Protect()
                 }
                 else
                 {
-                    if (pnode->dCheckpointRecv.height > pindexBest->nHeight - 1)
+                    if (pnode->dCheckpointRecv.height > pindexBest->nHeight - 5)
                     {
                         if (Consensus::ChainBuddy::AddHashCheckpoint(pnode) == false)
                         {
