@@ -529,17 +529,19 @@ static const CRPCCommand vRPCCommands[] =
     { "smsgbuckets",                                    &smsgbuckets,                                   false,     false,     false },
 #endif
 
-/* Dynamic Checkpoints */
-/* Block Shield */
-/* ASIC Choker */
-
 /* Chain Buddy */
-    { "getchainbuddyinfo",                             &getchainbuddyinfo,                              false,     false,     false },
-    { "chainbuddyenabled",                             &chainbuddyenabled,                              false,     false,     false },
+    { "getchainbuddyinfo",                              &getchainbuddyinfo,                              false,     false,     false },
+    { "chainbuddyenabled",                              &chainbuddyenabled,                              false,     false,     false },
 
 /* Chain Shield */
     { "getchainshieldinfo",                             &getchainshieldinfo,                             false,     false,     false },
     { "chainshieldenabled",                             &chainshieldenabled,                             false,     false,     false },
+    { "chainshieldrollbackrunaway",                     &chainshieldrollbackrunaway,                     false,     false,     false },
+
+/* TurboSync */
+/* Dynamic Checkpoints */
+/* Block Shield */
+/* ASIC Choker */
 
 };
 

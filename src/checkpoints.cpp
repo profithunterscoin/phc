@@ -133,7 +133,7 @@ namespace DynamicCheckpoints
         hash = 0;
         timestamp = 0;
         synced = false;
-        fromNode = "";
+        fromnode = "";
     }
 
     Checkpoint::Checkpoint(int64_t heightin, const uint256& hashin)
@@ -142,7 +142,7 @@ namespace DynamicCheckpoints
         hash = hashin;
         timestamp = 0;
         synced = false;
-        fromNode = "";
+        fromnode = "";
     }
 
     Checkpoint::Checkpoint(int64_t heightin, const uint256& hashin, int64_t timestampin)
@@ -151,7 +151,7 @@ namespace DynamicCheckpoints
         hash = hashin;
         timestamp = timestampin;
         synced = false;
-        fromNode = "";
+        fromnode = "";
     }
 
     Checkpoint::Checkpoint(int64_t heightin, const uint256& hashin, int64_t timestampin, bool syncedin)
@@ -160,15 +160,15 @@ namespace DynamicCheckpoints
         hash = hashin;
         timestamp = timestampin;
         synced = syncedin;
-        fromNode = "";
+        fromnode = "";
     }
 
-    Checkpoint::Checkpoint(int64_t heightin, const uint256& hashin, int64_t timestampin, bool syncedin, std::string fromNodein)
+    Checkpoint::Checkpoint(int64_t heightin, const uint256& hashin, int64_t timestampin, bool syncedin, std::string fromnodein)
     {
         height = heightin;
         hash = hashin;
         timestamp = timestampin;
         synced = syncedin;
-        fromNode = fromNodein;
+        fromnode = fromnodein;
     }
 }

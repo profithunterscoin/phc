@@ -99,12 +99,6 @@ inline int64_t GetMNCollateral(int nHeight)
     return 10000;
 }
 
-// * Function: BoolToString *
-inline const char * const BoolToString(bool b)
-{
-    return b ? "true" : "false";
-}
-
 extern int64_t TURBOSYNC_MAX;
 
 static const int64_t DYNAMICCHECKPOINTS_INTERVAL = 60;  // 1 minute
@@ -154,6 +148,56 @@ class CWalletInterface;
 struct CNodeStateStats;
 
 
+// * Function: CountArray *
+inline int CountStringArray(string *ArrayName)
+{
+    int tmp_cnt;
+    tmp_cnt = 0;
+
+    while(ArrayName[tmp_cnt] != "")
+    {
+        tmp_cnt++;
+    }
+
+    return tmp_cnt;
+}
+
+
+// * Function: CountArray *
+inline int CountIntArray(int *ArrayName)
+{
+    int tmp_cnt;
+    tmp_cnt = 0;
+
+    while(ArrayName[tmp_cnt] > 0)
+    {
+        tmp_cnt++;
+    }
+
+    return tmp_cnt;
+}
+
+// * Function: BoolToString *
+inline const char * const BoolToString(bool b)
+{
+    return b ? "true" : "false";
+}
+
+// * Function: StringToBool *
+inline const bool StringToBool(string b)
+{
+    if (b == "true")
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+
+
 class CChain
 {
 
@@ -186,7 +230,7 @@ namespace Consensus
         class ChainBuddy
         {
             public:
-            
+
                     static bool Enabled; // ChainShield Enabled = TRUE/FALSE
 
                     static DynamicCheckpoints::Checkpoint BestCheckpoint; // Best Chain
@@ -225,6 +269,8 @@ namespace Consensus
             static int ChainShieldCache; // Last Block Height protected
 
             static bool DisableNewBlocks; // Disable PoW/PoS/Masternode block creation
+
+            static bool Rollback_Runaway; // Rollback chain when runnaway fork detected
 
             static bool Protect();
 
