@@ -7113,7 +7113,7 @@ bool Consensus::ChainBuddy::AddHashCheckpoint(CNode *pnode)
     if (found == false)
     {
 
-        if (Consensus::ChainBuddy::ConsensusCheckpointMap.size() > 50)
+        if (Consensus::ChainBuddy::ConsensusCheckpointMap.size() > 49)
         {
             ConsensusCheckpointMap.erase(ConsensusCheckpointMap.begin());
         }
@@ -7449,7 +7449,7 @@ bool Consensus::ChainShield::Protect()
             LogPrint("chainshield", "%s Fork Detected (Runaway Exception), Rolling back 5 blocks, force resync %d\n", __FUNCTION__, pindexBest->nHeight);
         }
 
-        CChain::RollbackChain(5);
+        CChain::RollbackChain(50);
 
         MilliSleep(10000);
 
