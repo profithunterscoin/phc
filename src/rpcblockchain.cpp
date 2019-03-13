@@ -479,7 +479,7 @@ Value getchainbuddyinfo(const Array& params, bool fHelp)
     result.push_back(Pair("bestcheckpointhash",                 Consensus::ChainBuddy::BestCheckpoint.hash.GetHex()));
     result.push_back(Pair("bestcheckpointtimestamp",            Consensus::ChainBuddy::BestCheckpoint.timestamp));
     result.push_back(Pair("bestcheckpointaddrlog",              Consensus::ChainBuddy::BestCheckpoint.fromnode));
-    result.push_back(Pair("checkpointmapsize",                  Consensus::ChainBuddy::ConsensusCheckpointMap.size()));
+    result.push_back(Pair("checkpointmapsize",                  (int)Consensus::ChainBuddy::ConsensusCheckpointMap.size()));
 
         if (Consensus::ChainBuddy::ConsensusCheckpointMap.size() > 0)
         {
