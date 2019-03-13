@@ -99,34 +99,6 @@ CNodeSignals& GetNodeSignals()
     return g_signals;
 }
 
-// * Function: CountArray *
-int CountStringArray(string *ArrayName)
-{
-    int tmp_cnt;
-    tmp_cnt = 0;
-
-    while(ArrayName[tmp_cnt] != "")
-    {
-        tmp_cnt++;
-    }
-
-    return tmp_cnt;
-}
-
-
-// * Function: CountArray *
-int CountIntArray(int *ArrayName)
-{
-    int tmp_cnt;
-    tmp_cnt = 0;
-
-    while(ArrayName[tmp_cnt] > 0)
-    {
-        tmp_cnt++;
-    }
-
-    return tmp_cnt;
-}
 
 // ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 // 
