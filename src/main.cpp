@@ -7369,11 +7369,14 @@ bool Consensus::ChainShield::Protect()
                 }
                 else
                 {
-                    if (Consensus::ChainBuddy::AddHashCheckpoint(pnode) == false)
+                    if (pnode->dCheckpointRecv.height > pindexBest->nHeight - 1)
                     {
-                        if (fDebug)
+                        if (Consensus::ChainBuddy::AddHashCheckpoint(pnode) == false)
                         {
-                            LogPrint("chainshield", "%s : Warning: AddHashCheckpoint Failed %d.\n", __FUNCTION__, pnode->dCheckpointRecv.height);
+                            if (fDebug)
+                            {
+                                LogPrint("chainshield", "%s : Warning: AddHashCheckpoint Failed %d.\n", __FUNCTION__, pnode->dCheckpointRecv.height);
+                            }
                         }
                     }
                 }
