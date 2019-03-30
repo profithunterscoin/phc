@@ -2143,9 +2143,9 @@ void static InvalidChainFound(CBlockIndex* pindexNew)
         hashBestChain.ToString(), nBestHeight, CBigNum(pindexBest->nChainTrust).ToString(), nBestBlockTrust.Get64(), DateTimeStrFormat("%x %H:%M:%S", pindexBest->GetBlockTime()));
     }
 
-    if (!fReindex || !fImporting || !IsInitialBlockDownload() || TestNet() || Consensus::ChainShield::ChainShieldCache < pindexBest->nHeight)
+    if (!fReindex || !fImporting || !IsInitialBlockDownload() || Consensus::ChainShield::ChainShieldCache < pindexBest->nHeight)
     {
-        if (Consensus::ChainShield::Enabled == true && Consensus::ChainBuddy::Enabled == true) // DISABLE ON MAINNET UNTIL 1.0.0.8
+        if (Consensus::ChainShield::Enabled == true && Consensus::ChainBuddy::Enabled == true)
         {
             // Double check to make sure local blockchain remains in sync with new blocks from nodes & new blocks mines or staked
             Consensus::ChainBuddy::WalletHasConsensus();
@@ -4014,9 +4014,9 @@ bool CBlock::AcceptBlock()
         }
     }
 
-    if (!fReindex || !fImporting || !IsInitialBlockDownload() || TestNet() || Consensus::ChainShield::ChainShieldCache < pindexBest->nHeight)
+    if (!fReindex || !fImporting || !IsInitialBlockDownload() || Consensus::ChainShield::ChainShieldCache < pindexBest->nHeight)
     {
-        if (Consensus::ChainShield::Enabled == true && Consensus::ChainBuddy::Enabled == true) // DISABLE ON MAINNET UNTIL 1.0.0.8
+        if (Consensus::ChainShield::Enabled == true && Consensus::ChainBuddy::Enabled == true)
         {
             // Double check to make sure local blockchain remains in sync with new blocks from nodes & new blocks mines or staked
             Consensus::ChainBuddy::WalletHasConsensus();
@@ -7333,10 +7333,10 @@ bool Consensus::ChainBuddy::NodeHasConsensus(CNode* pnode)
 }
 */
 
-bool Consensus::ChainShield::Enabled = true; // ChainShield  Enabled/Disabled
+bool Consensus::ChainShield::Enabled = false;
 int Consensus::ChainShield::ChainShieldCache = 0; // Last Block Height protected
-bool Consensus::ChainShield::DisableNewBlocks = false; // Disable PoW/PoS/Masternode block creation
-bool Consensus::ChainShield::Rollback_Runaway = true; // Disable PoW/PoS/Masternode block creation
+bool Consensus::ChainShield::DisableNewBlocks = false; // Disable PoW/PoS/Masternode block creation (becomes true upon FindConsensus()=false)
+bool Consensus::ChainShield::Rollback_Runaway = true; // Rollback when local wallet is too far ahead of network
 
 bool Consensus::ChainShield::Protect()
 {
