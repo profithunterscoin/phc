@@ -559,7 +559,7 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
         if (nTimeConnected > Firewall::InvalidWallet_MaxCheck)
         {
             // Check for 
-            if (pnode->nRecvVersion < InvalidWallet_MinimumProtocol)
+            if (pnode->nRecvVersion < InvalidWallet_MinimumProtocol && > 209)
             {
                 // Trigger Blacklisting
                 DETECTED_ATTACK = true;
