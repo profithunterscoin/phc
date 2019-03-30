@@ -7340,6 +7340,11 @@ bool Consensus::ChainShield::Rollback_Runaway = true; // Rollback when local wal
 
 bool Consensus::ChainShield::Protect()
 {
+    if (!TestNet())
+    {
+        return false; // Skip on mainnet until testing is completed
+    }
+
     if (Consensus::ChainShield::Enabled == false)
     {
         return false; // Skip until enabled

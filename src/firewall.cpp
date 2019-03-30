@@ -43,7 +43,7 @@ double Firewall::Traffic_Tolerance;  // Reduce for minimal fluctuation
 double Firewall::Traffic_Zone = 4;  // + or - Traffic Range 
 
 // *** Firewall Settings (LiveDebug Output) ***
-bool Firewall::LiveDebug_Enabled = false;
+bool Firewall::LiveDebug_Enabled = true;
 bool Firewall::LiveDebug_Exam = true;
 bool Firewall::LiveDebug_Bans = true;
 bool Firewall::LiveDebug_Blacklist = true;
@@ -99,9 +99,7 @@ int Firewall::FloodingWallet_MinCheck = 30; // seconds
 int Firewall::FloodingWallet_MaxCheck = 90; // seconds
 string Firewall::FloodingWallet_Patterns[256] =
 {
-    "56810121416192123", 
-    "57910121517202223",
-    "57910121416202223"
+
 };
 
 

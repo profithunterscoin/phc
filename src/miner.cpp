@@ -139,7 +139,7 @@ typedef boost::tuple<double, double, CTransaction*> TxPriority; class TxPriority
 
 CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
 {
-    if (!fReindex || !fImporting || !IsInitialBlockDownload() || TestNet()) // DISABLE ON MAINNET UNTIL 1.0.0.8
+    if (!fReindex || !fImporting || !IsInitialBlockDownload())
     {
         if (Consensus::ChainShield::Enabled == true && Consensus::ChainBuddy::Enabled == true)
         {
@@ -478,7 +478,7 @@ CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
 // CreateNewBlock: create new block (without proof-of-work/proof-of-stake)
 CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFees)
 {
-    if (!fReindex || !fImporting || !IsInitialBlockDownload() || TestNet()) // DISABLE ON MAINNET UNTIL 1.0.0.8
+    if (!fReindex || !fImporting || !IsInitialBlockDownload())
     {
         if (Consensus::ChainShield::Enabled == true && Consensus::ChainBuddy::Enabled == true)
         {
