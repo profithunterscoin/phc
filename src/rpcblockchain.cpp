@@ -14,7 +14,7 @@
 
 using namespace json_spirit;
 using namespace std;
-
+using namespace CBan;
 
 
 extern void TxToJSON(const CTransaction& tx, const uint256 hashBlock, json_spirit::Object& entry);
@@ -390,11 +390,10 @@ Value rollbackchain(const Array& params, bool fHelp)
     {
         throw runtime_error("rollbackchain <blockcount>\n"
                             "Rollbackchain blockchain index by X blocks (100 default)"
-                            "NOTE: Daemon or QT restart required after."
                             );
     }
 
-    int nBlockCount = (int)params[0].get_int();
+    int nBlockCount = (int)strtod(params[0].get_str().c_str(), NULL);
 
     if (nBlockCount == 0)
     {
@@ -417,11 +416,10 @@ Value backtoblock(const Array& params, bool fHelp)
     {
         throw runtime_error("backtoblock <blockheight>\n"
                             "Rollbacktoblock local database to block height (default: 100000)"
-                            "NOTE: Daemon or QT restart required after."
                             );
     }
 
-    int nNewHeight = (int)params[0].get_int();
+    int nNewHeight = (int)strtod(params[0].get_str().c_str(), NULL);
 
     if (nNewHeight == 0)
     {
@@ -438,17 +436,6 @@ Value backtoblock(const Array& params, bool fHelp)
     return true;
 }
 
-
-Value getpeeraverageheight(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() != 0)
-    {
-        throw runtime_error("getpeeraverageheight\n"
-                            "Returns average blockheight among connected nodes.");
-    }
-   
-    return Firewall_AverageHeight;
-}
 
 Value forcesync(const Array& params, bool fHelp)
 {

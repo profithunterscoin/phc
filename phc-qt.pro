@@ -287,6 +287,7 @@ HEADERS += \
     src/main.h \
     src/miner.h \
     src/net.h \
+    src/firewall.h \
     src/ecwrapper.h \
     src/key.h \
     src/pubkey.h \
@@ -416,6 +417,7 @@ SOURCES += \
     src/miner.cpp \
     src/init.cpp \
     src/net.cpp \
+    src/firewall.cpp \
     src/checkpoints.cpp \
     src/addrman.cpp \
     src/db.cpp \
@@ -447,6 +449,7 @@ SOURCES += \
     src/rpcwallet.cpp \
     src/rpcblockchain.cpp \
     src/rpcrawtransaction.cpp \
+    src/rpcfirewall.cpp \
     src/qt/overviewpage.cpp \
     src/qt/csvmodelwriter.cpp \
     src/crypter.cpp \

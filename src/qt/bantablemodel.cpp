@@ -18,6 +18,8 @@
 #include <QList>
 #include <QTime>
 
+using namespace CBan;
+
 
 bool BannedNodeLessThan::operator()(const CCombinedBan& left, const CCombinedBan& right) const
 {
