@@ -181,10 +181,10 @@ static void push_lock(void* c, const CLockLocation& locklocation, bool fTry)
 
 static void pop_lock()
 {
+    const CLockLocation& locklocation = (*lockstack).rbegin()->second;
+
     if (fDebug)
     {
-        const CLockLocation& locklocation = (*lockstack).rbegin()->second;
-
         LogPrint("lock", "%s : Unlocked: %s\n", __FUNCTION__, locklocation.ToString());
     }
 

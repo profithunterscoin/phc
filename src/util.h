@@ -43,6 +43,8 @@
 class CNetAddr;
 class uint256;
 
+using namespace std;
+
 static const int64_t COIN = 100000000;
 static const int64_t CENT = 1000000;
 
@@ -767,5 +769,55 @@ template <typename Callable> void TraceThread(const char* name,  Callable func)
         PrintException(NULL, name);
     }
 }
+
+
+// * Function: CountArray *
+inline int CountStringArray(string *ArrayName)
+{
+    int tmp_cnt;
+    tmp_cnt = 0;
+
+    while(ArrayName[tmp_cnt] != "")
+    {
+        tmp_cnt++;
+    }
+
+    return tmp_cnt;
+}
+
+
+// * Function: CountArray *
+inline int CountIntArray(int *ArrayName)
+{
+    int tmp_cnt;
+    tmp_cnt = 0;
+
+    while(ArrayName[tmp_cnt] > 0)
+    {
+        tmp_cnt++;
+    }
+
+    return tmp_cnt;
+}
+
+// * Function: BoolToString *
+inline const char * const BoolToString(bool b)
+{
+    return b ? "true" : "false";
+}
+
+// * Function: StringToBool *
+inline const bool StringToBool(string b)
+{
+    if (b == "true")
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 
 #endif

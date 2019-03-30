@@ -109,6 +109,7 @@ OBJS= \
     obj/core.o \
     obj/main.o \
     obj/net.o \
+    obj/firewall.o \
     obj/protocol.o \
     obj/rpcclient.o \
     obj/rpcprotocol.o \

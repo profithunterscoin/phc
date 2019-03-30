@@ -2710,7 +2710,7 @@ bool CWallet::SelectCoinsMinConf(int64_t nTargetValue, unsigned int nSpendTime, 
     {
         if (fDebug) 
         {
-               LogPrint("wallet", "%s : tryDenom: %d\n", __FUNCTION__, tryDenom);
+            LogPrint("wallet", "%s : tryDenom: %d\n", __FUNCTION__, tryDenom);
         }
 
         vValue.clear();
@@ -4036,11 +4036,11 @@ bool CWallet::UnlockStealthAddresses(const CKeyingMaterial& vMasterKeyIn)
             continue;
         }
 
+        CKeyID keyID = cpkT.GetID();
+        CPHCcoinAddress coinAddress(keyID);
+
         if (fDebug)
         {
-            CKeyID keyID = cpkT.GetID();
-            CPHCcoinAddress coinAddress(keyID);
-
             LogPrint("wallet", "%s : Adding secret to key %s.\n", __FUNCTION__, coinAddress.ToString().c_str());
         }
 
@@ -4252,7 +4252,6 @@ string CWallet::SendStealthMoney(CScript scriptPubKey, int64_t nValue, std::vect
         {
             strError = "Failed to Create transaction";
         }
-
 
         if (fDebug)
         {
@@ -4627,14 +4626,11 @@ bool CWallet::FindStealthTransactions(const CTransaction& tx, mapValue_t& mapNar
                     }
 
                     CKeyID keyID = cpkT.GetID();
+                    CPHCcoinAddress coinAddress(keyID);
+
                     if (fDebug)
                     {
-                        CPHCcoinAddress coinAddress(keyID);
-
-                        if (fDebug)
-                        {
-                            LogPrint("wallet", "%s : Adding key %s.\n", __FUNCTION__, coinAddress.ToString().c_str());
-                        }
+                        LogPrint("wallet", "%s : Adding key %s.\n", __FUNCTION__, coinAddress.ToString().c_str());
                     }
 
                     if (!AddKey(ckey))

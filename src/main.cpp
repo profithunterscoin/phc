@@ -33,6 +33,7 @@
 
 using namespace std;
 using namespace boost;
+using namespace CBan;
 
 //
 // Global state
@@ -6760,8 +6761,6 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
 }
 
 
-
-
 int CChain::ForceSync()
 {
     // ForceSync - Forces all connected nodes to resend blocks
@@ -6782,14 +6781,15 @@ int CChain::ForceSync()
 
         PushGetBlocks(pnode, pindexBest->pprev, pnode->dCheckpointRecv.hash);
 
-        MilliSleep(500);
+        MilliSleep(5000);
 
         NodeCount++;
     }
 
     return NodeCount;
 }
-    
+
+
 int CChain::Backtoblock(int nNewHeight)
 {
     // Backtoblock 1.1 - (C) 2019 TaliumTech & Profit Hunters Coin
@@ -6798,7 +6798,7 @@ int CChain::Backtoblock(int nNewHeight)
     {
         if (fDebug)
         {
-            LogPrintf("Block %d not valid\n", nNewHeight);
+            LogPrint("core", "%s Block %d not valid\n", nNewHeight);
         }
 
         return 0;
@@ -6815,7 +6815,7 @@ int CChain::Backtoblock(int nNewHeight)
     {
         if (fDebug)
         {
-            LogPrintf("Back to block index %d\n", nNewHeight);
+            LogPrint("core", "%s Back to block index %d\n", __FUNCTION__, nNewHeight);
         }
 
         CTxDB txdbAddr("rw");
@@ -6831,12 +6831,13 @@ int CChain::Backtoblock(int nNewHeight)
 
     if (fDebug)
     {
-        LogPrintf("Block %d not found\n", nNewHeight);
+        LogPrint("core",  "%s Block %d not found\n", __FUNCTION__, nNewHeight);
     }
 
     return 0;
 
 }
+
 
 int CChain::RollbackChain(int nBlockCount)
 {
@@ -6854,7 +6855,7 @@ int CChain::RollbackChain(int nBlockCount)
     {
         if (fDebug)
         {
-            LogPrintf("Back to block index %d rolled back by: %d blocks\n", pindex->nHeight, nBlockCount);
+            LogPrint("core", "%s Back to block index %d rolled back by: %d blocks\n", __FUNCTION__, pindex->nHeight, nBlockCount);
         }
 
         CTxDB txdbAddr("rw");
@@ -6870,7 +6871,7 @@ int CChain::RollbackChain(int nBlockCount)
 
     if (fDebug)
     {
-        LogPrintf("Block %d not found\n", pindex->nHeight);
+        LogPrint("core", "%s Block %d not found\n",__FUNCTION__, pindex->nHeight);
     }
 
     return 0;
@@ -6925,7 +6926,7 @@ bool CChain::Reorganize(CTxDB& txdb, CBlockIndex* pindexNew)
     }
 
     // Find the fork
-    CBlockIndex* pfork = pindexBest;
+    CBlockIndex* pfork = pindexBest->pprev;
     CBlockIndex* plonger = pindexNew;
 
     while (pfork != plonger)
@@ -7118,7 +7119,21 @@ bool Consensus::ChainBuddy::AddHashCheckpoint(CNode *pnode)
             ConsensusCheckpointMap.erase(ConsensusCheckpointMap.begin());
         }
 
-        ConsensusCheckpointMap.push_back(make_pair(1, pnode->dCheckpointRecv));
+        DynamicCheckpoints::Checkpoint TempCheckpoint;
+        TempCheckpoint.height = pnode->dCheckpointRecv.height;
+        TempCheckpoint.hash = pnode->dCheckpointRecv.hash;
+        TempCheckpoint.timestamp = pnode->dCheckpointRecv.timestamp;
+
+        if (pnode->addrName != "")
+        {
+            TempCheckpoint.fromnode = pnode->addrName;
+        }
+        else
+        {
+            TempCheckpoint.fromnode = "Unknown";
+        }
+
+        ConsensusCheckpointMap.push_back(make_pair(1, TempCheckpoint));
 
         return true;
     }
@@ -7151,9 +7166,20 @@ int Consensus::ChainBuddy::GetNodeCount(uint256 hash)
 
 bool Consensus::ChainBuddy::IncrementCheckpointNodeCount(CNode *pnode)
 {
+    std::string TempAddrName;
+
     if (Consensus::ChainBuddy::Enabled == false)
     {
         return false;
+    }
+
+    if (pnode->addrName != "")
+    {
+        TempAddrName = pnode->addrName;
+    }
+    else
+    {
+        TempAddrName = "Unknown";
     }
 
     if (ConsensusCheckpointMap.size() > 0)
@@ -7165,16 +7191,16 @@ bool Consensus::ChainBuddy::IncrementCheckpointNodeCount(CNode *pnode)
                 size_t found;
                 found = 0;
 
-                if (pnode->addrName != "")
+                if (TempAddrName != "")
                 {
-                    found = ConsensusCheckpointMap[item].second.fromnode.find(pnode->addrName); 
+                    found = ConsensusCheckpointMap[item].second.fromnode.find(TempAddrName); 
                 }
 
-                if ((int)found < 1)
+                if (found < std::string::npos)
                 {
                     ConsensusCheckpointMap[item].first = ConsensusCheckpointMap[item].first + 1;
 
-                    if (pnode->addrName != "")
+                    if (TempAddrName != "")
                     {
                         std::string starter = "";
                         
@@ -7183,7 +7209,7 @@ bool Consensus::ChainBuddy::IncrementCheckpointNodeCount(CNode *pnode)
                             starter = ", ";
                         }
 
-                        ConsensusCheckpointMap[item].second.fromnode.append(starter + pnode->addrName);
+                        ConsensusCheckpointMap[item].second.fromnode.append(starter + TempAddrName);
                     }
 
                     return true;

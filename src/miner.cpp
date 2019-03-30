@@ -264,9 +264,9 @@ CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
                         if (fDebug)
                         {
                             LogPrint("mempool", "%s : ERROR: mempool transaction missing input\n", __FUNCTION__);
-
-                            assert("mempool transaction missing input" == 0);
                         }
+
+                        assert("mempool transaction missing input" == 0);
 
                         fMissingInputs = true;
 
@@ -607,9 +607,9 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
                         if (fDebug)
                         {
                             LogPrint("mempool", "%s : ERROR: mempool transaction missing input\n", __FUNCTION__);
-
-                            assert("mempool transaction missing input" == 0);
                         }
+
+                        assert("mempool transaction missing input" == 0);
 
                         fMissingInputs = true;
 

@@ -150,6 +150,7 @@ OBJS= \
     obj/core.o \
     obj/main.o \
     obj/net.o \
+    obj/firewall.o \
     obj/protocol.o \
     obj/rpcclient.o \
     obj/rpcprotocol.o \
@@ -159,6 +160,7 @@ OBJS= \
     obj/rpcblockchain.o \
     obj/rpcrawtransaction.o \
     obj/rpcsmessage.o \
+    obj/rpcfirewall.o \
     obj/script.o \
     obj/scrypt.o \
     obj/sync.o \

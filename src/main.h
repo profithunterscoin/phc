@@ -148,56 +148,6 @@ class CWalletInterface;
 struct CNodeStateStats;
 
 
-// * Function: CountArray *
-inline int CountStringArray(string *ArrayName)
-{
-    int tmp_cnt;
-    tmp_cnt = 0;
-
-    while(ArrayName[tmp_cnt] != "")
-    {
-        tmp_cnt++;
-    }
-
-    return tmp_cnt;
-}
-
-
-// * Function: CountArray *
-inline int CountIntArray(int *ArrayName)
-{
-    int tmp_cnt;
-    tmp_cnt = 0;
-
-    while(ArrayName[tmp_cnt] > 0)
-    {
-        tmp_cnt++;
-    }
-
-    return tmp_cnt;
-}
-
-// * Function: BoolToString *
-inline const char * const BoolToString(bool b)
-{
-    return b ? "true" : "false";
-}
-
-// * Function: StringToBool *
-inline const bool StringToBool(string b)
-{
-    if (b == "true")
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
-
-
 class CChain
 {
 

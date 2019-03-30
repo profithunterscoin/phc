@@ -19,7 +19,7 @@ class BanTablePriv;
 struct CCombinedBan
 {
     CSubNet subnet;
-    CBanEntry banEntry;
+    CBan::CBanEntry banEntry;
 };
 
 

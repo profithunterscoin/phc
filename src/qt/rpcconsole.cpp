@@ -38,18 +38,18 @@
 // TODO: make it possible to filter out categories (esp debug messages when implemented)
 // TODO: receive errors and debug messages through ClientModel
 
+using namespace CBan;
+
 const int CONSOLE_HISTORY = 50;
 const QSize ICON_SIZE(24, 24);
 
 const int INITIAL_TRAFFIC_GRAPH_MINS = 30;
-
 
 const struct
 {
     const char *url;
     const char *source;
 }
-
 
 ICON_MAPPING[] =
 {
