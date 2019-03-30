@@ -21,7 +21,7 @@ int Firewall::AllCheck_Timer = GetTime();
 int Firewall::AllCheck_MaxTimer = 3;  // minutes interval for some detection settings
 
 /** Firewall Settings (General) **/
-bool Firewall::Enabled = false;
+bool Firewall::Enabled = true;
 bool Firewall::Blacklist_Autoclear = false;
 bool Firewall::Bans_Autoclear = false;
 int Firewall::Bans_MinNodes = 10;
@@ -43,7 +43,7 @@ double Firewall::Traffic_Tolerance;  // Reduce for minimal fluctuation
 double Firewall::Traffic_Zone = 4;  // + or - Traffic Range 
 
 // *** Firewall Settings (LiveDebug Output) ***
-bool Firewall::LiveDebug_Enabled = true;
+bool Firewall::LiveDebug_Enabled = false;
 bool Firewall::LiveDebug_Exam = true;
 bool Firewall::LiveDebug_Bans = true;
 bool Firewall::LiveDebug_Blacklist = true;
