@@ -6347,6 +6347,8 @@ bool ProcessMessages(CNode* pfrom)
                 LogPrint("net", "%s : (%s, %u bytes) : CHECKSUM ERROR nChecksum=%08x hdr.nChecksum=%08x\n", __FUNCTION__, strCommand, nMessageSize, nChecksum, hdr.nChecksum);
             }
 
+            pfrom->nInvalidRecvPackets++; // Increment this nodes invalid packet count
+
             continue;
         }
 
@@ -6366,6 +6368,8 @@ bool ProcessMessages(CNode* pfrom)
                 {
                     LogPrint("net", "%s : (%s, %u bytes) : Exception '%s' caught, normally caused by a message being shorter than its stated length\n", __FUNCTION__, strCommand, nMessageSize, e.what());
                 }
+
+                pfrom->nInvalidRecvPackets++; // Increment this nodes invalid packet count
             }
             else if (strstr(e.what(), "size too large"))
             {
@@ -6374,10 +6378,12 @@ bool ProcessMessages(CNode* pfrom)
                 {
                     LogPrint("net", "%s : (%s, %u bytes) : Exception '%s' caught\n", __FUNCTION__, strCommand, nMessageSize, e.what());
                 }
+
+                pfrom->nInvalidRecvPackets++; // Increment this nodes invalid packet count
             }
             else
             {
-                PrintExceptionContinue(&e, "ProcessMessages()");
+                PrintExceptionContinue(&e, "Unknown Data Error: ProcessMessage()");
             }
         }
         catch (boost::thread_interrupted)
@@ -6386,11 +6392,11 @@ bool ProcessMessages(CNode* pfrom)
         }
         catch (std::exception& e)
         {
-            PrintExceptionContinue(&e, "ProcessMessages()");
+            PrintExceptionContinue(&e, "ProcessMessage()");
         }
         catch (...)
         {
-            PrintExceptionContinue(NULL, "ProcessMessages()");
+            PrintExceptionContinue(NULL, "Null Error - ProcessMessage()");
         }
 
         if (!fRet)
@@ -6399,6 +6405,8 @@ bool ProcessMessages(CNode* pfrom)
             {
                 LogPrint("net", "%s : (%s, %u bytes) FAILED\n", __FUNCTION__, strCommand, nMessageSize);
             }
+
+            pfrom->nInvalidRecvPackets++; // Increment this nodes invalid packet count
         }
 
         break;
@@ -7196,7 +7204,7 @@ bool Consensus::ChainBuddy::IncrementCheckpointNodeCount(CNode *pnode)
                     found = ConsensusCheckpointMap[item].second.fromnode.find(TempAddrName); 
                 }
 
-                if (found < std::string::npos)
+                if (found != std::string::npos)
                 {
                     ConsensusCheckpointMap[item].first = ConsensusCheckpointMap[item].first + 1;
 

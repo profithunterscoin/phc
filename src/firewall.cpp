@@ -338,7 +338,7 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
     int BAN_TIME = 0; // Default 24 hours
     bool BAN_ATTACK = false;
 
-    BanReason BAN_REASON;
+    BanReason BAN_REASON{};
 
     string ATTACK_TYPE = "";
     string ATTACK_CHECK_NAME;
@@ -419,29 +419,14 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
             ATTACK_CHECK_LOG = ATTACK_CHECK_LOG  + " {" +  ATTACK_CHECK_NAME + ":" + BoolToString(DETECTED_ATTACK) + "}";
         }
 
-        // ### Attack Mitigation ###
-        if (DETECTED_ATTACK == true)
-        {
-            if (Firewall::BandwidthAbuse_Blacklist == true)
-            {
-                BLACKLIST_ATTACK = true;
-            }
-
-            if (Firewall::BandwidthAbuse_Ban == true)
-            {
-                BAN_ATTACK = true;
-                BAN_TIME = Firewall::BandwidthAbuse_BanTime;
-                BAN_REASON = BanReasonBandwidthAbuse;
-            }
-
-        }
-        // ##########################
     }
     // ----------------
 
     if (Firewall::BandwidthAbuse_Nofalsepositive == true)
     {
         ATTACK_CHECK_NAME = "No False Positive - Bandwidth Abuse";
+        BAN_TIME = Firewall::BandwidthAbuse_BanTime;
+        BAN_REASON = BanReasonBandwidthAbuse;
 
         // ### AVOID FALSE POSITIVE FROM BANDWIDTH ABUSE ###
         if (DETECTED_ATTACK == true)
@@ -468,6 +453,10 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
 
             if (ATTACK_TYPE == "3-HighBW-LowHeight")
             {
+                BAN_TIME = Firewall::BandwidthAbuse_BanTime;
+                BAN_REASON = BanReasonDoubleSpendWallet;
+                ATTACK_TYPE = "Suspected: Double-Spend Attempt";
+                
                 double tnTraffic = pnode->nSendBytes / pnode->nRecvBytes;
                 if (pnode->nTrafficAverage < Firewall::AverageTraffic_Max)
                 {
@@ -495,6 +484,22 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
 
         // ##########################
     }
+
+    // ### Attack Mitigation ###
+    if (DETECTED_ATTACK == true)
+    {
+        if (Firewall::BandwidthAbuse_Blacklist == true)
+        {
+            BLACKLIST_ATTACK = true;
+        }
+
+        if (Firewall::BandwidthAbuse_Ban == true)
+        {
+            BAN_ATTACK = true;
+        }
+
+    }
+    // ##########################
     // ----------------
 
     // ---Filter 2-------------
@@ -853,13 +858,22 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
             for (i = 0; i < TmpFloodingWallet_PatternsCount; i++)
             {  
                 // Check for Whitelisted Seed Node
-                if (WARNINGS == Firewall::FloodingWallet_Patterns[i])
+                if (Firewall::FloodingWallet_Patterns[i] != "")
                 {
-                    DETECTED_ATTACK = true;
-                    ATTACK_TYPE = ATTACK_CHECK_NAME;
+                    if (WARNINGS == Firewall::FloodingWallet_Patterns[i])
+                    {
+                        DETECTED_ATTACK = true;
+                        ATTACK_TYPE = ATTACK_CHECK_NAME;
+                    }
                 }
-
             }
+        }
+
+        // Simple DDoS using invalid P2P packets/commands
+        if (pnode->nInvalidRecvPackets > 100 && nTimeConnected > Firewall::FloodingWallet_MinCheck * 60)
+        {
+            DETECTED_ATTACK = true;
+            ATTACK_TYPE = ATTACK_CHECK_NAME;
         }
 
         // ### LIVE DEBUG OUTPUT ####
@@ -887,7 +901,8 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
     }
     //--------------------------
 
-    // ---Filter 5-------------
+
+    // ---Filter (not used)-------------
     //if (DETECT_HIGH_BANSCORE == true)
     //{
         //DETECTED_ATTACK = false;
@@ -912,10 +927,13 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
     //}
     //--------------------------
 
-        if (Firewall::LiveDebug_Enabled == true)
-        {
-            cout << ModuleName << " [Checking: " << pnode->addrName << "] [Attacks: " << ATTACK_CHECK_LOG << "]\n" << endl;
-        }
+
+    //--------------------------
+    if (Firewall::LiveDebug_Enabled == true)
+    {
+        cout << ModuleName << " [Checking: " << pnode->addrName << "] [Attacks:" << ATTACK_CHECK_LOG << "]\n" << endl;
+    }
+    //--------------------------
 
     // ----------------
     // ATTACK DETECTED (TRIGGER)!
@@ -941,7 +959,10 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
         // Peer/Node Ban if required
         if (BAN_ATTACK == true)
         {
-            AddToBanList(pnode, BAN_REASON, BAN_TIME);
+            if (BAN_REASON > -1)
+            {
+                AddToBanList(pnode, BAN_REASON, BAN_TIME);
+            }
         }
 
         // Peer/Node Panic Disconnect
@@ -953,7 +974,6 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
     }
     else
     {
-
         //NO ATTACK DETECTED...
         return false;
     }
