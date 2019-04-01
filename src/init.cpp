@@ -1157,6 +1157,10 @@ bool AppInit2(boost::thread_group& threadGroup)
     // Rebuilds local blockchain Database
     if(GetBoolArg("-rebuild", false))
     {
+
+        uiInterface.InitMessage(("Rebuilding local blockchain...\n"));
+        fprintf(stdout, "Rebuilding local blockchain...\n");
+
         filesystem::path pathBlockchain = GetDataDir(true) / "blk0001.dat";
         filesystem::path pathBootstrap = GetDataDir(true) / "bootstrap.dat";
         filesystem::path pathDatabase = GetDataDir(true) / "database";
@@ -1173,22 +1177,31 @@ bool AppInit2(boost::thread_group& threadGroup)
             filesystem::remove_all(pathMncache);
         }
 
+        MilliSleep(1000);
+
         // Load bootstrap
         if (filesystem::exists(pathBootstrap))
         {
             FILE *file = fopen(pathBootstrap.string().c_str(), "rb");
+
             if (file)
             {
                 filesystem::path pathBootstrapOld = GetDataDir(true) / "bootstrap.dat.old";
+
+                uiInterface.InitMessage(("Bootstraping after rebuild..\n"));
+                fprintf(stdout, "Bootstraping after rebuild...\n");
 
                 DbsLoaded = LoadExternalBlockFile(file);
                 
                 RenameOver(pathBootstrap, pathBootstrapOld);
 
-                return InitError(strprintf("%s : Rebuild local blockchain complete, start wallet again to bootstrap local blockchain index (reload).", __FUNCTION__));
-            
+                uiInterface.InitMessage(("Bootstraping completed.\n"));
+                fprintf(stdout, "Bootstrap completed.\n");
             }
         }
+
+        return InitError(strprintf("%s : Rebuild local blockchain complete, restart wallet again to auto-bootstrap local blockchain index.", __FUNCTION__));
+            
     }
 
     // Loads Blockchain database normally if -rebuild is not present in params
