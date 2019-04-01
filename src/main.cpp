@@ -7204,7 +7204,7 @@ bool Consensus::ChainBuddy::IncrementCheckpointNodeCount(CNode *pnode)
                     found = ConsensusCheckpointMap[item].second.fromnode.find(TempAddrName); 
                 }
                 
-                if (found != std::string::npos || found != 0)
+                if (found == std::string::npos || found != 0)
                 {
                     ConsensusCheckpointMap[item].first = ConsensusCheckpointMap[item].first + 1;
 
