@@ -47,7 +47,7 @@ CCriticalSection cs_main;
 CTxMemPool mempool;
 
 int BlockPeerLogPosition = 0;
-std::string BlockPeerLog[5][4];
+std::string BlockPeerLog[10][3];
 
 map<uint256, CBlockIndex*> mapBlockIndex;
 set<pair<COutPoint, unsigned int> > setStakeSeen;
@@ -4148,7 +4148,7 @@ bool ASIC_Choker(std::string addrname, CBlock* pblock)
     {
         // Count PoS Blocks
         int PoSCount = 0;
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 9; i++)
         {
             if (BlockPeerLog[i][3] == BoolToString(pblock->IsProofOfStake()))
             {
@@ -4157,9 +4157,9 @@ bool ASIC_Choker(std::string addrname, CBlock* pblock)
         }
 
         // no less than 2 PoS blocks required per 5 blocks
-        if (BlockPeerLogPosition == 4)
+        if (BlockPeerLogPosition == 9)
         {
-            if (PoSCount < 2)
+            if (PoSCount < 3)
             {
                 if (pblock->IsProofOfStake() == false)
                 {
@@ -4169,8 +4169,8 @@ bool ASIC_Choker(std::string addrname, CBlock* pblock)
         }
     }
 
-    // PoW block must not be from same pfrom within 5 blocks
-    for (int i = 0; i < 4; i++)
+    // PoW block must not be from same pfrom within 10 blocks
+    for (int i = 0; i < 9; i++)
     {
         if (BlockPeerLog[i][1] == addrname)
         {
@@ -4186,7 +4186,7 @@ bool ASIC_Choker(std::string addrname, CBlock* pblock)
     BlockPeerLogPosition = BlockPeerLogPosition + 1;
 
     // Keep position between boundaries
-    if (BlockPeerLogPosition > 4)
+    if (BlockPeerLogPosition > 9)
     {
         BlockPeerLogPosition = 0;
     }
@@ -7203,8 +7203,8 @@ bool Consensus::ChainBuddy::IncrementCheckpointNodeCount(CNode *pnode)
                 {
                     found = ConsensusCheckpointMap[item].second.fromnode.find(TempAddrName); 
                 }
-
-                if (found != std::string::npos)
+                
+                if (found != std::string::npos || found != 0)
                 {
                     ConsensusCheckpointMap[item].first = ConsensusCheckpointMap[item].first + 1;
 
@@ -7232,6 +7232,12 @@ bool Consensus::ChainBuddy::IncrementCheckpointNodeCount(CNode *pnode)
 
 bool Consensus::ChainBuddy::FindConsensus()
 {
+    if (!TestNet())
+    {
+        Consensus::ChainBuddy::Enabled = false;
+        return false; // Skip on mainnet until testing is completed
+    }
+
     if (Consensus::ChainBuddy::Enabled == false)
     {
         return false;
@@ -7294,6 +7300,12 @@ bool Consensus::ChainBuddy::FindConsensus()
 
 bool Consensus::ChainBuddy::WalletHasConsensus()
 {
+    if (!TestNet())
+    {
+        Consensus::ChainBuddy::Enabled = false;
+        return false; // Skip on mainnet until testing is completed
+    }
+
     if (Consensus::ChainBuddy::Enabled == false)
     {
         return false;
@@ -7350,6 +7362,9 @@ bool Consensus::ChainShield::Protect()
 {
     if (!TestNet())
     {
+        Consensus::ChainShield::Enabled = false;
+        Consensus::ChainShield::DisableNewBlocks = false;
+        Consensus::ChainShield::Rollback_Runaway = false;
         return false; // Skip on mainnet until testing is completed
     }
 
