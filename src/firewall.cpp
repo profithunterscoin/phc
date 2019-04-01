@@ -331,6 +331,8 @@ bool Firewall::AddToBanList(CNode *pnode, BanReason BannedFor, int BanTime)
 // Artificially Intelligent Attack Detection & Mitigation
 bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
 {
+    string WARNINGS = "";
+
     bool DETECTED_ATTACK = false;
     
     bool BLACKLIST_ATTACK = false;
@@ -685,8 +687,6 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
 
         std::size_t FLOODING_MAXBYTES = Firewall::FloodingWallet_MaxBytes;
         std::size_t FLOODING_MINBYTES = Firewall::FloodingWallet_MinBytes;
-        
-        string WARNINGS = "";
 
         // WARNING #1 - Too high of bandwidth with low BlockHeight
         if (NodeHeight < Firewall::AverageHeight_Min)
@@ -833,7 +833,7 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
         }
 
         // WARNING #24 - 
-        if (pnode->dCheckpointRecv.height < Firewall::AverageTraffic_Max)
+        if (pnode->dCheckpointRecv.height < Firewall::AverageHeight_Max)
         {
             if (pnode->dCheckpointRecv.height > Firewall::AverageHeight_Min)
             {
@@ -869,11 +869,21 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
             }
         }
 
+        if (DETECTED_ATTACK == true)
+        {
+            BAN_TIME = Firewall::FloodingWallet_BanTime;
+            BAN_REASON = BanReasonFloodingWallet;
+        }
+
         // Simple DDoS using invalid P2P packets/commands
-        if (pnode->nInvalidRecvPackets > 100 && nTimeConnected > Firewall::FloodingWallet_MinCheck * 60)
+        if (pnode->nInvalidRecvPackets > 10000
+            && nTimeConnected > Firewall::FloodingWallet_MinCheck * 60
+            && pnode->nRecvBytes > 10000)
         {
             DETECTED_ATTACK = true;
             ATTACK_TYPE = ATTACK_CHECK_NAME;
+            BAN_TIME = Firewall::FloodingWallet_BanTime;
+            BAN_REASON = BanReasonDDoSWallet;
         }
 
         // ### LIVE DEBUG OUTPUT ####
@@ -893,8 +903,6 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
             if (Firewall::FloodingWallet_Ban == true)
             {
                 BAN_ATTACK = true;
-                BAN_TIME = Firewall::FloodingWallet_BanTime;
-                BAN_REASON = BanReasonFloodingWallet;
             }
 
         }
@@ -941,12 +949,46 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
     {
         if (Firewall::LiveDebug_Enabled == true)
         {
-            cout << ModuleName << " [Attack Type: " << ATTACK_TYPE << "] [Detected from: " << pnode->addrName << "] [Node Traffic: " << pnode->nTrafficRatio << "] [Node Traffic Avrg: " << pnode->nTrafficAverage << "] [Traffic Avrg: " << Firewall::AverageTraffic << "] [Sent Bytes: " << pnode->nSendBytes << "] [Recv Bytes: " << pnode->nRecvBytes << "] [Sync Height: " << pnode->dCheckpointRecv.height << "] [Protocol: " << pnode->nRecvVersion <<"\n" << endl;
+            cout << ModuleName <<
+            " [Attack Type: " << ATTACK_TYPE <<
+            "] [Detected from: " << pnode->addrName <<
+            "] [Node Traffic: " << pnode->nTrafficRatio <<
+            "] [Node Traffic Avrg: " << pnode->nTrafficAverage <<
+            "] [Traffic Avrg: " << Firewall::AverageTraffic <<
+            "] [Sent Bytes: " << pnode->nSendBytes <<
+            "] [Recv Bytes: " << pnode->nRecvBytes <<
+            "] [Start Height: " << pnode->nStartingHeight <<
+            "] [Sync Height: " << pnode->dCheckpointRecv.height <<
+            "] [Protocol: " << pnode->nRecvVersion <<
+            "]\n" << endl;
         }
 
         if (fDebug)
         {
-            LogPrint("firewall", "%s [Attack Type: %s] [Detected from: %s] [Node Traffic: %d] [Node Traffic Avrg: %d] [Traffic Avrg: %d] [Sent Bytes: %d] [Recv Bytes: %d] [Sync Height: %i] [Protocol: %i\n", ModuleName.c_str(), ATTACK_TYPE.c_str(), pnode->addrName.c_str(), pnode->nTrafficRatio, pnode->nTrafficAverage, Firewall::AverageTraffic, pnode->nSendBytes, pnode->nRecvBytes, pnode->dCheckpointRecv.height, pnode->nRecvVersion);
+            LogPrint("firewall", "%s [Attack Type: %s] "
+                                    "[Detected from: %s] "
+                                    "[Node Traffic: %d] "
+                                    "[Node Traffic Avrg: %d] "
+                                    "[Traffic Avrg: %d] "
+                                    "[Sent Bytes: %d] "
+                                    "[Recv Bytes: %d] "
+                                    "[Start Height: %i] "
+                                    "[Sync Height: %i] "
+                                    "[Protocol: %i]"
+                                    "[Warnings: %s\n",
+
+                                    ModuleName.c_str(),
+                                    ATTACK_TYPE.c_str(),
+                                    pnode->addrName.c_str(),
+                                    pnode->nTrafficRatio,
+                                    pnode->nTrafficAverage,
+                                    Firewall::AverageTraffic,
+                                    pnode->nSendBytes,
+                                    pnode->nRecvBytes,
+                                    pnode->nStartingHeight,
+                                    pnode->dCheckpointRecv.height,
+                                    pnode->nRecvVersion,
+                                    WARNINGS);
         }
 
         // Blacklist IP on Attack detection
@@ -1049,7 +1091,7 @@ void Firewall::Examination(CNode *pnode, string FromFunction)
                 {
                     cout << ModuleName << " [BlackListed Nodes/Peers: " << CountStringArray(Firewall::BlackList) << "] [Traffic: " << Firewall::AverageTraffic << "] [Traffic Min: " << Firewall::AverageTraffic_Min << "] [Traffic Max: " << Firewall::AverageTraffic_Max << "]" << " [Safe Height: " << Firewall::AverageHeight << "] [Height Min: " << Firewall::AverageHeight_Min << "] [Height Max: " << Firewall::AverageHeight_Max <<"] [Send Avrg: " << Firewall::AverageSend<< "] [Rec Avrg: " << Firewall::AverageRecv << "]\n" <<endl;
 
-                    cout << ModuleName << "[Check Node IP: " << pnode->addrName.c_str() << "] [Traffic: " << pnode->nTrafficRatio << "] [Traffic Average: " << pnode->nTrafficAverage << "] [Starting Height: " << pnode->nStartingHeight << "] [Sync Height: " << NodeHeight << "] [Node Sent: " << pnode->nSendBytes << "] [Node Recv: " << pnode->nRecvBytes << "] [Protocol: " << pnode->nRecvVersion << "]\n" << endl;
+                    cout << ModuleName << "[Check Node IP: " << pnode->addrName.c_str() << "] [Traffic: " << pnode->nTrafficRatio << "] [Traffic Average: " << pnode->nTrafficAverage << "] [Starting Height: " << pnode->nStartingHeight << "] [Sync Height: " << pnode->dCheckpointRecv.height << "] [Node Sent: " << pnode->nSendBytes << "] [Node Recv: " << pnode->nRecvBytes << "] [Protocol: " << pnode->nRecvVersion << "]\n" << endl;
                 }
 
             }
