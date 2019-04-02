@@ -903,14 +903,23 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
         }
 
         // Simple DDoS using invalid P2P packets/commands
-        if (pnode->nInvalidRecvPackets > 10000
-            && nTimeConnected > Firewall::FloodingWallet_MinCheck * 60
-            && pnode->nRecvBytes > 10000)
+        if (nTimeConnected > Firewall::FloodingWallet_MinCheck * 60)
         {
-            DETECTED_ATTACK = true;
-            ATTACK_TYPE = ATTACK_CHECK_NAME;
-            BAN_TIME = Firewall::FloodingWallet_BanTime;
-            BAN_REASON = BanReasonDDoSWallet;
+            if (pnode->nInvalidRecvPackets > 0)
+            {
+                if (pnode->nRecvBytes > 0)
+                {
+                    double InvalidPacketRatio = (pnode->nInvalidRecvPackets / (pnode->nRecvBytes / 1000));
+
+                    if (InvalidPacketRatio > 1)
+                    {
+                        DETECTED_ATTACK = true;
+                        ATTACK_TYPE = ATTACK_CHECK_NAME;
+                        BAN_TIME = Firewall::FloodingWallet_BanTime;
+                        BAN_REASON = BanReasonDDoSWallet;
+                    }
+                }
+            }
         }
 
         // ### LIVE DEBUG OUTPUT ####
