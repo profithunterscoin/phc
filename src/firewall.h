@@ -98,7 +98,8 @@ class Firewall
         static double FloodingWallet_MaxTrafficAverage; // Ratio Up/Down
         static int FloodingWallet_MinCheck; // seconds
         static int FloodingWallet_MaxCheck; // seconds
-        static std::string FloodingWallet_Patterns[256]; // TODO: Upgrade to vector<string> 
+        static std::string FloodingWallet_Patterns[256]; // TODO: Upgrade to vector<string>
+        static std::string FloodingWallet_Ignored[256]; // TODO: Upgrade to vector<string> 
 
         // Firewall Whitelist (ignore)
         static std::string WhiteList[256]; // TODO: Upgrade to vector<string> 

@@ -57,12 +57,11 @@ Value firewallstatus(const Array& params, bool fHelp)
     result.push_back(Pair("invalidwallet-blacklist",            BoolToString(Firewall::InvalidWallet_Blacklist)));
     result.push_back(Pair("invalidwallet-ban",                  BoolToString(Firewall::InvalidWallet_Ban)));
     result.push_back(Pair("invalidwallet-bantime",              (int64_t)Firewall::InvalidWallet_BanTime));
-    result.push_back(Pair("forkedwallet-detect",                BoolToString(Firewall::ForkedWallet_Detect)));
     result.push_back(Pair("floodingwallet-detect",              BoolToString(Firewall::FloodingWallet_Detect)));
     result.push_back(Pair("floodingwallet-blacklist",           BoolToString(Firewall::FloodingWallet_Blacklist)));
     result.push_back(Pair("floodingwallet-ban",                 BoolToString(Firewall::FloodingWallet_Ban)));
     result.push_back(Pair("floodingwallet-bantime",             (int64_t)Firewall::FloodingWallet_BanTime));
-    result.push_back(Pair("forkedwallet-detect",                (int64_t)Firewall::ForkedWallet_Detect));
+    result.push_back(Pair("forkedwallet-detect",                BoolToString(Firewall::ForkedWallet_Detect)));
     result.push_back(Pair("forkedwallet-blacklist",             BoolToString(Firewall::ForkedWallet_Blacklist)));
     result.push_back(Pair("forkedwallet-ban",                   BoolToString(Firewall::ForkedWallet_Ban)));
     result.push_back(Pair("forkedwallet-bantime",               (int64_t)Firewall::ForkedWallet_BanTime));
@@ -1323,7 +1322,7 @@ Value firewallfloodingwalletattackpatternadd(const Array& params, bool fHelp)
     }
 
     Object result;
-    result.push_back(Pair("attackpattern-floodingwallet-attackpattern-add", MSG));
+    result.push_back(Pair("floodingwallet-attackpattern-add", MSG));
 
     return result;
 }
@@ -1373,7 +1372,97 @@ Value firewallfloodingwalletattackpatternremove(const Array& params, bool fHelp)
     }
 
     Object result;
-    result.push_back(Pair("attackpattern-floodingwallet-attackpattern-remove", MSG));
+    result.push_back(Pair("floodingwallet-attackpattern-remove", MSG));
+
+    return result;
+}
+
+
+
+Value firewallfloodingwalletattackignoredadd(const Array& params, bool fHelp)
+{
+    // TODO: Upgrade to vector<string> 
+    
+    string MSG;
+
+    if (fHelp || params.size() == 0)
+    {
+        throw runtime_error("firewallfloodingwalletattackignoredadd \"warnings\"\n"
+                            "\nBitcoin Firewall Adds Attack Ignored Flooding Wallet Rule #4\n"
+                            "\nArguments:\n"
+                            "Value: \"warnings\" (string, required)\n"
+                            "\nExamples:\n"
+                            "\n0 = default - \n"
+                            + HelpExampleCli("firewallfloodingwalletattackignoredadd", "0")
+                            + HelpExampleCli("firewallfloodingwalletattackignoredadd", "10000000")
+                            );
+    }
+
+    if (params.size() == 1)
+    {
+        if (CountStringArray(Firewall::FloodingWallet_Ignored) < 256)
+        {
+            Firewall::FloodingWallet_Ignored[CountStringArray(Firewall::FloodingWallet_Ignored)] = params[0].get_str().c_str();
+            MSG = CountStringArray(Firewall::FloodingWallet_Ignored);
+        }
+        else
+        {
+            MSG = "Over 256 Max!";
+        }
+    }
+
+    Object result;
+    result.push_back(Pair("floodingwallet-attackignored-add", MSG));
+
+    return result;
+}
+
+
+Value firewallfloodingwalletattackignoredremove(const Array& params, bool fHelp)
+{
+    // TODO: Upgrade to vector<string> Firewall::FloodingWallet_remove
+
+    string MSG;
+    int i;
+
+    if (fHelp || params.size() == 0)
+    {
+        throw runtime_error("firewallfloodingwalletattackignoredremove \"warnings\"\n"
+                            "\nBitcoin Firewall Remove Attack Ignored Flooding Wallet Rule #4\n"
+                            "\nArguments:\n"
+                            "Value: \"warnings\" (string, required)\n"
+                            "\nExamples:\n"
+                            "\n0 = default - \n"
+                            + HelpExampleCli("firewallfloodingwalletattackignoredremove", "0")
+                            + HelpExampleCli("firewallfloodingwalletattackignoredremove", "10000000")
+                            );
+    }
+
+    if (params.size() == 1)
+    {
+        string WARNING;
+
+        int TmpFloodIgnoredCount;
+        
+        WARNING = params[0].get_str().c_str();
+        
+        TmpFloodIgnoredCount = CountStringArray(Firewall::FloodingWallet_Ignored);
+
+        MSG = "Not Found";
+
+        for (i = 0; i < TmpFloodIgnoredCount; i++)
+        {  
+            if (WARNING == Firewall::FloodingWallet_Ignored[i])
+            {
+                MSG = Firewall::FloodingWallet_Ignored[i];
+                Firewall::FloodingWallet_Ignored[i] = "";
+            }
+
+        }
+    }
+
+    Object result;
+    result.push_back(Pair("floodingwallet-attackignored-remove", MSG));
 
     return result;
 }

@@ -258,6 +258,8 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "firewallfloodingwalletmaxbytes",             1 },
     { "firewallfloodingwalletattackpatternadd",     1 },
     { "firewallfloodingwalletattackpatternremove",  1 },
+    { "firewallfloodingwalletattackignoredadd",     1 },
+    { "firewallfloodingwalletattackignoredremove",  1 },
     { "firewallfloodingwalletmintrafficavg",        1 },
     { "firewallfloodingwalletmaxtrafficavg",        1 },
     { "firewallfloodingwalletmincheck",             1 },

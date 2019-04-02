@@ -445,6 +445,8 @@ static const CRPCCommand vRPCCommands[] =
     { "firewallfloodingwalletmaxbytes",                 &firewallfloodingwalletmaxbytes,                false,      false,    false },
     { "firewallfloodingwalletattackpatternadd",         &firewallfloodingwalletattackpatternadd,        false,      false,    false },
     { "firewallfloodingwalletattackpatternremove",      &firewallfloodingwalletattackpatternremove,     false,      false,    false },
+    { "firewallfloodingwalletattackignoredadd",         &firewallfloodingwalletattackignoredadd,        false,      false,    false },
+    { "firewallfloodingwalletattackignoredremove",      &firewallfloodingwalletattackignoredremove,     false,      false,    false },
     { "firewallfloodingwalletmintrafficavg",            &firewallfloodingwalletmintrafficavg,           false,      false,    false },
     { "firewallfloodingwalletmaxtrafficavg",            &firewallfloodingwalletmaxtrafficavg,           false,      false,    false },
     { "firewallfloodingwalletmincheck",                 &firewallfloodingwalletmincheck,                false,      false,    false },

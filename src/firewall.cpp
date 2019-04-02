@@ -101,6 +101,12 @@ string Firewall::FloodingWallet_Patterns[256] =
 {
 
 };
+string Firewall::FloodingWallet_Ignored[256] =
+{
+    "2347911131517192225",
+    "12347911131517192125",
+    "234791113151720222325"
+};
 
 
 // Firewall Whitelist (ignore pnode->addrName)
@@ -847,7 +853,8 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
             WARNINGS = WARNINGS + "25";
         }      
     
-        // IF WARNINGS is matches pattern for ATTACK = TRUE
+        // Auto-Trigger Flooding Patterns
+        // IF WARNINGS is matched to pattern DETECTED_ATTACK = TRUE
         int i;
         int TmpFloodingWallet_PatternsCount;
 
@@ -857,13 +864,33 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
         {
             for (i = 0; i < TmpFloodingWallet_PatternsCount; i++)
             {  
-                // Check for Whitelisted Seed Node
                 if (Firewall::FloodingWallet_Patterns[i] != "")
                 {
                     if (WARNINGS == Firewall::FloodingWallet_Patterns[i])
                     {
                         DETECTED_ATTACK = true;
                         ATTACK_TYPE = ATTACK_CHECK_NAME;
+                    }
+                }
+            }
+        }
+
+        // Ignore Flooding Patterns
+        // IF WARNINGS is matched to pattern DETECTED_ATTACK = FALSE
+        int TmpFloodingWallet_IgnoredCount;
+
+        TmpFloodingWallet_IgnoredCount = CountStringArray(Firewall::FloodingWallet_Ignored);
+
+        if (TmpFloodingWallet_IgnoredCount > 0)
+        {
+            for (i = 0; i < TmpFloodingWallet_IgnoredCount; i++)
+            {  
+                if (Firewall::FloodingWallet_Ignored[i] != "")
+                {
+                    if (WARNINGS == Firewall::FloodingWallet_Ignored[i])
+                    {
+                        DETECTED_ATTACK = false;
+                        ATTACK_TYPE = "";
                     }
                 }
             }
