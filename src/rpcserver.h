@@ -200,6 +200,8 @@ extern json_spirit::Value firewallfloodingwalletminbytes(const json_spirit::Arra
 extern json_spirit::Value firewallfloodingwalletmaxbytes(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallfloodingwalletattackpatternadd(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallfloodingwalletattackpatternremove(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value firewallfloodingwalletattackignoredadd(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value firewallfloodingwalletattackignoredremove(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallfloodingwalletmintrafficavg(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallfloodingwalletmaxtrafficavg(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallfloodingwalletmincheck(const json_spirit::Array& params, bool fHelp);
