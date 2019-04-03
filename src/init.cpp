@@ -494,6 +494,30 @@ bool AppInit2(boost::thread_group& threadGroup)
         fDebug = true;
     }
 
+    if(fDebug)
+    {
+	    fDebugSmsg = true;
+    }
+    else
+    {
+        fDebugSmsg = GetBoolArg("-debugsmsg", false);
+    }
+
+    if (fLiteMode)
+    {
+        fNoSmsg = true;
+    }
+    else
+    {
+        fNoSmsg = GetBoolArg("-nosmsg", false);
+    }
+
+    // Check for -debugnet (deprecated)
+    if (GetBoolArg("-debugnet", false))
+    {
+        InitWarning(_("Warning: Deprecated argument -debugnet ignored, use -debug=net"));
+    }
+
     nNodeLifespan = GetArg("-addrlifespan", 7);
     fUseFastIndex = GetBoolArg("-fastindex", true);
     nMinerSleep = GetArg("-minersleep", 500);
@@ -613,29 +637,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     // ********************************************************* Step 3: parameter-to-internal-flags
 
-    if(fDebug)
-    {
-	    fDebugSmsg = true;
-    }
-    else
-    {
-        fDebugSmsg = GetBoolArg("-debugsmsg", false);
-    }
 
-    if (fLiteMode)
-    {
-        fNoSmsg = true;
-    }
-    else
-    {
-        fNoSmsg = GetBoolArg("-nosmsg", false);
-    }
-
-    // Check for -debugnet (deprecated)
-    if (GetBoolArg("-debugnet", false))
-    {
-        InitWarning(_("Warning: Deprecated argument -debugnet ignored, use -debug=net"));
-    }
 
     // Check for -socks - as this is a privacy risk to continue, exit here
     if (mapArgs.count("-socks"))

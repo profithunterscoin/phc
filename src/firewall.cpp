@@ -68,7 +68,7 @@ double Firewall::BandwidthAbuse_MaxAttack = 17.2;
 bool Firewall::InvalidWallet_Detect = true;
 bool Firewall::InvalidWallet_Blacklist = true;
 bool Firewall::InvalidWallet_Ban = true;
-int Firewall::InvalidWallet_BanTime = 2600000; // 30 days
+int Firewall::InvalidWallet_BanTime = 0; // 24 hours
 int Firewall::InvalidWallet_MinimumProtocol = MIN_PEER_PROTO_VERSION;
 int Firewall::InvalidWallet_MaxCheck;
 
@@ -97,11 +97,13 @@ double Firewall::FloodingWallet_MinTrafficAverage = 2000; // Ratio Up/Down
 double Firewall::FloodingWallet_MaxTrafficAverage = 2000; // Ratio Up/Down
 int Firewall::FloodingWallet_MinCheck = 30; // seconds
 int Firewall::FloodingWallet_MaxCheck = 90; // seconds
+
 // Flooding Wallet Attack Patterns
 string Firewall::FloodingWallet_Patterns[256] =
 {
 
 };
+
 // Flooding Wallet Ignored Patterns
 string Firewall::FloodingWallet_Ignored[256] =
 {
@@ -111,10 +113,10 @@ string Firewall::FloodingWallet_Ignored[256] =
     "12347911131517202225",
     "2347911131517202225",
     "12347911131517192225",
-    "2347911131517192125"
-
+    "2347911131517192125",
+    "347911131517182022232425",
+    "23479111315172225",
 };
-
 
 // Firewall Whitelist (ignore pnode->addrName)
 string Firewall::WhiteList[256] =
