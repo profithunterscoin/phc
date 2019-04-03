@@ -97,15 +97,22 @@ double Firewall::FloodingWallet_MinTrafficAverage = 2000; // Ratio Up/Down
 double Firewall::FloodingWallet_MaxTrafficAverage = 2000; // Ratio Up/Down
 int Firewall::FloodingWallet_MinCheck = 30; // seconds
 int Firewall::FloodingWallet_MaxCheck = 90; // seconds
+// Flooding Wallet Attack Patterns
 string Firewall::FloodingWallet_Patterns[256] =
 {
 
 };
+// Flooding Wallet Ignored Patterns
 string Firewall::FloodingWallet_Ignored[256] =
 {
     "2347911131517192225",
     "12347911131517192125",
-    "234791113151720222325"
+    "234791113151720222325",
+    "12347911131517202225",
+    "2347911131517202225",
+    "12347911131517192225",
+    "2347911131517192125"
+
 };
 
 
@@ -313,7 +320,7 @@ bool Firewall::AddToBanList(CNode *pnode, BanReason BannedFor, int BanTime)
 {
     CNode::Ban(pnode->addr, BannedFor, BanTime, false);
 
-    DumpBanlist();
+    //DumpBanlist();
 
     if (fDebug)
     {
@@ -1011,7 +1018,7 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
                                     "[Start Height: %i] "
                                     "[Sync Height: %i] "
                                     "[Protocol: %i]"
-                                    "[Warnings: %s\n",
+                                    "[Warnings: %s]\n",
 
                                     ModuleName.c_str(),
                                     ATTACK_TYPE.c_str(),
