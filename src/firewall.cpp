@@ -101,7 +101,7 @@ int Firewall::FloodingWallet_MaxCheck = 90; // seconds
 // Flooding Wallet Attack Patterns
 string Firewall::FloodingWallet_Patterns[256] =
 {
-
+    "12346811131517192125"
 };
 
 // Flooding Wallet Ignored Patterns
@@ -117,6 +117,7 @@ string Firewall::FloodingWallet_Ignored[256] =
     "347911131517182022232425",
     "23479111315172225",
     "2347911131517182022232425",
+    "123479111315171925",
     ""    
 };
 
