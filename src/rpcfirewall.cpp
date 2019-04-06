@@ -1308,14 +1308,14 @@ Value firewallfloodingwalletattackpatternadd(const Array& params, bool fHelp)
                             );
     }
 
-    MSG = "OK!";
+
 
     if (params.size() == 1)
     {
         if (CountStringArray(Firewall::FloodingWallet_Patterns) < 256)
         {
             Firewall::FloodingWallet_Patterns[CountStringArray(Firewall::FloodingWallet_Patterns)] = params[0].get_str().c_str();
-            MSG = Firewall::FloodingWallet_Patterns[CountStringArray(Firewall::FloodingWallet_Patterns)];
+            MSG = "OK!";
         }
         else
         {
@@ -1401,12 +1401,10 @@ Value firewallfloodingwalletattackignoredadd(const Array& params, bool fHelp)
 
     if (params.size() == 1)
     {
-        MSG = "Ok!";
-
         if (CountStringArray(Firewall::FloodingWallet_Ignored) < 256)
         {
             Firewall::FloodingWallet_Ignored[CountStringArray(Firewall::FloodingWallet_Ignored)] = params[0].get_str().c_str();
-            MSG = Firewall::FloodingWallet_Ignored[CountStringArray(Firewall::FloodingWallet_Ignored)];
+            MSG = MSG = "Ok!";;
         }
         else
         {
@@ -1415,7 +1413,7 @@ Value firewallfloodingwalletattackignoredadd(const Array& params, bool fHelp)
     }
 
     Object result;
-    result.push_back(Pair("floodingwallet-attackignored-add", strprintf("%s %d (%s)", params[0].get_str().c_str(), CountStringArray(Firewall::FloodingWallet_Patterns), MSG)));
+    result.push_back(Pair("floodingwallet-attackignored-add", strprintf("%s %d (%s)", params[0].get_str().c_str(), CountStringArray(Firewall::FloodingWallet_Ignored), MSG)));
 
     return result;
 }
@@ -1464,7 +1462,7 @@ Value firewallfloodingwalletattackignoredremove(const Array& params, bool fHelp)
     }
 
     Object result;
-    result.push_back(Pair("floodingwallet-attackignored-remove", strprintf("%s %d (%s)", params[0].get_str().c_str(), CountStringArray(Firewall::FloodingWallet_Patterns), MSG)));
+    result.push_back(Pair("floodingwallet-attackignored-remove", strprintf("%s %d (%s)", params[0].get_str().c_str(), CountStringArray(Firewall::FloodingWallet_Ignored), MSG)));
 
     return result;
 }
