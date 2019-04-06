@@ -124,7 +124,7 @@ string Firewall::FloodingWallet_Ignored[256] =
     "23479111315172022232425",
     "12347910121416202225",
     "12346811131517192225",
-    ""    
+    "123468111315172225"    
 };
 
 // Firewall Whitelist (ignore pnode->addrName)
