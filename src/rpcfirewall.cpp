@@ -1313,7 +1313,7 @@ Value firewallfloodingwalletattackpatternadd(const Array& params, bool fHelp)
         if (CountStringArray(Firewall::FloodingWallet_Patterns) < 256)
         {
             Firewall::FloodingWallet_Patterns[CountStringArray(Firewall::FloodingWallet_Patterns)] = params[0].get_str().c_str();
-            MSG = CountStringArray(Firewall::FloodingWallet_Patterns);
+            MSG = Firewall::FloodingWallet_Patterns;
         }
         else
         {
@@ -1403,7 +1403,7 @@ Value firewallfloodingwalletattackignoredadd(const Array& params, bool fHelp)
         if (CountStringArray(Firewall::FloodingWallet_Ignored) < 256)
         {
             Firewall::FloodingWallet_Ignored[CountStringArray(Firewall::FloodingWallet_Ignored)] = params[0].get_str().c_str();
-            MSG = CountStringArray(Firewall::FloodingWallet_Ignored);
+            MSG = Firewall::FloodingWallet_Ignored;
         }
         else
         {
