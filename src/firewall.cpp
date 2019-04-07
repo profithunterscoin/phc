@@ -8,6 +8,7 @@
 
 #include "firewall.h"
 #include "util.h"
+#include "main.h"
 
 using namespace std;
 using namespace CBan;
@@ -101,32 +102,15 @@ int Firewall::FloodingWallet_MaxCheck = 90; // seconds
 // Flooding Wallet Attack Patterns
 string Firewall::FloodingWallet_Patterns[256] =
 {
-    "12346811131517192125"
+
 };
 
 // Flooding Wallet Ignored Patterns
 string Firewall::FloodingWallet_Ignored[256] =
 {
-    "2347911131517192225",
-    "12347911131517192125",
-    "234791113151720222325",
-    "12347911131517202225",
-    "2347911131517202225",
-    "12347911131517192225",
-    "2347911131517192125",
-    "347911131517182022232425",
-    "23479111315172225",
-    "2347911131517182022232425",
-    "123479111315171925",
-    "12347910121517202225",
-    "12347911131416202225",
-    "12346811131517202225",
-    "23479111315172022232425",
-    "12347910121416202225",
-    "12346811131517192225",
-    "123468111315172225",
-    "2346811131517202225"
-    ""    
+    "157910121416202225",
+    "23479111315171922232425",
+    "23479111315171922232425"
 };
 
 // Firewall Whitelist (ignore pnode->addrName)
@@ -210,6 +194,26 @@ void Firewall::LoadFirewallSettings()
 
     return;
 
+}
+
+
+// * Function: LegacySyncHeight
+int Firewall::LegacySyncHeight(CNode *pnode)
+{
+    // Is the tx in a block that's in the main chain
+    // ppcoin: known sent sync-checkpoint
+
+    map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(pnode->hashCheckpointKnown); 
+    if (mi != mapBlockIndex.end())
+    {
+        CBlockIndex* pindex = (*mi).second;
+        if (pindex && pindex->IsInMainChain())
+        {
+            return pindex->nHeight; 
+        }
+    }
+
+    return 0;
 }
 
 
@@ -374,20 +378,23 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
 
     int nTimeConnected = GetTime() - pnode->nTimeConnected;
 
-    int NodeHeight;
+    int SyncHeight;
 
-    if (pnode->dCheckpointRecv.height == 0)
+    SyncHeight = pnode->dCheckpointRecv.height; // Use Dynamic Checkpoints by default
+
+    if (SyncHeight == 0)
     {
-        NodeHeight = pnode->nStartingHeight;
-    }
-    else
-    {
-        NodeHeight = pnode->dCheckpointRecv.height;
+        SyncHeight = LegacySyncHeight(pnode); // ppcoin: known sent sync-checkpoint
     }
 
-    if (pnode->dCheckpointRecv.height < pnode->nStartingHeight)
+    if (SyncHeight == 0)
     {
-        NodeHeight = pnode->nStartingHeight;
+        SyncHeight = pnode->nStartingHeight;
+    }
+
+    if (SyncHeight < pnode->nStartingHeight)
+    {
+        SyncHeight = pnode->nStartingHeight;
     }
    
 
@@ -404,7 +411,7 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
         {
             // * Attack detection #2
             // Node is further ahead on the chain than average minimum
-            if (NodeHeight > Firewall::AverageHeight_Min)
+            if (SyncHeight > Firewall::AverageHeight_Min)
             {
                 if (pnode->nTrafficAverage < Firewall::AverageTraffic_Min)
                 {
@@ -423,7 +430,7 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
 
             // * Attack detection #3
             // Node is behind on the chain than average minimum
-            if (NodeHeight < Firewall::AverageHeight_Min)
+            if (SyncHeight < Firewall::AverageHeight_Min)
             {  
                 if (pnode->nTrafficAverage < Firewall::AverageTraffic_Min)
                 {
@@ -653,22 +660,15 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
         // ### Attack Detection ###
 
         int i;
-        int TmpNodeHeightCount;
-        TmpNodeHeightCount = CountIntArray(Firewall::ForkedWallet_NodeHeight) - 2;
+        int TmpSyncHeightCount;
+        TmpSyncHeightCount = CountIntArray(Firewall::ForkedWallet_NodeHeight) - 2;
         
-        if (TmpNodeHeightCount > 0)
+        if (TmpSyncHeightCount > 0)
         {
-            for (i = 0; i < TmpNodeHeightCount; i++)
+            for (i = 0; i < TmpSyncHeightCount; i++)
             { 
                 // Check for Forked Wallet (stuck on blocks)
-                if (pnode->nStartingHeight == (int)Firewall::ForkedWallet_NodeHeight[i])
-                {
-                    DETECTED_ATTACK = true;
-                    ATTACK_TYPE = ATTACK_CHECK_NAME;
-                }
-
-                // Check for Forked Wallet (stuck on blocks)
-                if (pnode->dCheckpointRecv.height == (int)Firewall::ForkedWallet_NodeHeight[i])
+                if (SyncHeight == (int)Firewall::ForkedWallet_NodeHeight[i])
                 {
                     DETECTED_ATTACK = true;
                     ATTACK_TYPE = ATTACK_CHECK_NAME;
@@ -715,7 +715,7 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
         std::size_t FLOODING_MINBYTES = Firewall::FloodingWallet_MinBytes;
 
         // WARNING #1 - Too high of bandwidth with low BlockHeight
-        if (NodeHeight < Firewall::AverageHeight_Min)
+        if (SyncHeight < Firewall::AverageHeight_Min)
         {  
             if (pnode->nTrafficAverage > Firewall::AverageTraffic_Max)
             {
@@ -820,7 +820,7 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
         }
 
         // WARNING #18 - Starting Height = SyncHeight above max
-        if (pnode->nStartingHeight == pnode->dCheckpointRecv.height)
+        if (pnode->nStartingHeight == SyncHeight)
         {
             WARNINGS = WARNINGS + "18";
         }
@@ -850,18 +850,18 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
         }
 
         // WARNING #23 - Current BlockHeight
-        if (NodeHeight > Firewall::AverageHeight)
+        if (SyncHeight > Firewall::AverageHeight)
         {  
-            if (NodeHeight < Firewall::AverageHeight_Max)
+            if (SyncHeight < Firewall::AverageHeight_Max)
             {  
                 WARNINGS = WARNINGS + "23";
             }
         }
 
         // WARNING #24 - 
-        if (pnode->dCheckpointRecv.height < Firewall::AverageHeight_Max)
+        if (SyncHeight < Firewall::AverageHeight_Max)
         {
-            if (pnode->dCheckpointRecv.height > Firewall::AverageHeight_Min)
+            if (SyncHeight > Firewall::AverageHeight_Min)
             {
                 WARNINGS = WARNINGS + "24";
             }
@@ -1014,7 +1014,7 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
             "] [Sent Bytes: " << pnode->nSendBytes <<
             "] [Recv Bytes: " << pnode->nRecvBytes <<
             "] [Start Height: " << pnode->nStartingHeight <<
-            "] [Sync Height: " << pnode->dCheckpointRecv.height <<
+            "] [Sync Height: " << SyncHeight <<
             "] [Protocol: " << pnode->nRecvVersion <<
             "]\n" << endl;
         }
@@ -1042,7 +1042,7 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
                                     pnode->nSendBytes,
                                     pnode->nRecvBytes,
                                     pnode->nStartingHeight,
-                                    pnode->dCheckpointRecv.height,
+                                    SyncHeight,
                                     pnode->nRecvVersion,
                                     WARNINGS);
         }
@@ -1085,26 +1085,30 @@ void Firewall::Examination(CNode *pnode, string FromFunction)
     // Calculate new Height Average from all peers connected
 
     bool UpdateNodeStats = false;
-    int NodeHeight;
 
-    if (pnode->dCheckpointRecv.height == 0)
-    {
-        NodeHeight = pnode->nStartingHeight;
-    }
-    else
-    {
-        NodeHeight = pnode->dCheckpointRecv.height;
-    }
+    int SyncHeight;
 
-    if (pnode->dCheckpointRecv.height < pnode->nStartingHeight)
+    SyncHeight = pnode->dCheckpointRecv.height; // Use Dynamic Checkpoints by default
+
+    if (SyncHeight == 0)
     {
-        NodeHeight = pnode->nStartingHeight;
+        SyncHeight = LegacySyncHeight(pnode); // ppcoin: known sent sync-checkpoint
     }
 
+    if (SyncHeight == 0)
+    {
+        SyncHeight = pnode->nStartingHeight;
+    }
+
+    if (SyncHeight < pnode->nStartingHeight)
+    {
+        SyncHeight = pnode->nStartingHeight;
+    }
+   
     // ** Update current average if increased ****
-    if (NodeHeight > Firewall::AverageHeight) 
+    if (SyncHeight > Firewall::AverageHeight) 
     {
-        Firewall::AverageHeight = Firewall::AverageHeight + NodeHeight; 
+        Firewall::AverageHeight = Firewall::AverageHeight + SyncHeight; 
         Firewall::AverageHeight = Firewall::AverageHeight / 2;
         Firewall::AverageHeight = Firewall::AverageHeight - Firewall::Average_Tolerance;      // reduce with tolerance
         Firewall::AverageHeight_Min = Firewall::AverageHeight - Firewall::Average_Range;

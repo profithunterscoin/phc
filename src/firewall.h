@@ -108,7 +108,9 @@ class Firewall
         static std::string BlackList[256]; // TODO: Upgrade to vector<string> 
 
         // * Firewall Functions *
+
         static void LoadFirewallSettings();
+        static int LegacySyncHeight(CNode *pnode);
         static bool ForceDisconnectNode(CNode *pnode, std::string FromFunction);
         static bool CheckBlackList(CNode *pnode);
         static bool CheckBanned(CNode *pnode);
