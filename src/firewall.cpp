@@ -50,20 +50,27 @@ bool Firewall::LiveDebug_Bans = true;
 bool Firewall::LiveDebug_Blacklist = true;
 bool Firewall::LiveDebug_Disconnect = true;
 bool Firewall::LiveDebug_BandwidthAbuse = true;
-bool Firewall::LiveDebug_Nofalsepositive = true;
+bool Firewall::LiveDebug_DoubleSpend = true;
 bool Firewall::LiveDebug_InvalidWallet = true;
 bool Firewall::LiveDebug_ForkedWallet = true;
 bool Firewall::LiveDebug_FloodingWallet = true;
+bool Firewall::LiveDebug_DDoSWallet = true;
 
 // *** Firewall Settings (Bandwidth Abuse) ***
 bool Firewall::BandwidthAbuse_Detect = true;
 bool Firewall::BandwidthAbuse_Blacklist = true;
-bool Firewall::BandwidthAbuse_Nofalsepositive;
 bool Firewall::BandwidthAbuse_Ban = true;
 int Firewall::BandwidthAbuse_BanTime = 0; // 24 hours
-int Firewall::BandwidthAbuse_Maxcheck = 10; 
-double Firewall::BandwidthAbuse_MinAttack = 17.1;
-double Firewall::BandwidthAbuse_MaxAttack = 17.2;
+int Firewall::BandwidthAbuse_Maxcheck = 10;
+
+// *** Firewall Settings (Double Spend Attack) ***
+bool Firewall::DoubleSpend_Detect = true;
+bool Firewall::DoubleSpend_Blacklist = true;
+bool Firewall::DoubleSpend_Ban = true;
+int Firewall::DoubleSpend_BanTime = 0; // 24 hours
+int Firewall::DoubleSpend_Maxcheck = 10;
+double Firewall::DoubleSpend_MinAttack = 17.1;
+double Firewall::DoubleSpend_MaxAttack = 17.2;
 
 // *** Firewall Settings (Invalid Peer Wallets) ***
 bool Firewall::InvalidWallet_Detect = true;
@@ -92,8 +99,8 @@ bool Firewall::FloodingWallet_Detect = true;
 bool Firewall::FloodingWallet_Blacklist = true;
 bool Firewall::FloodingWallet_Ban = true;
 int Firewall::FloodingWallet_BanTime = 2600000; // 30 days
-int Firewall::FloodingWallet_MinBytes = 1000000;
-int Firewall::FloodingWallet_MaxBytes = 1000000;
+uint64_t Firewall::FloodingWallet_MinBytes = 1000000;
+uint64_t Firewall::FloodingWallet_MaxBytes = 1000000;
 double Firewall::FloodingWallet_MinTrafficAverage = 2000; // Ratio Up/Down
 double Firewall::FloodingWallet_MaxTrafficAverage = 2000; // Ratio Up/Down
 int Firewall::FloodingWallet_MinCheck = 30; // seconds
@@ -108,19 +115,15 @@ string Firewall::FloodingWallet_Patterns[256] =
 // Flooding Wallet Ignored Patterns
 string Firewall::FloodingWallet_Ignored[256] =
 {
-    "157910121416202225",
-    "23479111315171922232425",
-    "23479111315171922232425",
-    "2347911131517182022232425",
-    "1234791113151718202225",
-    "23479111315171820222425",
-    "23479111315172022232425",
-    "1234791113151718202225",
-    "23479111315171819222425",
-    "1234681113151718202225",
-    "234791113151718202225"
     ""
 };
+
+// * Firewall Settings (DDOS Wallet)
+bool Firewall::DDoSWallet_Detect = true;
+bool Firewall::DDoSWallet_Blacklist = true;
+bool Firewall::DDoSWallet_Ban = true;
+int Firewall::DDoSWallet_BanTime = 0; //24 hours
+int Firewall::DDoSWallet_MinCheck = 30; // seconds
 
 // Firewall Whitelist (ignore pnode->addrName)
 string Firewall::WhiteList[256] =
@@ -153,7 +156,7 @@ void Firewall::LoadFirewallSettings()
     Firewall::LiveDebug_Blacklist = GetBoolArg("-firewalldebugblacklist", Firewall::LiveDebug_Blacklist);
     Firewall::LiveDebug_Disconnect = GetBoolArg("-firewalldebugdisconnect", Firewall::LiveDebug_Disconnect);
     Firewall::LiveDebug_BandwidthAbuse = GetBoolArg("-firewalldebugbandwidthabuse", Firewall::LiveDebug_BandwidthAbuse);
-    Firewall::LiveDebug_Nofalsepositive = GetBoolArg("-firewalldebugnofalsepositivebandwidthabuse", Firewall::LiveDebug_Nofalsepositive);
+    Firewall::LiveDebug_DoubleSpend = GetBoolArg("-firewalldebugdoublespend", Firewall::LiveDebug_DoubleSpend);
     Firewall::LiveDebug_InvalidWallet = GetBoolArg("-firewalldebuginvalidwallet", Firewall::LiveDebug_InvalidWallet);
     Firewall::LiveDebug_ForkedWallet = GetBoolArg("-firewalldebugforkedwallet", Firewall::LiveDebug_ForkedWallet);
     Firewall::LiveDebug_FloodingWallet = GetBoolArg("-firewalldebugfloodingwallet", Firewall::LiveDebug_FloodingWallet);
@@ -162,11 +165,17 @@ void Firewall::LoadFirewallSettings()
     Firewall::BandwidthAbuse_Detect = GetBoolArg("-firewalldetectbandwidthabuse", Firewall::BandwidthAbuse_Detect);
     Firewall::BandwidthAbuse_Blacklist = GetBoolArg("-firewallblacklistbandwidthabuse", Firewall::BandwidthAbuse_Blacklist);
     Firewall::BandwidthAbuse_Ban = GetBoolArg("-firewallbanbandwidthabuse", Firewall::BandwidthAbuse_Ban);
-    Firewall::BandwidthAbuse_Nofalsepositive = GetBoolArg("-firewallnofalsepositivebandwidthabuse", Firewall::BandwidthAbuse_Nofalsepositive);
     Firewall::BandwidthAbuse_BanTime = GetArg("-firewallbantimebandwidthabuse", Firewall::BandwidthAbuse_BanTime);
     Firewall::BandwidthAbuse_Maxcheck = GetArg("-firewallbandwidthabusemaxcheck", Firewall::BandwidthAbuse_Maxcheck);
-    Firewall::BandwidthAbuse_MinAttack = GetArg("-firewallbandwidthabuseminattack", Firewall::BandwidthAbuse_MinAttack);
-    Firewall::BandwidthAbuse_MaxAttack = GetArg("-firewallbandwidthabusemaxattack", Firewall::BandwidthAbuse_MaxAttack);
+
+    // *** Firewall Settings (DoubleSpend Abuse) ***
+    Firewall::DoubleSpend_Detect = GetBoolArg("-firewalldetectdoublespend", Firewall::DoubleSpend_Detect);
+    Firewall::DoubleSpend_Blacklist = GetBoolArg("-firewallblacklistdoublespend", Firewall::DoubleSpend_Blacklist);
+    Firewall::DoubleSpend_Ban = GetBoolArg("-firewallbandoublespend", Firewall::DoubleSpend_Ban);
+    Firewall::DoubleSpend_BanTime = GetArg("-firewallbantimedoublespend", Firewall::DoubleSpend_BanTime);
+    Firewall::DoubleSpend_Maxcheck = GetArg("-firewalldoublespendmaxcheck", Firewall::DoubleSpend_Maxcheck);
+    Firewall::DoubleSpend_MinAttack = GetArg("-firewalldoublespendminattack", Firewall::DoubleSpend_MinAttack);
+    Firewall::DoubleSpend_MaxAttack = GetArg("-firewalldoublespendmaxattack", Firewall::DoubleSpend_MaxAttack);
 
     // *** Firewall Settings (Invalid Peer Wallets) ***
     Firewall::InvalidWallet_Detect = GetBoolArg("-firewalldetectinvalidwallet", Firewall::InvalidWallet_Detect);
@@ -200,6 +209,13 @@ void Firewall::LoadFirewallSettings()
     Firewall::FloodingWallet_MaxTrafficAverage = GetArg("-firewallfloodingwalletmaxtrafficavg", Firewall::FloodingWallet_MaxTrafficAverage);
     Firewall::FloodingWallet_MinCheck = GetArg("-firewallfloodingwalletmincheck", Firewall::FloodingWallet_MinCheck);
     Firewall::FloodingWallet_MaxCheck = GetArg("-firewallfloodingwalletmaxcheck", Firewall::FloodingWallet_MaxCheck);
+
+    // *** Firewall Settings (DDoS Wallets) ***
+    Firewall::DDoSWallet_Detect = GetBoolArg("-firewalldetectddoswallet", Firewall::DDoSWallet_Detect);
+    Firewall::DDoSWallet_Blacklist = GetBoolArg("-firewallblacklistddoswallet", Firewall::DDoSWallet_Blacklist);
+    Firewall::DDoSWallet_Ban = GetBoolArg("-firewallbanddoswallet", Firewall::DDoSWallet_Ban);
+    Firewall::DDoSWallet_BanTime = GetArg("-firewallbantimeddoswallet", Firewall::DDoSWallet_BanTime);
+    Firewall::DDoSWallet_MinCheck = GetArg("-firewallmincheckddoswallet", Firewall::DDoSWallet_MinCheck);
 
     return;
 
@@ -245,7 +261,7 @@ bool Firewall::ForceDisconnectNode(CNode *pnode, string FromFunction)
         {
             if (Firewall::LiveDebug_Disconnect == true)
             {
-                cout << ModuleName << "Panic Disconnect: " << pnode->addrName << "]\n" << endl;
+                cout << ModuleName << " Panic Disconnect: " << pnode->addrName << "]\n" << endl;
             }
         }
 
@@ -323,7 +339,7 @@ bool Firewall::AddToBlackList(CNode *pnode)
             {
                 if (Firewall::LiveDebug_Blacklist == true)
                 {
-                    cout << ModuleName << "Blacklisted: " << pnode->addrName << "]\n" << endl;
+                    cout << ModuleName << " Blacklisted: " << pnode->addrName << "]\n" << endl;
                 }
             }
 
@@ -357,7 +373,7 @@ bool Firewall::AddToBanList(CNode *pnode, BanReason BannedFor, int BanTime)
     {
         if (Firewall::LiveDebug_Bans == true)
         {
-            cout << ModuleName << "Banned: " << pnode->addrName << "]\n" << endl;
+            cout << ModuleName << " Banned: " << pnode->addrName << "]\n" << endl;
         }
     }
 
@@ -365,75 +381,34 @@ bool Firewall::AddToBanList(CNode *pnode, BanReason BannedFor, int BanTime)
 
 }
 
-
-// * Function: CheckAttack *
-// Artificially Intelligent Attack Detection & Mitigation
-bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
+string Firewall::BandwidthAbuseCheck(std::string AddrName, int SyncHeight, double TrafficAverage, int TimeConnected)
 {
-    string WARNINGS = "";
-
-    bool DETECTED_ATTACK = false;
-    
-    bool BLACKLIST_ATTACK = false;
-
-    int BAN_TIME = 0; // Default 24 hours
-    bool BAN_ATTACK = false;
-
-    BanReason BAN_REASON{};
-
-    string ATTACK_TYPE = "";
-    string ATTACK_CHECK_NAME;
-    string ATTACK_CHECK_LOG;
-
-    int nTimeConnected = GetTime() - pnode->nTimeConnected;
-
-    int SyncHeight;
-
-    SyncHeight = pnode->dCheckpointRecv.height; // Use Dynamic Checkpoints by default
-
-    if (SyncHeight == 0)
-    {
-        SyncHeight = LegacySyncHeight(pnode); // ppcoin: known sent sync-checkpoint
-    }
-
-    if (SyncHeight == 0)
-    {
-        SyncHeight = pnode->nStartingHeight;
-    }
-
-    if (SyncHeight < pnode->nStartingHeight)
-    {
-        SyncHeight = pnode->nStartingHeight;
-    }
-   
+    std::string AttackCheckName = "Bandwidth Abuse";
+    std::string Attack_Type;
 
     // ---Filter 1 -------------
     if (Firewall::BandwidthAbuse_Detect == true)
     {
-        ATTACK_CHECK_NAME = "Bandwidth Abuse";
-
         // ### Attack Detection ###
         // Calculate the ratio between Recieved bytes and Sent Bytes
         // Detect a valid syncronizaion vs. a flood attack
         
-        if (nTimeConnected > Firewall::BandwidthAbuse_Maxcheck)
+        if ((int)TimeConnected > Firewall::BandwidthAbuse_Maxcheck)
         {
             // * Attack detection #2
             // Node is further ahead on the chain than average minimum
             if (SyncHeight > Firewall::AverageHeight_Min)
             {
-                if (pnode->nTrafficAverage < Firewall::AverageTraffic_Min)
+                if (TrafficAverage < Firewall::AverageTraffic_Min)
                 {
                     // too low bandiwidth ratio limits
-                    DETECTED_ATTACK = true;
-                    ATTACK_TYPE = "2-LowBW-HighHeight";
+                    Attack_Type = "2-LowBW-HighHeight";
                 }
 
-                if (pnode->nTrafficAverage > Firewall::AverageTraffic_Max)
+                if (TrafficAverage > Firewall::AverageTraffic_Max)
                 {
                     // too high bandiwidth ratio limits
-                    DETECTED_ATTACK = true;
-                    ATTACK_TYPE = "2-HighBW-HighHeight";
+                    Attack_Type = "2-HighBW-HighHeight";
                 }
             }
 
@@ -441,184 +416,189 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
             // Node is behind on the chain than average minimum
             if (SyncHeight < Firewall::AverageHeight_Min)
             {  
-                if (pnode->nTrafficAverage < Firewall::AverageTraffic_Min)
+                if (TrafficAverage < Firewall::AverageTraffic_Min)
                 {
                     // too low bandiwidth ratio limits
-                    DETECTED_ATTACK = true;
-                    ATTACK_TYPE = "3-LowBW-LowHeight";
+                    Attack_Type = "3-LowBW-LowHeight";
                 }
 
-                if (pnode->nTrafficAverage > Firewall::AverageTraffic_Max)
+                if (TrafficAverage > Firewall::AverageTraffic_Max)
                 {
-
                     // too high bandiwidth ratio limits
-                    DETECTED_ATTACK = true;
-                    ATTACK_TYPE = "3-HighBW-LowHeight";
+                    Attack_Type = "3-HighBW-LowHeight";
                 }
             }
         }
 
-        if (Firewall::LiveDebug_BandwidthAbuse == true)
+        //--------------------------
+        if (Firewall::LiveDebug_Enabled == true)
         {
-            ATTACK_CHECK_LOG = ATTACK_CHECK_LOG  + " {" +  ATTACK_CHECK_NAME + ":" + BoolToString(DETECTED_ATTACK) + "}";
+            if (Firewall::LiveDebug_BandwidthAbuse == true)
+            {
+                cout << ModuleName <<
+                    " [Checking: " << AddrName << "] "
+                    "[" << AttackCheckName << "] "
+                    "[Detected: " << Attack_Type << "] " <<
+                    "[Sync Height: " << SyncHeight << "] " <<
+                    "[Traffic Average: " << TrafficAverage << "] " <<
+                    "[Time Connected: " << TimeConnected << "] " <<
+                    "\n" << endl;
+            }
         }
+        //--------------------------
 
+        if (Attack_Type != "")
+        {
+            return "{" + AttackCheckName + ":" + Attack_Type + "}"; //attack detected
+        }
     }
     // ----------------
 
-    if (Firewall::BandwidthAbuse_Nofalsepositive == true)
+    return ""; // no attack detected
+}
+
+
+string Firewall::DoubleSpendCheck(std::string AddrName, int SyncHeight, uint64_t SendBytes, uint64_t RecvBytes, double TrafficAverage, int TimeConnected)
+{
+    std::string AttackCheckName = "Double Spend Wallet";
+    std::string Attack_Type;
+
+    if (Firewall::DoubleSpend_Detect == true)
     {
-        ATTACK_CHECK_NAME = "No False Positive - Bandwidth Abuse";
-        BAN_TIME = Firewall::BandwidthAbuse_BanTime;
-        BAN_REASON = BanReasonBandwidthAbuse;
-
-        // ### AVOID FALSE POSITIVE FROM BANDWIDTH ABUSE ###
-        if (DETECTED_ATTACK == true)
+        // ### Attack Detection ###
+        // Calculate the ratio between Recieved bytes and Sent Bytes
+        // Detect a valid syncronizaion vs. a flood attack
+        
+        if ((int)TimeConnected > Firewall::DoubleSpend_Maxcheck)
         {
-
-            if (ATTACK_TYPE == "2-LowBW-HighHeight")
-            {
-                ATTACK_TYPE = "";
-                DETECTED_ATTACK = false;
-            }   
-
-            if (ATTACK_TYPE == "2-HighBW-HighHeight")
-            {
-                // Node/peer is in wallet sync (catching up to full blockheight)
-                ATTACK_TYPE = "";
-                DETECTED_ATTACK = false;
-            }
-
-            if (ATTACK_TYPE == "3-LowBW-LowHeight")
-            {
-                ATTACK_TYPE = "";
-                DETECTED_ATTACK = false;
-            }   
-
-            if (ATTACK_TYPE == "3-HighBW-LowHeight")
-            {
-                BAN_TIME = Firewall::BandwidthAbuse_BanTime;
-                BAN_REASON = BanReasonDoubleSpendWallet;
-                ATTACK_TYPE = "Suspected: Double-Spend Attempt";
-                
-                double tnTraffic = pnode->nSendBytes / pnode->nRecvBytes;
-                if (pnode->nTrafficAverage < Firewall::AverageTraffic_Max)
+            // Node is behind on the chain than average minimum
+            if (SyncHeight < Firewall::AverageHeight_Min)
+            {  
+                if (TrafficAverage > Firewall::AverageTraffic_Max)
                 {
-                    if (tnTraffic < Firewall::BandwidthAbuse_MinAttack || tnTraffic > Firewall::BandwidthAbuse_MaxAttack)
+                    // too high bandiwidth ratio limits
+                    Attack_Type = "Pattern Detected";
+                
+                    double tnTraffic = SendBytes / RecvBytes;
+
+                    if (TrafficAverage < Firewall::AverageTraffic_Max)
+                    {
+                        if (tnTraffic < Firewall::DoubleSpend_MinAttack || tnTraffic > Firewall::DoubleSpend_MaxAttack)
+                        {
+                            // wallet full sync
+                            Attack_Type = ""; // No Attack Detected
+                        }
+                    }
+
+                    if (SendBytes > RecvBytes)
                     {
                         // wallet full sync
-                        ATTACK_TYPE = "";
-                        DETECTED_ATTACK = false;
+                        Attack_Type = "";  // No Attack Detected
                     }
                 }
-
-                if (pnode->nSendBytes > pnode->nRecvBytes)
-                {
-                    // wallet full sync
-                    ATTACK_TYPE = "";
-                    DETECTED_ATTACK = false;
-                }
-            }   
+            }
         }
-        
-        if (Firewall::LiveDebug_Nofalsepositive == true)
+
+        //--------------------------
+        if (Firewall::LiveDebug_Enabled == true)
         {
-            ATTACK_CHECK_LOG = ATTACK_CHECK_LOG  + " {" +  ATTACK_CHECK_NAME + ":" + BoolToString(DETECTED_ATTACK) + "}";
+            if (Firewall::LiveDebug_DoubleSpend == true)
+            {
+                cout << ModuleName <<
+                    " [Checking: " << AddrName << "] "
+                    "[" << AttackCheckName << "] "
+                    "[Detected: " << Attack_Type << "] " <<
+                    "[Sync Height: " << SyncHeight << "] " <<
+                    "[Send Bytes: " << SendBytes << "] " <<
+                    "[Recv Bytes: " << RecvBytes << "] " <<
+                    "[Traffic Average: " << TrafficAverage << "] " <<
+                    "[Time Connected: " << TimeConnected << "] " <<
+                    "\n" << endl;
+            }
         }
+        //--------------------------
 
-        // ##########################
+        if (Attack_Type != "")
+        {
+            return "{" + AttackCheckName + ":" + Attack_Type + "}"; //attack detected
+        }
     }
-
-    // ### Attack Mitigation ###
-    if (DETECTED_ATTACK == true)
-    {
-        if (Firewall::BandwidthAbuse_Blacklist == true)
-        {
-            BLACKLIST_ATTACK = true;
-        }
-
-        if (Firewall::BandwidthAbuse_Ban == true)
-        {
-            BAN_ATTACK = true;
-        }
-
-    }
-    // ##########################
     // ----------------
 
-    // ---Filter 2-------------
+    return ""; // no attack detected
+
+}
+
+
+string Firewall::InvalidWalletCheck(std::string AddrName, int StartingHeight, int RecvVersion, int TimeConnected)
+{
+    std::string AttackCheckName = "Invalid Wallet";
+    std::string Attack_Type;
+
     if (Firewall::InvalidWallet_Detect == true)
     {
-        ATTACK_CHECK_NAME = "Invalid Wallet";
-
         // ### Attack Detection ###
         // Start Height = -1
         // Check for more than Firewall::InvalidWallet_MaxCheck minutes connection length
-        if (nTimeConnected > Firewall::InvalidWallet_MaxCheck)
+        if ((int)TimeConnected > Firewall::InvalidWallet_MaxCheck)
         {
             // Check for -1 blockheight
-            if (pnode->nStartingHeight == -1)
+            if (StartingHeight == -1)
             {
-                // Trigger Blacklisting
-                DETECTED_ATTACK = true;
-                ATTACK_TYPE = "1-StartHeight-Invalid";
+                // Detetected
+                Attack_Type = "1-StartHeight-Invalid";
             }
         }
 
         // Check for -1 blockheight
-        if (nTimeConnected > Firewall::InvalidWallet_MaxCheck)
+        if ((int)TimeConnected > Firewall::InvalidWallet_MaxCheck)
         {
             // Check for -1 blockheight
-            if (pnode->nStartingHeight < 0)
+            if (StartingHeight < 0)
             {
-                // Trigger Blacklisting
-                DETECTED_ATTACK = true;
-                ATTACK_TYPE = "1-StartHeight-Invalid";
+                // Detected
+                Attack_Type = "1-StartHeight-Invalid";
             }
         }
         
         // (Protocol: 0
         // Check for more than Firewall::InvalidWallet_MaxCheck minutes connection length
-        if (nTimeConnected > Firewall::InvalidWallet_MaxCheck)
+        if ((int)TimeConnected > Firewall::InvalidWallet_MaxCheck)
         {
             // Check for 0 protocol
-            if (pnode->nRecvVersion == 0)
+            if (RecvVersion == 0)
             {
-                // Trigger Blacklisting
-                DETECTED_ATTACK = true;
-                ATTACK_TYPE = "1-Protocol-Invalid";
+                //Detected
+                Attack_Type = "1-Protocol-Invalid";
             }
         }
 
         // (Protocol: lower than 1
         // Check for more than Firewall::InvalidWallet_MaxCheck minutes connection length
-        if (nTimeConnected > Firewall::InvalidWallet_MaxCheck)
+        if ((int)TimeConnected > Firewall::InvalidWallet_MaxCheck)
         {
             // Check for 
-            if (pnode->nRecvVersion < 1)
+            if (RecvVersion < 1)
             {
-                // Trigger Blacklisting
-                DETECTED_ATTACK = true;
-                ATTACK_TYPE = "1-Protocol-Invalid";
+                // Detected
+                Attack_Type = "1-Protocol-Invalid";
             }
         }
 
         // (Protocol: lower than mimimum protocol
         // Check for more than Firewall::InvalidWallet_MaxCheck minutes connection length
-        if (nTimeConnected > Firewall::InvalidWallet_MaxCheck)
+        if ((int)TimeConnected > Firewall::InvalidWallet_MaxCheck)
         {
             // Check for 
-            if (pnode->nRecvVersion < InvalidWallet_MinimumProtocol && pnode->nRecvVersion > 209)
+            if (RecvVersion < InvalidWallet_MinimumProtocol && RecvVersion > 209)
             {
-                // Trigger Blacklisting
-                DETECTED_ATTACK = true;
-                ATTACK_TYPE = "1-Protocol-Invalid";
+                // Detected
+                Attack_Type = "1-Protocol-Invalid";
             }
         }
 
-
         //// Resetting sync Height
-        //if (nTimeConnected > 60)
+        //if (TimeConnected > 60)
         //{
             //if (pnode->nSyncHeight > pnode->nSyncHeightCache)
             //{
@@ -628,44 +608,47 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
             //if (pnode->nSyncHeight < pnode->nSyncHeightCache - Firewall::AVERAGE_RANGE)
             //{
                 // Trigger Blacklisting
-                //DETECTED = true;
                 //ATTACK_TYPE = "1-SyncReset";
             //}
 
         //}
         // ##########################
 
-        if (Firewall::LiveDebug_InvalidWallet == true)
+        //--------------------------
+        if (Firewall::LiveDebug_Enabled == true)
         {
-            ATTACK_CHECK_LOG = ATTACK_CHECK_LOG  + " {" +  ATTACK_CHECK_NAME + ":" + BoolToString(DETECTED_ATTACK) + "}";
-        }
-
-        // ### Attack Mitigation ###
-        if (DETECTED_ATTACK == true)
-        {
-            if (Firewall::InvalidWallet_Blacklist == true)
+            if (Firewall::LiveDebug_InvalidWallet == true)
             {
-                BLACKLIST_ATTACK = true;
-            }
-
-            if (Firewall::InvalidWallet_Ban == true)
-            {
-                BAN_ATTACK = true;
-                BAN_TIME = Firewall::InvalidWallet_BanTime;
-                BAN_REASON = BanReasonInvalidWallet;
+                cout << ModuleName <<
+                    " [Checking: " << AddrName << "] "
+                    "[" << AttackCheckName << "] "
+                    "[Detected: " << Attack_Type << "] " <<
+                    "[Start Height: " << StartingHeight << "] " <<
+                    "[Recv Version: " << RecvVersion << "] " <<
+                    "[Time Connected: " << TimeConnected << "] " <<
+                    "\n" << endl;
             }
         }
-        // ##########################
+        //--------------------------
+
+        if (Attack_Type != "")
+        {
+            return "{" + AttackCheckName + ":" + Attack_Type + "}"; //attack detected
+        }
     }
-    //--------------------------
+    // ----------------
 
+    return ""; // no attack detected
 
-    // ---Filter 3-------------
+}
+
+string Firewall::ForkedWalletCheck(std::string AddrName, int SyncHeight, int TimeConnected)
+{
+    std::string AttackCheckName = "Forked Wallet";
+    std::string Attack_Type;
+
     if (Firewall::ForkedWallet_Detect == true)
     {
-
-        ATTACK_CHECK_NAME = "Forked Wallet";
-
         // ### Attack Detection ###
 
         int i;
@@ -679,183 +662,179 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
                 // Check for Forked Wallet (stuck on blocks)
                 if (SyncHeight == (int)Firewall::ForkedWallet_NodeHeight[i])
                 {
-                    DETECTED_ATTACK = true;
-                    ATTACK_TYPE = ATTACK_CHECK_NAME;
+                    Attack_Type = (int)Firewall::ForkedWallet_NodeHeight[i];
                 }
             }          
         }
         // #######################
 
-        // ### LIVE DEBUG OUTPUT ####
-        if (Firewall::LiveDebug_ForkedWallet == true)
+        //--------------------------
+        if (Firewall::LiveDebug_Enabled == true)
         {
-            ATTACK_CHECK_LOG = ATTACK_CHECK_LOG  + " {" +  ATTACK_CHECK_NAME + ":" + BoolToString(DETECTED_ATTACK) + "}";
-        }
-        // #######################
-
-        // ### Attack Mitigation ###
-        if (DETECTED_ATTACK == true)
-        {
-            if (Firewall::ForkedWallet_Blacklist == true)
+            if (Firewall::LiveDebug_InvalidWallet == true)
             {
-                BLACKLIST_ATTACK = true;
-            }
-
-            if (Firewall::ForkedWallet_Ban == true)
-            {
-                BAN_ATTACK = true;
-
-                BAN_TIME = Firewall::ForkedWallet_BanTime;
-                BAN_REASON = BanReasonForkedWallet;
+                cout << ModuleName <<
+                    " [Checking: " << AddrName << "] "
+                    "[" << AttackCheckName << "] "
+                    "[Detected: " << Attack_Type << "] " <<
+                    "[Sync Height: " << SyncHeight << "] " <<
+                    "[Time Connected: " << TimeConnected << "] " <<
+                    "\n" << endl;
             }
         }
-        // #######################
+        //--------------------------
 
+        if (Attack_Type != "")
+        {
+            return "{" + AttackCheckName + ":" + Attack_Type + "}"; //attack detected
+        }
     }
-    //--------------------------
+    // ----------------
 
+    return ""; // no attack detected
+}
 
-    // ---Filter 4-------------
+string Firewall::FloodingWalletCheck(std::string AddrName, int SyncHeight, int StartingHeight, bool DetectedAttack, uint64_t SendBytes, uint64_t RecvBytes, double TrafficAverage, int TimeConnected)
+{
+    std::string AttackCheckName = "Flooding Wallet";
+    std::string Attack_Type;
+    std::string Warnings;
+
     if (Firewall::FloodingWallet_Detect == true)
     {
-        ATTACK_CHECK_NAME = "Flooding Wallet";
-
-        std::size_t FLOODING_MAXBYTES = Firewall::FloodingWallet_MaxBytes;
-        std::size_t FLOODING_MINBYTES = Firewall::FloodingWallet_MinBytes;
-
         // WARNING #1 - Too high of bandwidth with low BlockHeight
         if (SyncHeight < Firewall::AverageHeight_Min)
         {  
-            if (pnode->nTrafficAverage > Firewall::AverageTraffic_Max)
+            if (TrafficAverage > Firewall::AverageTraffic_Max)
             {
-                WARNINGS = WARNINGS + "1";
+                Warnings = Warnings + "1";
             }
         }
         
         // WARNING #2 - Send Bytes below minimum
-        if (pnode->nSendBytes < FLOODING_MINBYTES)
+        if (SendBytes < Firewall::FloodingWallet_MinBytes)
         {
-            WARNINGS = WARNINGS + "2";
+            Warnings = Warnings + "2";
         }
 
         // WARNING #3 - Send Bytes above minimum
-        if (pnode->nSendBytes < FLOODING_MINBYTES)
+        if (SendBytes < Firewall::FloodingWallet_MinBytes)
         {
-            WARNINGS = WARNINGS + "3";
+            Warnings = Warnings + "3";
         }
 
         // WARNING #4 - Send Bytes below maximum
-        if (pnode->nSendBytes < FLOODING_MAXBYTES)
+        if (SendBytes < Firewall::FloodingWallet_MaxBytes)
         {
-            WARNINGS = WARNINGS + "4";
+            Warnings = Warnings + "4";
         }
 
         // WARNING #5 - Send Bytes above maximum
-        if (pnode->nSendBytes > FLOODING_MAXBYTES)
+        if (SendBytes > Firewall::FloodingWallet_MaxBytes)
         {
-            WARNINGS = WARNINGS + "5";
+            Warnings = Warnings + "5";
         }
 
         // WARNING #6 - Recv Bytes above min 
-        if (pnode->nRecvBytes > FLOODING_MINBYTES / 2)
+        if (RecvBytes > Firewall::FloodingWallet_MinBytes / 2)
         {
-            WARNINGS = WARNINGS + "6";
+            Warnings = Warnings + "6";
         }
 
         // WARNING #7 - Recv Bytes below min
-        if (pnode->nRecvBytes < FLOODING_MINBYTES / 2)
+        if (RecvBytes < Firewall::FloodingWallet_MinBytes / 2)
         {
-            WARNINGS = WARNINGS + "7";
+            Warnings = Warnings + "7";
         }
 
         // WARNING #8 - Recv Bytes above max 
-        if (pnode->nRecvBytes > FLOODING_MAXBYTES / 2)
+        if (RecvBytes > Firewall::FloodingWallet_MaxBytes / 2)
         {
-            WARNINGS = WARNINGS + "8";
+            Warnings = Warnings + "8";
         }
 
         // WARNING #9 - Recv Bytes below max
-        if (pnode->nRecvBytes < FLOODING_MAXBYTES / 2)
+        if (RecvBytes < Firewall::FloodingWallet_MaxBytes / 2)
         {
-            WARNINGS = WARNINGS + "9";
+            Warnings = Warnings + "9";
         }
 
         // WARNING #10 - Recv Bytes above min 
-        if (pnode->nSendBytes > FLOODING_MINBYTES / 2)
+        if (SendBytes > Firewall::FloodingWallet_MinBytes / 2)
         {
-            WARNINGS = WARNINGS + "10";
+            Warnings = Warnings + "10";
         }
 
         // WARNING #11 - Recv Bytes below min
-        if (pnode->nSendBytes < FLOODING_MINBYTES / 2)
+        if (SendBytes < Firewall::FloodingWallet_MinBytes / 2)
         {
-            WARNINGS = WARNINGS + "11";
+            Warnings = Warnings + "11";
         }
 
         // WARNING #12 - Recv Bytes above max 
-        if (pnode->nSendBytes > FLOODING_MINBYTES / 2)
+        if (SendBytes > Firewall::FloodingWallet_MinBytes / 2)
         {
-            WARNINGS = WARNINGS + "12";
+            Warnings = Warnings + "12";
         }
 
         // WARNING #13 - Recv Bytes below max
-        if (pnode->nSendBytes < FLOODING_MINBYTES / 2)
+        if (SendBytes < Firewall::FloodingWallet_MinBytes / 2)
         {
-            WARNINGS = WARNINGS + "13";
+            Warnings = Warnings + "13";
         }
 
         // WARNING #14 - 
-        if (pnode->nTrafficAverage > Firewall::FloodingWallet_MinTrafficAverage)
+        if (TrafficAverage > Firewall::FloodingWallet_MinTrafficAverage)
         {
-            WARNINGS = WARNINGS + "14";
+            Warnings = Warnings + "14";
         }
 
         // WARNING #15 - 
-        if (pnode->nTrafficAverage < Firewall::FloodingWallet_MinTrafficAverage)
+        if (TrafficAverage < Firewall::FloodingWallet_MinTrafficAverage)
         {
-            WARNINGS = WARNINGS + "15";
+            Warnings = Warnings + "15";
         }
 
         // WARNING #16 - 
-        if (pnode->nTrafficAverage > Firewall::FloodingWallet_MaxTrafficAverage)
+        if (TrafficAverage > Firewall::FloodingWallet_MaxTrafficAverage)
         {
-            WARNINGS = WARNINGS + "16";
+            Warnings = Warnings + "16";
         }
 
         // WARNING #17 - 
-        if (pnode->nTrafficAverage < Firewall::FloodingWallet_MaxTrafficAverage)
+        if (TrafficAverage < Firewall::FloodingWallet_MaxTrafficAverage)
         {
-            WARNINGS = WARNINGS + "17";
+            Warnings = Warnings + "17";
         }
 
         // WARNING #18 - Starting Height = SyncHeight above max
-        if (pnode->nStartingHeight == SyncHeight)
+        if (StartingHeight == SyncHeight)
         {
-            WARNINGS = WARNINGS + "18";
+            Warnings = Warnings + "18";
         }
 
         // WARNING #19 - Connected Time above min
-        if (nTimeConnected > Firewall::FloodingWallet_MinCheck * 60)
+        if ((int)TimeConnected > Firewall::FloodingWallet_MinCheck * 60)
         {
-            WARNINGS = WARNINGS + "19";
+            Warnings = Warnings + "19";
         }
 
         // WARNING #20 - Connected Time below min
-        if (nTimeConnected < Firewall::FloodingWallet_MinCheck * 60)
+        if ((int)TimeConnected < Firewall::FloodingWallet_MinCheck * 60)
         {
-            WARNINGS = WARNINGS + "20";
+            Warnings = Warnings + "20";
         }
 
         // WARNING #21 - Connected Time above max
-        if (nTimeConnected > Firewall::FloodingWallet_MaxCheck * 60)
+        if ((int)TimeConnected > Firewall::FloodingWallet_MaxCheck * 60)
         {
-            WARNINGS = WARNINGS + "21";
+            Warnings = Warnings + "21";
         }
 
         // WARNING #22 - Connected Time below max
-        if (nTimeConnected < Firewall::FloodingWallet_MaxCheck * 60)
+        if ((int)TimeConnected < Firewall::FloodingWallet_MaxCheck * 60)
         {
-            WARNINGS = WARNINGS + "22";
+            Warnings = Warnings + "22";
         }
 
         // WARNING #23 - Current BlockHeight
@@ -863,7 +842,7 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
         {  
             if (SyncHeight < Firewall::AverageHeight_Max)
             {  
-                WARNINGS = WARNINGS + "23";
+                Warnings = Warnings + "23";
             }
         }
 
@@ -872,18 +851,18 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
         {
             if (SyncHeight > Firewall::AverageHeight_Min)
             {
-                WARNINGS = WARNINGS + "24";
+                Warnings = Warnings + "24";
             }
         }
 
         // WARNING #25 - 
-        if (DETECTED_ATTACK == true)
+        if (DetectedAttack == true)
         {
-            WARNINGS = WARNINGS + "25";
+            Warnings = Warnings + "25";
         }      
     
         // Auto-Trigger Flooding Patterns
-        // IF WARNINGS is matched to pattern DETECTED_ATTACK = TRUE
+        // IF Warnings is matched to pattern DetectedAttack = TRUE
         int i;
         int TmpFloodingWallet_PatternsCount;
 
@@ -895,17 +874,16 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
             {  
                 if (Firewall::FloodingWallet_Patterns[i] != "")
                 {
-                    if (WARNINGS == Firewall::FloodingWallet_Patterns[i])
+                    if (Warnings == Firewall::FloodingWallet_Patterns[i])
                     {
-                        DETECTED_ATTACK = true;
-                        ATTACK_TYPE = ATTACK_CHECK_NAME;
+                        Attack_Type = Warnings;
                     }
                 }
             }
         }
 
         // Ignore Flooding Patterns
-        // IF WARNINGS is matched to pattern DETECTED_ATTACK = FALSE
+        // IF Warnings is matched to pattern DETECTED_ATTACK = FALSE
         int TmpFloodingWallet_IgnoredCount;
 
         TmpFloodingWallet_IgnoredCount = CountStringArray(Firewall::FloodingWallet_Ignored);
@@ -916,64 +894,100 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
             {  
                 if (Firewall::FloodingWallet_Ignored[i] != "")
                 {
-                    if (WARNINGS == Firewall::FloodingWallet_Ignored[i])
+                    if (Warnings == Firewall::FloodingWallet_Ignored[i])
                     {
-                        DETECTED_ATTACK = false;
-                        ATTACK_TYPE = "";
+                        Attack_Type = "";
                     }
                 }
             }
         }
 
-        if (DETECTED_ATTACK == true)
+        //--------------------------
+        if (Firewall::LiveDebug_Enabled == true)
         {
-            BAN_TIME = Firewall::FloodingWallet_BanTime;
-            BAN_REASON = BanReasonFloodingWallet;
-        }
-
-        // Simple DDoS using invalid P2P packets/commands
-        if (nTimeConnected > Firewall::FloodingWallet_MinCheck * 60)
-        {
-            if (pnode->nInvalidRecvPackets > 0)
+            if (Firewall::LiveDebug_InvalidWallet == true)
             {
-                if (pnode->nRecvBytes > 0)
+                cout << ModuleName <<
+                    " [Checking: " << AddrName << "] "
+                    "[" << AttackCheckName << "] "
+                    "[Detected: " << Attack_Type << "] " <<
+                    "[Sync Height: " << SyncHeight << "] " <<
+                    "[Start Height: " << StartingHeight << "] " <<
+                    "[Prev Detected: " << DetectedAttack << "] " <<
+                    "[Send Bytes: " << SendBytes << "] " <<
+                    "[Recv Bytes: " << RecvBytes << "] " <<
+                    "[Traffic Average: " << TrafficAverage << "] " <<
+                    "[Time Connected: " << TimeConnected << "] " <<
+                    "[Warnings: " << Warnings << "] " <<
+                    "\n" << endl;
+            }
+        }
+        //--------------------------
+
+        if (Attack_Type != "")
+        {
+            return "{" + AttackCheckName + ":" + Attack_Type + "}"; //attack detected
+        }
+    }
+    // ----------------
+
+    return ""; // no attack detected
+}
+
+string Firewall::DDoSCheck(std::string AddrName, int InvalidRecvPackets, uint64_t RecvBytes, int TimeConnected)
+{
+    std::string AttackCheckName = "DDoS Wallet";
+    std::string Attack_Type;
+
+    if (Firewall::DDoSWallet_Detect == true)
+    {
+        // Simple DDoS using invalid P2P packets/commands
+        if ((int)TimeConnected > Firewall::DDoSWallet_MinCheck * 60)
+        {
+            if (InvalidRecvPackets > 0)
+            {
+                if (RecvBytes > 0)
                 {
-                    double InvalidPacketRatio = (pnode->nInvalidRecvPackets / (pnode->nRecvBytes / 1000));
+                    double InvalidPacketRatio = (InvalidRecvPackets / (RecvBytes / 1000));
 
                     if (InvalidPacketRatio > 1)
                     {
-                        DETECTED_ATTACK = true;
-                        ATTACK_TYPE = ATTACK_CHECK_NAME;
-                        BAN_TIME = Firewall::FloodingWallet_BanTime;
-                        BAN_REASON = BanReasonDDoSWallet;
+                        Attack_Type = "Invalid Packets";
                     }
                 }
             }
         }
 
-        // ### LIVE DEBUG OUTPUT ####
-        if (Firewall::LiveDebug_FloodingWallet == true)
+        //--------------------------
+        if (Firewall::LiveDebug_Enabled == true)
         {
-            ATTACK_CHECK_LOG = ATTACK_CHECK_LOG  + " {" +  ATTACK_CHECK_NAME + ":" + WARNINGS + ":" + BoolToString(DETECTED_ATTACK) + "}";
+            if (Firewall::LiveDebug_DDoSWallet == true)
+            {
+                cout << ModuleName <<
+                    " [Checking: " << AddrName << "] "
+                    "[" << AttackCheckName << "] "
+                    "[Detected: " << Attack_Type << "] " <<
+                    "[Invalid Packets: " << InvalidRecvPackets << "] " <<
+                    "[Recv Bytes: " << RecvBytes << "] " <<
+                    "[Time Connected: " << TimeConnected << "] " <<
+                    "\n" << endl;
+            }
         }
-        // #######################
+        //--------------------------
 
-        if (DETECTED_ATTACK == true)
+        if (Attack_Type != "")
         {
-            if (Firewall::FloodingWallet_Blacklist == true)
-            {
-                BLACKLIST_ATTACK = true;
-            }
-
-            if (Firewall::FloodingWallet_Ban == true)
-            {
-                BAN_ATTACK = true;
-            }
-
+            return "{" + AttackCheckName + ":" + Attack_Type + "}"; //attack detected
         }
     }
-    //--------------------------
+    // ----------------
 
+    return ""; // no attack detected
+}
+
+/*
+string Firewall::HighBanScoreCheck()
+{
 
     // ---Filter (not used)-------------
     //if (DETECT_HIGH_BANSCORE == true)
@@ -999,92 +1013,264 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
         //}
     //}
     //--------------------------
+}
+*/
 
+// * Function: CheckAttack *
+// Artificially Intelligent Attack Detection & Mitigation
+bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
+{
+    bool DETECTED_ATTACK = false;
+    bool BLACKLIST_ATTACK = false;
+    int BAN_TIME = 0; // Default 24 hours
+    bool BAN_ATTACK = false;
 
-    //--------------------------
-    if (Firewall::LiveDebug_Enabled == true)
+    BanReason BAN_REASON{};
+
+    string ATTACK_CHECK_LOG;
+    string LIVE_DEBUG_LOG;
+
+    int TimeConnected = GetTime() - pnode->nTimeConnected;
+
+    int SyncHeight;
+
+    SyncHeight = pnode->dCheckpointRecv.height; // Use Dynamic Checkpoints by default
+
+    if (SyncHeight == 0)
     {
-        cout << ModuleName << " [Checking: " << pnode->addrName << "] [Attacks:" << ATTACK_CHECK_LOG << "]\n" << endl;
+        SyncHeight = LegacySyncHeight(pnode); // ppcoin: known sent sync-checkpoint
     }
-    //--------------------------
+
+    if (SyncHeight == 0)
+    {
+        SyncHeight = pnode->nStartingHeight;
+    }
+
+    if (SyncHeight < pnode->nStartingHeight)
+    {
+        SyncHeight = pnode->nStartingHeight;
+    }
+   
+    std::string Attack_Output;
+
+    // ### Bandwidth Abuse Check & Attack Mitigation ###
+    //
+    Attack_Output = BandwidthAbuseCheck(pnode->addrName, SyncHeight, pnode->nTrafficAverage, TimeConnected);
+
+    if (Attack_Output != "")
+    {
+        if (Firewall::BandwidthAbuse_Blacklist == true)
+        {
+            BLACKLIST_ATTACK = true;
+        }
+
+        if (Firewall::BandwidthAbuse_Ban == true)
+        {
+            BAN_ATTACK = true;
+            BAN_TIME = Firewall::BandwidthAbuse_BanTime;
+            BAN_REASON = BanReasonBandwidthAbuse;
+        }
+
+        DETECTED_ATTACK = true;
+        ATTACK_CHECK_LOG = ATTACK_CHECK_LOG + Attack_Output;
+    }
+    // ##########################
+
+    // ### Double Spend Check & Attack Mitigation ###
+    //
+    Attack_Output = DoubleSpendCheck(pnode->addrName, SyncHeight, pnode->nSendBytes, pnode->nRecvBytes, pnode->nTrafficAverage, TimeConnected);
+    
+    if (Attack_Output != "")
+    {
+        if (Firewall::DoubleSpend_Blacklist == true)
+        {
+            BLACKLIST_ATTACK = true;
+        }
+
+        if (Firewall::DoubleSpend_Ban == true)
+        {
+            BAN_ATTACK = true;
+            BAN_TIME = Firewall::BandwidthAbuse_BanTime;
+            BAN_REASON = BanReasonDoubleSpendWallet;
+        }
+
+        DETECTED_ATTACK = true;
+        ATTACK_CHECK_LOG = ATTACK_CHECK_LOG + Attack_Output;
+    }
+    // ##########################
+
+    // ### Invalid Wallet Check & Attack Mitigation ###
+    //
+    Attack_Output = InvalidWalletCheck(pnode->addrName, pnode->nStartingHeight, pnode->nRecvVersion, TimeConnected);
+    
+    if (Attack_Output != "")
+    {
+        if (Firewall::InvalidWallet_Blacklist == true)
+        {
+            BLACKLIST_ATTACK = true;
+        }
+
+        if (Firewall::InvalidWallet_Ban == true)
+        {
+            BAN_ATTACK = true;
+            BAN_TIME = Firewall::InvalidWallet_BanTime;
+            BAN_REASON = BanReasonInvalidWallet;
+        }
+
+        DETECTED_ATTACK = true;
+        ATTACK_CHECK_LOG = ATTACK_CHECK_LOG + Attack_Output;
+    }
+    // ##########################
+
+
+    // ### Forked Wallet Check & Attack Mitigation ###
+    //
+    Attack_Output = ForkedWalletCheck(pnode->addrName, SyncHeight, TimeConnected);
+    
+    if (Attack_Output != "")
+    {
+        if (Firewall::DoubleSpend_Blacklist == true)
+        {
+            BLACKLIST_ATTACK = true;
+        }
+
+        if (Firewall::DoubleSpend_Ban == true)
+        {
+            BAN_ATTACK = true;
+            BAN_TIME = Firewall::ForkedWallet_BanTime;
+            BAN_REASON = BanReasonForkedWallet;
+        }
+
+        DETECTED_ATTACK = true;
+        ATTACK_CHECK_LOG = ATTACK_CHECK_LOG + Attack_Output;
+    }
+    // ##########################
+
+
+    // ### Flooding Wallet Check & Attack Mitigation ###
+    //
+    Attack_Output = FloodingWalletCheck(pnode->addrName, SyncHeight, pnode->nStartingHeight, DETECTED_ATTACK, pnode->nSendBytes, pnode->nRecvBytes, pnode->nTrafficAverage, TimeConnected);
+    
+    if (Attack_Output != "")
+    {
+        if (Firewall::DoubleSpend_Blacklist == true)
+        {
+            BLACKLIST_ATTACK = true;
+        }
+
+        if (Firewall::DoubleSpend_Ban == true)
+        {
+            BAN_ATTACK = true;
+            BAN_TIME = Firewall::FloodingWallet_BanTime;
+            BAN_REASON = BanReasonFloodingWallet;
+        }
+
+        DETECTED_ATTACK = true;
+        ATTACK_CHECK_LOG = ATTACK_CHECK_LOG + Attack_Output;
+    }
+    // ##########################
+
+    // ### DDoS Check & Attack Mitigation ###
+    //
+    Attack_Output = DDoSCheck(pnode->addrName, pnode->nInvalidRecvPackets, pnode->nRecvBytes, TimeConnected);
+    
+    if (Attack_Output != "")
+    {
+        if (Firewall::DDoSWallet_Blacklist == true)
+        {
+            BLACKLIST_ATTACK = true;
+        }
+
+        if (Firewall::DDoSWallet_Ban == true)
+        {
+            BAN_ATTACK = true;
+            BAN_TIME = Firewall::DDoSWallet_BanTime;
+            BAN_REASON = BanReasonDDoSWallet;
+        }
+
+        DETECTED_ATTACK = true;
+        ATTACK_CHECK_LOG = ATTACK_CHECK_LOG + Attack_Output;
+    }
+    // ##########################
 
     // ----------------
     // ATTACK DETECTED (TRIGGER)!
     if (DETECTED_ATTACK == true)
     {
-        if (Firewall::LiveDebug_Enabled == true)
+        if (ATTACK_CHECK_LOG != "")
         {
-            cout << ModuleName <<
-            " [Attack Type: " << ATTACK_TYPE <<
-            "] [Detected from: " << pnode->addrName <<
-            "] [Node Traffic: " << pnode->nTrafficRatio <<
-            "] [Node Traffic Avrg: " << pnode->nTrafficAverage <<
-            "] [Traffic Avrg: " << Firewall::AverageTraffic <<
-            "] [Sent Bytes: " << pnode->nSendBytes <<
-            "] [Recv Bytes: " << pnode->nRecvBytes <<
-            "] [Start Height: " << pnode->nStartingHeight <<
-            "] [Sync Height: " << SyncHeight <<
-            "] [Protocol: " << pnode->nRecvVersion <<
-            "]\n" << endl;
-        }
-
-        if (fDebug)
-        {
-            LogPrint("firewall", "%s [Attack Type: %s] "
-                                    "[Detected from: %s] "
-                                    "[Node Traffic: %d] "
-                                    "[Node Traffic Avrg: %d] "
-                                    "[Traffic Avrg: %d] "
-                                    "[Sent Bytes: %d] "
-                                    "[Recv Bytes: %d] "
-                                    "[Start Height: %i] "
-                                    "[Sync Height: %i] "
-                                    "[Protocol: %i]"
-                                    "[Warnings: %s]\n",
-
-                                    ModuleName.c_str(),
-                                    ATTACK_TYPE.c_str(),
-                                    pnode->addrName.c_str(),
-                                    pnode->nTrafficRatio,
-                                    pnode->nTrafficAverage,
-                                    Firewall::AverageTraffic,
-                                    pnode->nSendBytes,
-                                    pnode->nRecvBytes,
-                                    pnode->nStartingHeight,
-                                    SyncHeight,
-                                    pnode->nRecvVersion,
-                                    WARNINGS);
-        }
-
-        // Blacklist IP on Attack detection
-        // * add node/peer IP to blacklist
-        if (BLACKLIST_ATTACK == true)
-        {
-            AddToBlackList(pnode);
-        }
-
-        // Peer/Node Ban if required
-        if (BAN_ATTACK == true)
-        {
-            if (BAN_REASON > -1)
+            if (Firewall::LiveDebug_Enabled == true)
             {
-                AddToBanList(pnode, BAN_REASON, BAN_TIME);
+                cout << ModuleName <<
+                " [Attacks: " << ATTACK_CHECK_LOG <<
+                "] [Detected from: " << pnode->addrName <<
+                "] [Node Traffic: " << pnode->nTrafficRatio <<
+                "] [Node Traffic Avrg: " << pnode->nTrafficAverage <<
+                "] [Traffic Avrg: " << Firewall::AverageTraffic <<
+                "] [Sent Bytes: " << pnode->nSendBytes <<
+                "] [Recv Bytes: " << pnode->nRecvBytes <<
+                "] [Start Height: " << pnode->nStartingHeight <<
+                "] [Sync Height: " << SyncHeight <<
+                "] [Protocol: " << pnode->nRecvVersion <<
+                "]\n" << endl;
             }
+
+            if (fDebug)
+            {
+                LogPrint("firewall", "%s [Attacks: %s] "
+                                        "[Detected from: %s] "
+                                        "[Node Traffic: %d] "
+                                        "[Node Traffic Avrg: %d] "
+                                        "[Traffic Avrg: %d] "
+                                        "[Sent Bytes: %d] "
+                                        "[Recv Bytes: %d] "
+                                        "[Start Height: %i] "
+                                        "[Sync Height: %i] "
+                                        "[Protocol: %i]"
+                                        "\n",
+
+                                        ModuleName.c_str(),
+                                        ATTACK_CHECK_LOG.c_str(),
+                                        pnode->addrName.c_str(),
+                                        pnode->nTrafficRatio,
+                                        pnode->nTrafficAverage,
+                                        Firewall::AverageTraffic,
+                                        pnode->nSendBytes,
+                                        pnode->nRecvBytes,
+                                        pnode->nStartingHeight,
+                                        SyncHeight,
+                                        pnode->nRecvVersion
+                                        );
+            }
+
+            // Blacklist IP on Attack detection
+            // * add node/peer IP to blacklist
+            if (BLACKLIST_ATTACK == true)
+            {
+                AddToBlackList(pnode);
+            }
+
+            // Peer/Node Ban if required
+            if (BAN_ATTACK == true)
+            {
+                if (BAN_REASON > -1)
+                {
+                    AddToBanList(pnode, BAN_REASON, BAN_TIME);
+                }
+            }
+
+            // Peer/Node Panic Disconnect
+            ForceDisconnectNode(pnode, FromFunction);
+
+            // ATTACK DETECTED!
+            return true;
+
         }
 
-        // Peer/Node Panic Disconnect
-        ForceDisconnectNode(pnode, FromFunction);
-
-        // ATTACK DETECTED!
-        return true;
-
     }
-    else
-    {
-        //NO ATTACK DETECTED...
-        return false;
-    }
-    // ----------------
+
+    //NO ATTACK DETECTED...
+    return false;
 }
 
 
