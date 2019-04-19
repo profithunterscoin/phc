@@ -1,7 +1,7 @@
 // ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 // 
-// [Bitcoin Firewall 2.0.0
-// March, 2019 - Biznatch Enterprises & Profit Hunters Coin (PHC)
+// [Bitcoin Firewall 2.0.1
+// April, 2019 - Biznatch Enterprises & Profit Hunters Coin (PHC) & BATA Development (bata.io)
 // https://github.com/BiznatchEnterprises/BitcoinFirewall
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
@@ -66,7 +66,8 @@ class Firewall
         static bool BandwidthAbuse_Blacklist;
         static bool BandwidthAbuse_Ban;
         static int BandwidthAbuse_BanTime; // seconds
-        static int BandwidthAbuse_Maxcheck; // seconds
+        static bool BandwidthAbuse_Disconnect;
+        static int BandwidthAbuse_Mincheck; // seconds
 
         // *** Firewall Settings (Double Spend Attack) ***
         static bool DoubleSpend_Detect;
@@ -74,7 +75,8 @@ class Firewall
         static bool DoubleSpend_DoubleSpend;
         static bool DoubleSpend_Ban;
         static int DoubleSpend_BanTime; // seconds
-        static int DoubleSpend_Maxcheck; // seconds
+        static bool DoubleSpend_Disconnect;
+        static int DoubleSpend_Mincheck; // seconds
         static double DoubleSpend_MinAttack;
         static double DoubleSpend_MaxAttack;
 
@@ -83,23 +85,16 @@ class Firewall
         static bool InvalidWallet_Blacklist;
         static bool InvalidWallet_Ban;
         static int InvalidWallet_BanTime; // seconds
+        static bool InvalidWallet_Disconnect;
         static int InvalidWallet_MinimumProtocol;
-        static int InvalidWallet_MaxCheck; // seconds
+        static int InvalidWallet_MinCheck; // seconds
 
         // * Firewall Settings (Invalid Wallet)
         static bool ForkedWallet_Detect;
         static bool ForkedWallet_Blacklist;
         static bool ForkedWallet_Ban;
         static int ForkedWallet_BanTime; // seconds
-
-        // * Firewall Settings (Invalid Wallet)
-        static bool DDoSWallet_Detect;
-        static bool DDoSWallet_Blacklist;
-        static bool DDoSWallet_Ban;
-        static int DDoSWallet_BanTime; // seconds
-        static int DDoSWallet_MinCheck; // seconds
-
-        // FORKLIST
+        static bool ForkedWallet_Disconnect;
         static int ForkedWallet_NodeHeight[256]; // TODO: Upgrade to vector<int> 
 
         // *** Firewall Settings (Flooding Peer Wallets) ***
@@ -107,6 +102,7 @@ class Firewall
         static bool FloodingWallet_Blacklist;
         static bool FloodingWallet_Ban;
         static int FloodingWallet_BanTime;
+        static bool FloodingWallet_Disconnect;
         static uint64_t FloodingWallet_MinBytes;
         static uint64_t FloodingWallet_MaxBytes;
         static double FloodingWallet_MinTrafficAverage; // Ratio Up/Down
@@ -115,6 +111,14 @@ class Firewall
         static int FloodingWallet_MaxCheck; // seconds
         static std::string FloodingWallet_Patterns[256]; // TODO: Upgrade to vector<string>
         static std::string FloodingWallet_Ignored[256]; // TODO: Upgrade to vector<string> 
+
+        // * Firewall Settings (DDoS Wallet)
+        static bool DDoSWallet_Detect;
+        static bool DDoSWallet_Blacklist;
+        static bool DDoSWallet_Ban;
+        static int DDoSWallet_BanTime; // seconds
+        static bool DDoSWallet_Disconnect;
+        static int DDoSWallet_MinCheck; // seconds
 
         // Firewall Whitelist (ignore)
         static std::string WhiteList[256]; // TODO: Upgrade to vector<string> 

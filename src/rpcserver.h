@@ -172,14 +172,16 @@ extern json_spirit::Value firewalldetectbandwidthabuse(const json_spirit::Array&
 extern json_spirit::Value firewallblacklistbandwidthabuse(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallbanbandwidthabuse(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallbantimebandwidthabuse(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value firewallbandwidthabusemaxcheck(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value firewalldisconnectbandwidthabuse(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value firewallbandwidthabusemincheck(const json_spirit::Array& params, bool fHelp);
 
 /* Firewall Doublespend Session Settings */
 extern json_spirit::Value firewalldetectdoublespend(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallblacklistdoublespend(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallbandoublespend(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallbantimedoublespend(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value firewalldoublespendmaxcheck(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value firewalldisconnectdoublespend(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value firewalldoublespendmincheck(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewalldoublespendminattack(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewalldoublespendmaxattack(const json_spirit::Array& params, bool fHelp);
 
@@ -188,28 +190,24 @@ extern json_spirit::Value firewalldetectinvalidwallet(const json_spirit::Array& 
 extern json_spirit::Value firewallblacklistinvalidwallet(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallbaninvalidwallet(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallbantimeinvalidwallet(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value firewalldisconnectinvalidwallet(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallinvalidwalletminprotocol(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value firewallinvalidwalletmaxcheck(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value firewallinvalidwalletmincheck(const json_spirit::Array& params, bool fHelp);
 
 /* Firewall Forked Wallet Session Settings */
 extern json_spirit::Value firewalldetectforkedwallet(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallblacklistforkedwallet(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallbanforkedwallet(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallbantimeforkedwallet(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value firewalldisconnectforkedwallet(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallforkedwalletnodeheight(const json_spirit::Array& params, bool fHelp);
-
-/* Firewall DDoS Wallet Session Settings */
-extern json_spirit::Value firewalldetectddoswallet(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value firewallblacklistddoswallet(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value firewallbanddoswallet(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value firewallbantimeddoswallet(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value firewallddoswalletmincheck(const json_spirit::Array& params, bool fHelp);
 
 /* Firewall Flooding Wallet Session Settings */
 extern json_spirit::Value firewalldetectfloodingwallet(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallblacklistfloodingwallet(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallbanfloodingwallet(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallbantimefloodingwallet(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value firewalldisconnectfloodingwallet(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallfloodingwalletminbytes(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallfloodingwalletmaxbytes(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallfloodingwalletattackpatternadd(const json_spirit::Array& params, bool fHelp);
@@ -220,6 +218,14 @@ extern json_spirit::Value firewallfloodingwalletmintrafficavg(const json_spirit:
 extern json_spirit::Value firewallfloodingwalletmaxtrafficavg(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallfloodingwalletmincheck(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallfloodingwalletmaxcheck(const json_spirit::Array& params, bool fHelp);
+
+/* Firewall DDoS Wallet Session Settings */
+extern json_spirit::Value firewalldetectddoswallet(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value firewallblacklistddoswallet(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value firewallbanddoswallet(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value firewalldisconnectddoswallet(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value firewallbantimeddoswallet(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value firewallddoswalletmincheck(const json_spirit::Array& params, bool fHelp);
 
 
 extern json_spirit::Value addnode(const json_spirit::Array& params, bool fHelp);
