@@ -406,20 +406,27 @@ static const CRPCCommand vRPCCommands[] =
     { "firewalldebugblacklist",                         &firewalldebugblacklist,                        false,      false,    false },
     { "firewalldebugdisconnect",                        &firewalldebugdisconnect,                       false,      false,    false },
     { "firewalldebugbandwidthabuse",                    &firewalldebugbandwidthabuse,                   false,      false,    false },
-    { "firewalldebugnofalsepositivebandwidthabuse",     &firewalldebugnofalsepositivebandwidthabuse,    false,      false,    false },
+    { "firewalldebugdoublespend",                       &firewalldebugdoublespend,                      false,      false,    false },
     { "firewalldebuginvalidwallet",                     &firewalldebuginvalidwallet,                    false,      false,    false },
     { "firewalldebugforkedwallet",                      &firewalldebugforkedwallet,                     false,      false,    false },
     { "firewalldebugfloodingwallet",                    &firewalldebugfloodingwallet,                   false,      false,    false },
+    { "firewalldebugddoswallet",                        &firewalldebugddoswallet,                       false,      false,    false },
 
     /* Firewall BandwidthAbuse Session Settings */
     { "firewalldetectbandwidthabuse",                   &firewalldetectbandwidthabuse,                  false,      false,    false },
     { "firewallblacklistbandwidthabuse",                &firewallblacklistbandwidthabuse,               false,      false,    false },
     { "firewallbanbandwidthabuse",                      &firewallbanbandwidthabuse,                     false,      false,    false },
-    { "firewallnofalsepositivebandwidthabuse",          &firewallnofalsepositivebandwidthabuse,         false,      false,    false },
     { "firewallbantimebandwidthabuse",                  &firewallbantimebandwidthabuse,                 false,      false,    false },
     { "firewallbandwidthabusemaxcheck",                 &firewallbandwidthabusemaxcheck,                false,      false,    false },
-    { "firewallbandwidthabuseminattack",                &firewallbandwidthabuseminattack,               false,      false,    false },
-    { "firewallbandwidthabuseminattack",                &firewallbandwidthabuseminattack,               false,      false,    false },
+
+    /* Firewall Double-Spend Session Settings */
+    { "firewalldetectdoublespend",                      &firewalldetectdoublespend,                     false,      false,    false },
+    { "firewallblacklistdoublespend",                   &firewallblacklistdoublespend,                  false,      false,    false },
+    { "firewallbandoublespend",                         &firewallbandoublespend,                        false,      false,    false },
+    { "firewallbantimedoublespend",                     &firewallbantimedoublespend,                    false,      false,    false },
+    { "firewalldoublespendmaxcheck",                    &firewalldoublespendmaxcheck,                   false,      false,    false },
+    { "firewalldoublespendminattack",                   &firewalldoublespendminattack,                  false,      false,    false },
+    { "firewalldoublespendminattack",                   &firewalldoublespendminattack,                  false,      false,    false },
 
     /* Firewall Invalid Wallet Session Settings */
     { "firewalldetectinvalidwallet",                    &firewalldetectinvalidwallet,                   false,      false,    false },
@@ -435,6 +442,13 @@ static const CRPCCommand vRPCCommands[] =
     { "firewallbanforkedwallet",                        &firewallbanforkedwallet,                       false,      false,    false },
     { "firewallbantimeforkedwallet",                    &firewallbantimeforkedwallet,                   false,      false,    false },
     { "firewallforkedwalletnodeheight",                 &firewallforkedwalletnodeheight,                false,      false,    false },
+
+    /* Firewall DDoS Wallet Session Settings */
+    { "firewalldetectddoswallet",                       &firewalldetectddoswallet,                      false,      false,    false },
+    { "firewallblacklistddoswallet",                    &firewallblacklistddoswallet,                   false,      false,    false },
+    { "firewallbanddoswallet",                          &firewallbanddoswallet,                         false,      false,    false },
+    { "firewallbantimeddoswallet",                      &firewallbantimeddoswallet,                     false,      false,    false },
+    { "firewallddoswalletmincheck",                     &firewallddoswalletmincheck,                    false,      false,    false },
 
     /* Firewall Flooding Wallet Session Settings */
     { "firewalldetectfloodingwallet",                   &firewalldetectfloodingwallet,                  false,      false,    false },

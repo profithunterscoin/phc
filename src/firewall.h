@@ -55,34 +55,49 @@ class Firewall
         static bool LiveDebug_Blacklist;
         static bool LiveDebug_Disconnect;
         static bool LiveDebug_BandwidthAbuse;
-        static bool LiveDebug_Nofalsepositive;
+        static bool LiveDebug_DoubleSpend;
         static bool LiveDebug_InvalidWallet;
         static bool LiveDebug_ForkedWallet;
         static bool LiveDebug_FloodingWallet;
+        static bool LiveDebug_DDoSWallet;
 
         // *** Firewall Settings (Bandwidth Abuse) ***
         static bool BandwidthAbuse_Detect;
         static bool BandwidthAbuse_Blacklist;
-        static bool BandwidthAbuse_Nofalsepositive;
         static bool BandwidthAbuse_Ban;
-        static int BandwidthAbuse_BanTime;
-        static int BandwidthAbuse_Maxcheck;
-        static double BandwidthAbuse_MinAttack;
-        static double BandwidthAbuse_MaxAttack;
+        static int BandwidthAbuse_BanTime; // seconds
+        static int BandwidthAbuse_Maxcheck; // seconds
+
+        // *** Firewall Settings (Double Spend Attack) ***
+        static bool DoubleSpend_Detect;
+        static bool DoubleSpend_Blacklist;
+        static bool DoubleSpend_DoubleSpend;
+        static bool DoubleSpend_Ban;
+        static int DoubleSpend_BanTime; // seconds
+        static int DoubleSpend_Maxcheck; // seconds
+        static double DoubleSpend_MinAttack;
+        static double DoubleSpend_MaxAttack;
 
         // *** Firewall Controls (Invalid Peer Wallets) ***
         static bool InvalidWallet_Detect;
         static bool InvalidWallet_Blacklist;
         static bool InvalidWallet_Ban;
-        static int InvalidWallet_BanTime;
+        static int InvalidWallet_BanTime; // seconds
         static int InvalidWallet_MinimumProtocol;
-        static int InvalidWallet_MaxCheck;
+        static int InvalidWallet_MaxCheck; // seconds
 
         // * Firewall Settings (Invalid Wallet)
         static bool ForkedWallet_Detect;
         static bool ForkedWallet_Blacklist;
         static bool ForkedWallet_Ban;
-        static int ForkedWallet_BanTime;
+        static int ForkedWallet_BanTime; // seconds
+
+        // * Firewall Settings (Invalid Wallet)
+        static bool DDoSWallet_Detect;
+        static bool DDoSWallet_Blacklist;
+        static bool DDoSWallet_Ban;
+        static int DDoSWallet_BanTime; // seconds
+        static int DDoSWallet_MinCheck; // seconds
 
         // FORKLIST
         static int ForkedWallet_NodeHeight[256]; // TODO: Upgrade to vector<int> 
@@ -92,8 +107,8 @@ class Firewall
         static bool FloodingWallet_Blacklist;
         static bool FloodingWallet_Ban;
         static int FloodingWallet_BanTime;
-        static int FloodingWallet_MinBytes;
-        static int FloodingWallet_MaxBytes;
+        static uint64_t FloodingWallet_MinBytes;
+        static uint64_t FloodingWallet_MaxBytes;
         static double FloodingWallet_MinTrafficAverage; // Ratio Up/Down
         static double FloodingWallet_MaxTrafficAverage; // Ratio Up/Down
         static int FloodingWallet_MinCheck; // seconds
@@ -108,7 +123,6 @@ class Firewall
         static std::string BlackList[256]; // TODO: Upgrade to vector<string> 
 
         // * Firewall Functions *
-
         static void LoadFirewallSettings();
         static int LegacySyncHeight(CNode *pnode);
         static bool ForceDisconnectNode(CNode *pnode, std::string FromFunction);
@@ -116,6 +130,12 @@ class Firewall
         static bool CheckBanned(CNode *pnode);
         static bool AddToBlackList(CNode *pnode);
         static bool AddToBanList(CNode *pnode, CBan::BanReason BAN_REASON, int BAN_TIME);
+        static std::string BandwidthAbuseCheck(std::string AddrName, int SyncHeight, double TrafficAverage, int TimeConnected);
+        static std::string DoubleSpendCheck(std::string AddrName, int SyncHeight, uint64_t SendBytes, uint64_t RecvBytes, double TrafficAverage, int TimeConnected);
+        static std::string InvalidWalletCheck(std::string AddrName, int StartingHeight, int RecvVersion, int TimeConnected);
+        static std::string ForkedWalletCheck(std::string AddrName, int SyncHeight, int TimeConnected);
+        static std::string FloodingWalletCheck(std::string AddrName, int SyncHeight, int StartingHeight, bool DetectedAttack, uint64_t SendBytes, uint64_t RecvBytes, double TrafficAverage, int TimeConnected);
+        static std::string DDoSCheck(std::string AddrName, int InvalidRecvPackets, uint64_t RecvBytes, int TimeConnected);
         static bool CheckAttack(CNode *pnode, std::string FromFunction);
         static void Examination(CNode *pnode, std::string FromFunction);
         static bool Init(CNode *pnode, std::string FromFunction);

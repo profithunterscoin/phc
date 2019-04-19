@@ -44,12 +44,11 @@ Value firewallstatus(const Array& params, bool fHelp)
     result.push_back(Pair("livedebug-blacklist",                BoolToString(Firewall::LiveDebug_Blacklist)));
     result.push_back(Pair("livedebug-disconnect",               BoolToString(Firewall::LiveDebug_Disconnect)));
     result.push_back(Pair("livedebug-bandwidthabuse",           BoolToString(Firewall::LiveDebug_BandwidthAbuse)));
-    result.push_back(Pair("livedebug-nofalsepositive",          BoolToString(Firewall::LiveDebug_Nofalsepositive)));
+    result.push_back(Pair("livedebug-doublespend",              BoolToString(Firewall::LiveDebug_DoubleSpend)));
     result.push_back(Pair("livedebug-invalidwallet",            BoolToString(Firewall::LiveDebug_InvalidWallet)));
     result.push_back(Pair("livedebug-forkedwallet",             BoolToString(Firewall::LiveDebug_ForkedWallet)));
     result.push_back(Pair("livedebug-floodingwallet",           BoolToString(Firewall::LiveDebug_FloodingWallet)));
     result.push_back(Pair("bandwidthabuse-detect",              BoolToString(Firewall::BandwidthAbuse_Detect)));
-    result.push_back(Pair("bandwidthabuse-nofalsepositive",     BoolToString(Firewall::BandwidthAbuse_Nofalsepositive)));
     result.push_back(Pair("bandwidthabuse-blacklist",           BoolToString(Firewall::BandwidthAbuse_Blacklist)));
     result.push_back(Pair("bandwidthabuse-bantime",             (int64_t)Firewall::BandwidthAbuse_BanTime));
     result.push_back(Pair("bandwidthabuse-ban",                 BoolToString(Firewall::BandwidthAbuse_Ban)));
@@ -65,6 +64,10 @@ Value firewallstatus(const Array& params, bool fHelp)
     result.push_back(Pair("forkedwallet-blacklist",             BoolToString(Firewall::ForkedWallet_Blacklist)));
     result.push_back(Pair("forkedwallet-ban",                   BoolToString(Firewall::ForkedWallet_Ban)));
     result.push_back(Pair("forkedwallet-bantime",               (int64_t)Firewall::ForkedWallet_BanTime));
+    result.push_back(Pair("ddoswallet-detect",                  BoolToString(Firewall::DDoSWallet_Detect)));
+    result.push_back(Pair("ddoswallet-blacklist",               BoolToString(Firewall::DDoSWallet_Blacklist)));
+    result.push_back(Pair("ddoswallet-ban",                     BoolToString(Firewall::DDoSWallet_Ban)));
+    result.push_back(Pair("ddoswallet-bantime",                 (int64_t)Firewall::DDoSWallet_BanTime));
 
     return result;
 }
@@ -327,28 +330,28 @@ Value firewalldebugbandwidthabuse(const Array& params, bool fHelp)
 }
 
 
-Value firewalldebugnofalsepositivebandwidthabuse(const Array& params, bool fHelp)
+Value firewalldebugdoublespend(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() == 0)
     {
-        throw runtime_error("firewalldebugnofalsepositivebandwidthabuse \"true|false\"\n"
+        throw runtime_error("firewalldebugdoublespend \"true|false\"\n"
                             "\nBitcoin Firewall Live Debug Output - No False Positive (Bandwidth Abuse)\n"
                             "\nArguments:\n"
                             "Status: \"true|false\" (bool, required)\n"
                             "\nExamples:\n"
                             "\n0 = default - true\n"
-                            + HelpExampleCli("firewalldebugnofalsepositivebandwidthabuse", "true")
-                            + HelpExampleCli("firewalldebugnofalsepositivebandwidthabuse", "false")
+                            + HelpExampleCli("firewalldebugdoublespend", "true")
+                            + HelpExampleCli("firewalldebugdoublepsend", "false")
                             );
     }
 
     if (params.size() == 1)
     {
-        Firewall::LiveDebug_Nofalsepositive = StringToBool(params[0].get_str());
+        Firewall::LiveDebug_DoubleSpend = StringToBool(params[0].get_str());
     }
 
     Object result;
-    result.push_back(Pair("live-debug-nofalsepositive", Firewall::LiveDebug_Nofalsepositive));
+    result.push_back(Pair("live-debug-doublespend", Firewall::LiveDebug_DoubleSpend));
 
     return result;
 }
@@ -429,6 +432,31 @@ Value firewalldebugfloodingwallet(const Array& params, bool fHelp)
 
     Object result;
     result.push_back(Pair("live-debug-floodingwallet", Firewall::LiveDebug_FloodingWallet));
+
+    return result;
+}
+
+Value firewalldebugddoswallet(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+    {
+        throw runtime_error("firewalldebugddoswallet \"true|false\"\n"
+                            "\nBitcoin Firewall Live Debug Output - Flooding Wallet\n"
+                            "\nArguments:\n"
+                            "Status: \"true|false\" (bool, required)\n"
+                            "\nExamples:\n"
+                            + HelpExampleCli("firewalldebugddoswallet", "true")
+                            + HelpExampleCli("firewalldebugddoswallet", "false")
+                            );
+    }
+
+    if (params.size() == 1)
+    {
+        Firewall::LiveDebug_DDoSWallet = StringToBool(params[0].get_str());
+    }
+
+    Object result;
+    result.push_back(Pair("live-debug-ddoswallet", Firewall::LiveDebug_DDoSWallet));
 
     return result;
 }
@@ -620,7 +648,7 @@ Value firewalldetectbandwidthabuse(const Array& params, bool fHelp)
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewalldetectbandwidthabuse \"true|false\"\n"
-                            "\nBitcoin Firewall Detect Bandwidth Abuse Rule #1\n"
+                            "\nBitcoin Firewall Detect Bandwidth Abuse Rule\n"
                             "\nArguments:\n"
                             "Status: \"true|false\" (bool, required)\n"
                             "\nExamples:\n"
@@ -646,7 +674,7 @@ Value firewallblacklistbandwidthabuse(const Array& params, bool fHelp)
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallblacklistbandwidthabuse \"true|false\"\n"
-                            "\nBitcoin Firewall Blacklist Bandwidth Abuse Rule #1 (session)\n"
+                            "\nBitcoin Firewall Blacklist Bandwidth Abuse Rule (session)\n"
                             "\nArguments:\n"
                             "Status: \"true|false\" (bool, required)\n"
                             "\nExamples:\n"
@@ -672,7 +700,7 @@ Value firewallbanbandwidthabuse(const Array& params, bool fHelp)
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallbanbandwidthabuse \"true|false\"\n"
-                            "\nBitcoin Firewall Ban Bandwidth Abuse Rule #1 (permenant)\n"
+                            "\nBitcoin Firewall Ban Bandwidth Abuse Rule (permenant)\n"
                             "\nArguments:\n"
                             "Status: \"true|false\" (bool, required)\n"
                             "\nExamples:\n"
@@ -693,38 +721,12 @@ Value firewallbanbandwidthabuse(const Array& params, bool fHelp)
 }
 
 
-Value firewallnofalsepositivebandwidthabuse(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() == 0)
-    {
-        throw runtime_error("firewallnofalsepositivebandwidthabuse \"true|false\"\n"
-                            "\nBitcoin Firewall False Positive Protection Rule #1\n"
-                            "\nArguments:\n"
-                            "Status: \"true|false\" (bool, required)\n"
-                            "\nExamples:\n"
-                            + HelpExampleCli("firewallnofalsepositivebandwidthabuse", "true")
-                            + HelpExampleCli("firewallnofalsepositivebandwidthabuse", "false")
-                            );
-    }
-
-    if (params.size() == 1)
-    {
-        Firewall::BandwidthAbuse_Nofalsepositive = StringToBool(params[0].get_str());
-    }
-
-    Object result;
-    result.push_back(Pair("firewallnofalsepositivebandwidthabuse", Firewall::BandwidthAbuse_Nofalsepositive));
-
-    return result;
-}
-
-
 Value firewallbantimebandwidthabuse(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallbantimebandwidthabuse \"seconds\"\n"
-                            "\nBitcoin Firewall Ban Time Bandwidth Abuse Rule #1\n"
+                            "\nBitcoin Firewall Ban Time Bandwidth Abuse Rule \n"
                             "\nArguments:\n"
                             "Value: \"0|10000\" (integer, required)\n"
                             "\nExamples:\n"
@@ -751,7 +753,7 @@ Value firewallbandwidthabusemaxcheck(const Array& params, bool fHelp)
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallbandwidthabusemaxcheck \"seconds\"\n"
-                            "\nBitcoin Firewall Max Check Bandwidth Abuse Rule #1\n"
+                            "\nBitcoin Firewall Max Check Bandwidth Abuse Rule \n"
                             "\nArguments:\n"
                             "Seconds: \"0|10000\" (integer, required)\n"
                             "\nExamples:\n"
@@ -773,58 +775,191 @@ Value firewallbandwidthabusemaxcheck(const Array& params, bool fHelp)
 }
 
 
-Value firewallbandwidthabuseminattack(const Array& params, bool fHelp)
+Value firewalldetectdoublespend(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() == 0)
     {
-        throw runtime_error("firewallbandwidthabuseminattack \"value\"\n"
-                            "\nBitcoin Firewall Min Attack Bandwidth Abuse Rule #1\n"
+        throw runtime_error("firewalldetectdoublespend \"true|false\"\n"
+                            "\nBitcoin Firewall Detect Double Spend Rule\n"
+                            "\nArguments:\n"
+                            "Status: \"true|false\" (bool, required)\n"
+                            "\nExamples:\n"
+                            + HelpExampleCli("firewalldetectdoublespend", "true")
+                            + HelpExampleCli("firewalldetectdoublespend", "false")
+                            );
+    }
+
+    if (params.size() == 1)
+    {
+        Firewall::DoubleSpend_Detect = StringToBool(params[0].get_str());
+    }
+
+    Object result;
+    result.push_back(Pair("detect-doublespend", Firewall::DoubleSpend_Detect));
+
+    return result;
+}
+
+
+Value firewallblacklistdoublespend(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+    {
+        throw runtime_error("firewallblacklistdoublespend \"true|false\"\n"
+                            "\nBitcoin Firewall Blacklist Double Spend Rule (session)\n"
+                            "\nArguments:\n"
+                            "Status: \"true|false\" (bool, required)\n"
+                            "\nExamples:\n"
+                            + HelpExampleCli("firewallblacklistdoublespend", "true")
+                            + HelpExampleCli("firewallblacklistdoublespend", "false")
+                            );
+    }
+
+    if (params.size() == 1)
+    {
+        Firewall::DoubleSpend_Blacklist = StringToBool(params[0].get_str());
+    }
+
+    Object result;
+    result.push_back(Pair("blacklist-doublespend", Firewall::DoubleSpend_Blacklist));
+
+    return result;
+}
+
+
+Value firewallbandoublespend(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+    {
+        throw runtime_error("firewallbandoublespend \"true|false\"\n"
+                            "\nBitcoin Firewall Ban Double Spend Rule (permenant)\n"
+                            "\nArguments:\n"
+                            "Status: \"true|false\" (bool, required)\n"
+                            "\nExamples:\n"
+                            + HelpExampleCli("firewallbandoublespend", "true")
+                            + HelpExampleCli("firewallbandoublespend", "false")
+                            );
+    }
+
+    if (params.size() == 1)
+    {
+        Firewall::DoubleSpend_Ban = StringToBool(params[0].get_str());
+    }
+
+    Object result;
+    result.push_back(Pair("ban-doublespend", Firewall::DoubleSpend_Ban));
+
+    return result;
+}
+
+
+Value firewallbantimedoublespend(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+    {
+        throw runtime_error("firewallbantimedoublespend \"seconds\"\n"
+                            "\nBitcoin Firewall Ban Time Double Spend Rule \n"
+                            "\nArguments:\n"
+                            "Value: \"0|10000\" (integer, required)\n"
+                            "\nExamples:\n"
+                            "\n0 = default - 24h\n"
+                            + HelpExampleCli("firewallbantimedoublespend", "0")
+                            + HelpExampleCli("firewallbantimedoublespend", "10000000")
+                            );
+    }
+
+    if (params.size() == 1)
+    {
+        Firewall::DoubleSpend_BanTime = (int)strtod(params[0].get_str().c_str(), NULL);
+    }
+
+    Object result;
+    result.push_back(Pair("bantime-doublespend", Firewall::DoubleSpend_BanTime));
+
+    return result;
+}
+
+
+Value firewalldoublespendmaxcheck(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+    {
+        throw runtime_error("firewalldoublespendmaxcheck \"seconds\"\n"
+                            "\nBitcoin Firewall Max Check Bandwidth Abuse Rule \n"
+                            "\nArguments:\n"
+                            "Seconds: \"0|10000\" (integer, required)\n"
+                            "\nExamples:\n"
+                            "\n0 = default\n"
+                            + HelpExampleCli("firewalldoublespendmaxcheck", "0")
+                            + HelpExampleCli("firewalldoublespendmaxcheck", "10000000")
+                            );
+    }
+
+    if (params.size() == 1)
+    {
+        Firewall::DoubleSpend_Maxcheck = (int)strtod(params[0].get_str().c_str(), NULL);
+    }
+
+    Object result;
+    result.push_back(Pair("maxcheck-doublespend", Firewall::DoubleSpend_Maxcheck));
+
+    return result;
+}
+
+
+Value firewalldoublespendminattack(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+    {
+        throw runtime_error("firewalldoublespendminattack \"value\"\n"
+                            "\nBitcoin Firewall Min Attack Double Spend Rule \n"
                             "\nArguments:\n"
                             "Value: \"17.1\" (double, required)\n"
                             "\nExamples:\n"
                             "\n0 = default - 17.1\n"
-                            + HelpExampleCli("firewallbandwidthabuseminattack", "17.1")
-                            + HelpExampleCli("firewallbandwidthabuseminattack", "17.005")
+                            + HelpExampleCli("firewalldoublespendminattack", "17.1")
+                            + HelpExampleCli("firewalldoublespendminattack", "17.005")
                             );
     }
 
     if (params.size() == 1)
     {
-        Firewall::BandwidthAbuse_MinAttack = strtod(params[0].get_str().c_str(), NULL);
+        Firewall::DoubleSpend_MinAttack = strtod(params[0].get_str().c_str(), NULL);
     }
 
     Object result;
-    result.push_back(Pair("minattack-bandwidthabuse", Firewall::BandwidthAbuse_MinAttack));
+    result.push_back(Pair("minattack-doublespend", Firewall::DoubleSpend_MinAttack));
 
     return result;
 }
 
 
-Value firewallbandwidthabusemaxattack(const Array& params, bool fHelp)
+Value firewalldoublespendmaxattack(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() == 0)
     {
-        throw runtime_error("firewallbandwidthabusemaxattack \"ratio\"\n"
-                            "\nBitcoin Firewall Max Attack Bandwidth Abuse Rule #1\n"
+        throw runtime_error("firewalldoublespendmaxattack \"ratio\"\n"
+                            "\nBitcoin Firewall Max Attack Double Spend Rule \n"
                             "\nArguments:\n"
                             "Value: \"17.2\" (double, required)\n"
                             "\nExamples:\n"
                             "\n0 = default - 17.2\n"
-                            + HelpExampleCli("firewallbandwidthabusemaxattack", "17.2")
-                            + HelpExampleCli("firewallbandwidthabusemaxattack", "18.004")
+                            + HelpExampleCli("firewalldoublespendmaxattack", "17.2")
+                            + HelpExampleCli("firewalldoublespendmaxattack", "18.004")
                             );
     }
 
     if (params.size() == 1)
     {
-        Firewall::BandwidthAbuse_MaxAttack = strtod(params[0].get_str().c_str(), NULL);
+        Firewall::DoubleSpend_MaxAttack = strtod(params[0].get_str().c_str(), NULL);
     }
 
     Object result;
-    result.push_back(Pair("maxattack-bandwidthabuse", Firewall::BandwidthAbuse_MaxAttack));
+    result.push_back(Pair("maxattack-doublespend", Firewall::DoubleSpend_MaxAttack));
 
     return result;
 }
+
 
 
 Value firewalldetectinvalidwallet(const Array& params, bool fHelp)
@@ -832,7 +967,7 @@ Value firewalldetectinvalidwallet(const Array& params, bool fHelp)
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewalldetectinvalidwallet \"true|false\"\n"
-                            "\nBitcoin Firewall Detect Invalid Wallet Rule #2\n"
+                            "\nBitcoin Firewall Detect Invalid Wallet Rule \n"
                             "\nArguments:\n"
                             "Status: \"true|false\" (bool, required)\n"
                             "\nExamples:\n"
@@ -858,7 +993,7 @@ Value firewallblacklistinvalidwallet(const Array& params, bool fHelp)
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallblacklistinvalidwallet \"true|false\"\n"
-                            "\nBitcoin Firewall Blacklist Invalid Wallet Rule #2 (session)\n"
+                            "\nBitcoin Firewall Blacklist Invalid Wallet Rule (session)\n"
                             "\nArguments:\n"
                             "Status: \"true|false\" (bool, required)\n"
                             "\nExamples:\n"
@@ -884,7 +1019,7 @@ Value firewallbaninvalidwallet(const Array& params, bool fHelp)
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallbaninvalidwallet \"true|false\"\n"
-                            "\nBitcoin Firewall Ban Invalid Wallet Rule #2 (permenant)\n"
+                            "\nBitcoin Firewall Ban Invalid Wallet Rule (permenant)\n"
                             "\nArguments:\n"
                             "Status: \"true|false\" (bool, required)\n"
                             "\nExamples:\n"
@@ -910,7 +1045,7 @@ Value firewallbantimeinvalidwallet(const Array& params, bool fHelp)
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallbantimeinvalidwallet \"seconds\"\n"
-                            "\nBitcoin Firewall Ban Time Invalid Wallet Rule #2\n"
+                            "\nBitcoin Firewall Ban Time Invalid Wallet Rule \n"
                             "\nArguments:\n"
                             "Value: \"0|100000\" (integer, required)\n"
                             "\nExamples:\n"
@@ -937,7 +1072,7 @@ Value firewallinvalidwalletminprotocol(const Array& params, bool fHelp)
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallinvalidwalletminprotocol \"protocol\"\n"
-                            "\nBitcoin Firewall Min Protocol Invalid Wallet Rule #2\n"
+                            "\nBitcoin Firewall Min Protocol Invalid Wallet Rule \n"
                             "\nArguments:\n"
                             "Value: \"0|100000\" (integer, required)\n"
                             "\nExamples:\n"
@@ -964,7 +1099,7 @@ Value firewallinvalidwalletmaxcheck(const Array& params, bool fHelp)
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallinvalidwalletmaxcheck \"seconds\"\n"
-                            "\nBitcoin Firewall Max Check Invalid Wallet Rule #2\n"
+                            "\nBitcoin Firewall Max Check Invalid Wallet Rule \n"
                             "\nArguments:\n"
                             "Value: \"0|100000\" (integer, required)\n"
                             "\nExamples:\n"
@@ -991,7 +1126,7 @@ Value firewalldetectforkedwallet(const Array& params, bool fHelp)
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewalldetectforkedwallet \"true|false\"\n"
-                            "\nBitcoin Firewall Detect Forked Wallet Rule #3\n"
+                            "\nBitcoin Firewall Detect Forked Wallet Rule \n"
                             "\nArguments:\n"
                             "Status: \"true|false\" (bool, required)\n"
                             "\nExamples:\n"
@@ -1017,7 +1152,7 @@ Value firewallblacklistforkedwallet(const Array& params, bool fHelp)
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallblacklistforkedwallet \"true|false\"\n"
-                            "\nBitcoin Firewall Blacklist Forked Wallet Rule #3 (session)\n"
+                            "\nBitcoin Firewall Blacklist Forked Wallet Rule (session)\n"
                             "\nArguments:\n"
                             "Status: \"true|false\" (bool, required)\n"
                             "\nExamples:\n"
@@ -1043,7 +1178,7 @@ Value firewallbanforkedwallet(const Array& params, bool fHelp)
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallbanforkedwallet \"true|false\"\n"
-                            "\nBitcoin Firewall Ban Forked Wallet Rule #3 (permenant)\n"
+                            "\nBitcoin Firewall Ban Forked Wallet Rule (permenant)\n"
                             "\nArguments:\n"
                             "Status: \"true|false\" (bool, required)\n"
                             "\nExamples:\n"
@@ -1069,7 +1204,7 @@ Value firewallbantimeforkedwallet(const Array& params, bool fHelp)
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallbantimeforkedwallet \"seconds\"\n"
-                            "\nBitcoin Firewall Ban Time Forked Wallet Rule #3\n"
+                            "\nBitcoin Firewall Ban Time Forked Wallet Rule \n"
                             "\nArguments:\n"
                             "Value: \"seconds\" (integer, required)\n"
                             "\nExamples:\n"
@@ -1100,7 +1235,7 @@ Value firewallforkedwalletnodeheight(const Array& params, bool fHelp)
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallforkedwalletnodeheight \"blockheight\"\n"
-                            "\nBitcoin Firewall Adds Forked NodeHeight Flooding Wallet Rule #3\n"
+                            "\nBitcoin Firewall Adds Forked NodeHeight Flooding Wallet Rule \n"
                             "\nArguments:\n"
                             "Value: \"blockheight\" (int, required)\n"
                             "\nExamples:\n"
@@ -1135,7 +1270,7 @@ Value firewalldetectfloodingwallet(const Array& params, bool fHelp)
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewalldetectfloodingwallet \"true|false\"\n"
-                            "\nBitcoin Firewall Detect Flooding Wallet Rule #4\n"
+                            "\nBitcoin Firewall Detect Flooding Wallet Rule\n"
                             "\nArguments:\n"
                             "Status: \"true|false\" (bool, required)\n"
                             "\nExamples:\n"
@@ -1161,7 +1296,7 @@ Value firewallblacklistfloodingwallet(const Array& params, bool fHelp)
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallblacklistfloodingwallet \"true|false\"\n"
-                            "\nBitcoin Firewall Blacklist Flooding Wallet Rule #4 (session)\n"
+                            "\nBitcoin Firewall Blacklist Flooding Wallet Rule (session)\n"
                             "\nArguments:\n"
                             "Status: \"true|false\" (bool, required)\n"
                             "\nExamples:\n"
@@ -1187,7 +1322,7 @@ Value firewallbanfloodingwallet(const Array& params, bool fHelp)
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallbanfloodingwallet \"true|false\"\n"
-                            "\nBitcoin Firewall Ban Flooding Wallet Rule #4 (permenant)\n"
+                            "\nBitcoin Firewall Ban Flooding Wallet Rule (permenant)\n"
                             "\nArguments:\n"
                             "Status: \"true|false\" (bool, required)\n"
                             "\nExamples:\n"
@@ -1213,7 +1348,7 @@ Value firewallbantimefloodingwallet(const Array& params, bool fHelp)
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallbantimefloodingwallet \"seconds\"\n"
-                            "\nBitcoin Firewall Ban Time Flooding Wallet Rule #4\n"
+                            "\nBitcoin Firewall Ban Time Flooding Wallet Rule\n"
                             "\nArguments:\n"
                             "Value: \"seconds\" (integer, required)\n"
                             "\nExamples:\n"
@@ -1240,7 +1375,7 @@ Value firewallfloodingwalletminbytes(const Array& params, bool fHelp)
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallfloodingwalletminbytes \"bytes\"\n"
-                            "\nBitcoin Firewall Min Bytes Flooding Wallet Rule #4\n"
+                            "\nBitcoin Firewall Min Bytes Flooding Wallet Rule\n"
                             "\nArguments:\n"
                             "Value: \"Bytes\" (integer, required)\n"
                             "\nExamples:\n"
@@ -1267,7 +1402,7 @@ Value firewallfloodingwalletmaxbytes(const Array& params, bool fHelp)
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallfloodingwalletmaxbytes \"bytes\"\n"
-                            "\nBitcoin Firewall Max Bytes Flooding Wallet Rule #4\n"
+                            "\nBitcoin Firewall Max Bytes Flooding Wallet Rule\n"
                             "\nArguments:\n"
                             "Value: \"bytes\" (integer, required)\n"
                             "\nExamples:\n"
@@ -1298,7 +1433,7 @@ Value firewallfloodingwalletattackpatternadd(const Array& params, bool fHelp)
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallfloodingwalletattackpatternadd \"warnings\"\n"
-                            "\nBitcoin Firewall Adds Attack Pattern Flooding Wallet Rule #4\n"
+                            "\nBitcoin Firewall Adds Attack Pattern Flooding Wallet Rule\n"
                             "\nArguments:\n"
                             "Value: \"warnings\" (string, required)\n"
                             "\nExamples:\n"
@@ -1340,7 +1475,7 @@ Value firewallfloodingwalletattackpatternremove(const Array& params, bool fHelp)
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallfloodingwalletattackpatternremove \"warnings\"\n"
-                            "\nBitcoin Firewall Remove Attack Pattern Flooding Wallet Rule #4\n"
+                            "\nBitcoin Firewall Remove Attack Pattern Flooding Wallet Rule\n"
                             "\nArguments:\n"
                             "Value: \"warnings\" (string, required)\n"
                             "\nExamples:\n"
@@ -1389,7 +1524,7 @@ Value firewallfloodingwalletattackignoredadd(const Array& params, bool fHelp)
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallfloodingwalletattackignoredadd \"warnings\"\n"
-                            "\nBitcoin Firewall Adds Attack Ignored Flooding Wallet Rule #4\n"
+                            "\nBitcoin Firewall Adds Attack Ignored Flooding Wallet Rule\n"
                             "\nArguments:\n"
                             "Value: \"warnings\" (string, required)\n"
                             "\nExamples:\n"
@@ -1429,7 +1564,7 @@ Value firewallfloodingwalletattackignoredremove(const Array& params, bool fHelp)
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallfloodingwalletattackignoredremove \"warnings\"\n"
-                            "\nBitcoin Firewall Remove Attack Ignored Flooding Wallet Rule #4\n"
+                            "\nBitcoin Firewall Remove Attack Ignored Flooding Wallet Rule\n"
                             "\nArguments:\n"
                             "Value: \"warnings\" (string, required)\n"
                             "\nExamples:\n"
@@ -1473,7 +1608,7 @@ Value firewallfloodingwalletmintrafficavg(const Array& params, bool fHelp)
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallfloodingwalletmintrafficavg \"ratio\"\n"
-                            "\nBitcoin Firewall Min Traffic Average Flooding Wallet Rule #4\n"
+                            "\nBitcoin Firewall Min Traffic Average Flooding Wallet Rule\n"
                             "\nArguments:\n"
                             "Value: \"ratio\" (double, required)\n"
                             "\nExamples:\n"
@@ -1500,7 +1635,7 @@ Value firewallfloodingwalletmaxtrafficavg(const Array& params, bool fHelp)
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallbantimefloodingwallet \"ratio\"\n"
-                            "\nBitcoin Firewall Max Traffic Average Flooding Wallet Rule #4\n"
+                            "\nBitcoin Firewall Max Traffic Average Flooding Wallet Rule\n"
                             "\nArguments:\n"
                             "Value: \"ratio\" (double, required)\n"
                             "\nExamples:\n"
@@ -1527,7 +1662,7 @@ Value firewallfloodingwalletmincheck(const Array& params, bool fHelp)
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallfloodingwalletmincheck \"seconds\"\n"
-                            "\nBitcoin Firewall Ban Time Flooding Wallet Rule #4\n"
+                            "\nBitcoin Firewall Ban Time Flooding Wallet Rule\n"
                             "\nArguments:\n"
                             "Value: \"seconds\" (integer, required)\n"
                             "\nExamples:\n"
@@ -1554,7 +1689,7 @@ Value firewallfloodingwalletmaxcheck(const Array& params, bool fHelp)
     if (fHelp || params.size() == 0)
     {
         throw runtime_error("firewallfloodingwalletmaxcheck \"seconds\"\n"
-                            "\nBitcoin Firewall Max Check Flooding Wallet Rule #4\n"
+                            "\nBitcoin Firewall Max Check Flooding Wallet Rule\n"
                             "\nArguments:\n"
                             "Value: \"seconds\" (integer, required)\n"
                             "\nExamples:\n"
@@ -1575,5 +1710,137 @@ Value firewallfloodingwalletmaxcheck(const Array& params, bool fHelp)
     return result;
 }
 
+
+
+
+Value firewalldetectddoswallet(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+    {
+        throw runtime_error("firewalldetectddoswallet \"true|false\"\n"
+                            "\nBitcoin Firewall Detect DDoS Wallet Rule\n"
+                            "\nArguments:\n"
+                            "Status: \"true|false\" (bool, required)\n"
+                            "\nExamples:\n"
+                            + HelpExampleCli("firewalldetectddoswallet", "true")
+                            + HelpExampleCli("firewalldetectddoswallet", "false")
+                            );
+    }
+
+    if (params.size() == 1)
+    {
+        Firewall::DDoSWallet_Detect = StringToBool(params[0].get_str());
+    }
+
+    Object result;
+    result.push_back(Pair("detect-ddoswallet", Firewall::DDoSWallet_Detect));
+
+    return result;
+}
+
+
+Value firewallblacklistddoswallet(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+    {
+        throw runtime_error("firewallblacklistddoswallet \"true|false\"\n"
+                            "\nBitcoin Firewall Blacklist DDoS Wallet Rule (session)\n"
+                            "\nArguments:\n"
+                            "Status: \"true|false\" (bool, required)\n"
+                            "\nExamples:\n"
+                            + HelpExampleCli("firewallblacklistddoswallet", "true")
+                            + HelpExampleCli("firewallblacklistddoswallet", "false")
+                            );
+    }
+
+    if (params.size() == 1)
+    {
+        Firewall::DDoSWallet_Blacklist = StringToBool(params[0].get_str());
+    }
+
+    Object result;
+    result.push_back(Pair("blacklist-ddoswallet", Firewall::DDoSWallet_Blacklist));
+
+    return result;
+}
+
+
+Value firewallbanddoswallet(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+    {
+        throw runtime_error("firewallbanddoswallet \"true|false\"\n"
+                            "\nBitcoin Firewall Ban DDoS Wallet Rule (permenant)\n"
+                            "\nArguments:\n"
+                            "Status: \"true|false\" (bool, required)\n"
+                            "\nExamples:\n"
+                            + HelpExampleCli("firewallbanddoswallet", "true")
+                            + HelpExampleCli("firewallbanddoswallet", "false")
+                            );
+    }
+
+    if (params.size() == 1)
+    {
+        Firewall::DDoSWallet_Ban = StringToBool(params[0].get_str());
+    }
+
+    Object result;
+    result.push_back(Pair("ban-ddoswallet", Firewall::DDoSWallet_Ban));
+
+    return result;
+}
+
+
+Value firewallbantimeddoswallet(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+    {
+        throw runtime_error("firewallbantimeddoswallet \"seconds\"\n"
+                            "\nBitcoin Firewall Ban Time DDoS Wallet Rule \n"
+                            "\nArguments:\n"
+                            "Value: \"seconds\" (integer, required)\n"
+                            "\nExamples:\n"
+                            "\n0 = default - 24h\n"
+                            + HelpExampleCli("firewallbantimeddoswallet", "0")
+                            + HelpExampleCli("firewallbantimeddoswallet", "10000000")
+                            );
+    }
+
+    if (params.size() == 1)
+    {
+         Firewall::DDoSWallet_BanTime = (int)strtod(params[0].get_str().c_str(), NULL);
+    }
+
+    Object result;
+    result.push_back(Pair("bantime-ddoswallet", Firewall::DDoSWallet_BanTime));
+
+    return result;
+}
+
+Value firewallddoswalletmincheck(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+    {
+        throw runtime_error("firewallDDoSwalletmincheck \"seconds\"\n"
+                            "\nBitcoin Firewall Min Check DDoS Wallet\n"
+                            "\nArguments:\n"
+                            "Value: \"seconds\" (integer, required)\n"
+                            "\nExamples:\n"
+                            "\n0 = default - \n"
+                            + HelpExampleCli("firewallDDoSwalletmincheck", "0")
+                            + HelpExampleCli("firewallDDoSwalletmincheck", "10000000")
+                            );
+    }
+
+    if (params.size() == 1)
+    {
+        Firewall::DDoSWallet_MinCheck = (int)strtod(params[0].get_str().c_str(), NULL);
+    }
+
+    Object result;
+    result.push_back(Pair("mincheck-DDoSwallet", Firewall::DDoSWallet_MinCheck));
+
+    return result;
+}
 
 // |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||

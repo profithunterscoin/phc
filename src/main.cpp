@@ -4011,6 +4011,22 @@ bool CBlock::AcceptBlock()
             {
                 pnode->PushInventory(CInv(MSG_BLOCK, hash));
             }
+
+            // Push Dynamic Checkpoint Data, even if not received from peer
+            if (pnode->dCheckpointRecv.height == 0)
+            {
+                map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hash);
+                if (mi != mapBlockIndex.end())
+                {
+                    CBlockIndex* pindex = (*mi).second;
+                    if (pindex && pindex->IsInMainChain())
+                    {
+                        pnode->dCheckpointRecv.hash = hash;
+                        pnode->dCheckpointRecv.height = pindex->nHeight;
+                        pnode->dCheckpointRecv.timestamp = GetTime();
+                    }
+                }
+            }
         }
     }
 

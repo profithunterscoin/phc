@@ -157,10 +157,11 @@ extern json_spirit::Value firewalldebugbans(const json_spirit::Array& params, bo
 extern json_spirit::Value firewalldebugblacklist(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewalldebugdisconnect(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewalldebugbandwidthabuse(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value firewalldebugnofalsepositivebandwidthabuse(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value firewalldebugdoublespend(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewalldebuginvalidwallet(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewalldebugforkedwallet(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewalldebugfloodingwallet(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value firewalldebugddoswallet(const json_spirit::Array& params, bool fHelp);
 
 // * Firewall Settings (Exam) *
 extern json_spirit::Value firewalltraffictolerance(const json_spirit::Array& params, bool fHelp);
@@ -170,11 +171,17 @@ extern json_spirit::Value firewalltrafficzone(const json_spirit::Array& params, 
 extern json_spirit::Value firewalldetectbandwidthabuse(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallblacklistbandwidthabuse(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallbanbandwidthabuse(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value firewallnofalsepositivebandwidthabuse(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallbantimebandwidthabuse(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallbandwidthabusemaxcheck(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value firewallbandwidthabuseminattack(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value firewallbandwidthabusemaxattack(const json_spirit::Array& params, bool fHelp);
+
+/* Firewall Doublespend Session Settings */
+extern json_spirit::Value firewalldetectdoublespend(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value firewallblacklistdoublespend(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value firewallbandoublespend(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value firewallbantimedoublespend(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value firewalldoublespendmaxcheck(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value firewalldoublespendminattack(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value firewalldoublespendmaxattack(const json_spirit::Array& params, bool fHelp);
 
 /* Firewall Invalid Wallet Session Settings */
 extern json_spirit::Value firewalldetectinvalidwallet(const json_spirit::Array& params, bool fHelp);
@@ -190,6 +197,13 @@ extern json_spirit::Value firewallblacklistforkedwallet(const json_spirit::Array
 extern json_spirit::Value firewallbanforkedwallet(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallbantimeforkedwallet(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value firewallforkedwalletnodeheight(const json_spirit::Array& params, bool fHelp);
+
+/* Firewall DDoS Wallet Session Settings */
+extern json_spirit::Value firewalldetectddoswallet(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value firewallblacklistddoswallet(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value firewallbanddoswallet(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value firewallbantimeddoswallet(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value firewallddoswalletmincheck(const json_spirit::Array& params, bool fHelp);
 
 /* Firewall Flooding Wallet Session Settings */
 extern json_spirit::Value firewalldetectfloodingwallet(const json_spirit::Array& params, bool fHelp);
