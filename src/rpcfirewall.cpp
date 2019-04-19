@@ -1,7 +1,7 @@
 // ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 // 
-// [Bitcoin Firewall 2.0.0
-// March, 2019 - Biznatch Enterprises & Profit Hunters Coin (PHC)
+// [Bitcoin Firewall 2.0.1
+// April, 2019 - Biznatch Enterprises & Profit Hunters Coin (PHC) & BATA Development (bata.io)
 // https://github.com/BiznatchEnterprises/BitcoinFirewall
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
@@ -748,28 +748,54 @@ Value firewallbantimebandwidthabuse(const Array& params, bool fHelp)
 }
 
 
-Value firewallbandwidthabusemaxcheck(const Array& params, bool fHelp)
+Value firewalldisconnectbandwidthabuse(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() == 0)
     {
-        throw runtime_error("firewallbandwidthabusemaxcheck \"seconds\"\n"
-                            "\nBitcoin Firewall Max Check Bandwidth Abuse Rule \n"
+        throw runtime_error("firewalldisconnectbandwidthabuse \"true|false\"\n"
+                            "\nBitcoin Firewall Disconnect Bandwidth Abuse Rule\n"
                             "\nArguments:\n"
-                            "Seconds: \"0|10000\" (integer, required)\n"
+                            "Status: \"true|false\" (bool, required)\n"
                             "\nExamples:\n"
-                            "\n0 = default\n"
-                            + HelpExampleCli("firewallbandwidthabusemaxcheck", "0")
-                            + HelpExampleCli("firewallbandwidthabusemaxcheck", "10000000")
+                            + HelpExampleCli("firewalldisconnectbandwidthabuse", "true")
+                            + HelpExampleCli("firewalldisconnectbandwidthabuse", "false")
                             );
     }
 
     if (params.size() == 1)
     {
-        Firewall::BandwidthAbuse_Maxcheck = (int)strtod(params[0].get_str().c_str(), NULL);
+        Firewall::BandwidthAbuse_Disconnect = StringToBool(params[0].get_str());
     }
 
     Object result;
-    result.push_back(Pair("maxcheck-bandwidthabuse", Firewall::BandwidthAbuse_Maxcheck));
+    result.push_back(Pair("disconnect-bandwidthabuse", Firewall::BandwidthAbuse_Disconnect));
+
+    return result;
+}
+
+
+Value firewallbandwidthabusemincheck(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+    {
+        throw runtime_error("firewallbandwidthabusemincheck \"seconds\"\n"
+                            "\nBitcoin Firewall Min Check Bandwidth Abuse Rule \n"
+                            "\nArguments:\n"
+                            "Seconds: \"0|10000\" (integer, required)\n"
+                            "\nExamples:\n"
+                            "\n0 = default\n"
+                            + HelpExampleCli("firewallbandwidthabusemincheck", "0")
+                            + HelpExampleCli("firewallbandwidthabusemincheck", "10000000")
+                            );
+    }
+
+    if (params.size() == 1)
+    {
+        Firewall::BandwidthAbuse_Mincheck = (int)strtod(params[0].get_str().c_str(), NULL);
+    }
+
+    Object result;
+    result.push_back(Pair("mincheck-bandwidthabuse", Firewall::BandwidthAbuse_Mincheck));
 
     return result;
 }
@@ -880,28 +906,54 @@ Value firewallbantimedoublespend(const Array& params, bool fHelp)
 }
 
 
-Value firewalldoublespendmaxcheck(const Array& params, bool fHelp)
+Value firewalldisconnectdoublespend(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() == 0)
     {
-        throw runtime_error("firewalldoublespendmaxcheck \"seconds\"\n"
-                            "\nBitcoin Firewall Max Check Bandwidth Abuse Rule \n"
+        throw runtime_error("firewalldisconnectdoublespend \"true|false\"\n"
+                            "\nBitcoin Firewall Disconnect Double Spend Rule\n"
                             "\nArguments:\n"
-                            "Seconds: \"0|10000\" (integer, required)\n"
+                            "Status: \"true|false\" (bool, required)\n"
                             "\nExamples:\n"
-                            "\n0 = default\n"
-                            + HelpExampleCli("firewalldoublespendmaxcheck", "0")
-                            + HelpExampleCli("firewalldoublespendmaxcheck", "10000000")
+                            + HelpExampleCli("firewalldisconnectdoublespend", "true")
+                            + HelpExampleCli("firewalldisconnectdoublespend", "false")
                             );
     }
 
     if (params.size() == 1)
     {
-        Firewall::DoubleSpend_Maxcheck = (int)strtod(params[0].get_str().c_str(), NULL);
+        Firewall::DoubleSpend_Disconnect = StringToBool(params[0].get_str());
     }
 
     Object result;
-    result.push_back(Pair("maxcheck-doublespend", Firewall::DoubleSpend_Maxcheck));
+    result.push_back(Pair("disconnect-doublespend", Firewall::DoubleSpend_Disconnect));
+
+    return result;
+}
+
+
+Value firewalldoublespendmincheck(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+    {
+        throw runtime_error("firewalldoublespendmincheck \"seconds\"\n"
+                            "\nBitcoin Firewall Max Check Bandwidth Abuse Rule \n"
+                            "\nArguments:\n"
+                            "Seconds: \"0|10000\" (integer, required)\n"
+                            "\nExamples:\n"
+                            "\n0 = default\n"
+                            + HelpExampleCli("firewalldoublespendmincheck", "0")
+                            + HelpExampleCli("firewalldoublespendmincheck", "10000000")
+                            );
+    }
+
+    if (params.size() == 1)
+    {
+        Firewall::DoubleSpend_Mincheck = (int)strtod(params[0].get_str().c_str(), NULL);
+    }
+
+    Object result;
+    result.push_back(Pair("mincheck-doublespend", Firewall::DoubleSpend_Mincheck));
 
     return result;
 }
@@ -1039,7 +1091,6 @@ Value firewallbaninvalidwallet(const Array& params, bool fHelp)
     return result;
 }
 
-
 Value firewallbantimeinvalidwallet(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() == 0)
@@ -1062,6 +1113,32 @@ Value firewallbantimeinvalidwallet(const Array& params, bool fHelp)
 
     Object result;
     result.push_back(Pair("bantime-invalidwallet", Firewall::InvalidWallet_BanTime));
+
+    return result;
+}
+
+
+Value firewalldisconnectinvalidwallet(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+    {
+        throw runtime_error("firewalldisconnectinvalidwallet \"true|false\"\n"
+                            "\nBitcoin Firewall Disconnect Invalid Wallet Rule\n"
+                            "\nArguments:\n"
+                            "Status: \"true|false\" (bool, required)\n"
+                            "\nExamples:\n"
+                            + HelpExampleCli("firewalldisconnectinvalidwallet", "true")
+                            + HelpExampleCli("firewalldisconnectinvalidwallet", "false")
+                            );
+    }
+
+    if (params.size() == 1)
+    {
+        Firewall::InvalidWallet_Disconnect = StringToBool(params[0].get_str());
+    }
+
+    Object result;
+    result.push_back(Pair("disconnect-invalidwallet", Firewall::InvalidWallet_Disconnect));
 
     return result;
 }
@@ -1094,28 +1171,28 @@ Value firewallinvalidwalletminprotocol(const Array& params, bool fHelp)
 }
 
 
-Value firewallinvalidwalletmaxcheck(const Array& params, bool fHelp)
+Value firewallinvalidwalletmincheck(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() == 0)
     {
-        throw runtime_error("firewallinvalidwalletmaxcheck \"seconds\"\n"
+        throw runtime_error("firewallinvalidwalletmincheck \"seconds\"\n"
                             "\nBitcoin Firewall Max Check Invalid Wallet Rule \n"
                             "\nArguments:\n"
                             "Value: \"0|100000\" (integer, required)\n"
                             "\nExamples:\n"
                             "\n0 = default - \n"
-                            + HelpExampleCli("firewallinvalidwalletmaxcheck", "0")
-                            + HelpExampleCli("firewallinvalidwalletmaxcheck", "10000000")
+                            + HelpExampleCli("firewallinvalidwalletmincheck", "0")
+                            + HelpExampleCli("firewallinvalidwalletmincheck", "10000000")
                             );
     }
 
     if (params.size() == 1)
     {
-        Firewall::InvalidWallet_MaxCheck = (int)strtod(params[0].get_str().c_str(), NULL);
+        Firewall::InvalidWallet_MinCheck = (int)strtod(params[0].get_str().c_str(), NULL);
     }
 
     Object result;
-    result.push_back(Pair("maxcheck-invalidwallet", Firewall::InvalidWallet_MaxCheck));
+    result.push_back(Pair("mincheck-invalidwallet", Firewall::InvalidWallet_MinCheck));
 
     return result;
 }
@@ -1221,6 +1298,32 @@ Value firewallbantimeforkedwallet(const Array& params, bool fHelp)
 
     Object result;
     result.push_back(Pair("bantime-forkedwallet", Firewall::ForkedWallet_BanTime));
+
+    return result;
+}
+
+
+Value firewalldisconnectforkedwallet(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+    {
+        throw runtime_error("firewalldisconnectforkedwallet \"true|false\"\n"
+                            "\nBitcoin Firewall Disconnect Forked Wallet Rule\n"
+                            "\nArguments:\n"
+                            "Status: \"true|false\" (bool, required)\n"
+                            "\nExamples:\n"
+                            + HelpExampleCli("firewalldisconnectforkedwallet", "true")
+                            + HelpExampleCli("firewalldisconnectforkedwallet", "false")
+                            );
+    }
+
+    if (params.size() == 1)
+    {
+        Firewall::ForkedWallet_Disconnect = StringToBool(params[0].get_str());
+    }
+
+    Object result;
+    result.push_back(Pair("disconnect-forkedwallet", Firewall::ForkedWallet_Disconnect));
 
     return result;
 }
@@ -1365,6 +1468,32 @@ Value firewallbantimefloodingwallet(const Array& params, bool fHelp)
 
     Object result;
     result.push_back(Pair("bantime-floodingwallet", Firewall::FloodingWallet_BanTime));
+
+    return result;
+}
+
+
+Value firewalldisconnectfloodingwallet(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+    {
+        throw runtime_error("firewalldisconnectfloodingwallet \"true|false\"\n"
+                            "\nBitcoin Firewall Disconnect Flooding Wallet Rule\n"
+                            "\nArguments:\n"
+                            "Status: \"true|false\" (bool, required)\n"
+                            "\nExamples:\n"
+                            + HelpExampleCli("firewalldisconnectfloodingwallet", "true")
+                            + HelpExampleCli("firewalldisconnectfloodingwallet", "false")
+                            );
+    }
+
+    if (params.size() == 1)
+    {
+        Firewall::FloodingWallet_Disconnect = StringToBool(params[0].get_str());
+    }
+
+    Object result;
+    result.push_back(Pair("disconnect-floodingwallet", Firewall::FloodingWallet_Disconnect));
 
     return result;
 }
@@ -1816,6 +1945,33 @@ Value firewallbantimeddoswallet(const Array& params, bool fHelp)
 
     return result;
 }
+
+
+Value firewalldisconnectddoswallet(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
+    {
+        throw runtime_error("firewalldisconnectddoswallet \"true|false\"\n"
+                            "\nBitcoin Firewall Disconnect DDoS Wallet Rule\n"
+                            "\nArguments:\n"
+                            "Status: \"true|false\" (bool, required)\n"
+                            "\nExamples:\n"
+                            + HelpExampleCli("firewalldisconnectddoswallet", "true")
+                            + HelpExampleCli("firewalldisconnectddoswallet", "false")
+                            );
+    }
+
+    if (params.size() == 1)
+    {
+        Firewall::DDoSWallet_Disconnect = StringToBool(params[0].get_str());
+    }
+
+    Object result;
+    result.push_back(Pair("disconnect-ddoswallet", Firewall::DDoSWallet_Disconnect));
+
+    return result;
+}
+
 
 Value firewallddoswalletmincheck(const Array& params, bool fHelp)
 {

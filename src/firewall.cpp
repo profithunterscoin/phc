@@ -1,7 +1,7 @@
 // ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 // 
-// [Bitcoin Firewall 2.0.0
-// March, 2019 - Biznatch Enterprises & Profit Hunters Coin (PHC) & BATA Development (bata.io)
+// [Bitcoin Firewall 2.0.1
+// April, 2019 - Biznatch Enterprises & Profit Hunters Coin (PHC) & BATA Development (bata.io)
 // https://github.com/BiznatchEnterprises/BitcoinFirewall
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
@@ -13,7 +13,7 @@
 using namespace std;
 using namespace CBan;
 
-string Firewall::ModuleName = "[Bitcoin Firewall 2.0.0]";
+string Firewall::ModuleName = "[Bitcoin Firewall 2.0.1]";
 
 
 // * Global Firewall Variables *
@@ -58,17 +58,19 @@ bool Firewall::LiveDebug_DDoSWallet = true;
 
 // *** Firewall Settings (Bandwidth Abuse) ***
 bool Firewall::BandwidthAbuse_Detect = true;
-bool Firewall::BandwidthAbuse_Blacklist = true;
-bool Firewall::BandwidthAbuse_Ban = true;
+bool Firewall::BandwidthAbuse_Blacklist = false;
+bool Firewall::BandwidthAbuse_Ban = false;
 int Firewall::BandwidthAbuse_BanTime = 0; // 24 hours
-int Firewall::BandwidthAbuse_Maxcheck = 10;
+bool Firewall::BandwidthAbuse_Disconnect = false;
+int Firewall::BandwidthAbuse_Mincheck = 20;
 
 // *** Firewall Settings (Double Spend Attack) ***
 bool Firewall::DoubleSpend_Detect = true;
 bool Firewall::DoubleSpend_Blacklist = true;
 bool Firewall::DoubleSpend_Ban = true;
 int Firewall::DoubleSpend_BanTime = 0; // 24 hours
-int Firewall::DoubleSpend_Maxcheck = 10;
+bool Firewall::DoubleSpend_Disconnect = true;
+int Firewall::DoubleSpend_Mincheck = 10;
 double Firewall::DoubleSpend_MinAttack = 17.1;
 double Firewall::DoubleSpend_MaxAttack = 17.2;
 
@@ -77,13 +79,15 @@ bool Firewall::InvalidWallet_Detect = true;
 bool Firewall::InvalidWallet_Blacklist = true;
 bool Firewall::InvalidWallet_Ban = true;
 int Firewall::InvalidWallet_BanTime = 0; // 24 hours
+bool Firewall::InvalidWallet_Disconnect = true;
 int Firewall::InvalidWallet_MinimumProtocol = MIN_PEER_PROTO_VERSION;
-int Firewall::InvalidWallet_MaxCheck;
+int Firewall::InvalidWallet_MinCheck;
 
 // * Firewall Settings (Forked Wallet)
 bool Firewall::ForkedWallet_Detect = true;
 bool Firewall::ForkedWallet_Blacklist = true;
 bool Firewall::ForkedWallet_Ban = true;
+bool Firewall::ForkedWallet_Disconnect = true;
 int Firewall::ForkedWallet_BanTime = 0; //24 hours
 
 // FORKLIST
@@ -99,6 +103,7 @@ bool Firewall::FloodingWallet_Detect = true;
 bool Firewall::FloodingWallet_Blacklist = true;
 bool Firewall::FloodingWallet_Ban = true;
 int Firewall::FloodingWallet_BanTime = 2600000; // 30 days
+bool Firewall::FloodingWallet_Disconnect = true;
 uint64_t Firewall::FloodingWallet_MinBytes = 1000000;
 uint64_t Firewall::FloodingWallet_MaxBytes = 1000000;
 double Firewall::FloodingWallet_MinTrafficAverage = 2000; // Ratio Up/Down
@@ -115,7 +120,7 @@ string Firewall::FloodingWallet_Patterns[256] =
 // Flooding Wallet Ignored Patterns
 string Firewall::FloodingWallet_Ignored[256] =
 {
-    ""
+
 };
 
 // * Firewall Settings (DDOS Wallet)
@@ -123,6 +128,7 @@ bool Firewall::DDoSWallet_Detect = true;
 bool Firewall::DDoSWallet_Blacklist = true;
 bool Firewall::DDoSWallet_Ban = true;
 int Firewall::DDoSWallet_BanTime = 0; //24 hours
+bool Firewall::DDoSWallet_Disconnect = true;
 int Firewall::DDoSWallet_MinCheck = 30; // seconds
 
 // Firewall Whitelist (ignore pnode->addrName)
@@ -166,14 +172,16 @@ void Firewall::LoadFirewallSettings()
     Firewall::BandwidthAbuse_Blacklist = GetBoolArg("-firewallblacklistbandwidthabuse", Firewall::BandwidthAbuse_Blacklist);
     Firewall::BandwidthAbuse_Ban = GetBoolArg("-firewallbanbandwidthabuse", Firewall::BandwidthAbuse_Ban);
     Firewall::BandwidthAbuse_BanTime = GetArg("-firewallbantimebandwidthabuse", Firewall::BandwidthAbuse_BanTime);
-    Firewall::BandwidthAbuse_Maxcheck = GetArg("-firewallbandwidthabusemaxcheck", Firewall::BandwidthAbuse_Maxcheck);
+    Firewall::BandwidthAbuse_Disconnect = GetBoolArg("-firewalldisconnectbandwidthabuse", Firewall::BandwidthAbuse_Disconnect);
+    Firewall::BandwidthAbuse_Mincheck = GetArg("-firewallbandwidthabusemincheck", Firewall::BandwidthAbuse_Mincheck);
 
     // *** Firewall Settings (DoubleSpend Abuse) ***
     Firewall::DoubleSpend_Detect = GetBoolArg("-firewalldetectdoublespend", Firewall::DoubleSpend_Detect);
     Firewall::DoubleSpend_Blacklist = GetBoolArg("-firewallblacklistdoublespend", Firewall::DoubleSpend_Blacklist);
     Firewall::DoubleSpend_Ban = GetBoolArg("-firewallbandoublespend", Firewall::DoubleSpend_Ban);
     Firewall::DoubleSpend_BanTime = GetArg("-firewallbantimedoublespend", Firewall::DoubleSpend_BanTime);
-    Firewall::DoubleSpend_Maxcheck = GetArg("-firewalldoublespendmaxcheck", Firewall::DoubleSpend_Maxcheck);
+    Firewall::DoubleSpend_Disconnect = GetBoolArg("-firewalldisconnectdoublespend", Firewall::DoubleSpend_Disconnect);
+    Firewall::DoubleSpend_Mincheck = GetArg("-firewalldoublespendmincheck", Firewall::DoubleSpend_Mincheck);
     Firewall::DoubleSpend_MinAttack = GetArg("-firewalldoublespendminattack", Firewall::DoubleSpend_MinAttack);
     Firewall::DoubleSpend_MaxAttack = GetArg("-firewalldoublespendmaxattack", Firewall::DoubleSpend_MaxAttack);
 
@@ -184,19 +192,22 @@ void Firewall::LoadFirewallSettings()
     Firewall::InvalidWallet_MinimumProtocol = GetArg("-firewallinvalidwalletminprotocol", Firewall::InvalidWallet_MinimumProtocol);
     Firewall::InvalidWallet_Ban = GetArg("-firewallbaninvalidwallet", Firewall::InvalidWallet_Ban);
     Firewall::InvalidWallet_BanTime = GetArg("-firewallbantimeinvalidwallet", Firewall::InvalidWallet_BanTime);
-    Firewall::InvalidWallet_MaxCheck = GetArg("-firewallinvalidwalletmaxcheck", Firewall::InvalidWallet_MaxCheck);
+    Firewall::InvalidWallet_Disconnect = GetArg("-firewalldisconnectinvalidwallet", Firewall::InvalidWallet_Disconnect);
+    Firewall::InvalidWallet_MinCheck = GetArg("-firewallinvalidwalletmincheck", Firewall::InvalidWallet_MinCheck);
 
     // *** Firewall Settings (Forked Peer Wallets) ***
     Firewall::ForkedWallet_Detect = GetBoolArg("-firewalldetectforkedwallet", Firewall::ForkedWallet_Detect);
     Firewall::ForkedWallet_Blacklist = GetBoolArg("-firewallblacklistforkedwallet", Firewall::ForkedWallet_Blacklist);
     Firewall::ForkedWallet_Ban = GetBoolArg("-firewallbanforkedwallet", Firewall::ForkedWallet_Ban);
     Firewall::ForkedWallet_BanTime = GetArg("-firewallbantimeforkedwallet", Firewall::ForkedWallet_BanTime);
+    Firewall::ForkedWallet_Disconnect = GetBoolArg("-firewalldisconnectforkedwallet", Firewall::ForkedWallet_Disconnect);
 
     // *** Firewall Settings (Flooding Peer Wallets) ***
     Firewall::FloodingWallet_Detect = GetBoolArg("-firewalldetectfloodingwallet", Firewall::FloodingWallet_Detect);
     Firewall::FloodingWallet_Blacklist = GetBoolArg("-firewallblacklistfloodingwallet", Firewall::FloodingWallet_Blacklist);
     Firewall::FloodingWallet_Ban = GetBoolArg("-firewallbanfloodingwallet", Firewall::FloodingWallet_Ban);
     Firewall::FloodingWallet_BanTime = GetArg("-firewallbantimefloodingwallet", Firewall::FloodingWallet_BanTime);
+    Firewall::FloodingWallet_Disconnect = GetBoolArg("-firewalldisconnectfloodingwallet", Firewall::FloodingWallet_Disconnect);
     Firewall::FloodingWallet_MinBytes = GetArg("-firewallfloodingwalletminbytes", Firewall::FloodingWallet_MinBytes);
     Firewall::FloodingWallet_MaxBytes = GetArg("-firewallfloodingwalletmaxbytes", Firewall::FloodingWallet_MaxBytes);
 
@@ -215,6 +226,7 @@ void Firewall::LoadFirewallSettings()
     Firewall::DDoSWallet_Blacklist = GetBoolArg("-firewallblacklistddoswallet", Firewall::DDoSWallet_Blacklist);
     Firewall::DDoSWallet_Ban = GetBoolArg("-firewallbanddoswallet", Firewall::DDoSWallet_Ban);
     Firewall::DDoSWallet_BanTime = GetArg("-firewallbantimeddoswallet", Firewall::DDoSWallet_BanTime);
+    Firewall::DDoSWallet_Disconnect = GetBoolArg("-firewalldisconnectddoswallet", Firewall::DDoSWallet_Disconnect);
     Firewall::DDoSWallet_MinCheck = GetArg("-firewallmincheckddoswallet", Firewall::DDoSWallet_MinCheck);
 
     return;
@@ -393,7 +405,7 @@ string Firewall::BandwidthAbuseCheck(std::string AddrName, int SyncHeight, doubl
         // Calculate the ratio between Recieved bytes and Sent Bytes
         // Detect a valid syncronizaion vs. a flood attack
         
-        if ((int)TimeConnected > Firewall::BandwidthAbuse_Maxcheck)
+        if ((int)TimeConnected > Firewall::BandwidthAbuse_Mincheck)
         {
             // * Attack detection #2
             // Node is further ahead on the chain than average minimum
@@ -469,7 +481,7 @@ string Firewall::DoubleSpendCheck(std::string AddrName, int SyncHeight, uint64_t
         // Calculate the ratio between Recieved bytes and Sent Bytes
         // Detect a valid syncronizaion vs. a flood attack
         
-        if ((int)TimeConnected > Firewall::DoubleSpend_Maxcheck)
+        if ((int)TimeConnected > Firewall::DoubleSpend_Mincheck)
         {
             // Node is behind on the chain than average minimum
             if (SyncHeight < Firewall::AverageHeight_Min)
@@ -539,8 +551,8 @@ string Firewall::InvalidWalletCheck(std::string AddrName, int StartingHeight, in
     {
         // ### Attack Detection ###
         // Start Height = -1
-        // Check for more than Firewall::InvalidWallet_MaxCheck minutes connection length
-        if ((int)TimeConnected > Firewall::InvalidWallet_MaxCheck)
+        // Check for more than Firewall::InvalidWallet_MinCheck minutes connection length
+        if ((int)TimeConnected > Firewall::InvalidWallet_MinCheck)
         {
             // Check for -1 blockheight
             if (StartingHeight == -1)
@@ -551,7 +563,7 @@ string Firewall::InvalidWalletCheck(std::string AddrName, int StartingHeight, in
         }
 
         // Check for -1 blockheight
-        if ((int)TimeConnected > Firewall::InvalidWallet_MaxCheck)
+        if ((int)TimeConnected > Firewall::InvalidWallet_MinCheck)
         {
             // Check for -1 blockheight
             if (StartingHeight < 0)
@@ -562,8 +574,8 @@ string Firewall::InvalidWalletCheck(std::string AddrName, int StartingHeight, in
         }
         
         // (Protocol: 0
-        // Check for more than Firewall::InvalidWallet_MaxCheck minutes connection length
-        if ((int)TimeConnected > Firewall::InvalidWallet_MaxCheck)
+        // Check for more than Firewall::InvalidWallet_MinCheck minutes connection length
+        if ((int)TimeConnected > Firewall::InvalidWallet_MinCheck)
         {
             // Check for 0 protocol
             if (RecvVersion == 0)
@@ -574,8 +586,8 @@ string Firewall::InvalidWalletCheck(std::string AddrName, int StartingHeight, in
         }
 
         // (Protocol: lower than 1
-        // Check for more than Firewall::InvalidWallet_MaxCheck minutes connection length
-        if ((int)TimeConnected > Firewall::InvalidWallet_MaxCheck)
+        // Check for more than Firewall::InvalidWallet_MinCheck minutes connection length
+        if ((int)TimeConnected > Firewall::InvalidWallet_MinCheck)
         {
             // Check for 
             if (RecvVersion < 1)
@@ -586,8 +598,8 @@ string Firewall::InvalidWalletCheck(std::string AddrName, int StartingHeight, in
         }
 
         // (Protocol: lower than mimimum protocol
-        // Check for more than Firewall::InvalidWallet_MaxCheck minutes connection length
-        if ((int)TimeConnected > Firewall::InvalidWallet_MaxCheck)
+        // Check for more than Firewall::InvalidWallet_MinCheck minutes connection length
+        if ((int)TimeConnected > Firewall::InvalidWallet_MinCheck)
         {
             // Check for 
             if (RecvVersion < InvalidWallet_MinimumProtocol && RecvVersion > 209)
@@ -1024,6 +1036,7 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
     bool BLACKLIST_ATTACK = false;
     int BAN_TIME = 0; // Default 24 hours
     bool BAN_ATTACK = false;
+    bool DISCONNECT_ATTACK = false;
 
     BanReason BAN_REASON{};
 
@@ -1071,6 +1084,11 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
             BAN_REASON = BanReasonBandwidthAbuse;
         }
 
+        if (Firewall::BandwidthAbuse_Disconnect == true)
+        {
+            DISCONNECT_ATTACK = true;
+        }
+
         DETECTED_ATTACK = true;
         ATTACK_CHECK_LOG = ATTACK_CHECK_LOG + Attack_Output;
     }
@@ -1090,8 +1108,13 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
         if (Firewall::DoubleSpend_Ban == true)
         {
             BAN_ATTACK = true;
-            BAN_TIME = Firewall::BandwidthAbuse_BanTime;
+            BAN_TIME = Firewall::DoubleSpend_BanTime;
             BAN_REASON = BanReasonDoubleSpendWallet;
+        }
+
+        if (Firewall::DoubleSpend_Disconnect == true)
+        {
+            DISCONNECT_ATTACK = true;
         }
 
         DETECTED_ATTACK = true;
@@ -1117,6 +1140,11 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
             BAN_REASON = BanReasonInvalidWallet;
         }
 
+        if (Firewall::InvalidWallet_Disconnect == true)
+        {
+            DISCONNECT_ATTACK = true;
+        }
+
         DETECTED_ATTACK = true;
         ATTACK_CHECK_LOG = ATTACK_CHECK_LOG + Attack_Output;
     }
@@ -1129,16 +1157,21 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
     
     if (Attack_Output != "")
     {
-        if (Firewall::DoubleSpend_Blacklist == true)
+        if (Firewall::ForkedWallet_Blacklist == true)
         {
             BLACKLIST_ATTACK = true;
         }
 
-        if (Firewall::DoubleSpend_Ban == true)
+        if (Firewall::ForkedWallet_Ban == true)
         {
             BAN_ATTACK = true;
             BAN_TIME = Firewall::ForkedWallet_BanTime;
             BAN_REASON = BanReasonForkedWallet;
+        }
+
+        if (Firewall::ForkedWallet_Disconnect == true)
+        {
+            DISCONNECT_ATTACK = true;
         }
 
         DETECTED_ATTACK = true;
@@ -1153,16 +1186,21 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
     
     if (Attack_Output != "")
     {
-        if (Firewall::DoubleSpend_Blacklist == true)
+        if (Firewall::FloodingWallet_Blacklist == true)
         {
             BLACKLIST_ATTACK = true;
         }
 
-        if (Firewall::DoubleSpend_Ban == true)
+        if (Firewall::FloodingWallet_Ban == true)
         {
             BAN_ATTACK = true;
             BAN_TIME = Firewall::FloodingWallet_BanTime;
             BAN_REASON = BanReasonFloodingWallet;
+        }
+
+        if (Firewall::FloodingWallet_Disconnect == true)
+        {
+            DISCONNECT_ATTACK = true;
         }
 
         DETECTED_ATTACK = true;
@@ -1186,6 +1224,11 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
             BAN_ATTACK = true;
             BAN_TIME = Firewall::DDoSWallet_BanTime;
             BAN_REASON = BanReasonDDoSWallet;
+        }
+
+        if (Firewall::DDoSWallet_Disconnect == true)
+        {
+            DISCONNECT_ATTACK = true;
         }
 
         DETECTED_ATTACK = true;
@@ -1259,14 +1302,15 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
                 }
             }
 
-            // Peer/Node Panic Disconnect
-            ForceDisconnectNode(pnode, FromFunction);
+            if (DISCONNECT_ATTACK == true)
+            {
+                // Peer/Node Panic Disconnect
+                ForceDisconnectNode(pnode, FromFunction);
+            }
 
             // ATTACK DETECTED!
             return true;
-
         }
-
     }
 
     //NO ATTACK DETECTED...

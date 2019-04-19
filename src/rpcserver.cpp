@@ -417,14 +417,16 @@ static const CRPCCommand vRPCCommands[] =
     { "firewallblacklistbandwidthabuse",                &firewallblacklistbandwidthabuse,               false,      false,    false },
     { "firewallbanbandwidthabuse",                      &firewallbanbandwidthabuse,                     false,      false,    false },
     { "firewallbantimebandwidthabuse",                  &firewallbantimebandwidthabuse,                 false,      false,    false },
-    { "firewallbandwidthabusemaxcheck",                 &firewallbandwidthabusemaxcheck,                false,      false,    false },
+    { "firewalldisconnectbandwidthabuse",               &firewalldisconnectbandwidthabuse,              false,      false,    false },
+    { "firewallbandwidthabusemincheck",                 &firewallbandwidthabusemincheck,                false,      false,    false },
 
     /* Firewall Double-Spend Session Settings */
     { "firewalldetectdoublespend",                      &firewalldetectdoublespend,                     false,      false,    false },
     { "firewallblacklistdoublespend",                   &firewallblacklistdoublespend,                  false,      false,    false },
     { "firewallbandoublespend",                         &firewallbandoublespend,                        false,      false,    false },
     { "firewallbantimedoublespend",                     &firewallbantimedoublespend,                    false,      false,    false },
-    { "firewalldoublespendmaxcheck",                    &firewalldoublespendmaxcheck,                   false,      false,    false },
+    { "firewalldisconnectdoublespend",                  &firewalldisconnectdoublespend,                 false,      false,    false },
+    { "firewalldoublespendmincheck",                    &firewalldoublespendmincheck,                   false,      false,    false },
     { "firewalldoublespendminattack",                   &firewalldoublespendminattack,                  false,      false,    false },
     { "firewalldoublespendminattack",                   &firewalldoublespendminattack,                  false,      false,    false },
 
@@ -433,28 +435,24 @@ static const CRPCCommand vRPCCommands[] =
     { "firewallblacklistinvalidwallet",                 &firewallblacklistinvalidwallet,                false,      false,    false },
     { "firewallbaninvalidwallet",                       &firewallbaninvalidwallet,                      false,      false,    false },
     { "firewallbantimeinvalidwallet",                   &firewallbantimeinvalidwallet,                  false,      false,    false },
+    { "firewalldisconnectinvalidwallet",                &firewalldisconnectinvalidwallet,               false,      false,    false },
     { "firewallinvalidwalletminprotocol",               &firewallinvalidwalletminprotocol,              false,      false,    false },
-    { "firewallinvalidwalletmaxcheck",                  &firewallinvalidwalletmaxcheck,                 false,      false,    false },
+    { "firewallinvalidwalletmincheck",                  &firewallinvalidwalletmincheck,                 false,      false,    false },
 
     /* Firewall Forked Wallet Session Settings */
     { "firewalldetectforkedwallet",                     &firewalldetectforkedwallet,                    false,      false,    false },
     { "firewallblacklistforkedwallet",                  &firewallblacklistforkedwallet,                 false,      false,    false },
     { "firewallbanforkedwallet",                        &firewallbanforkedwallet,                       false,      false,    false },
     { "firewallbantimeforkedwallet",                    &firewallbantimeforkedwallet,                   false,      false,    false },
+    { "firewalldisconnectforkedwallet",                 &firewalldisconnectforkedwallet,                false,      false,    false },
     { "firewallforkedwalletnodeheight",                 &firewallforkedwalletnodeheight,                false,      false,    false },
-
-    /* Firewall DDoS Wallet Session Settings */
-    { "firewalldetectddoswallet",                       &firewalldetectddoswallet,                      false,      false,    false },
-    { "firewallblacklistddoswallet",                    &firewallblacklistddoswallet,                   false,      false,    false },
-    { "firewallbanddoswallet",                          &firewallbanddoswallet,                         false,      false,    false },
-    { "firewallbantimeddoswallet",                      &firewallbantimeddoswallet,                     false,      false,    false },
-    { "firewallddoswalletmincheck",                     &firewallddoswalletmincheck,                    false,      false,    false },
 
     /* Firewall Flooding Wallet Session Settings */
     { "firewalldetectfloodingwallet",                   &firewalldetectfloodingwallet,                  false,      false,    false },
     { "firewallblacklistfloodingwallet",                &firewallblacklistfloodingwallet,               false,      false,    false },
     { "firewallbanfloodingwallet",                      &firewallbanfloodingwallet,                     false,      false,    false },
     { "firewallbantimefloodingwallet",                  &firewallbantimefloodingwallet,                 false,      false,    false },
+    { "firewalldisconnectfloodingwallet",               &firewalldisconnectfloodingwallet,              false,      false,    false },
     { "firewallfloodingwalletminbytes",                 &firewallfloodingwalletminbytes,                false,      false,    false },
     { "firewallfloodingwalletmaxbytes",                 &firewallfloodingwalletmaxbytes,                false,      false,    false },
     { "firewallfloodingwalletattackpatternadd",         &firewallfloodingwalletattackpatternadd,        false,      false,    false },
@@ -465,6 +463,14 @@ static const CRPCCommand vRPCCommands[] =
     { "firewallfloodingwalletmaxtrafficavg",            &firewallfloodingwalletmaxtrafficavg,           false,      false,    false },
     { "firewallfloodingwalletmincheck",                 &firewallfloodingwalletmincheck,                false,      false,    false },
     { "firewallfloodingwalletmaxcheck",                 &firewallfloodingwalletmaxcheck,                false,      false,    false },
+
+    /* Firewall DDoS Wallet Session Settings */
+    { "firewalldetectddoswallet",                       &firewalldetectddoswallet,                      false,      false,    false },
+    { "firewallblacklistddoswallet",                    &firewallblacklistddoswallet,                   false,      false,    false },
+    { "firewallbanddoswallet",                          &firewallbanddoswallet,                         false,      false,    false },
+    { "firewallbantimeddoswallet",                      &firewallbantimeddoswallet,                     false,      false,    false },
+    { "firewalldisconnectddoswallet",                   &firewalldisconnectddoswallet,                  false,      false,    false },
+    { "firewallddoswalletmincheck",                     &firewallddoswalletmincheck,                    false,      false,    false },
 
 /* Dark features */
     { "spork",                                          &spork,                                         true,      false,      false },
