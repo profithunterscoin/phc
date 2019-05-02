@@ -368,33 +368,33 @@ namespace CBan
                 {
                     case BanReasonNodeMisbehaving:
                     {
-                        return "node misbehaving";
+                        return "Misbehaving";
                     }
                     break;
 
                     case BanReasonManuallyAdded:
                     {
-                        return "manually added";
+                        return "Nanually added";
                     }
 
                     case BanReasonBandwidthAbuse:
                     {
-                        return "bandwidth abuse";
+                        return "Bandwidth abuse";
                     }
 
                     case BanReasonInvalidWallet:
                     {
-                        return "invalid wallet";
+                        return "Invalid wallet";
                     }
 
                     case BanReasonForkedWallet:
                     {
-                        return "forked wallet";
+                        return "Forked wallet";
                     }
 
                     case BanReasonFloodingWallet:
                     {
-                        return "flooding wallet";
+                        return "Flooding wallet";
                     }
 
                     case BanReasonDDoSWallet:

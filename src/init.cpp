@@ -69,6 +69,8 @@ unsigned int nMinerSleep;
 bool fUseFastIndex;
 bool fOnlyTor = false;
 
+extern vector<string> DebugCategories; 
+
 // Turbosync (C) 2019 - Profit Hunters Coin
 int64_t TURBOSYNC_MAX;
 
@@ -484,12 +486,10 @@ bool AppInit2(boost::thread_group& threadGroup)
     // ********************************************************* Step 2: parameter interactions
 
     fDebug = false;
-
-    // Special-case: if -debug=0/-nodebug is set, turn off debugging messages
-    const vector<string>& categories = mapMultiArgs["-debug"];
+    DebugCategories = mapMultiArgs["-debug"];
 
     // Special-case: if -debug=1/ is set, turn on debugging messages
-    if (GetBoolArg("-debug", false) || find(categories.begin(), categories.end(), string("1")) != categories.end())
+    if (GetBoolArg("-debug", false) == true || DebugCategories.empty() == false)
     {
         fDebug = true;
     }
