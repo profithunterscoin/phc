@@ -141,6 +141,8 @@ extern bool fSucessfullyLoaded;
 extern std::vector<int64_t> darkSendDenominations;
 extern std::map<std::string, std::string> mapArgs;
 extern std::map<std::string, std::vector<std::string> > mapMultiArgs;
+
+
 extern bool fDebug;
 extern bool fDebugSmsg;
 extern bool fNoSmsg;
@@ -153,6 +155,7 @@ extern std::string strMiscWarning;
 extern bool fNoListen;
 extern bool fLogTimestamps;
 extern volatile bool fReopenDebugLog;
+extern vector<string> DebugCategories;
 
 void RandAddSeed();
 void RandAddSeedPerfmon();

@@ -3519,7 +3519,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                     }
                     else
                     {
-                        LogPrintf("CheckBlock() : Found payment(%d|%d) or payee(%d|%s) nHeight %d. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, address2.ToString().c_str(), pindexBest->nHeight+1);
+                        LogPrint("core", "CheckBlock() : Found payment(%d|%d) or payee(%d|%s) nHeight %d. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, address2.ToString().c_str(), pindexBest->nHeight+1);
                     }
                 }
                 else
@@ -4116,6 +4116,18 @@ void Misbehaving(NodeId pnode, int howmuch)
         }
     }
 }
+
+
+/*
+int DynamicDistribution()
+{
+    // Version 1.0.0 (C) 2019 Profit Hunters Coin in collaboration with Crypostle
+    // Prevents consecutive blocks from the same node (decentralized coin distribution regardless of hash-power)
+    // Requirements ASIC_Choker
+
+}
+*/
+
 
 bool ASIC_Choker(std::string addrname, CBlock* pblock)
 {
@@ -7381,6 +7393,7 @@ bool Consensus::ChainShield::Protect()
         Consensus::ChainShield::Enabled = false;
         Consensus::ChainShield::DisableNewBlocks = false;
         Consensus::ChainShield::Rollback_Runaway = false;
+        
         return false; // Skip on mainnet until testing is completed
     }
 

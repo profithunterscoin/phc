@@ -121,6 +121,8 @@ bool fNoListen = false;
 bool fLogTimestamps = false;
 volatile bool fReopenDebugLog = false;
 
+vector<string> DebugCategories;
+
 // Init OpenSSL library multithreading support
 static CCriticalSection** ppmutexOpenSSL;
 
@@ -341,25 +343,65 @@ bool LogAcceptCategory(const char* category)
         // where mapMultiArgs might be deleted before another
         // global destructor calls LogPrint()
         static boost::thread_specific_ptr<set<string> > ptrCategory;
+
         if (ptrCategory.get() == NULL)
         {
-            const vector<string>& categories = mapMultiArgs["-debug"];
-
-            ptrCategory.reset(new set<string>(categories.begin(), categories.end()));
+            ptrCategory.reset(new set<string>(DebugCategories.begin(), DebugCategories.end()));
             // thread_specific_ptr automatically deletes the set when the thread ends.
+
+            if (ptrCategory.get() == NULL)
+            {
+                ptrCategory->insert(string("*"));
+            }
+
+            // "*" is a wildcard composite category enabling all PHC-related debug output
+            if(ptrCategory->count(string("*")))
+            {
+                ptrCategory->insert(string("addrman"));
+                ptrCategory->insert(string("alert"));
+                ptrCategory->insert(string("core"));
+                ptrCategory->insert(string("db"));
+                ptrCategory->insert(string("rand"));
+                ptrCategory->insert(string("rpc"));
+                ptrCategory->insert(string("coincontrol"));
+                ptrCategory->insert(string("mempool"));
+                ptrCategory->insert(string("net"));
+                ptrCategory->insert(string("socks"));
+                ptrCategory->insert(string("darksend"));
+                ptrCategory->insert(string("instantsend"));
+                ptrCategory->insert(string("wallet"));
+                ptrCategory->insert(string("masternode"));
+                ptrCategory->insert(string("firewall"));
+                ptrCategory->insert(string("stealth"));
+                ptrCategory->insert(string("protocol"));
+                ptrCategory->insert(string("init"));
+                ptrCategory->insert(string("stakemodifier"));
+                ptrCategory->insert(string("kernel"));
+                ptrCategory->insert(string("util"));
+                ptrCategory->insert(string("daemon"));
+                ptrCategory->insert(string("proxy"));
+                ptrCategory->insert(string("spork"));
+                ptrCategory->insert(string("blockshield"));
+                ptrCategory->insert(string("blocktree"));
+                ptrCategory->insert(string("asicchoker"));
+                ptrCategory->insert(string("noui"));
+            }
         }
 
         const set<string>& setCategories = *ptrCategory.get();
 
         // if not debugging everything and not debugging specific category, LogPrint does nothing.
-        if (setCategories.count(string("")) == 0 && setCategories.count(string(category)) == 0)
+        if (setCategories.count(string("")) == 0 && setCategories.count(string("*")) == 0 && setCategories.count(string(category)) == 0)
         {
             return false;
         }
 
     }
 
+
     return true;
+
+
 }
 
 

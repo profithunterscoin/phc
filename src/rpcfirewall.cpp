@@ -1,10 +1,14 @@
-// ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-// 
-// [Bitcoin Firewall 2.0.1
-// April, 2019 - Biznatch Enterprises & Profit Hunters Coin (PHC) & BATA Development (bata.io)
-// https://github.com/BiznatchEnterprises/BitcoinFirewall
-// Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+/*
+   |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+   ||||                                                                                             ||||
+   |||| Bitcoin Firewall 2.0.0.2  April, 2019                                                       ||||
+   |||| Biznatch Enterprises & Profit Hunters Coin (PHC) & BATA Development (bata.io)               ||||
+   |||| https://github.com/BiznatchEnterprises/BitcoinFirewall                                      ||||
+   |||| Distributed under the MIT/X11 software license, see the accompanying                        ||||
+   |||| file COPYING or http://www.opensource.org/licenses/mit-license.php.                         ||||
+   ||||                                                                                             ||||
+   |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+*/
 
 #include "rpcserver.h"
 #include "main.h"
@@ -1840,8 +1844,6 @@ Value firewallfloodingwalletmaxcheck(const Array& params, bool fHelp)
 }
 
 
-
-
 Value firewalldetectddoswallet(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() == 0)
@@ -1999,4 +2001,6 @@ Value firewallddoswalletmincheck(const Array& params, bool fHelp)
     return result;
 }
 
-// |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+/*
+   |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+**/
