@@ -11,6 +11,7 @@
 #include "kernel.h"
 #include "checkpoints.h"
 #include "init.h"
+#include "consensus.h"
 
 using namespace json_spirit;
 using namespace std;
