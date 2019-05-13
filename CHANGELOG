@@ -12,7 +12,12 @@ PHC is a Pow/PoS/Masternode-based cryptocurrency to be used for affiliate
 opportunities and online marketing. Assisting new crypto-currency users get
 started with peer to peer profits from trading coins on our decentralized exchange.
 
-v1.0.0.7 (Pre-release)
+
+v1.0.0.8 (Next Release)
+* Multisig - GUI Update, Codebase changes from Hempcoin V1, Critical Bitcoin Core 10+ updates
+* New GUIs: ExportWalletKeys (umpwallet), ExportAddressKey(dumpkeys), ChangeGenProcLimit
+
+v1.0.0.7 (Pre-release - unfinished)
 --------
 * Cleaned Core and QT source files
 * OpenSSL 1.1 Support from Ignition coin (https://github.com/ignitioncoin/ignitioncoin/commit/8c08f09ef639a9c48b00661297619c23b9514966)
@@ -45,19 +50,21 @@ v1.0.0.7 (Pre-release)
 * TurboSync 1.0.0 (2x network sync speedup, unlimited scaling)
 * Installed: RPC forcesync, getpeeraverageheight
 * Dynamic Checkpoints 1.0.0
-* Chain Shield 1.0.0 (default check every 1 blocks)
+* Chain Shield 1.0.0 (default check every 1 block)
 * Consensus::ChainBuddy 1.0.0 (Satoshi's Vision 2.0 - Wallet & Network Consensus)
 * Installed: DynamicCheckpointRecv && DynamicCheckpointSent values output from CNode to GetPeerInfo RPC
 * Installed RPC: getchainshieldinfo, chainshieldenabled, getchainbuddyinfo, chainshieldenabled
-
+* Upgraded: Firewall to 2.0.0.2
+* Upgraded: Uint256 with SetNull & IsNull https://gitlab.crown.tech/Edwardmorra/crown-core/commit/c655cca28ba620bdcf90a8c540c840c736aa318d
+* Installed: DynamicCoinDistribution & Upgraded ASIC Choker
+* Upgraded: Blockcount GUI
 
 v1.0.0.7 (To Finish before release)
 --------
 * DDoS Shield & Firewall upgrades
-* Multisig - GUI Update
 * Masternode reward decentralization (Hard-Fork 1)
-* New GUIs: ExportWalletKeys (umpwallet), ExportAddressKey(dumpkeys), ChangeGenProcLimit
 * New RPC: getasicchokerlog, blockshield, dynamiccheckpoint
+* Transaction View Masternode payments / staking / mining
 
 v1.0.0.6
 --------

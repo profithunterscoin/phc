@@ -75,6 +75,7 @@ static const int64_t MIN_RELAY_TX_FEE = MIN_TX_FEE;
 
 /** No amount larger than this (in satoshi) is valid */
 static const int64_t MAX_MONEY = 100000000 * COIN;  // 100M COIN
+
 inline bool MoneyRange(int64_t nValue)
 {
     return (nValue >= 0 && nValue <= MAX_MONEY);
@@ -147,85 +148,30 @@ class CTxIndex;
 class CWalletInterface;
 struct CNodeStateStats;
 
+//////////////////////////////////////////////////////////////////////////////
+//
+// CChain
+//
 
-class CChain
+namespace CChain
 {
 
-    public:
+    /** Backtoblock X Blockchain Index*/
+    int Backtoblock(int nNewHeight);
 
-        /** Backtoblock X Blockchain Index*/
-        static int Backtoblock(int nNewHeight);
+    /** Rollback Blockchain Index */
+    int RollbackChain(int nBlockCount);
 
-        /** Rollback Blockchain Index */
-        static int RollbackChain(int nBlockCount);
+    /** Force Sync from current Block (Request all connected nodes) */
+    int ForceSync();
 
-        /** Force Sync from current Block (Request all connected nodes) */
-        static int ForceSync();
+    /** Prune Orphan blocks from index */
+    void PruneOrphanBlocks();
 
-        /** Prune Orphan blocks from index */
-        static void PruneOrphanBlocks();
-
-        /** Reorganize the chain index */
-        static bool Reorganize(CTxDB& txdb, CBlockIndex* pindexNew);
+    /** Reorganize the chain index */
+    bool Reorganize(CTxDB& txdb, CBlockIndex* pindexNew);
 
 };
-
-
-namespace Consensus
-{
-    // Consensus Class 1.0.0 (C) 2019 Profit Hunters Coin
-    // Satoshi Vision 2.0 - Find the best Dynamic Checkpoint among peers
-    // Most valid chain decided by the network, not block height+1 or elevated proof of work
-
-        class ChainBuddy
-        {
-            public:
-
-                    static bool Enabled; // ChainShield Enabled = TRUE/FALSE
-
-                    static DynamicCheckpoints::Checkpoint BestCheckpoint; // Best Chain
-                            
-                    static vector<std::pair<int, DynamicCheckpoints::Checkpoint>> ConsensusCheckpointMap; // History
-
-                    static bool FindHash(uint256 hash);
-
-                    static bool AddHashCheckpoint(CNode *pnode);
-
-                    static int GetNodeCount(uint256 hash);
-
-                    static bool IncrementCheckpointNodeCount(CNode *pnode);
-
-                    static bool FindConsensus();
-
-                    static bool WalletHasConsensus();
-
-                    static bool NodeHasConsensus(CNode* pnode);
-
-        };
-
-
-    class ChainShield
-    {
-        // ChainShield 1.0.0 (C) 2019 Profit Hunters Coin
-        // Peer to peer Satoshi Consensus to prevent local wallet from getting stuck on a forked chain
-        // Forces local blockchain rollback and resync to organize most valid chain
-        // Requirements: Dynamic Checkpoints 1.0.0
-        // Recommended: Implemented with Bitcoin Firewall X.X.X & Blockshield & ASIC Choker
-
-        public:
-
-            static bool Enabled; // ChainShield Enabled = TRUE/FALSE
-
-            static int ChainShieldCache; // Last Block Height protected
-
-            static bool DisableNewBlocks; // Disable PoW/PoS/Masternode block creation
-
-            static bool Rollback_Runaway; // Rollback chain when runnaway fork detected
-
-            static bool Protect();
-
-    };
-}
 
 
 /** Register a wallet to receive updates from core */
@@ -909,6 +855,31 @@ class CBlock
         bool IsNull() const
         {
             return (nBits == 0);
+        }
+
+        int GetVersion() const
+        {
+            return nVersion;
+        }
+
+        uint256 GetHashPrevBlock() const
+        {
+            return hashPrevBlock;
+        }
+
+        uint256 GetHashMerkleRoot() const
+        {
+            return hashMerkleRoot;
+        }
+
+        int GetBits() const
+        {
+            return nBits;
+        }
+
+        int GetNonce() const
+        {
+            return nNonce;
         }
 
         uint256 GetHash() const
@@ -1767,8 +1738,109 @@ class CWalletInterface
         friend void ::UnregisterAllWallets();
 };
 
+ class CBlockHeader
+ {
+    public:
 
+        // header
+        int32_t nVersion;
+        uint256 hashPrevBlock;
+        uint256 hashMerkleRoot;
+        uint32_t nTime;
+        uint32_t nBits;
+        uint32_t nNonce;
+    
+        CBlockHeader()
+        {
+            SetNull();
+        }
+    
+        IMPLEMENT_SERIALIZE
+        (
+            READWRITE(this->nVersion);
+            READWRITE(hashPrevBlock);
+            READWRITE(hashMerkleRoot);
+            READWRITE(nTime);
+            READWRITE(nBits);
+            READWRITE(nNonce);
+        )
+    
+        void SetNull()
+        {
+            nVersion = 0;
+            hashPrevBlock.SetNull();
+            hashMerkleRoot.SetNull();
+            nTime = 0;
+            nBits = 0;
+            nNonce = 0;
+        }
+    
+        bool IsNull() const
+        {
+            return (nBits == 0);
+        }
+    
+        uint256 GetHash() const;
+    
+        int64_t GetBlockTime() const
+        {
+            return (int64_t)nTime;
+        }
+ };
+ 
+ /* To Upgrade for CBlockHeader
+ class CBlock : public CBlockHeader
+ {
+ public:
+     // network and disk
+     std::vector<CTransactionRef> vtx;
+ 
+     // memory only
+     mutable bool fChecked;
+ 
+     CBlock()
+     {
+         SetNull();
+     }
+ 
+     CBlock(const CBlockHeader &header)
+     {
+         SetNull();
+         *(static_cast<CBlockHeader*>(this)) = header;
+     }
+ 
+     ADD_SERIALIZE_METHODS;
+ 
+     template <typename Stream, typename Operation>
+     inline void SerializationOp(Stream& s, Operation ser_action) {
+         READWRITEAS(CBlockHeader, *this);
+         READWRITE(vtx);
+     }
+ 
+     void SetNull()
+     {
+         CBlockHeader::SetNull();
+         vtx.clear();
+         fChecked = false;
+     }
+ 
+     CBlockHeader GetBlockHeader() const
+     {
+         CBlockHeader block;
+         block.nVersion       = nVersion;
+         block.hashPrevBlock  = hashPrevBlock;
+         block.hashMerkleRoot = hashMerkleRoot;
+         block.nTime          = nTime;
+         block.nBits          = nBits;
+         block.nNonce         = nNonce;
+         return block;
+     }
+ 
+     std::string ToString() const;
+ };
+ */
 
+/* End of Main.h
+    Do not remove endif below
+*/
 #endif
-
-

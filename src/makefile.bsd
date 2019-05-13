@@ -140,6 +140,7 @@ OBJS= \
     obj/keystore.o \
     obj/core.o \
     obj/main.o \
+    obj/consensus.o \
     obj/net.o \
     obj/firewall.o \
     obj/protocol.o \

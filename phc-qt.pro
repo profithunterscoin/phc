@@ -285,6 +285,7 @@ HEADERS += \
     src/support/cleanse.h \
     src/core.h \
     src/main.h \
+    src/consensus.h \
     src/miner.h \
     src/net.h \
     src/firewall.h \
@@ -414,6 +415,7 @@ SOURCES += \
     src/scrypt.cpp \
     src/core.cpp \
     src/main.cpp \
+    src/consensus.cpp \
     src/miner.cpp \
     src/init.cpp \
     src/net.cpp \
