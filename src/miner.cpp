@@ -11,6 +11,7 @@
 #include "kernel.h"
 #include "masternodeman.h"
 #include "masternode-payments.h"
+#include "consensus.h"
 
 #include "arith_uint256.h"
 
