@@ -13,6 +13,7 @@
 #include "firewall.h"
 #include "util.h"
 #include "main.h"
+#include "consensus.h"
 
 using namespace std;
 using namespace CBan;
@@ -126,12 +127,12 @@ string Firewall::FloodingWallet_Ignored[256] =
 };
 
 /* VARIABLES: Firewall Settings (DDOS Wallet) */
-bool Firewall::DDoSWallet_Detect = true;                                    /* True/False                                               */
-bool Firewall::DDoSWallet_Blacklist = true;                                 /* True/False                                               */
-bool Firewall::DDoSWallet_Ban = true;                                       /* True/False                                               */
-int Firewall::DDoSWallet_BanTime = 0;                                       /* 24 hours                                                 */
-bool Firewall::DDoSWallet_Disconnect = true;                                /* True/False                                               */
-int Firewall::DDoSWallet_MinCheck = 30;                                     /* 30 Seconds                                               */
+bool Firewall::DDoSWallet_Detect = true;                                    /* True/False                                           */
+bool Firewall::DDoSWallet_Blacklist = true;                                 /* True/False                                           */
+bool Firewall::DDoSWallet_Ban = true;                                       /* True/False                                           */
+int Firewall::DDoSWallet_BanTime = 0;                                       /* 24 hours                                             */
+bool Firewall::DDoSWallet_Disconnect = true;                                /* True/False                                           */
+int Firewall::DDoSWallet_MinCheck = 30;                                     /* 30 Seconds                                           */
 
 /* VARIABLE (Array): Firewall Whitelist
    (ignore pnode->addrName)

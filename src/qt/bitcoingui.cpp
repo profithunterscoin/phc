@@ -1313,6 +1313,9 @@ void BitcoinGUI::setNumBlocks(int count)
 		progressBar->setVisible(true);
 
 		tooltip = tr("Catching up...") + QString("<br>") + tooltip;
+		labelBlocksIcon->setPixmap(QIcon(fUseBlackTheme ? ":/icons/black/notsynced" : ":/icons/notsynced").pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
+
+		/*
 		labelBlocksIcon->setMovie(syncIconMovie);
 
 		if (count != prevBlocks)
@@ -1321,6 +1324,7 @@ void BitcoinGUI::setNumBlocks(int count)
 		}
 		
 		prevBlocks = count;
+		*/
 
 		overviewPage->showOutOfSyncWarning(true);
 

@@ -141,7 +141,7 @@ Value getpeerinfo(const Array& params, bool fHelp)
         obj.push_back(Pair("checkpointtimestamp_sent",          stats.CheckpointTimestamp_Sent));
         obj.push_back(Pair("checkpointblock_sent",              stats.CheckpointBlock_Sent.GetHex()));
 
-        obj.push_back(Pair("invalidpackets_recv",                    stats.nInvalidRecvPackets));
+        obj.push_back(Pair("invalidpackets_recv",               stats.nInvalidRecvPackets));
 
         
         if (fStateStats)

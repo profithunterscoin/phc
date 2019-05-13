@@ -412,6 +412,24 @@ template<unsigned int BITS> class base_uint
             return (!(a == b));
         }
 
+        bool IsNull() const
+        {
+            for (int i = 0; i < WIDTH; i++)
+            {
+                if (pn[i] != 0)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        void SetNull()
+        {
+            memset(pn, 0, sizeof(pn));
+        }
+
         std::string GetHex() const
         {
             char psz[sizeof(pn)*2 + 1];
@@ -1257,6 +1275,9 @@ inline int Testuint256AdHoc(std::vector<std::string> vArg)
 
 #endif
 
+
 #endif
+
+
 
 

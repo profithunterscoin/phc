@@ -83,7 +83,7 @@ XUVCoin, BATA, and Crypostle and other projects to help further advance the fiel
 | Firewall | Double-Spend, DDoS and flood protection |
 | Block Shield | Timeshift & Double-spend protection
 | Chain Shield | Split & Fork protection
-| ASIC Choker | 51% Mining monopoly protection |
+| ASIC Choker & Dynamic Distribution | Centralized Mining protection |
 | TurboSync | Network Sync improvement
 | Dynamic Checkpoints | Live Peer Trust Monitoring |
 | 1-click-mining | Easy to CPU mining within the wallet |
@@ -113,9 +113,9 @@ Initialize the Address Index By Running with -reindexaddr Command Line Argument.
 
 ## Wallet Downloads (Stable):
 
-- Windows (QT): https://github.com/profithunterscoin/phc/releases/download/1.0.0.6-Windows-32-Bit/phc-qt.exe
-- Linux (QT): https://github.com/profithunterscoin/phc/releases/download/1.0.0.6-Ubuntu-Intel/phc-qt
-- Linux (Daemon): https://github.com/profithunterscoin/phc/releases/download/1.0.0.6-Ubuntu-Intel/phcd
+- Windows (QT): https://github.com/profithunterscoin/phc/releases/download/1.0.0.7-Windows-32-Bit/phc-qt.exe
+- Linux (QT): https://github.com/profithunterscoin/phc/releases/download/1.0.0.7-Ubuntu-Intel/phc-qt
+- Linux (Daemon): https://github.com/profithunterscoin/phc/releases/download/1.0.0.7-Ubuntu-Intel/phcd
 - Bootstrap: http://profithunterscoin.com/bootstraps/bootstrap.dat
 
 ## Guides & Help

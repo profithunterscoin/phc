@@ -25,6 +25,7 @@
 #include "smessage.h"
 #include "util.h"
 #include "rpcserver.h"
+#include "consensus.h"
 
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
@@ -45,9 +46,6 @@ set<CWallet*> setpwalletRegistered;
 CCriticalSection cs_main;
 
 CTxMemPool mempool;
-
-int BlockPeerLogPosition = 0;
-std::string BlockPeerLog[10][3];
 
 map<uint256, CBlockIndex*> mapBlockIndex;
 set<pair<COutPoint, unsigned int> > setStakeSeen;
@@ -74,10 +72,10 @@ CBlockIndex* pindexGenesisBlock = NULL;
 
 int nBestHeight = -1;
 
-uint256 nBestChainTrust = 0;
-uint256 nBestInvalidTrust = 0;
+uint256 nBestChainTrust = uint256();
+uint256 nBestInvalidTrust = uint256();
 
-uint256 hashBestChain = 0;
+uint256 hashBestChain = uint256();
 CBlockIndex* pindexBest = NULL;
 
 int64_t nTimeBestReceived = 0;
@@ -179,7 +177,6 @@ void ResendWalletTransactions(bool fForce)
 {
     g_signals.Broadcast(fForce);
 }
-
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -1382,7 +1379,7 @@ bool AcceptableInputs(CTxMemPool& pool, const CTransaction &txo, bool fLimitFree
 
 int CMerkleTx::GetDepthInMainChainINTERNAL(CBlockIndex* &pindexRet) const
 {
-    if (hashBlock == 0 || nIndex == -1)
+    if (hashBlock.IsNull() || nIndex == -1)
     {
         return 0;
     }
@@ -1807,8 +1804,9 @@ string getDevRewardAddress(int nHeight)
 double GetDynamicBlockReward3(int nHeight)
 {
     /* 
-    Dynamic Block Reward 3.0 - (C) 2017 Crypostle
+    Dynamic Block Reward 3.0 - (C) 2017 Crypostle & Profit Hunters Coin
         https://github.com/JustinPercy/crypostle
+        https://github.com/ProfitHuntersCoin/phc
     */
 
     double nDifficulty = GetDifficulty();
@@ -2028,7 +2026,7 @@ unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime)
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake)
 {
     // TargetTimespan correction after development testing
-    // PHC 1.0.0.7 Hard_Fork 1
+    // PHC Hard Fork 2
     if (nBestHeight >= Params().GetHardFork_2())
     {
         nTargetTimespan = 60; // 1 Minute
@@ -3430,7 +3428,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                     {
                         int DeActivationHeight = 1;
 
-                        // PHC 1.0.0.7 Hard_Fork 1
+                        // PHC Hard Fork 2
                         //* Do not allow blank payments
                         
                         DeActivationHeight = Params().GetHardFork_2(); // DeActivation
@@ -3618,7 +3616,7 @@ bool CBlock::BlockShield(int Block_nHeight) const
     double Compare3;
     std::string TempLogCache;
 
-    // PHC 1.0.0.7 Hard_Fork 1
+    // PHC Hard Fork 2
     ActivationHeight = Params().GetHardFork_2();
 
     if (Block_nHeight >= ActivationHeight)
@@ -4118,117 +4116,6 @@ void Misbehaving(NodeId pnode, int howmuch)
 }
 
 
-/*
-int DynamicDistribution()
-{
-    // Version 1.0.0 (C) 2019 Profit Hunters Coin in collaboration with Crypostle
-    // Prevents consecutive blocks from the same node (decentralized coin distribution regardless of hash-power)
-    // Requirements ASIC_Choker
-
-}
-*/
-
-
-bool ASIC_Choker(std::string addrname, CBlock* pblock)
-{
-    // Version 1.0.1 (C) 2019 Profit Hunters Coin in collaboration with Crypostle
-    // Prevents consecutive blocks from the same node (decentralized coin distribution regardless of hash-power)
-
-    if (fReindex && fImporting)
-    {
-        return false; // Bypass for Reindexing and Importing Bootstrap
-    }
-
-    if (!pblock)
-    {
-        return false;
-    }
-
-    if (addrname == "")
-    {
-        addrname = "Unknown";
-    }
-
-    int ActivationHeight = 1; // Block #1 (Default)
-    int nHeight = 0;
-
-    // PHC 1.0.0.7 Hard_Fork 1
-    ActivationHeight = Params().GetHardFork_2();
-
-    uint256 hash = pblock->GetHash();
-
-    // Find if this block is already in the index
-    if (mapBlockIndex.count(hash))
-    {
-        nHeight = mapBlockIndex[hash]->nHeight;
-    }
-    else
-    {
-        nHeight = nBestHeight;
-    }
-
-    if (nHeight < ActivationHeight)
-    {
-        return false; // bypass Until Hard Fork 1
-    }
-
-    if (nHeight > Params().POSStartBlock()) // bypass until Staking is Active
-    {
-        // Count PoS Blocks
-        int PoSCount = 0;
-        for (int i = 0; i < 9; i++)
-        {
-            if (BlockPeerLog[i][3] == BoolToString(pblock->IsProofOfStake()))
-            {
-                PoSCount = PoSCount + 1;
-            }
-        }
-
-        // no less than 2 PoS blocks required per 5 blocks
-        if (BlockPeerLogPosition == 9)
-        {
-            if (PoSCount < 3)
-            {
-                if (pblock->IsProofOfStake() == false)
-                {
-                    return true; // reject New PoW block from peer (wait until more Staking Blocks are generated)
-                }
-            }
-        }
-    }
-
-    // PoW block must not be from same pfrom within 10 blocks
-    for (int i = 0; i < 9; i++)
-    {
-        if (BlockPeerLog[i][1] == addrname)
-        {
-            // Blocktime not larger than 5 minutes (seconary check)
-            // if (BlockPeerLog[i][2] GetTime())
-            // {
-                return true; // reject too many consecutive NEW blocks from peer
-            // }
-        }
-    }
-
-    // Increment position
-    BlockPeerLogPosition = BlockPeerLogPosition + 1;
-
-    // Keep position between boundaries
-    if (BlockPeerLogPosition > 9)
-    {
-        BlockPeerLogPosition = 0;
-    }
-
-    // Update log data with node info
-    BlockPeerLog[BlockPeerLogPosition][0] = addrname;
-
-    // Update log data with block info
-    BlockPeerLog[BlockPeerLogPosition][1] = pblock->GetBlockTime();
-    BlockPeerLog[BlockPeerLogPosition][2] = BoolToString(pblock->IsProofOfWork());
-
-    return false;
-}
-
 bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 {
     AssertLockHeld(cs_main);
@@ -4297,7 +4184,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     }
 
     // ASIC Choker checks
-    if (ASIC_Choker(addrname, pblock))
+    if (Consensus::DynamicCoinDistribution::ASIC_Choker(addrname, pblock))
     {
         return error("%s : ASIC_Choker FAILED", __FUNCTION__);
     }
@@ -5695,6 +5582,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
     {
         vector<CInv> vInv;
         vRecv >> vInv;
+
         if (vInv.size() > MAX_INV_SZ)
         {
             Misbehaving(pfrom->GetId(), 20);
@@ -5713,6 +5601,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         }
 
         pfrom->vRecvGetData.insert(pfrom->vRecvGetData.end(), vInv.begin(), vInv.end());
+
         ProcessGetData(pfrom);
     }
     /////////////////////
@@ -5856,6 +5745,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         {
             vRecv >> tx;
             inv = CInv(MSG_TX, tx.GetHash());
+
             // Check for recently rejected (and do other quick existence checks)
             if (AlreadyHave(txdb, inv))
             {
@@ -5866,6 +5756,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         {
             vRecv >> tx >> vin >> vchSig >> sigTime;
             inv = CInv(MSG_DSTX, tx.GetHash());
+
             // Check for recently rejected (and do other quick existence checks)
             if (AlreadyHave(txdb, inv))
             {
@@ -5873,7 +5764,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             }
 
             //these allow masternodes to publish a limited amount of free transactions
-
             CMasternode* pmn = mnodeman.Find(vin);
             if(pmn != NULL)
             {
@@ -5963,6 +5853,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
                         }
 
                         RelayTransaction(orphanTx, orphanTxHash);
+                        
                         vWorkQueue.push_back(orphanTxHash);
                         vEraseQueue.push_back(orphanTxHash);
                     }
@@ -6797,750 +6688,335 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
 }
 
 
-int CChain::ForceSync()
-{
-    // ForceSync - Forces all connected nodes to resend blocks
-    // (C) 2019 Profit Hunters Coin
+//////////////////////////////////////////////////////////////////////////////
+//
+// CChain
+//
 
-    if (vNodes.size() < 1)
+namespace CChain
+{
+
+    int ForceSync()
     {
+        // ForceSync - Forces all connected nodes to resend blocks
+        // (C) 2019 Profit Hunters Coin
+
+        if (vNodes.size() < 1)
+        {
+            return 0;
+        }
+
+        LOCK(cs_vNodes);
+
+        int NodeCount = 0;
+
+        BOOST_FOREACH(CNode* pnode, vNodes)
+        {
+            pnode->fStartSync = false;
+
+            PushGetBlocks(pnode, pindexBest->pprev, pnode->dCheckpointRecv.hash);
+
+            MilliSleep(5000);
+
+            NodeCount++;
+        }
+
+        return NodeCount;
+    }
+
+
+    int Backtoblock(int nNewHeight)
+    {
+        // Backtoblock 1.1 - (C) 2019 TaliumTech & Profit Hunters Coin
+
+        if (nNewHeight < 0)
+        {
+            if (fDebug)
+            {
+                LogPrint("core", "%s Block %d not valid\n", nNewHeight);
+            }
+
+            return 0;
+        }
+
+        CBlockIndex* pindex = pindexBest;
+
+        while (pindex != NULL && pindex->nHeight > nNewHeight)
+        {
+            pindex = pindex->pprev;
+        }
+
+        if (pindex != NULL)
+        {
+            if (fDebug)
+            {
+                LogPrint("core", "%s Back to block index %d\n", __FUNCTION__, nNewHeight);
+            }
+
+            CTxDB txdbAddr("rw");
+
+            CBlock block;
+
+            block.ReadFromDisk(pindex);
+
+            block.SetBestChain(txdbAddr, pindex);
+
+            return nNewHeight;
+        }
+
+        if (fDebug)
+        {
+            LogPrint("core",  "%s Block %d not found\n", __FUNCTION__, nNewHeight);
+        }
+
         return 0;
+
     }
 
-    LOCK(cs_vNodes);
 
-    int NodeCount = 0;
-
-    BOOST_FOREACH(CNode* pnode, vNodes)
+    int RollbackChain(int nBlockCount)
     {
-        pnode->fStartSync = false;
+        // Rollbackchain 1.1 - (C) 2019 Profit Hunters Coin
+        // Thanks to TaliumTech for crash fixes
 
-        PushGetBlocks(pnode, pindexBest->pprev, pnode->dCheckpointRecv.hash);
+        CBlockIndex* pindex = pindexBest;
 
-        MilliSleep(5000);
+        for (int counter = 1; counter != nBlockCount + 1; counter = counter + 1)
+        {
+            pindex = pindex->pprev;
+        }
 
-        NodeCount++;
+        if (pindex != NULL)
+        {
+            if (fDebug)
+            {
+                LogPrint("core", "%s Back to block index %d rolled back by: %d blocks\n", __FUNCTION__, pindex->nHeight, nBlockCount);
+            }
+
+            CTxDB txdbAddr("rw");
+
+            CBlock block;
+
+            block.ReadFromDisk(pindex);
+
+            block.SetBestChain(txdbAddr, pindex);
+
+            return pindex->nHeight;
+        }
+
+        if (fDebug)
+        {
+            LogPrint("core", "%s Block %d not found\n",__FUNCTION__, pindex->nHeight);
+        }
+
+        return 0;
+
     }
 
-    return NodeCount;
-}
+
+    // Remove a random orphan block (which does not have any dependent orphans).
+    void PruneOrphanBlocks()
+    {
+        if (mapOrphanBlocksByPrev.size() <= (size_t)std::max((int64_t)0, GetArg("-maxorphanblocks", DEFAULT_MAX_ORPHAN_BLOCKS)))
+        {
+            return;
+        }
+
+        // Pick a random orphan block.
+        int pos = insecure_rand() % mapOrphanBlocksByPrev.size();
+        std::multimap<uint256, COrphanBlock*>::iterator it = mapOrphanBlocksByPrev.begin();
+        while (pos--)
+        {
+            it++;
+        }
+
+        // As long as this block has other orphans depending on it, move to one of those successors.
+        do
+        {
+            std::multimap<uint256, COrphanBlock*>::iterator it2 = mapOrphanBlocksByPrev.find(it->second->hashBlock);
+            if (it2 == mapOrphanBlocksByPrev.end())
+            {
+                break;
+            }
+
+            it = it2;
+        }
+        while(1);
+
+        setStakeSeenOrphan.erase(it->second->stake);
+        uint256 hash = it->second->hashBlock;
+
+        delete it->second;
+        
+        mapOrphanBlocksByPrev.erase(it);
+        mapOrphanBlocks.erase(hash);
+    }
 
 
-int CChain::Backtoblock(int nNewHeight)
-{
-    // Backtoblock 1.1 - (C) 2019 TaliumTech & Profit Hunters Coin
-
-    if (nNewHeight < 0)
+    bool Reorganize(CTxDB& txdb, CBlockIndex* pindexNew)
     {
         if (fDebug)
         {
-            LogPrint("core", "%s Block %d not valid\n", nNewHeight);
+            LogPrint("core", "%s : REORGANIZE\n", __FUNCTION__);
         }
 
-        return 0;
-    }
+        // Find the fork
+        CBlockIndex* pfork = pindexBest->pprev;
+        CBlockIndex* plonger = pindexNew;
 
-    CBlockIndex* pindex = pindexBest;
-
-    while (pindex != NULL && pindex->nHeight > nNewHeight)
-    {
-        pindex = pindex->pprev;
-    }
-
-    if (pindex != NULL)
-    {
-        if (fDebug)
+        while (pfork != plonger)
         {
-            LogPrint("core", "%s Back to block index %d\n", __FUNCTION__, nNewHeight);
-        }
-
-        CTxDB txdbAddr("rw");
-
-        CBlock block;
-
-        block.ReadFromDisk(pindex);
-
-        block.SetBestChain(txdbAddr, pindex);
-
-        return nNewHeight;
-    }
-
-    if (fDebug)
-    {
-        LogPrint("core",  "%s Block %d not found\n", __FUNCTION__, nNewHeight);
-    }
-
-    return 0;
-
-}
-
-
-int CChain::RollbackChain(int nBlockCount)
-{
-    // Rollbackchain 1.1 - (C) 2019 Profit Hunters Coin
-    // Thanks to TaliumTech for crash fixes
-
-    CBlockIndex* pindex = pindexBest;
-
-    for (int counter = 1; counter != nBlockCount + 1; counter = counter + 1)
-    {
-        pindex = pindex->pprev;
-    }
-
-    if (pindex != NULL)
-    {
-        if (fDebug)
-        {
-            LogPrint("core", "%s Back to block index %d rolled back by: %d blocks\n", __FUNCTION__, pindex->nHeight, nBlockCount);
-        }
-
-        CTxDB txdbAddr("rw");
-
-        CBlock block;
-
-        block.ReadFromDisk(pindex);
-
-        block.SetBestChain(txdbAddr, pindex);
-
-        return pindex->nHeight;
-    }
-
-    if (fDebug)
-    {
-        LogPrint("core", "%s Block %d not found\n",__FUNCTION__, pindex->nHeight);
-    }
-
-    return 0;
-
-}
-
-
-// Remove a random orphan block (which does not have any dependent orphans).
-void CChain::PruneOrphanBlocks()
-{
-    if (mapOrphanBlocksByPrev.size() <= (size_t)std::max((int64_t)0, GetArg("-maxorphanblocks", DEFAULT_MAX_ORPHAN_BLOCKS)))
-    {
-        return;
-    }
-
-    // Pick a random orphan block.
-    int pos = insecure_rand() % mapOrphanBlocksByPrev.size();
-    std::multimap<uint256, COrphanBlock*>::iterator it = mapOrphanBlocksByPrev.begin();
-    while (pos--)
-    {
-        it++;
-    }
-
-    // As long as this block has other orphans depending on it, move to one of those successors.
-    do
-    {
-        std::multimap<uint256, COrphanBlock*>::iterator it2 = mapOrphanBlocksByPrev.find(it->second->hashBlock);
-        if (it2 == mapOrphanBlocksByPrev.end())
-        {
-            break;
-        }
-
-        it = it2;
-    }
-    while(1);
-
-    setStakeSeenOrphan.erase(it->second->stake);
-    uint256 hash = it->second->hashBlock;
-
-    delete it->second;
-    
-    mapOrphanBlocksByPrev.erase(it);
-    mapOrphanBlocks.erase(hash);
-}
-
-
-bool CChain::Reorganize(CTxDB& txdb, CBlockIndex* pindexNew)
-{
-    if (fDebug)
-    {
-        LogPrint("core", "%s : REORGANIZE\n", __FUNCTION__);
-    }
-
-    // Find the fork
-    CBlockIndex* pfork = pindexBest->pprev;
-    CBlockIndex* plonger = pindexNew;
-
-    while (pfork != plonger)
-    {
-        while (plonger->nHeight > pfork->nHeight)
-        {
-            if (!(plonger = plonger->pprev))
+            while (plonger->nHeight > pfork->nHeight)
             {
-                return error("%s : plonger->pprev is null", __FUNCTION__);
-            }
-        }
-
-        if (pfork == plonger)
-        {
-            break;
-        }
-
-        if (!(pfork = pfork->pprev))
-        {
-            return error("%s : pfork->pprev is null", __FUNCTION__);
-        }
-
-    }
-
-    // List of what to disconnect
-    vector<CBlockIndex*> vDisconnect;
-    for (CBlockIndex* pindex = pindexBest; pindex != pfork; pindex = pindex->pprev)
-    {
-        vDisconnect.push_back(pindex);
-    }
-
-    // List of what to connect
-    vector<CBlockIndex*> vConnect;
-    for (CBlockIndex* pindex = pindexNew; pindex != pfork; pindex = pindex->pprev)
-    {
-        vConnect.push_back(pindex);
-    }
-
-    reverse(vConnect.begin(), vConnect.end());
-
-    if (fDebug)
-    {
-        LogPrint("core", "%s : REORGANIZE: Disconnect %u blocks; %s..%s\n", __FUNCTION__, vDisconnect.size(), pfork->GetBlockHash().ToString(), pindexBest->GetBlockHash().ToString());
-        LogPrint("core", "%s : REORGANIZE: Connect %u blocks; %s..%s\n", __FUNCTION__, vConnect.size(), pfork->GetBlockHash().ToString(), pindexNew->GetBlockHash().ToString());
-    }
-
-    // Disconnect shorter branch
-    list<CTransaction> vResurrect;
-    BOOST_FOREACH(CBlockIndex* pindex, vDisconnect)
-    {
-        CBlock block;
-        if (!block.ReadFromDisk(pindex))
-        {
-            return error("%s : ReadFromDisk for disconnect failed", __FUNCTION__);
-        }
-
-        if (!block.DisconnectBlock(txdb, pindex))
-        {
-            return error("%s : DisconnectBlock %s failed", __FUNCTION__, pindex->GetBlockHash().ToString());
-        }
-
-        // Queue memory transactions to resurrect.
-        // We only do this for blocks after the last checkpoint (reorganisation before that
-        // point should only happen with -reindex/-loadblock, or a misbehaving peer.
-        BOOST_REVERSE_FOREACH(const CTransaction& tx, block.vtx)
-        {
-            if (!(tx.IsCoinBase() || tx.IsCoinStake()) && pindex->nHeight > Checkpoints::GetTotalBlocksEstimate())
-            {
-                vResurrect.push_front(tx);
-            }
-        }
-
-    }
-
-    // Connect longer branch
-    vector<CTransaction> vDelete;
-    for (unsigned int i = 0; i < vConnect.size(); i++)
-    {
-        CBlockIndex* pindex = vConnect[i];
-        CBlock block;
-        if (!block.ReadFromDisk(pindex))
-        {
-            return error("%s : ReadFromDisk for connect failed", __FUNCTION__);
-        }
-
-        if (!block.ConnectBlock(txdb, pindex))
-        {
-            // Invalid block
-            return error("%s : ConnectBlock %s failed", __FUNCTION__, pindex->GetBlockHash().ToString());
-        }
-
-        // Queue memory transactions to delete
-        BOOST_FOREACH(const CTransaction& tx, block.vtx)
-        {
-            vDelete.push_back(tx);
-        }
-
-    }
-
-    if (!txdb.WriteHashBestChain(pindexNew->GetBlockHash()))
-    {
-        return error("%s : WriteHashBestChain failed", __FUNCTION__);
-    }
-
-    // Make sure it's successfully written to disk before changing memory structure
-    if (!txdb.TxnCommit())
-    {
-        return error("%s : TxnCommit failed", __FUNCTION__);
-    }
-
-    // Disconnect shorter branch
-    BOOST_FOREACH(CBlockIndex* pindex, vDisconnect)
-    {
-        if (pindex->pprev)
-        {
-            pindex->pprev->pnext = NULL;
-        }
-    }
-
-    // Connect longer branch
-    BOOST_FOREACH(CBlockIndex* pindex, vConnect)
-    {
-        if (pindex->pprev)
-        {
-            pindex->pprev->pnext = pindex;
-        }
-    }
-
-    // Resurrect memory transactions that were in the disconnected branch
-    BOOST_FOREACH(CTransaction& tx, vResurrect)
-    {
-        AcceptToMemoryPool(mempool, tx, false, NULL);
-    }
-
-    // Delete redundant memory transactions that are in the connected branch
-    BOOST_FOREACH(CTransaction& tx, vDelete)
-    {
-        mempool.remove(tx);
-        mempool.removeConflicts(tx);
-    }
-
-    if (fDebug)
-    {
-        LogPrint("core", "%s : REORGANIZE: done\n", __FUNCTION__);
-    }
-    
-    return true;
-}
-
-bool Consensus::ChainBuddy::Enabled = true;
-DynamicCheckpoints::Checkpoint Consensus::ChainBuddy::BestCheckpoint; // Best Chain                  
-vector<std::pair<int, DynamicCheckpoints::Checkpoint>> Consensus::ChainBuddy::ConsensusCheckpointMap; // History
-
-bool Consensus::ChainBuddy::FindHash(uint256 hash)
-{
-    if (Consensus::ChainBuddy::Enabled == false)
-    {
-        return false;
-    }
-    
-    if (ConsensusCheckpointMap.size() > 0)
-    {
-        for (int item = 0; item <= (signed)ConsensusCheckpointMap.size() - 1; ++item)
-        {
-            if (ConsensusCheckpointMap[item].second.hash == hash)
-            {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
-
-bool Consensus::ChainBuddy::AddHashCheckpoint(CNode *pnode)
-{
-    if (Consensus::ChainBuddy::Enabled == false)
-    {
-        return false;
-    }
-
-    bool found = Consensus::ChainBuddy::FindHash(pnode->dCheckpointRecv.hash);
-
-    if (found == false)
-    {
-
-        if (Consensus::ChainBuddy::ConsensusCheckpointMap.size() > 49)
-        {
-            ConsensusCheckpointMap.erase(ConsensusCheckpointMap.begin());
-        }
-
-        DynamicCheckpoints::Checkpoint TempCheckpoint;
-        TempCheckpoint.height = pnode->dCheckpointRecv.height;
-        TempCheckpoint.hash = pnode->dCheckpointRecv.hash;
-        TempCheckpoint.timestamp = pnode->dCheckpointRecv.timestamp;
-
-        if (pnode->addrName != "")
-        {
-            TempCheckpoint.fromnode = pnode->addrName;
-        }
-        else
-        {
-            TempCheckpoint.fromnode = "Unknown";
-        }
-
-        ConsensusCheckpointMap.push_back(make_pair(1, TempCheckpoint));
-
-        return true;
-    }
-
-    return false;
-}
-
-
-int Consensus::ChainBuddy::GetNodeCount(uint256 hash)
-{
-    if (Consensus::ChainBuddy::Enabled == false)
-    {
-        return 0;
-    }
-    
-    if (ConsensusCheckpointMap.size() > 0)
-    {
-        for (int item = 0; item <= (signed)ConsensusCheckpointMap.size() - 1; ++item)
-        {
-            if (ConsensusCheckpointMap[item].second.hash == hash)
-            {
-                return ConsensusCheckpointMap[item].first;
-            }
-        }
-    }
-
-    return 0;
-}
-
-
-bool Consensus::ChainBuddy::IncrementCheckpointNodeCount(CNode *pnode)
-{
-    std::string TempAddrName;
-
-    if (Consensus::ChainBuddy::Enabled == false)
-    {
-        return false;
-    }
-
-    if (pnode->addrName != "")
-    {
-        TempAddrName = pnode->addrName;
-    }
-    else
-    {
-        TempAddrName = "Unknown";
-    }
-
-    if (ConsensusCheckpointMap.size() > 0)
-    {
-        for (int item = 0; item <= (signed)ConsensusCheckpointMap.size() - 1; ++item)
-        {
-            if (ConsensusCheckpointMap[item].second.hash == pnode->dCheckpointRecv.hash)
-            {
-                size_t found;
-                found = 0;
-
-                if (TempAddrName != "")
+                if (!(plonger = plonger->pprev))
                 {
-                    found = ConsensusCheckpointMap[item].second.fromnode.find(TempAddrName); 
-                }
-                
-                if (found == std::string::npos || found == 0)
-                {
-                    ConsensusCheckpointMap[item].first = ConsensusCheckpointMap[item].first + 1;
-
-                    if (TempAddrName != "")
-                    {
-                        std::string starter = "";
-                        
-                        if (ConsensusCheckpointMap[item].second.fromnode.size() > 0)
-                        {
-                            starter = ", ";
-                        }
-
-                        ConsensusCheckpointMap[item].second.fromnode.append(starter + TempAddrName);
-                    }
-
-                    return true;
+                    return error("%s : plonger->pprev is null", __FUNCTION__);
                 }
             }
+
+            if (pfork == plonger)
+            {
+                break;
+            }
+
+            if (!(pfork = pfork->pprev))
+            {
+                return error("%s : pfork->pprev is null", __FUNCTION__);
+            }
+
         }
-    }
 
-    return false;
-}
-
-
-bool Consensus::ChainBuddy::FindConsensus()
-{
-    if (!TestNet())
-    {
-        Consensus::ChainBuddy::Enabled = false;
-        return false; // Skip on mainnet until testing is completed
-    }
-
-    if (Consensus::ChainBuddy::Enabled == false)
-    {
-        return false;
-    }
-
-    if (ConsensusCheckpointMap.size() == 0)
-    {
-        return false;
-    }
-
-    int MaxHeight = 0;
-    int MaxNodes = 0;
-
-    int ItemSelected = 0;
-
-    for (int item = 0; item <= (signed)ConsensusCheckpointMap.size() - 1; ++item)
-    {
-        bool trigger;
-        trigger = false;
-
-        // Find Checkpoint with highest amount of node confirmations
-        if (ConsensusCheckpointMap[item].second.height > MaxHeight)
+        // List of what to disconnect
+        vector<CBlockIndex*> vDisconnect;
+        for (CBlockIndex* pindex = pindexBest; pindex != pfork; pindex = pindex->pprev)
         {
-            MaxHeight = ConsensusCheckpointMap[item].second.height;
-            trigger = true;
+            vDisconnect.push_back(pindex);
         }
 
-        if (ConsensusCheckpointMap[item].first > MaxNodes)
+        // List of what to connect
+        vector<CBlockIndex*> vConnect;
+        for (CBlockIndex* pindex = pindexNew; pindex != pfork; pindex = pindex->pprev)
         {
-            MaxNodes = ConsensusCheckpointMap[item].first;
-            trigger = true;
+            vConnect.push_back(pindex);
         }
 
-        if (trigger == true)
+        reverse(vConnect.begin(), vConnect.end());
+
+        if (fDebug)
         {
-            ItemSelected = item;
+            LogPrint("core", "%s : REORGANIZE: Disconnect %u blocks; %s..%s\n", __FUNCTION__, vDisconnect.size(), pfork->GetBlockHash().ToString(), pindexBest->GetBlockHash().ToString());
+            LogPrint("core", "%s : REORGANIZE: Connect %u blocks; %s..%s\n", __FUNCTION__, vConnect.size(), pfork->GetBlockHash().ToString(), pindexNew->GetBlockHash().ToString());
         }
 
-    }
-
-    //cout << "MapSize:" << ConsensusCheckpointMap.size() << " Item:" << ItemSelected << endl;
-
-    // Decide consensus among peers and most valid checkpoint then pdate BestCheckpoint
-    if (ItemSelected > 0)
-    {
-        if (ConsensusCheckpointMap[ItemSelected].second.height < pindexBest->nHeight + 1)
+        // Disconnect shorter branch
+        list<CTransaction> vResurrect;
+        BOOST_FOREACH(CBlockIndex* pindex, vDisconnect)
         {
-            BestCheckpoint.height = ConsensusCheckpointMap[ItemSelected].second.height;
-            BestCheckpoint.hash = ConsensusCheckpointMap[ItemSelected].second.hash;
-            BestCheckpoint.timestamp = ConsensusCheckpointMap[ItemSelected].second.timestamp;
-            BestCheckpoint.fromnode = ConsensusCheckpointMap[ItemSelected].second.fromnode;
+            CBlock block;
+            if (!block.ReadFromDisk(pindex))
+            {
+                return error("%s : ReadFromDisk for disconnect failed", __FUNCTION__);
+            }
 
-            return true;
+            if (!block.DisconnectBlock(txdb, pindex))
+            {
+                return error("%s : DisconnectBlock %s failed", __FUNCTION__, pindex->GetBlockHash().ToString());
+            }
+
+            // Queue memory transactions to resurrect.
+            // We only do this for blocks after the last checkpoint (reorganisation before that
+            // point should only happen with -reindex/-loadblock, or a misbehaving peer.
+            BOOST_REVERSE_FOREACH(const CTransaction& tx, block.vtx)
+            {
+                if (!(tx.IsCoinBase() || tx.IsCoinStake()) && pindex->nHeight > Checkpoints::GetTotalBlocksEstimate())
+                {
+                    vResurrect.push_front(tx);
+                }
+            }
+
         }
-    }
 
-    return false;
-}
-
-
-bool Consensus::ChainBuddy::WalletHasConsensus()
-{
-    if (!TestNet())
-    {
-        Consensus::ChainBuddy::Enabled = false;
-        return false; // Skip on mainnet until testing is completed
-    }
-
-    if (Consensus::ChainBuddy::Enabled == false)
-    {
-        return false;
-    }
-
-    Consensus::ChainBuddy::FindConsensus();
-
-    if (pindexBest->nHeight - BestCheckpoint.height > 5)
-    {
-        if (Consensus::ChainShield::ChainShieldCache - BestCheckpoint.height > 5)
+        // Connect longer branch
+        vector<CTransaction> vDelete;
+        for (unsigned int i = 0; i < vConnect.size(); i++)
         {
-            Consensus::ChainShield::DisableNewBlocks = true;
+            CBlockIndex* pindex = vConnect[i];
+            CBlock block;
+            if (!block.ReadFromDisk(pindex))
+            {
+                return error("%s : ReadFromDisk for connect failed", __FUNCTION__);
+            }
 
-            return false; // Local wallet is out of sync from network consensus
+            if (!block.ConnectBlock(txdb, pindex))
+            {
+                // Invalid block
+                return error("%s : ConnectBlock %s failed", __FUNCTION__, pindex->GetBlockHash().ToString());
+            }
+
+            // Queue memory transactions to delete
+            BOOST_FOREACH(const CTransaction& tx, block.vtx)
+            {
+                vDelete.push_back(tx);
+            }
+
         }
-    }
 
-    // find last known common ansesessor checkpoint
-    if (mapBlockIndex.find(BestCheckpoint.hash) != mapBlockIndex.end()
-        && mapBlockIndex[BestCheckpoint.hash]->nHeight == (int)BestCheckpoint.height)
-    {
-        Consensus::ChainShield::DisableNewBlocks = false;
+        if (!txdb.WriteHashBestChain(pindexNew->GetBlockHash()))
+        {
+            return error("%s : WriteHashBestChain failed", __FUNCTION__);
+        }
 
+        // Make sure it's successfully written to disk before changing memory structure
+        if (!txdb.TxnCommit())
+        {
+            return error("%s : TxnCommit failed", __FUNCTION__);
+        }
+
+        // Disconnect shorter branch
+        BOOST_FOREACH(CBlockIndex* pindex, vDisconnect)
+        {
+            if (pindex->pprev)
+            {
+                pindex->pprev->pnext = NULL;
+            }
+        }
+
+        // Connect longer branch
+        BOOST_FOREACH(CBlockIndex* pindex, vConnect)
+        {
+            if (pindex->pprev)
+            {
+                pindex->pprev->pnext = pindex;
+            }
+        }
+
+        // Resurrect memory transactions that were in the disconnected branch
+        BOOST_FOREACH(CTransaction& tx, vResurrect)
+        {
+            AcceptToMemoryPool(mempool, tx, false, NULL);
+        }
+
+        // Delete redundant memory transactions that are in the connected branch
+        BOOST_FOREACH(CTransaction& tx, vDelete)
+        {
+            mempool.remove(tx);
+            mempool.removeConflicts(tx);
+        }
+
+        if (fDebug)
+        {
+            LogPrint("core", "%s : REORGANIZE: done\n", __FUNCTION__);
+        }
+        
         return true;
     }
 
-    Consensus::ChainShield::DisableNewBlocks = true;
-
-    return false;
 }
 
 
-// TO-DO also add CheckPointHistory vector to pnode
-/*
-bool Consensus::ChainBuddy::NodeHasConsensus(CNode* pnode)
+/* To fix for CBlockHeader upgrade
+uint256 CBlockHeader::GetHash() const
 {
-    if (pnode->dCheckpointRecv.hash == BestCheckpoint.hash
-        && pnode->dCheckpointRecv.height == BestCheckpoint.height
-        && pnode->dCheckpointRecv.timestamp == BestCheckpoint.timestamp)
-    {
-        return true;
-    }
-
-    return false;
+    //return SerializeHash(*this);
 }
 */
-
-bool Consensus::ChainShield::Enabled = false;
-int Consensus::ChainShield::ChainShieldCache = 0; // Last Block Height protected
-bool Consensus::ChainShield::DisableNewBlocks = false; // Disable PoW/PoS/Masternode block creation (becomes true upon FindConsensus()=false)
-bool Consensus::ChainShield::Rollback_Runaway = true; // Rollback when local wallet is too far ahead of network
-
-bool Consensus::ChainShield::Protect()
-{
-    if (!TestNet())
-    {
-        Consensus::ChainShield::Enabled = false;
-        Consensus::ChainShield::DisableNewBlocks = false;
-        Consensus::ChainShield::Rollback_Runaway = false;
-        
-        return false; // Skip on mainnet until testing is completed
-    }
-
-    if (Consensus::ChainShield::Enabled == false)
-    {
-        return false; // Skip until enabled
-    }
-
-    //  Only execute every 1 blocks
-    if (Consensus::ChainShield::ChainShieldCache > 0 && Consensus::ChainShield::ChainShieldCache + 1 < pindexBest->nHeight)
-    {
-        return false; // Skip and wait for more blocks
-    }
-
-    if (Consensus::ChainShield::ChainShieldCache > pindexBest->nHeight)
-    {
-        return false;
-    }
-
-    Consensus::ChainShield::ChainShieldCache = pindexBest->nHeight;
-
-    int Agreed = 0;
-    int Disagreed = 0;
-
-    int MaxHeight = 0;
-    int MaxHeightNodes = 0;
-
-    LOCK(cs_vNodes);
-
-    // Find if nodes are synced (agreed to local wallet checkpoint or not)
-    BOOST_FOREACH(CNode* pnode, vNodes)
-    {
-        if (pnode->fSuccessfullyConnected)
-        {
-            if (pnode->dCheckpointRecv.height == pnode->dCheckpointSent.height
-                && pnode->dCheckpointRecv.hash == pnode->dCheckpointSent.hash)
-            {
-                Agreed++; // Local Wallet and Node have consensus (increment temp counter)
-
-                if (MaxHeight > pnode->dCheckpointSent.height)
-                {
-                    MaxHeight = pnode->dCheckpointSent.height;
-                    MaxHeightNodes++;
-                }
-
-                // Find if this hash is in current Consensus::ChainBuddy::BestCheckpoint
-                if (Consensus::ChainBuddy::FindHash(pnode->dCheckpointRecv.hash) == true)
-                {
-                    if (Consensus::ChainBuddy::IncrementCheckpointNodeCount(pnode) == false)
-                    {
-                        if (fDebug)
-                        {
-                            LogPrint("chainshield", "%s : Warning: IncrementCheckpoint Failed %d.\n", __FUNCTION__, pnode->dCheckpointRecv.height);
-                        }
-                    }
-                }
-                else
-                {
-                    if (pnode->dCheckpointRecv.height > pindexBest->nHeight - 5)
-                    {
-                        if (Consensus::ChainBuddy::AddHashCheckpoint(pnode) == false)
-                        {
-                            if (fDebug)
-                            {
-                                LogPrint("chainshield", "%s : Warning: AddHashCheckpoint Failed %d.\n", __FUNCTION__, pnode->dCheckpointRecv.height);
-                            }
-                        }
-                    }
-                }
-            }
-            else
-            {
-                // use quick nodes with little to no sync lag that's off by more than 1 block & no more than 500 milliseconds
-                if (pnode->dCheckpointSent.timestamp - pnode->dCheckpointRecv.timestamp < 500
-                    && pnode->dCheckpointSent.height - pnode->dCheckpointRecv.height > 1)
-                {
-                    Disagreed++;  // Local Wallet and Node DO NOT have consensus
-
-                    if (MaxHeight > pnode->dCheckpointSent.height)
-                    {
-                        MaxHeight = pnode->dCheckpointSent.height;
-                        MaxHeightNodes++;
-                    }
-                }
-            }
-        }
-    }
-
-    bool trigger;
-
-    if (Consensus::ChainBuddy::WalletHasConsensus() == true)
-    {
-        return false; // No Shielding Required
-    }
-    else
-    {
-        trigger = true; // Local wallet is out of sync, try to auto-correct
-    }
-
-    if (Disagreed > Agreed) // compare both Agreed and Disagreed temp counters and attempt to repair local wallet if no consensus is found among peers
-    {
-        trigger = true; // Peers are not in consensus try to auto-correct if they're below current blockchain height
-    }
-
-    if (pindexBest->nHeight < Consensus::ChainShield::ChainShieldCache)
-    {
-        trigger = false; // Skip
-    }
-
-    if (pindexBest->nHeight < MaxHeight && MaxHeight > 0)
-    {
-        trigger = false; // Skip
-    }
-
-    if (Consensus::ChainBuddy::BestCheckpoint.height == 0)
-    {
-        trigger = false; // skip if no bestcheckpoint is selected yet
-    }
-
-    if (Consensus::ChainBuddy::BestCheckpoint.height < pindexBest->nHeight
-        && Consensus::ChainShield::ChainShieldCache == pindexBest->nHeight)
-    {
-        trigger = false; // skip if no bestcheckpoint if checkpoint is too old
-    }
-
-    if (Consensus::ChainShield::Rollback_Runaway == false)
-    {
-        trigger = false; // skip if because user disabled it
-    }
-
-    // Forked wallet auto-correction
-    if (trigger == true)
-    {
-        if (fDebug)
-        {
-            LogPrint("chainshield", "%s Fork Detected (Runaway Exception), Rolling back 5 blocks, force resync %d\n", __FUNCTION__, pindexBest->nHeight);
-        }
-
-        CChain::RollbackChain(50);
-
-        MilliSleep(10000);
-
-        CChain::ForceSync();
-
-        return true; // Shielding forced to protect local blockchain database
-    }
-
-    return false; // No Shielding Required
-}
-

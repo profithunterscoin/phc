@@ -127,6 +127,8 @@ void ClientModel::updateTimer()
     // Periodically check and update with a timer.
     int newNumBlocks = getNumBlocks();
 
+    emit numBlocksChanged(newNumBlocks);
+
     if(cachedNumBlocks != newNumBlocks)
     {
         cachedNumBlocks = newNumBlocks;
