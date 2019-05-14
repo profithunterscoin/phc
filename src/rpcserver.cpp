@@ -302,7 +302,7 @@ Value debug(const Array& params, bool fHelp)
                             "|net|socks|darksend|instantsend|wallet|masternode|firewall|stealth"
                             "|protocol|uint|stakemodifier|kernel|util|daemon|proxy"
                             "|smessage|gui|qt|mining|coinage|spork|blockshield|blocktree"
-                            "|asicchoker|phc|noui|"
+                            "|asicchoker|phc|noui|chainbuddy|chainshield|"
                             "Change debug category on the fly."
                             "Specify single category or use comma to specify many.\n"
                             "Special note: phcd must be run with -debug option and"

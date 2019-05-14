@@ -82,7 +82,6 @@ namespace Consensus
     int PeerBlockIndex::AddPosition()
     {
         PeerBlockIndex::Current_Position++;
-        PeerBlockIndex::Blocks_HistoryTotal++;
 
         if (PeerBlockIndex::Current_Position > Max_Size)
         {
@@ -460,7 +459,7 @@ namespace Consensus
 
                 if (fDebug)
                 {
-                    LogPrint("asic_choker", "%s Min_Cycle Changed: %d\n", __FUNCTION__, DynamicCoinDistribution::Min_Cycle);
+                    LogPrint("asicchoker", "%s Min_Cycle Changed: %d\n", __FUNCTION__, DynamicCoinDistribution::Min_Cycle);
                 }
             }
 
@@ -471,7 +470,7 @@ namespace Consensus
 
                 if (fDebug)
                 {
-                    LogPrint("asic_choker", "%s Min_Cycle Changed: %d\n", __FUNCTION__, DynamicCoinDistribution::Min_Cycle);
+                    LogPrint("asicchoker", "%s Min_Cycle Changed: %d\n", __FUNCTION__, DynamicCoinDistribution::Min_Cycle);
                 }
             }
 
@@ -484,7 +483,7 @@ namespace Consensus
 
         if (fDebug)
         {
-            LogPrint("asic_choker", "%s PoS Percent %d\n", __FUNCTION__, PoSPercent);
+            LogPrint("asicchoker", "%s PoS Percent %d\n", __FUNCTION__, PoSPercent);
         }
 
         vector<pair<int, std::string>> mapPeerBlockHistory;
@@ -546,7 +545,7 @@ namespace Consensus
 
         if (fDebug)
         {
-            LogPrint("asic_choker", "%s LowestNodeBlockCount: %d (%d) HighestNodeBlockCount: %d (%d)\n", __FUNCTION__, LowestNodeBlockCount, LowestNodeBlockPercent, HighestNodeBlockCount, HighestNodeBlockPercent);
+            LogPrint("asicchoker", "%s LowestNodeBlockCount: %d (%d) HighestNodeBlockCount: %d (%d)\n", __FUNCTION__, LowestNodeBlockCount, LowestNodeBlockPercent, HighestNodeBlockCount, HighestNodeBlockPercent);
         }
 
         // Adjust Cycle for too low of Distribution (Increase Minimum Cycle by / 2)
@@ -556,7 +555,7 @@ namespace Consensus
 
             if (fDebug)
             {
-                LogPrint("asic_choker", "%s Min_Cycle Changed: %d\n", __FUNCTION__, DynamicCoinDistribution::Min_Cycle);
+                LogPrint("asicchoker", "%s Min_Cycle Changed: %d\n", __FUNCTION__, DynamicCoinDistribution::Min_Cycle);
             }
         }
 
@@ -567,7 +566,7 @@ namespace Consensus
 
             if (fDebug)
             {
-                LogPrint("asic_choker", "%s Min_Cycle Changed: %d\n", __FUNCTION__, DynamicCoinDistribution::Min_Cycle);
+                LogPrint("asicchoker", "%s Min_Cycle Changed: %d\n", __FUNCTION__, DynamicCoinDistribution::Min_Cycle);
             }
         }
 
@@ -659,7 +658,7 @@ namespace Consensus
                     {
                         if (fDebug)
                         {
-                            LogPrint("asic_choker", "%s REJECTED Block: %d PoS Count: %d PoS Compare: %d\n", __FUNCTION__, nHeight, PoSCount, NodeCompare);
+                            LogPrint("asicchoker", "%s REJECTED Block: %d PoS Count: %d PoS Compare: %d\n", __FUNCTION__, nHeight, PoSCount, NodeCompare);
                         }
                         
                         return true; // reject New PoW block from peer (wait until more Staking Blocks are generated)
@@ -697,12 +696,26 @@ namespace Consensus
             {
                 if (fDebug)
                 {
-                    LogPrint("asic_choker", "%s REJECTED Block: %d Node Count: %d Node Compare: %d\n", __FUNCTION__, nHeight, NodeCount, NodeCompare);
+                    LogPrint("asicchoker", "%s REJECTED Block: %d Node Count: %d Node Compare: %d\n", __FUNCTION__, nHeight, NodeCount, NodeCompare);
                 }
 
-                return true; // reject too many consecutive NEW blocks from peer
+                return true; // reject too many NEW blocks from peer within cycle
             }
         
+        }
+
+        if (PeerBlockIndex::Blocks_HistoryTotal > 3)
+        {
+            // Last 2 blocks must be from different node
+            if (PeerBlockIndex::map[NodesTotal].second.addrname == PeerBlockIndex::map[NodesTotal - 1].second.addrname)
+            {
+                if (fDebug)
+                {
+                    LogPrint("asicchoker", "%s REJECTED Block: %d Node: %s\n", __FUNCTION__, nHeight, PeerBlockIndex::map[NodesTotal].second.addrname);
+                }
+
+                return true; // reject consecutive new blocks
+            }
         }
 
         DynamicCoinDistribution::Adjust(nHeight);

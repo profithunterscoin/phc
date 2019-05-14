@@ -22,7 +22,6 @@ using namespace json_spirit;
 using namespace std;
 using namespace boost::assign;
 
-
 // Key used by getwork/getblocktemplate miners.
 // Allocated in InitRPCMining, free'd in ShutdownRPCMining
 static CReserveKey* pMiningKey = NULL;
@@ -131,10 +130,12 @@ Value setgenerate(const Array& params, bool fHelp)
         if (params[0].get_str() == "true")
         {
             fGenerate = true;
+            mapArgs["-gen"] = "1";
         }
         else
         {
             fGenerate = false;
+            mapArgs["-gen"] = "0";
         }
     }
     
@@ -149,6 +150,13 @@ Value setgenerate(const Array& params, bool fHelp)
             fGenerate = false;
         }
     }
+    else
+    {
+        if (fGenerate == true)
+        {
+            mapArgs["-genproclimit"] = "1";
+        }
+    }
 
     if (params.size() > 2)
     {
@@ -156,9 +164,7 @@ Value setgenerate(const Array& params, bool fHelp)
         {
             fDebugConsoleOutputMining = true;
         }
-    }
-
-    mapArgs["-gen"] = (fGenerate ? "1" : "0");
+    }   
 
     assert(pwalletMain != NULL);
     
@@ -214,8 +220,8 @@ Value getmininginfo(const Array& params, bool fHelp)
     obj.push_back(Pair("difficulty",                                GetDifficulty(GetLastBlockIndex(pindexBest, true))));
     obj.push_back(Pair("netmhashps",                                GetPoWMHashPS()));
 
-    obj.push_back(Pair("generate",                                  GetBoolArg("-gen", false)));
-    obj.push_back(Pair("genproclimit",                              (int)GetArg("-genproclimit", -1)));
+    obj.push_back(Pair("generate",                                  fGenerating));
+    obj.push_back(Pair("genproclimit",                              GenerateProcLimit));
     obj.push_back(Pair("hashespersec",                              gethashespersec(params, false)));
 
     return obj;
