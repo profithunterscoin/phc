@@ -824,6 +824,11 @@ inline const bool StringToBool(string b)
 
 inline const std::string StripPortFromAddrName(string str)
 {
+    if (str == "" || str.empty() == true)
+    {
+        return str;
+    }
+
     std::size_t pos = str.find(":");
 
     std::string Tempstr;
