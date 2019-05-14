@@ -21,6 +21,9 @@ using namespace std;
 
 bool fDebugConsoleOutputMining = false;
 
+bool fGenerating;
+int GenerateProcLimit;
+
 std::string MinerLogCache;
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1107,7 +1110,6 @@ void static InternalcoinMiner(CWallet *pwallet)
 
     printf("PHC-PoW-Miner - Started!\n");
 
-
     if (fDebug)
     {
         LogPrintf("PHC-PoW-Miner - Started!\n");
@@ -1225,7 +1227,7 @@ void static InternalcoinMiner(CWallet *pwallet)
 
                             MinerLogCache = "accepted:" + thash.GetHex();
 
-                            MilliSleep(50000);
+                            MilliSleep(120000);
                         }
                         else
                         {
@@ -1358,6 +1360,9 @@ void static InternalcoinMiner(CWallet *pwallet)
             LogPrintf("PHC-PoW-Miner terminated\n");
         }
 
+        GenerateProcLimit = -1;
+        fGenerating = false;
+
         throw;
     }
     catch (const std::runtime_error &e)
@@ -1368,6 +1373,9 @@ void static InternalcoinMiner(CWallet *pwallet)
         {
             LogPrintf("PHC-PoW-Miner runtime error: %s\n", e.what());
         }
+
+        GenerateProcLimit = -1;
+        fGenerating = false;
 
         return;
     }
@@ -1407,6 +1415,9 @@ void GeneratePoWcoins(bool fGenerate, CWallet* pwallet, bool fDebugToConsole)
     {
         return;
     }
+
+    GenerateProcLimit = nThreads;
+    fGenerating = true;
 
     minerThreads = new boost::thread_group();
 
