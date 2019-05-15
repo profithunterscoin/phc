@@ -4183,10 +4183,13 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
         addrname = "Unknown";
     }
 
-    // ASIC Choker checks
-    if (Consensus::DynamicCoinDistribution::ASIC_Choker(addrname, pblock))
+    if (!fReindex || !fImporting || !IsInitialBlockDownload())
     {
-        return error("%s : ASIC_Choker FAILED", __FUNCTION__);
+        // ASIC Choker checks
+        if (Consensus::DynamicCoinDistribution::ASIC_Choker(addrname, pblock))
+        {
+            return error("%s : ASIC_Choker FAILED", __FUNCTION__);
+        }
     }
 
     // If we don't already have its previous block, shunt it off to holding area until we get it

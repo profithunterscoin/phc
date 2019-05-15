@@ -579,7 +579,7 @@ namespace Consensus
         // Version 1.0.2 (C) 2019 Profit Hunters Coin in collaboration with Crypostle
         // Prevents consecutive blocks from the same node (decentralized coin distribution regardless of hash-power)
 
-        if (fReindex && fImporting)
+        if (fReindex || fImporting || IsInitialBlockDownload() || !TestNet())
         {
             return false; // Bypass for Reindexing and Importing Bootstrap
         }
@@ -963,16 +963,19 @@ namespace Consensus
 
         ChainBuddy::FindConsensus();
 
-        if (pindexBest->nHeight - BestCheckpoint.height > 5)
+        int TempHeight;
+        TempHeight = pindexBest->nHeight - BestCheckpoint.height;
+
+        if (TempHeight > 5)
         {
-            if (ChainShield::ChainShieldCache - BestCheckpoint.height > 5)
+            if (TempHeight > 5)
             {
                 ChainShield::DisableNewBlocks = true;
 
                 if (fDebug)
                 {
                     LogPrint("chainbuddy", "%s ConsensusCheckpoint failed: Block Count: %d NOT HIGHER THAN 5\n",
-                        __FUNCTION__, pindexBest->nHeight - BestCheckpoint.height);
+                        __FUNCTION__, TempHeight);
                 } 
 
                 return false; // Local wallet is out of sync from network consensus
