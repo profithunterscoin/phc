@@ -721,7 +721,12 @@ template <typename Protocol, typename SocketAcceptorService> static void RPCAcce
 template <typename Protocol, typename SocketAcceptorService> static void RPCListen(boost::shared_ptr< basic_socket_acceptor<Protocol, SocketAcceptorService> > acceptor, ssl::context& context, const bool fUseSSL)
 {
     // Accept connection
+#if BOOST_VERSION >= 107000
+    asio::io_service io_service;
+    AcceptedConnectionImpl<Protocol>* conn = new AcceptedConnectionImpl<Protocol>(io_service, context, fUseSSL);
+#else
     AcceptedConnectionImpl<Protocol>* conn = new AcceptedConnectionImpl<Protocol>(acceptor->get_io_service(), context, fUseSSL);
+#endif
 
     acceptor->async_accept(conn->sslStream.lowest_layer(), conn->peer, boost::bind(&RPCAcceptHandler<Protocol, SocketAcceptorService>, acceptor, boost::ref(context), fUseSSL, conn, boost::asio::placeholders::error));
 }
@@ -809,7 +814,12 @@ void StartRPCThreads()
     assert(rpc_io_service == NULL);
     
     rpc_io_service = new asio::io_service();
+
+#if BOOST_VERSION >= 107000
+    rpc_ssl_context = new boost::asio::ssl::context(boost::asio::ssl::context::sslv23);
+#else
     rpc_ssl_context = new ssl::context(*rpc_io_service, ssl::context::sslv23);
+#endif
 
     const bool fUseSSL = GetBoolArg("-rpcssl", false);
 
@@ -853,8 +863,13 @@ void StartRPCThreads()
         } 
 
         string strCiphers = GetArg("-rpcsslciphers", "TLSv1.2+HIGH:TLSv1+HIGH:!SSLv3:!SSLv2:!aNULL:!eNULL:!3DES:@STRENGTH");
-        
+
+#if BOOST_VERSION >= 107000        
+        SSL_CTX_set_cipher_list(rpc_ssl_context->native_handle(), strCiphers.c_str());
+#else
         SSL_CTX_set_cipher_list(rpc_ssl_context->impl(), strCiphers.c_str());
+#endif
+
     }
 
     // Try a dual IPv6/IPv4 socket, falling back to separate IPv4 and IPv6 sockets
