@@ -46,7 +46,13 @@ Object CallRPC(const string& strMethod, const Array& params)
     bool fUseSSL = GetBoolArg("-rpcssl", false);
     
     asio::io_service io_service;
+
+#if BOOST_VERSION >= 107000
+    boost::asio::ssl::context context(boost::asio::ssl::context::sslv23);
+#else
     ssl::context context(io_service, ssl::context::sslv23);
+#endif
+
     context.set_options(ssl::context::no_sslv2);
     
     asio::ssl::stream<asio::ip::tcp::socket> sslStream(io_service, context);

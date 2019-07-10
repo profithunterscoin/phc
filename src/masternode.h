@@ -232,9 +232,12 @@ class CMasternode
         inline uint64_t SliceHash(uint256& hash, int slice)
         {
             uint64_t n = 0;
-
+            
+#ifdef __ANDROID__
+            memcpy(&n, &hash+slice*8, 8);
+#else
             memcpy(&n, &hash+slice*64, 64);
-
+#endif
             return n;
         }
 
