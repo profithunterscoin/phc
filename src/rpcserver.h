@@ -104,7 +104,7 @@ extern json_spirit::Value getgenerate(const json_spirit::Array& params, bool fHe
 extern json_spirit::Value setgenerate(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value gethashespersec(const json_spirit::Array& params, bool fHelp);
 
-extern double GetPoWMHashPS();
+extern int64_t GetPoWMHashPS();
 extern double GetPoSKernelPS();
 
 extern std::string HelpRequiringPassphrase();
@@ -247,6 +247,8 @@ extern json_spirit::Value getsubsidy(const json_spirit::Array& params, bool fHel
 extern json_spirit::Value getstakesubsidy(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value getmininginfo(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getnetworkhashps(const json_spirit::Array& params, bool fHelp);
+
 extern json_spirit::Value getstakinginfo(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value checkkernel(const json_spirit::Array& params, bool fHelp);

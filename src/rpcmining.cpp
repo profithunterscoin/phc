@@ -228,6 +228,18 @@ Value getmininginfo(const Array& params, bool fHelp)
 }
 
 
+Value getnetworkhashps(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 0)
+    {
+        throw runtime_error(
+            "getnetworkhashps\n"
+            "Returns network PoW hashes per second");
+    }
+   
+    return GetPoWMHashPS();
+}
+
 Value getstakinginfo(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
