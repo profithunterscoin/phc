@@ -46,6 +46,8 @@ apt install libandroid-shmem-dev
 apt install libc*
 apt install proot
 
+
+
 Dependency: Berkely (Manual compile)
 ----------------------------------------------
 
@@ -61,9 +63,7 @@ ERROR: AtomicPointers
 
 make
 
-termux-chroot
-
-make install
+termux-chroot make install
 
 ********
 
@@ -81,9 +81,8 @@ cd build_android
 
 make
 
-termux-chroot
+termux-chroot make install
 
-make install
 
 
 Dependency: LevelDB (Manual compile)
@@ -136,6 +135,7 @@ cd android-ifaddrs
 cp * /data/data/com.termux/files/usr/include/
 
 
+
 Prepare to compile: Grab the source
 ----------------------------------------------
 
@@ -151,6 +151,20 @@ wget http://profithunterscoin.com/leveldb/libmemenv.a
 cd
 
 
+Prepare to compile: Edit the source
+------------------------------------
+
+Add to makefile.unix:
+BDB_INCLUDE_PATH = /usr/local/BerkeleyDB.18.1/include
+BDB_LIB_PATH = /usr/local/BerkeleyDB.18.1/lib
+
+edit line 19  db.h   db_cxx.h     to /usr/local/BerkeleyDB.18.1/lib/db_cxx.h 
+
+
+db.cpp line 57   (must be fixed, commented out with // to test build)
+
+
+
 To Build (phcd) Headless daemon
 --------
 
@@ -158,6 +172,15 @@ cd phc
 git checkout 1.0.0.7-dev
 cd src/
 make -f makefile.unix
+
+
+
+To FIX:
+--------
+Makefile to use db.18.1
+db.cpp line 57   (must be fixed, commented out with // to test build)
+RPC client/server not working
+
 
 
 Security
@@ -200,6 +223,7 @@ exploit even if a vulnerability is found, you can take the following measures:
     RW- R-- RW-
 
     The STK RW- means that the stack is readable and writeable but not executable.
+
 
 
 Static Builds (Release binaries)
