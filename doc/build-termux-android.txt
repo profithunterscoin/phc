@@ -44,21 +44,30 @@ apt install libsqlite3-dev
 apt install libandroid-shmem
 apt install libandroid-shmem-dev
 apt install libc*
+apt install proot
+
+
 
 Dependency: Berkely (Manual compile)
 ----------------------------------------------
 
-Db4.8:
+Db4.8 (Not working):
 
 wget http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz
 
 tar -xzvf db-4.8.30.NC.tar.gz
 cd db-4.8.30.NC/build_unix
 ../dist/configure --build=i686-pc-linux-gnu --host=arm-linux-gnueabi  --enable-cxx --enable-dbm
+
+ERROR: AtomicPointers
+
 make
 
+termux-chroot make install
 
-Newest Version:
+********
+
+Newest Version (Working):
 
 wget https://fossies.org/linux/misc/db-18.1.32.tar.gz
 
@@ -71,6 +80,9 @@ cd build_android
 ../dist/configure --enable-cxx
 
 make
+
+termux-chroot make install
+
 
 
 Dependency: LevelDB (Manual compile)
@@ -95,6 +107,8 @@ mkdir -p build && cd build
 wget http://profithunterscoin.com/sqlite3/sqlite3.h
 
 cmake -DCMAKE_BUILD_TYPE=Release -DLEVELDB_PLATFORM_POSIX=1 -DLEVELDB_ATOMIC_PRESENT=0 -DHAVE_CRC32C=0 -DHAVE_SNAPPY=0 -O2 -DNDEBUG=1 -DLEVELDB_SHARED_LIBRARY=1 -DLEVELDB_COMPILE_LIBRARY=1 -fPIC . && cmake --build .
+
+ERROR: Doesn't build libmemenv.a
 
 
 Dependency: Additonal Troubleshooting
@@ -121,6 +135,7 @@ cd android-ifaddrs
 cp * /data/data/com.termux/files/usr/include/
 
 
+
 Prepare to compile: Grab the source
 ----------------------------------------------
 
@@ -136,6 +151,20 @@ wget http://profithunterscoin.com/leveldb/libmemenv.a
 cd
 
 
+Prepare to compile: Edit the source
+------------------------------------
+
+Add to makefile.unix:
+BDB_INCLUDE_PATH = /usr/local/BerkeleyDB.18.1/include
+BDB_LIB_PATH = /usr/local/BerkeleyDB.18.1/lib
+
+edit line 19  db.h   db_cxx.h     to /usr/local/BerkeleyDB.18.1/lib/db_cxx.h 
+
+
+db.cpp line 57   (must be fixed, commented out with // to test build)
+
+
+
 To Build (phcd) Headless daemon
 --------
 
@@ -143,6 +172,15 @@ cd phc
 git checkout 1.0.0.7-dev
 cd src/
 make -f makefile.unix
+
+
+
+To FIX:
+--------
+Makefile to use db.18.1
+db.cpp line 57   (must be fixed, commented out with // to test build)
+RPC client/server not working
+
 
 
 Security
@@ -185,6 +223,7 @@ exploit even if a vulnerability is found, you can take the following measures:
     RW- R-- RW-
 
     The STK RW- means that the stack is readable and writeable but not executable.
+
 
 
 Static Builds (Release binaries)
