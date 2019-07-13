@@ -1,0 +1,33 @@
+Contribute code to PHC - GITHUB quick guide (DRAFT)
+
+K Step 1
+https://confluence.atlassian.com/bitbucket/configure-your-dvcs-username-for-commits-950301867.html
+and
+https://dev.to/maedahbatool/generating-a-new-ssh-key-and-adding-it-to-github-137j
+
+step 2
+git clone -b 1.0.0.7-dev http://github.com/profithunterscoin/phc
+cp phc phc-build -r
+cd phc
+or 
+git clone  http://github.com/profithunterscoin/phc 
+cp phc phc-build -r
+cd phc
+git checkout 1.0.0.7-dev
+Step 3
+git remote add phc https://github.com/JustinPercy/phc.git
+git remote set-url phc git@github.com:JustinPercy/phc.git
+replace justinpercy with your github username
+
+Step 4
+make changes to the  source files copy and pasting one by one (the ones you changed) from your phc-build (testing, active development) into the files in phc
+
+Step 5
+commiting changes to your repo
+
+git add -A 
+git commit -am "1.0.0.7"
+git push 1.0.0.7-dev
+then let me know and I will walk you through a pull request
+once i send it with your changes, I will accept and merge with official source
+dont make while in phc directory, always while ur in phc-build to keep it clean
