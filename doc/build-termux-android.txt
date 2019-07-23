@@ -53,7 +53,9 @@ Dependency: Berkely DB (Manual compile)
 
 cd
 
-wget https://download.oracle.com/otn/berkeley-db/db-18.1.32.tar.gz
+wget https://fossies.org/linux/misc/db-18.1.32.tar.gz
+
+NOTE: If the link above is broken use mirror: wget https://profithunterscoin.com/db-18.1.32.tar.gz
 
 tar -xzvf db-18.1.32.tar.gz
 
@@ -91,7 +93,7 @@ cd phc/src
 
 mv leveldb leveldb-old
  
-git clone https://github.com/google/leveldb
+git clone https://github.com/profithunterscoin/leveldb
 
 cd leveldb
 
@@ -147,7 +149,7 @@ To Build (phcd) Headless daemon
 
 cd phc
 git checkout 1.0.0.7-dev
-cd src/
+cd src
 make -f makefile.android
 
 
@@ -208,6 +210,8 @@ cd
 Dependency: Boost 1.70 (Manual compile)
 ~~~~~~~~~
 wget https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.bz2
+
+NOTE: If the link above is broken use mirror: wget https://profithunterscoin.com/boost_1_70_0.tar.bz2
 
 tar xvjf boost_1_70_0.tar.bz2
 
