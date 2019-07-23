@@ -1,3 +1,4 @@
+Copyright (c) 2009-2012 Bitcoin Developers
 Copyright (c) 2019 Profit Hunters Coin
 Distributed under the MIT/X11 software license, see the accompanying
 file license.txt or http://www.opensource.org/licenses/mit-license.php.
@@ -7,17 +8,16 @@ cryptographic software written by Eric Young (eay@cryptsoft.com) and UPnP
 software written by Thomas Bernard.
 
 
-TERMUX BUILD NOTES - DRAFT - (ANDROID)
-================
+TERMUX BUILD NOTES (ANDROID)
+================================================
 
 Requirements
-------------
-https://termux.com
+----------------------------------------------
+https://termux.com  (Available through Google Play Store)
 
 
-Dependencies
-------------
-
+Dependencies (Install with package manager)
+----------------------------------------------
 apt update
 apt upgrade
 apt install make
@@ -48,28 +48,12 @@ apt install proot
 
 
 
-Dependency: Berkely (Manual compile)
+Dependency: Berkely DB (Manual compile)
 ----------------------------------------------
 
-Db4.8 (Not working):
+cd
 
-wget http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz
-
-tar -xzvf db-4.8.30.NC.tar.gz
-cd db-4.8.30.NC/build_unix
-../dist/configure --build=i686-pc-linux-gnu --host=arm-linux-gnueabi  --enable-cxx --enable-dbm
-
-ERROR: AtomicPointers
-
-make
-
-termux-chroot make install
-
-********
-
-Newest Version (Working):
-
-wget https://fossies.org/linux/misc/db-18.1.32.tar.gz
+wget https://download.oracle.com/otn/berkeley-db/db-18.1.32.tar.gz
 
 tar -xzvf db-18.1.32.tar.gz
 
@@ -83,10 +67,27 @@ make
 
 termux-chroot make install
 
+cd
+
+
+
+Dependency: LevelDB (Manual install)
+----------------------------------------------
+cd phc/src
+
+cd leveldb
+
+wget https://github.com/profithunterscoin/android_depends_phc/blob/master/libleveldb.a?raw=true
+
+wget https://github.com/profithunterscoin/android_depends_phc/blob/master/libmemenv.a?raw=true
+
+cd ..
 
 
 Dependency: LevelDB (Manual compile)
 ----------------------------------------------
+
+cd phc/src
 
 mv leveldb leveldb-old
  
@@ -104,21 +105,17 @@ edit:   #include <sqlite3.h>  to #include "sqlite3.h"
 
 mkdir -p build && cd build
 
-wget http://profithunterscoin.com/sqlite3/sqlite3.h
+wget https://raw.githubusercontent.com/profithunterscoin/android_depends_phc/master/sqlite3.h
 
 cmake -DCMAKE_BUILD_TYPE=Release -DLEVELDB_PLATFORM_POSIX=1 -DLEVELDB_ATOMIC_PRESENT=0 -DHAVE_CRC32C=0 -DHAVE_SNAPPY=0 -O2 -DNDEBUG=1 -DLEVELDB_SHARED_LIBRARY=1 -DLEVELDB_COMPILE_LIBRARY=1 -fPIC . && cmake --build .
 
 ERROR: Doesn't build libmemenv.a
 
+cd ..
 
-Dependency: Additonal Troubleshooting
-----------------------------------------------
+wget https://github.com/profithunterscoin/android_depends_phc/blob/master/libmemenv.a?raw=true
 
-remove libdb 5.1
-
- -I"$(CURDIR)/db-4.8.30.NC/build_unix" \
-
-NOT Finished...
+cd ..
 
 
 Prepare to compile: Termux Mods
@@ -126,7 +123,7 @@ Prepare to compile: Termux Mods
 
 cd
 
-git clone https://github.com/morristech/android-ifaddrs
+git clone https://github.com/profithunterscoin/android-ifaddrs
 
 mv /data/data/com.termux/files/usr/include/ifaddrs.h ifaddrs-old.h
 
@@ -143,48 +140,112 @@ cd
 
 git clone http://github.com/profithunterscoin/phc
 
-cd phc/src/leveldb
-
-wget http://profithunterscoin.com/leveldb/libleveldb.a
-wget http://profithunterscoin.com/leveldb/libmemenv.a
-
-cd
-
-
-Prepare to compile: Edit the source
-------------------------------------
-
-Add to makefile.unix:
-BDB_INCLUDE_PATH = /usr/local/BerkeleyDB.18.1/include
-BDB_LIB_PATH = /usr/local/BerkeleyDB.18.1/lib
-
-edit line 19  db.h   db_cxx.h     to /usr/local/BerkeleyDB.18.1/lib/db_cxx.h 
-
-
-db.cpp line 57   (must be fixed, commented out with // to test build)
-
 
 
 To Build (phcd) Headless daemon
---------
+----------------------------------------------
 
 cd phc
 git checkout 1.0.0.7-dev
 cd src/
-make -f makefile.unix
+make -f makefile.android
 
 
+Static Build (phcd) Headless daemon (Release binaries)
+----------------------------------------------
 
-To FIX:
---------
-Makefile to use db.18.1
-db.cpp line 57   (must be fixed, commented out with // to test build)
-RPC client/server not working
+Dependency: GMP (Manual compile)
+~~~~~~~~~
+cd 
+
+git clone https://github.com/profithunterscoin/GMP
+
+cd GMP
+./configure
+make
+termux-chroot make install
+
+cd
+cd ..
+cd usr/local/include
+cp gmp.h ../../../usr/include
+cd lib
+cp libgmp.a ../../../usr/lib
+
+
+Dependency: Openssl (Manual compile)
+~~~~~~~~~
+cd
+
+git clone https://github.com/profithunterscoin/openssl
+
+cd openssl
+
+./config
+make
+termux-chroot make install
+
+cp libssl.a ../../usr/libssl
+cp libcrypto.a ../../usr/lib
+
+cd
+
+
+Dependency: Miniupnp (Manual compile)
+~~~~~~~~~
+cd
+
+git clone https://github.com/profithunterscoin/miniupnp
+
+cd miniupnp/miniupnpc
+
+make
+termux-chroot make install
+
+cd
+
+
+Dependency: Boost 1.70 (Manual compile)
+~~~~~~~~~
+wget https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.bz2
+
+tar xvjf boost_1_70_0.tar.bz2
+
+Fix depends issue:
+mv /data/data/com.termux/files/usr/include/python3.7m /data/data/com.termux/files/usr/include/python3.7
+mv /data/data/com.termux.files/usr/lib/libpython3.7m.so /data/data/com.termux/files/usr/lib/libpython37.so
+
+home/boost_1_70_0/stage/lib/libboost_python37.so
+
+cd boost_1_70_0
+
+ Install Boost by running the following commands:
+
+termux-chroot ./bootstrap.sh --prefix=/data/data/com.termux/files/usr && ./b2 stage threading=multi link=shared
+
+ Install Boost Libs by running the following commands:
+
+termux-chroot ./bootstrap.sh --prefix=/data/data/com.termux/files/usr && ./b2 stage threading=multi link=static
+
+cd
+
+
+Build Executable
+~~~~~~~~~
+cd phc
+git checkout 1.0.0.7-dev
+cd src/
+
+make STATIC=1 LDFLAGS="-static-libstdc++" -f makefile.unix phcd USE_UPNP=
+
+Or you can also try:
+
+make -f makefile.android STATIC=1
 
 
 
 Security
---------
+----------------------------------------------
 To help make your PHC installation more secure by making certain attacks impossible to
 exploit even if a vulnerability is found, you can take the following measures:
 
@@ -226,8 +287,3 @@ exploit even if a vulnerability is found, you can take the following measures:
 
 
 
-Static Builds (Release binaries)
---------
-
-cd phc/src
-make STATIC=1 LDFLAGS="-static-libstdc++" -f makefile.unix phcd USE_UPNP=
