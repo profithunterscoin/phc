@@ -148,7 +148,7 @@ To Build (phcd) Headless daemon
 cd phc
 git checkout 1.0.0.7-dev
 cd src/
-make -f makefile.unix
+make -f makefile.android
 
 
 Static Build (phcd) Headless daemon (Release binaries)
@@ -240,7 +240,7 @@ make STATIC=1 LDFLAGS="-static-libstdc++" -f makefile.unix phcd USE_UPNP=
 
 Or you can also try:
 
-make -f makefile.unix STATIC=1
+make -f makefile.android STATIC=1
 
 
 
