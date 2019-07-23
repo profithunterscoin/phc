@@ -678,7 +678,11 @@ template <typename Protocol> class AcceptedConnectionImpl : public AcceptedConne
 {
     public:
 
+#if BOOST_VERSION >= 107000
+        AcceptedConnectionImpl(asio::executor io_service, ssl::context &context, bool fUseSSL) : sslStream(io_service, context), _d(sslStream, fUseSSL), _stream(_d)
+#else
         AcceptedConnectionImpl(asio::io_service& io_service, ssl::context &context, bool fUseSSL) : sslStream(io_service, context), _d(sslStream, fUseSSL), _stream(_d)
+#endif  
         {
         }
 
@@ -723,8 +727,7 @@ template <typename Protocol, typename SocketAcceptorService> static void RPCList
 {
     // Accept connection
 #if BOOST_VERSION >= 107000
-    asio::io_service io_service;
-    AcceptedConnectionImpl<Protocol>* conn = new AcceptedConnectionImpl<Protocol>(io_service, context, fUseSSL);
+    AcceptedConnectionImpl<Protocol>* conn = new AcceptedConnectionImpl<Protocol>(acceptor->get_executor(), context, fUseSSL);
 #else
     AcceptedConnectionImpl<Protocol>* conn = new AcceptedConnectionImpl<Protocol>(acceptor->get_io_service(), context, fUseSSL);
 #endif
