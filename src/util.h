@@ -444,7 +444,7 @@ inline int64_t GetPerformanceCounter()
     int64_t nCounter = 0;
 
 #ifdef WIN32
-    QueryPerformanceCounter((LARGE_INTEGER*)&nCounter);
+    QueryPerformanceCounter((unsigned _int64*)&nCounter);
 #else
     timeval t;
     gettimeofday(&t, NULL);
