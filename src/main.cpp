@@ -27,6 +27,10 @@
 #include "rpcserver.h"
 #include "consensus.h"
 
+#include <iostream>
+#include <string>
+#include <sstream>
+
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
