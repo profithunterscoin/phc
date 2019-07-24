@@ -1284,7 +1284,7 @@ int SecureMsgBuildBucketSet()
                 errno = 0;
 
 #if __ANDROID__                
-                if (fread(&smsg.hash[0], sizeof(uint8_t), 8, fp) != (size_t)SMSG_HDR_LEN)
+                if (fread(&smsg.hash[0], sizeof(uint8_t), 4, fp) != (size_t)SMSG_HDR_LEN)
 #else
 
                 if (fread(&smsg.hash[0], sizeof(uint8_t), SMSG_HDR_LEN, fp) != (size_t)SMSG_HDR_LEN)
@@ -3317,7 +3317,7 @@ bool SecureMsgScanBuckets()
             {
                 errno = 0;
 #if __ANDROID__ 
-                if (fread(&smsg.hash[0], sizeof(uint8_t), 8, fp) != (size_t)SMSG_HDR_LEN)
+                if (fread(&smsg.hash[0], sizeof(uint8_t), 4, fp) != (size_t)SMSG_HDR_LEN)
 #else
                 if (fread(&smsg.hash[0], sizeof(uint8_t), SMSG_HDR_LEN, fp) != (size_t)SMSG_HDR_LEN)
 #endif
@@ -3539,7 +3539,7 @@ int SecureMsgWalletUnlocked()
                 errno = 0;
 
 #if __ANDROID__ 
-                if (fread(&smsg.hash[0], sizeof(uint8_t), 8, fp) != (size_t)SMSG_HDR_LEN)
+                if (fread(&smsg.hash[0], sizeof(uint8_t), 4, fp) != (size_t)SMSG_HDR_LEN)
 #else
                 if (fread(&smsg.hash[0], sizeof(uint8_t), SMSG_HDR_LEN, fp) != (size_t)SMSG_HDR_LEN)
 #endif
@@ -4132,7 +4132,7 @@ int SecureMsgRetrieve(SecMsgToken &token, std::vector<uint8_t>& vchData)
     errno = 0;
 
 #if __ANDROID__ 
-    if (fread(&smsg.hash[0], sizeof(uint8_t), 8, fp) != (size_t)SMSG_HDR_LEN)
+    if (fread(&smsg.hash[0], sizeof(uint8_t), 4, fp) != (size_t)SMSG_HDR_LEN)
 #else
     if (fread(&smsg.hash[0], sizeof(uint8_t), SMSG_HDR_LEN, fp) != (size_t)SMSG_HDR_LEN)
 #endif

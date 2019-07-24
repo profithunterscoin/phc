@@ -52,7 +52,7 @@ INCLUDEPATHS = \
  -I "$(DEPSDIR)/include/boost"
 
 LIBPATHS = \
- -I "$(DEPSDIR)/local/BerkeleyB.18.1/lib" \
+ -I "$(DEPSDIR)/local/BerkeleyDB.18.1/lib" \
  -I "$(DEPSDIR)/lib" \
  -I "$(DEPSDIR)/local/lib" \
  -I "$(DEPSDIR)/lib/boost"
