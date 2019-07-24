@@ -52,8 +52,11 @@ void CDBEnv::EnvShutdown()
         }
     }
 
-#if __ANDROID__ 
-// nothing (To Do: fix)
+#if DB_VERSION_MAJOR > 17
+    if (!fMockDb)
+    {
+        DbEnv().remove(strPath.c_str(), 0);
+    }
 #else
     if (!fMockDb)
     {

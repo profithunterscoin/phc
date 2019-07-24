@@ -1842,17 +1842,17 @@ double GetDynamicBlockReward3(int nHeight)
     /* ------ Regular Mining Phase: Blocks Bigger than 200000 ------ */
     if (nHeight > 150000)
     {
-        nSubsidyMax = 12.5;
+        nSubsidyMax = 12;
     }
     /* ------ Regular Mining Phase: Blocks Bigger than 200000 ------ */
     if (nHeight > 200000)
     {
-        nSubsidyMax = 6.25;
+        nSubsidyMax = 6;
     }
     /* ------ Regular Mining Phase: Blocks Bigger than 250000 ------ */
     if (nHeight > 250000)
     {
-        nSubsidyMax = 3.125;
+        nSubsidyMax = 3;
     }
 
     nSubsidyMod = nNetworkHashPS / nDifficulty;
@@ -1945,7 +1945,7 @@ int64_t GetProofOfStakeReward(const CBlockIndex* pindexPrev, int64_t nCoinAge, i
     /* ------ Pre-Mining Phase: Block #0 (Start) ------ */
     if (pindexPrev->nHeight == 0)
     {
-        nSubsidy = 0.03125;
+        nSubsidy = 0;
     }
     /* ------ Initial Mining Phase: Block #1 Up to 500000 ------ */
     else
