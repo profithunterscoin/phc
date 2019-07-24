@@ -219,8 +219,6 @@ Fix depends issue:
 mv /data/data/com.termux/files/usr/include/python3.7m /data/data/com.termux/files/usr/include/python3.7
 mv /data/data/com.termux.files/usr/lib/libpython3.7m.so /data/data/com.termux/files/usr/lib/libpython37.so
 
-home/boost_1_70_0/stage/lib/libboost_python37.so
-
 cd boost_1_70_0
 
  Install Boost by running the following commands:

@@ -302,6 +302,7 @@ typedef enum { full = 0, partial = 1 } earlyEnd_directive;
 ****************************/
 #if LZ4_ARCH64
 
+/* DEPRECIATED
 FORCE_INLINE int LZ4_NbCommonBytes (register U64 val)
 {
 # if defined(LZ4_BIG_ENDIAN)
@@ -331,6 +332,7 @@ FORCE_INLINE int LZ4_NbCommonBytes (register U64 val)
 #   endif
 # endif
 }
+*/
 
 #else
 
