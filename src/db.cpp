@@ -52,7 +52,7 @@ void CDBEnv::EnvShutdown()
         }
     }
 
-#if __ANDROID__ 
+#if DB_VERSION_MAJOR > 17
 // nothing (To Do: fix)
 #else
     if (!fMockDb)

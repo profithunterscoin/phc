@@ -63,7 +63,7 @@ cd db-18.1.32
 
 cd build_android
 
-../dist/configure --enable-cxx
+../dist/configure --enable-cxx --with-static
 
 make
 
