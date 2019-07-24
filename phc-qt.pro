@@ -50,10 +50,24 @@ BOOST = -lboost_system -lboost_filesystem
 
 # workaround for boost 1.58
 DEFINES += BOOST_VARIANT_USE_RELAXED_GET_BY_DEFAULT
+# *****************************************************
 
+# *****************************************************
 win32:BOOST_LIB_SUFFIX=-mgw49-mt-s-1_57
 win32:BOOST_INCLUDE_PATH=C:/deps/boost_1_57_0
 win32:BOOST_LIB_PATH=C:/deps/boost_1_57_0/stage/lib
+# *****************************************************
+
+# *****************************************************
+macx:BOOST_INCLUDE_PATH = /usr/local/Cellar/boost@1.59/1.59.0/include
+macx:BOOST_LIB_PATH = /usr/local/Cellar/boost@1.59/1.59.0/lib
+macx:BDB_INCLUDE_PATH = /usr/local/Cellar/berkeley-db@4/4.8.30/include
+macx:BDB_LIB_PATH = /usr/local/Cellar/berkeley-db@4/4.8.30/lib
+macx:OPENSSL_INCLUDE_PATH = /usr/local/Cellar/openssl/1.0.2n/include
+macx:OPENSSL_LIB_PATH = /usr/local/Cellar/openssl/1.0.2n/lib
+macx:MINIUPNPC_INCLUDE_PATH = /usr/local/Cellar/miniupnpc/include
+macx:MINIUPNPC_LIB_PATH = /usr/local/Cellar/miniupnpc/lib
+# *****************************************************
 
 # --------------------------------------------------
 # RGPickles AKA Jimmy updated new version of berkley
@@ -689,12 +703,15 @@ macx:QMAKE_INFO_PLIST = share/qt/Info.plist
 INCLUDEPATH += $$BOOST_INCLUDE_PATH $$BDB_INCLUDE_PATH $$OPENSSL_INCLUDE_PATH $$QRENCODE_INCLUDE_PATH $$MINIUPNPC_INCLUDE_PATH
 LIBS += $$join(BOOST_LIB_PATH,,-L,) $$join(BDB_LIB_PATH,,-L,) $$join(OPENSSL_LIB_PATH,,-L,) $$join(QRENCODE_LIB_PATH,,-L,) $$join(MINIUPNPC_LIB_PATH,,-L,)
 
+# Added -lminiupnpc -lqrencode to LIBS for OS X builds
+LIBS += -lssl -lcrypto -ldb_cxx$$BDB_LIB_SUFFIX -lminiupnpc -lqrencode
+
 # --------------------------------------------------
 # RGPickles AKA Jimmy -ldb_cxx changed to -ldb_cxx-18.1
 # --------------------------------------------------
 
+win32:LIBS += -lssl -lcrypto -ldb_cxx-18.1$$BDB_LIB_SUFFIX
 
-LIBS += -lssl -lcrypto -ldb_cxx-18.1$$BDB_LIB_SUFFIX
 # -lgdi32 has to happen after -lcrypto (see  #681)
 windows:LIBS += -lws2_32 -lshlwapi -lmswsock -lole32 -loleaut32 -luuid -lgdi32
 !windows: {

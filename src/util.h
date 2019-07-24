@@ -14,6 +14,7 @@
 #include <sys/resource.h>
 #endif
 
+/*
 #ifdef WIN32
 # ifndef WIN32_LEAN_AND_MEAN
 #   define WIN32_LEAN_AND_MEAN
@@ -28,6 +29,7 @@
 #include <windows.h>
 #endif
 #endif
+ */
 
 #include "serialize.h"
 #include "tinyformat.h"
