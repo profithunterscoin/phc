@@ -441,10 +441,10 @@ template<typename T> inline std::string HexStr(const T& vch, bool fSpaces=false)
 
 inline int64_t GetPerformanceCounter()
 {
-    int64_t nCounter = 0;
+    unsigned int64_t nCounter = 0;
 
 #ifdef WIN32
-    QueryPerformanceCounter((unsigned _int64*)&nCounter);
+    QueryPerformanceCounter(&nCounter);
 #else
     timeval t;
     gettimeofday(&t, NULL);
