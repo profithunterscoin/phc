@@ -59,6 +59,7 @@ v1.0.0.7 (Pre-release - unfinished)
 * Installed: DynamicCoinDistribution & Upgraded ASIC Choker
 * Upgraded: Blockcount GUI
 * Added initial support for Android (Termux build of phcd)
+* Boost 1.70 support & Berkeley 18.1.23
 
 v1.0.0.7 (To Finish before release)
 --------
