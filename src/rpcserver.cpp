@@ -359,8 +359,6 @@ static const CRPCCommand vRPCCommands[] =
     { "getconnectioncount",                             &getconnectioncount,                            true,      false,     false },
     { "getpeerinfo",                                    &getpeerinfo,                                   true,      false,     false },
     { "getpeeraverageheight",                           &getpeeraverageheight,                          true,      false,     false },
-    //{ "getpeerbestheight",                              &getpeerbestheight,                             true,      false,     false },
-    //{ "getpeerbestblockhash",                           &getpeerbestblockhash,                          true,      false,     false },
     { "addnode",                                        &addnode,                                       true,      true,      false },
     { "getaddednodeinfo",                               &getaddednodeinfo,                              true,      true,      false },
     { "ping",                                           &ping,                                          true,      false,     false },

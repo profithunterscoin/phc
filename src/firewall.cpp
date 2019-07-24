@@ -1557,10 +1557,7 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
             **/
             if (BAN_ATTACK == true)
             {
-                if (BAN_REASON > -1)
-                {
-                    AddToBanList(pnode, BAN_REASON, BAN_TIME);
-                }
+                AddToBanList(pnode, BAN_REASON, BAN_TIME);
             }
             /** -------------------------- **/
 

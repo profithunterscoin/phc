@@ -64,7 +64,6 @@ namespace Consensus
         timestamp = nTimestamp;
         addrname = nAddrname;
         blockheader = nBlockheader;
-        proofofwork = proofofwork;
     }
 
     /** -------------------------- **/
@@ -1176,7 +1175,7 @@ namespace Consensus
                 LogPrint("chainshield", "%s Fork Detected (Runaway Exception), Rolling back 5 blocks, force resync %d\n", __FUNCTION__, pindexBest->nHeight);
             }
 
-            CChain::RollbackChain(50);
+            CChain::RollbackChain(2);
 
             MilliSleep(10000);
 
