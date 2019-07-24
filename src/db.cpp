@@ -52,10 +52,15 @@ void CDBEnv::EnvShutdown()
         }
     }
 
+#if __ANDROID__    
+    // FIX
+#else
     if (!fMockDb)
     {
-        DbEnv((u_int32_t)0).remove(strPath.c_str(), 0);
+        DbEnv(0).remove(strPath.c_str(), 0);
     }
+#endif
+
 }
 
 
