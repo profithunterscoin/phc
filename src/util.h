@@ -24,7 +24,9 @@
 # ifndef NOMINMAX
 #   define NOMINMAX
 # endif
+#ifndef _ANONYMOUS_UNION
 #include <windows.h>
+#endif
 #endif
 
 #include "serialize.h"
