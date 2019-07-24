@@ -14,23 +14,6 @@
 #include <sys/resource.h>
 #endif
 
-/*
-#ifdef WIN32
-# ifndef WIN32_LEAN_AND_MEAN
-#   define WIN32_LEAN_AND_MEAN
-# endif
-# ifndef VC_EXTRALEAN
-#   define VC_EXTRALEAN
-# endif
-# ifndef NOMINMAX
-#   define NOMINMAX
-# endif
-#ifndef _ANONYMOUS_UNION
-#include <windows.h>
-#endif
-#endif
- */
-
 #include "serialize.h"
 #include "tinyformat.h"
 
