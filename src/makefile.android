@@ -27,14 +27,14 @@ DEPSDIR = $(BASEDIR)/usr
 # *****************************************************
 
 # *****************************************************
-BDB_INCLUDE_PATH = "$(DEPSDIR)/local/BerkeleyDB.18.1/include"
-BDB_LIB_PATH = "$(DEPSDIR)/local/BerkeleyDB.18.1/lib"
+BDB_INCLUDE_PATH = $(DEPSDIR)/local/BerkeleyDB.18.1/include
+BDB_LIB_PATH = $(DEPSDIR)/local/BerkeleyDB.18.1/lib
 # *****************************************************
 
 # *****************************************************
 ifdef STATIC
-BOOST_LIB_PATH = "$(BASEDIR)/home/boost_1_70_0/stage/lib"
-BOOST_INCLUDE_PATH = "$(DEPSDIR)/include/boost"
+BOOST_LIB_PATH = $(BASEDIR)/home/boost_1_70_0/stage/lib
+BOOST_INCLUDE_PATH = $(DEPSDIR)/include/boost
 endif
 # *****************************************************
 
@@ -55,7 +55,11 @@ LIBPATHS = \
  -I "$(DEPSDIR)/local/BerkeleyDB.18.1/lib" \
  -I "$(DEPSDIR)/lib" \
  -I "$(DEPSDIR)/local/lib" \
+ifdef STATIC
+ -I "$(BASEDIR)/home/boost_1_70_0/stage/lib" \
+endif
  -I "$(DEPSDIR)/lib/boost"
+
 # *****************************************************
 
 # *****************************************************
