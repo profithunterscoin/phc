@@ -15,8 +15,16 @@
 #endif
 
 #ifdef WIN32
-#define NOMINMAX // For Windows.h
-#include <Windows.h>
+# ifndef WIN32_LEAN_AND_MEAN
+#   define WIN32_LEAN_AND_MEAN
+# endif
+# ifndef VC_EXTRALEAN
+#   define VC_EXTRALEAN
+# endif
+# ifndef NOMINMAX
+#   define NOMINMAX
+# endif
+#include <windows.h>
 #endif
 
 #include "serialize.h"
