@@ -52,17 +52,10 @@ void CDBEnv::EnvShutdown()
         }
     }
 
-#if DB_VERSION_MAJOR > 17
     if (!fMockDb)
     {
-        DbEnv().remove(strPath.c_str(), 0);
+        DbEnv((u_int32_t)0).remove(strPath.c_str(), 0);
     }
-#else
-    if (!fMockDb)
-    {
-        DbEnv(0).remove(strPath.c_str(), 0);
-    }
-#endif
 }
 
 
