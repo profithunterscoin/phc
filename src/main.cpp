@@ -6867,8 +6867,8 @@ namespace CChain
         CBlockIndex* pfork = pindexBest->pprev;
         CBlockIndex* plonger = pindexNew;
 
-        int MaxBlocks = 1000;
-        int CurBlocks = 0;
+        //int MaxBlocks = 1000;
+        //int CurBlocks = 0;
 
         while (pfork != plonger)
         {
@@ -6884,9 +6884,9 @@ namespace CChain
                     break;
                 }
 
-                MaxBlocks++;
+                //MaxBlocks++;
 
-                MilliSleep(100);
+                //MilliSleep(100);
             }
 
             if (pfork == plonger)
@@ -6899,7 +6899,7 @@ namespace CChain
                 return error("%s : pfork->pprev is null", __FUNCTION__);
             }
 
-            MilliSleep(1000);
+            //MilliSleep(1000);
         }
 
         // List of what to disconnect
@@ -6951,7 +6951,7 @@ namespace CChain
                 }
             }
 
-            MilliSleep(10);
+            //MilliSleep(10);
         }
 
         // Connect longer branch
@@ -6977,7 +6977,7 @@ namespace CChain
                 vDelete.push_back(tx);
             }
 
-            MilliSleep(10);
+            //MilliSleep(10);
         }
 
         if (!txdb.WriteHashBestChain(pindexNew->GetBlockHash()))
@@ -7014,7 +7014,7 @@ namespace CChain
         {
             AcceptToMemoryPool(mempool, tx, false, NULL);
 
-            MilliSleep(10);
+            //MilliSleep(10);
         }
 
         // Delete redundant memory transactions that are in the connected branch
