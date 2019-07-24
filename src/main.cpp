@@ -6879,10 +6879,12 @@ namespace CChain
                     return error("%s : plonger->pprev is null", __FUNCTION__);
                 }
 
+                /*
                 if (CurBlocks >= MaxBlocks)
                 {
                     break;
                 }
+                */
 
                 //MaxBlocks++;
 
