@@ -55,10 +55,12 @@ LIBPATHS = \
  -I "$(DEPSDIR)/local/BerkeleyDB.18.1/lib" \
  -I "$(DEPSDIR)/lib" \
  -I "$(DEPSDIR)/local/lib" \
-ifdef STATIC
- -I "$(BASEDIR)/home/boost_1_70_0/stage/lib" \
-endif
  -I "$(DEPSDIR)/lib/boost"
+
+ifdef STATIC
+LIBPATHS = \
+ -I "$(BASEDIR)/home/boost_1_70_0/stage/lib"
+endif
 
 # *****************************************************
 
