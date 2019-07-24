@@ -20,6 +20,7 @@ DEFINES += BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE QT_DISABLE_DEPRECATED_BE
 CONFIG += no_include_pwd
 CONFIG += thread
 CONFIG += static
+CONFIG += c++11
 #CONFIG += openssl-linked
 CONFIG += openssl
 OBJECTS_DIR = build
