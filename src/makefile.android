@@ -21,22 +21,30 @@ CFLAGS = -O2 -fomit-frame-pointer
 LINK:=$(CXX)
 ARCH:=$(system lscpu | head -n 1 | awk '{print $2}')
 
+# *****************************************************
 BASEDIR = /data/data/com.termux/files
 DEPSDIR = $(BASEDIR)/usr
+# *****************************************************
 
-BDB_INCLUDE_PATH = $(DEPSDIR)/local/BerkeleyDB.18.1/include
-BDB_LIB_PATH = $(DEPSDIR)/local/BerkeleyDB.18.1/lib
+# *****************************************************
+BDB_INCLUDE_PATH = "$(DEPSDIR)/local/BerkeleyDB.18.1/include"
+BDB_LIB_PATH = "$(DEPSDIR)/local/BerkeleyDB.18.1/lib"
+# *****************************************************
 
+# *****************************************************
 ifdef STATIC
-BOOST_LIB_PATH = $(BASEDIR)/home/boost_1_70_0/stage/lib
-BOOST_INCLUDE_PATH = $(DEPSDIR)/include/boost
+BOOST_LIB_PATH = "$(BASEDIR)/home/boost_1_70_0/stage/lib"
+BOOST_INCLUDE_PATH = "$(DEPSDIR)/include/boost"
 endif
+# *****************************************************
 
+# *****************************************************
 DEFS=-DBOOST_SPIRIT_THREADSAFE
 DEFS += $(addprefix -I,$(CURDIR) $(CURDIR)/obj $(BOOST_INCLUDE_PATH) $(BDB_INCLUDE_PATH) $(OPENSSL_INCLUDE_PATH))
 LIBS = $(addprefix -L,$(BOOST_LIB_PATH) $(BDB_LIB_PATH) $(OPENSSL_LIB_PATH))
+# *****************************************************
 
-ifdef STATIC
+# *****************************************************
 INCLUDEPATHS = \
  -I "$(DEPSDIR)/include" \
  -I "$(DEPSDIR)/local" \
@@ -48,8 +56,9 @@ LIBPATHS = \
  -I "$(DEPSDIR)/lib" \
  -I "$(DEPSDIR)/local/lib" \
  -I "$(DEPSDIR)/lib/boost"
-endif
+# *****************************************************
 
+# *****************************************************
 LMODE = dynamic
 LMODE2 = dynamic
 
@@ -59,7 +68,9 @@ ifdef STATIC
         LMODE2 = static
     endif
 endif
+# *****************************************************
 
+# *****************************************************
 # workaround for boost 1.55 + 1.56 (https://svn.boost.org/trac10/ticket/10038)
 BOOST = -lboost_system -lboost_filesystem
 # *****************************************************
