@@ -445,7 +445,7 @@ template<typename T> inline std::string HexStr(const T& vch, bool fSpaces=false)
 
 inline int64_t GetPerformanceCounter()
 {
-    unsigned int64_t nCounter = 0;
+    int64_t nCounter = 0;
 
     timeval t;
     gettimeofday(&t, NULL);
@@ -657,7 +657,7 @@ template <typename T> class CMedianFilter
 #ifdef WIN32
 inline void SetThreadPriority(int nPriority)
 {
-    SetThreadPriority(boost::detail::win32::GetCurrentThreadId(), nPriority);
+    SetThreadPriority(boost::detail::win32::GetCurrentThread(), nPriority);
 }
 #else
 
