@@ -51,7 +51,7 @@ namespace Consensus
     {
         public:
 
-            static vector<std::pair<int, CCoinDistributionIndex>> map;  //PeerBlockIndex::map  (BlockNumber_History, CCoinDistributionIndex)
+            static vector<std::pair <int, CCoinDistributionIndex> > map;  //PeerBlockIndex::map  (BlockNumber_History, CCoinDistributionIndex)
 
             static int Blocks_HistoryTotal;
             static int Current_Position;
@@ -100,7 +100,7 @@ namespace Consensus
 
             static bool AddNode(std::string AddrName);
 
-            static vector<pair<int, std::string>> mapPeerBlockHistory;
+            static vector<pair <int, std::string> > mapPeerBlockHistory;
 
             static bool FindPeerBlockHistory(std::string AddrName);
             static bool NewPeerBlockHistory(std::string AddrName);
@@ -132,7 +132,7 @@ namespace Consensus
 
                 static DynamicCheckpoints::Checkpoint BestCheckpoint; // Best Chain
                         
-                static vector<std::pair<int, DynamicCheckpoints::Checkpoint>> ConsensusCheckpointMap; // History
+                static vector<std::pair <int, DynamicCheckpoints::Checkpoint> > ConsensusCheckpointMap; // History
 
                 static bool FindHash(uint256 hash);
 

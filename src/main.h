@@ -16,6 +16,7 @@
 #include "scrypt.h"
 #include "uint256.h"
 #include <list>
+#include <sstream>
 
 class CValidationState;
 
