@@ -25,6 +25,7 @@ CONFIG += openssl
 OBJECTS_DIR = build
 MOC_DIR = build
 UI_DIR = build
+USE_LOWMEM = 0
 # *****************************************************
 
 # *****************************************************

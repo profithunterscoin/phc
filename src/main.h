@@ -1355,8 +1355,7 @@ class CBlockIndex
     #ifndef LOWMEM
                 FormatMoney(nPOWMint), FormatMoney(nPOSMint), FormatMoney(nMoneySupply),
     #endif           
-                GeneratedStakeModifier() ? "MOD" : "-", GetStakeEntropyBit(), IsProofOfStake()? "PoS" : "PoW",
-                nStakeModifier, hashProof.ToString(), prevoutStake.ToString(), nStakeTime, hashMerkleRoot.ToString(), GetBlockHash().ToString());
+                GeneratedStakeModifier() ? "MOD" : "-", GetStakeEntropyBit(), IsProofOfStake()? "PoS" : "PoW", nStakeModifier, hashProof.ToString(), prevoutStake.ToString(), nStakeTime, hashMerkleRoot.ToString(), GetBlockHash().ToString());
         }
 };
 
