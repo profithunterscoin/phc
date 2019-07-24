@@ -1346,18 +1346,17 @@ class CBlockIndex
 
         std::string ToString() const
         {
+
 #ifndef LOWMEM
-            return strprintf("CBlockIndex(nprev=%p, pnext=%p, nFile=%u, nBlockPos=%-6d nHeight=%d, nPOWMint=%s, nPOSMint=%s, nMoneySupply=%s, nFlags=(%s)(%d)(%s), nStakeModifier=%016x, hashProof=%s, prevoutStake=(%s), nStakeTime=%d merkle=%s, hashBlock=%s)",
+            return strprintf("CBlockIndex(nprev=%p, pnext=%p, nFile=%u, nBlockPos=%-6d nHeight=%d, nPOWMint=%s, nMoneySupply=%s, nFlags=(%s)(%d)(%s), nStakeModifier=%016x, hashProof=%s, prevoutStake=(%s), nStakeTime=%d merkle=%s, hashBlock=%s)",
+                pprev, pnext, nFile, nBlockPos, nHeight, FormatMoney(nPOWMint), FormatMoney(nMoneySupply), GeneratedStakeModifier() ? "MOD" : "-", GetStakeEntropyBit(), IsProofOfStake()? "PoS" : "PoW",
+                nStakeModifier, hashProof.ToString(), prevoutStake.ToString(), nStakeTime, hashMerkleRoot.ToString(), GetBlockHash().ToString());
 #else
             return strprintf("CBlockIndex(nprev=%p, pnext=%p, nFile=%u, nBlockPos=%-6d nHeight=%d, nFlags=(%s)(%d)(%s), nStakeModifier=%016x, hashProof=%s, prevoutStake=(%s), nStakeTime=%d merkle=%s, hashBlock=%s)",
-#endif        
-            pprev, pnext, nFile, nBlockPos, nHeight,
-#ifndef LOWMEM
-            FormatMoney(nPOWMint), FormatMoney(nPOSMint), FormatMoney(nMoneySupply),
-#else
-            GeneratedStakeModifier() ? "MOD" : "-", GetStakeEntropyBit(), IsProofOfStake()? "PoS" : "PoW",
-            nStakeModifier, hashProof.ToString(), prevoutStake.ToString(), nStakeTime, hashMerkleRoot.ToString(), GetBlockHash().ToString());
-#endif   
+                pprev, pnext, nFile, nBlockPos, nHeight, GeneratedStakeModifier() ? "MOD" : "-", GetStakeEntropyBit(), IsProofOfStake()? "PoS" : "PoW",
+                nStakeModifier, hashProof.ToString(), prevoutStake.ToString(), nStakeTime, hashMerkleRoot.ToString(), GetBlockHash().ToString());
+#endif     
+
         }
 };
 
