@@ -3316,8 +3316,11 @@ bool SecureMsgScanBuckets()
             for (;;)
             {
                 errno = 0;
-
+#if __ANDROID__ 
+                if (fread(&smsg.hash[0], sizeof(uint8_t), 1, fp) != (size_t)SMSG_HDR_LEN)
+#else
                 if (fread(&smsg.hash[0], sizeof(uint8_t), SMSG_HDR_LEN, fp) != (size_t)SMSG_HDR_LEN)
+#endif
                 {
                     if (errno != 0)
                     {
@@ -3535,7 +3538,11 @@ int SecureMsgWalletUnlocked()
             {
                 errno = 0;
 
+#if __ANDROID__ 
+                if (fread(&smsg.hash[0], sizeof(uint8_t), 1, fp) != (size_t)SMSG_HDR_LEN)
+#else
                 if (fread(&smsg.hash[0], sizeof(uint8_t), SMSG_HDR_LEN, fp) != (size_t)SMSG_HDR_LEN)
+#endif
                 {
                     if (errno != 0)
                     {
@@ -4123,8 +4130,12 @@ int SecureMsgRetrieve(SecMsgToken &token, std::vector<uint8_t>& vchData)
 
     SecureMessage smsg;
     errno = 0;
-    
+
+#if __ANDROID__ 
+    if (fread(&smsg.hash[0], sizeof(uint8_t), 1, fp) != (size_t)SMSG_HDR_LEN)
+#else
     if (fread(&smsg.hash[0], sizeof(uint8_t), SMSG_HDR_LEN, fp) != (size_t)SMSG_HDR_LEN)
+#endif
     {
         if (fDebug)
         {
