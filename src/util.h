@@ -12,6 +12,7 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#endif
 
 #ifdef WIN32
 #define NOMINMAX // For Windows.h
