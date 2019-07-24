@@ -51,11 +51,15 @@ void CDBEnv::EnvShutdown()
             LogPrint("db", "%s : Exception: %s (%d)\n", __FUNCTION__, DbEnv::strerror(ret), ret);
         }
     }
-    
+
+#if __ANDROID__ 
+// nothing (To Do: fix)
+#else
     if (!fMockDb)
     {
         DbEnv(0).remove(strPath.c_str(), 0);
     }
+#endif
 }
 
 
