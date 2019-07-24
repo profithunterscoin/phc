@@ -17,6 +17,10 @@
 #include "serialize.h"
 #include "tinyformat.h"
 
+#include <windows.h>
+#include <dbghelp.h>
+#include <cstdlib>
+
 #include <map>
 #include <list>
 #include <utility>
@@ -443,13 +447,10 @@ inline int64_t GetPerformanceCounter()
 {
     unsigned int64_t nCounter = 0;
 
-#ifdef WIN32
-    QueryPerformanceCounter(&nCounter);
-#else
     timeval t;
     gettimeofday(&t, NULL);
     nCounter = (int64_t) t.tv_sec * 1000000 + t.tv_usec;
-#endif
+
     return nCounter;
 }
 
@@ -656,7 +657,7 @@ template <typename T> class CMedianFilter
 #ifdef WIN32
 inline void SetThreadPriority(int nPriority)
 {
-    SetThreadPriority(GetCurrentThread(), nPriority);
+    SetThreadPriority(GetCurrentThreadId(), nPriority);
 }
 #else
 
