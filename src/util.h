@@ -657,7 +657,7 @@ template <typename T> class CMedianFilter
 #ifdef WIN32
 inline void SetThreadPriority(int nPriority)
 {
-    SetThreadPriority(GetCurrentThreadId(), nPriority);
+    SetThreadPriority(boost::detail::win32::GetCurrentThreadId(), nPriority);
 }
 #else
 
