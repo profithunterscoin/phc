@@ -79,7 +79,7 @@ cd phc/src
 
 cd leveldb
 
-wget https://github.com/profithunterscoin/android_depends_phc/blob/master/libleveldb.a?raw=true
+get https://github.com/profithunterscoin/android_depends_phc/blob/master/libleveldb.a?raw=true
 
 wget https://github.com/profithunterscoin/android_depends_phc/blob/master/libmemenv.a?raw=true
 
@@ -91,31 +91,13 @@ Dependency: LevelDB (Manual compile)
 
 cd phc/src
 
-mv leveldb leveldb-old
- 
-git clone https://github.com/profithunterscoin/leveldb
+wget http://profithunterscoin.com/leveldb/leveldb-android.sh && chmod ugo+x leveldb-android.sh
 
-cd leveldb
+./leveldb-android.sh
 
-chmod 755 * -R
+TO FIX: Doesn't build libmemenv (use one from linux instead)
 
-cd benchmarks
-
-nano db_bench_sqlite3.cc
-
-edit:   #include <sqlite3.h>  to #include "sqlite3.h"
-
-mkdir -p build && cd build
-
-wget https://raw.githubusercontent.com/profithunterscoin/android_depends_phc/master/sqlite3.h
-
-cmake -DCMAKE_BUILD_TYPE=Release -DLEVELDB_PLATFORM_POSIX=1 -DLEVELDB_ATOMIC_PRESENT=0 -DHAVE_CRC32C=0 -DHAVE_SNAPPY=0 -O2 -DNDEBUG=1 -DLEVELDB_SHARED_LIBRARY=1 -DLEVELDB_COMPILE_LIBRARY=1 -fPIC . && cmake --build .
-
-ERROR: Doesn't build libmemenv.a
-
-cd ..
-
-wget https://github.com/profithunterscoin/android_depends_phc/blob/master/libmemenv.a?raw=true
+wget https://github.com/profithunterscoin/android_depends_phc/blob/master/libmemenv.a
 
 cd ..
 
@@ -142,12 +124,13 @@ cd
 
 git clone http://github.com/profithunterscoin/phc
 
+cd phc && git checkout 1.0.0.7-dev
+
 
 
 To Build (phcd) Headless daemon
 ----------------------------------------------
 
-cd phc
 git checkout 1.0.0.7-dev
 cd src
 make -f makefile.android
