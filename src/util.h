@@ -17,10 +17,6 @@
 #include "serialize.h"
 #include "tinyformat.h"
 
-#include <windows.h>
-#include <dbghelp.h>
-#include <cstdlib>
-
 #include <map>
 #include <list>
 #include <utility>
