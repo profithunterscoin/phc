@@ -20,6 +20,7 @@ CXX = g++ -std=c++11 -Wno-deprecated-declarations
 CFLAGS = -O2 -fomit-frame-pointer
 LINK:=$(CXX)
 ARCH:=$(system lscpu | head -n 1 | awk '{print $2}')
+USE_RTTI=1
 
 # *****************************************************
 BASEDIR = /data/data/com.termux/files
