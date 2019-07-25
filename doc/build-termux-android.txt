@@ -45,6 +45,7 @@ apt install libandroid-shmem
 apt install libandroid-shmem-dev
 apt install libc*
 apt install proot
+apt install stdatomic
 
 
 
@@ -79,9 +80,9 @@ cd phc/src
 
 cd leveldb
 
-get https://github.com/profithunterscoin/android_depends_phc/blob/master/libleveldb.a?raw=true
+get http://profithunterscoin.com/leveldb/libleveldb.a
 
-wget https://github.com/profithunterscoin/android_depends_phc/blob/master/libmemenv.a?raw=true
+wget http://profithunterscoin.com/leveldb/libmemenv.a
 
 cd ..
 
@@ -97,7 +98,7 @@ wget http://profithunterscoin.com/leveldb/leveldb-android.sh && chmod ugo+x leve
 
 TO FIX: Doesn't build libmemenv (use one from linux instead)
 
-wget https://github.com/profithunterscoin/android_depends_phc/blob/master/libmemenv.a
+wget http://profithunterscoin.com/leveldb/libmemenv.a
 
 cd ..
 
