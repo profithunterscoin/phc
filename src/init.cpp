@@ -804,7 +804,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         if (!filesystem::exists(backupDir))
         {
             // Always create backup folder to not confuse the operating system's file browser
-            filesystem::create_directories(backupDir);
+            filesystem::create_directory(backupDir);
         }
 
         nWalletBackups = GetArg("-createwalletbackups", 10);
