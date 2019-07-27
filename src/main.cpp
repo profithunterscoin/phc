@@ -6868,8 +6868,8 @@ namespace CChain
         }
 
         // Find the fork
-        CBlockIndex* pfork = pindexBest->pprev;
-        CBlockIndex* plonger = pindexNew->pprev;
+        CBlockIndex* pfork = pindexBest->pprev->pprev;
+        CBlockIndex* plonger = pindexNew;
 
         while (pfork != plonger)
         {
