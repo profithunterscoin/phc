@@ -705,6 +705,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     // ********************************************************* Step 4: application initialization: dir lock, daemonize, pidfile, debug log
 
+    // AppData Directory doesn't exist, create it.
     if (!boost::filesystem::is_directory(GetDataDir(true)))
     {
         fprintf(stderr, "Error: Specified directory does not exist. Creating directory now... Please wait.\n");
