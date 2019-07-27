@@ -17,7 +17,7 @@
 #include "serialize.h"
 #include "tinyformat.h"
 
-#ifndef WIN32
+#ifdef WIN32
 #include <windows.h>
 #include <dbghelp.h>
 #include <cstdlib>
