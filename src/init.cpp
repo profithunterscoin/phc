@@ -705,6 +705,24 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     // ********************************************************* Step 4: application initialization: dir lock, daemonize, pidfile, debug log
 
+    if (!boost::filesystem::is_directory(GetDataDir(true)))
+    {
+        fprintf(stderr, "Error: Specified directory does not exist. Creating directory now... Please wait.\n");
+
+        if (boost::filesystem::create_directory(GetDataDir(true)))
+        {
+            fprintf(stderr, "Created directory (wallet shutting down, restart using: phcd)\n");
+
+            MilliSleep(10000);
+
+            Shutdown();
+        }
+        else
+        {
+            fprintf(stderr, "Created directory failed.\n");
+        }
+    }
+
     // Initialize elliptic curve code
     ECC_Start();
 
@@ -794,6 +812,9 @@ bool AppInit2(boost::thread_group& threadGroup)
     }
 
     int64_t nStart;
+
+
+
 
     // ********************************************************* Step 5: Backup wallet and verify wallet database integrity
 #ifdef ENABLE_WALLET
