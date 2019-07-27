@@ -54,9 +54,20 @@ bool AppInit(int argc, char* argv[])
    
         if (!boost::filesystem::is_directory(GetDataDir(true)))
         {
-            fprintf(stderr, "Error: Specified directory does not exist. Creating directory now (wallet restart required)\n");
+            fprintf(stderr, "Error: Specified directory does not exist. Creating directory now... Please wait.\n");
 
-            boost::filesystem::create_directories(GetDataDir(true));
+            if (boost::filesystem::create_directory(GetDataDir(true)))
+            {
+                fprintf(stderr, "Created directory (wallet shutting down, restart using: phcd)\n");
+
+                MilliSleep(10000);
+
+                Shutdown();
+            }
+            else
+            {
+                fprintf(stderr, "Created directory failed.\n");
+            }
         }
 
         ReadConfigFile(mapArgs, mapMultiArgs);
