@@ -6869,10 +6869,7 @@ namespace CChain
 
         // Find the fork
         CBlockIndex* pfork = pindexBest->pprev;
-        CBlockIndex* plonger = pindexNew;
-
-        //int MaxBlocks = 1000;
-        //int CurBlocks = 0;
+        CBlockIndex* plonger = pindexNew->pprev;
 
         while (pfork != plonger)
         {
@@ -6882,17 +6879,6 @@ namespace CChain
                 {
                     return error("%s : plonger->pprev is null", __FUNCTION__);
                 }
-
-                /*
-                if (CurBlocks >= MaxBlocks)
-                {
-                    break;
-                }
-                */
-
-                //MaxBlocks++;
-
-                //MilliSleep(100);
             }
 
             if (pfork == plonger)
@@ -6905,21 +6891,25 @@ namespace CChain
                 return error("%s : pfork->pprev is null", __FUNCTION__);
             }
 
-            //MilliSleep(1000);
+            MilliSleep(1);
         }
-
+        
         // List of what to disconnect
         vector<CBlockIndex*> vDisconnect;
+
         for (CBlockIndex* pindex = pindexBest; pindex != pfork; pindex = pindex->pprev)
         {
             vDisconnect.push_back(pindex);
+            MilliSleep(1);
         }
 
         // List of what to connect
         vector<CBlockIndex*> vConnect;
+
         for (CBlockIndex* pindex = pindexNew; pindex != pfork; pindex = pindex->pprev)
         {
             vConnect.push_back(pindex);
+            MilliSleep(1);
         }
 
         reverse(vConnect.begin(), vConnect.end());
@@ -6932,6 +6922,7 @@ namespace CChain
 
         // Disconnect shorter branch
         list<CTransaction> vResurrect;
+
         BOOST_FOREACH(CBlockIndex* pindex, vDisconnect)
         {
             CBlock block;
@@ -6957,15 +6948,17 @@ namespace CChain
                 }
             }
 
-            //MilliSleep(10);
+            MilliSleep(1);
         }
 
         // Connect longer branch
         vector<CTransaction> vDelete;
+
         for (unsigned int i = 0; i < vConnect.size(); i++)
         {
             CBlockIndex* pindex = vConnect[i];
             CBlock block;
+
             if (!block.ReadFromDisk(pindex))
             {
                 return error("%s : ReadFromDisk for connect failed", __FUNCTION__);
@@ -6981,6 +6974,7 @@ namespace CChain
             BOOST_FOREACH(const CTransaction& tx, block.vtx)
             {
                 vDelete.push_back(tx);
+                MilliSleep(1);
             }
 
             //MilliSleep(10);
@@ -7004,6 +6998,7 @@ namespace CChain
             {
                 pindex->pprev->pnext = NULL;
             }
+            MilliSleep(1);
         }
 
         // Connect longer branch
@@ -7013,6 +7008,7 @@ namespace CChain
             {
                 pindex->pprev->pnext = pindex;
             }
+            MilliSleep(1);
         }
 
         // Resurrect memory transactions that were in the disconnected branch
@@ -7020,7 +7016,7 @@ namespace CChain
         {
             AcceptToMemoryPool(mempool, tx, false, NULL);
 
-            //MilliSleep(10);
+            MilliSleep(1);
         }
 
         // Delete redundant memory transactions that are in the connected branch
@@ -7028,6 +7024,7 @@ namespace CChain
         {
             mempool.remove(tx);
             mempool.removeConflicts(tx);
+            MilliSleep(1);
         }
 
         if (fDebug)
