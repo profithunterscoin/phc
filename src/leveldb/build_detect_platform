@@ -56,7 +56,7 @@ fi
 COMMON_FLAGS=
 CROSS_COMPILE=
 PLATFORM_CCFLAGS=
-PLATFORM_CXXFLAGS="-std=c++11"
+PLATFORM_CXXFLAGS=
 PLATFORM_LDFLAGS=
 PLATFORM_LIBS=
 PLATFORM_SHARED_EXT="so"
@@ -124,7 +124,7 @@ case "$TARGET_OS" in
         ;;
     OS_ANDROID_CROSSCOMPILE)
         PLATFORM=OS_ANDROID
-        COMMON_FLAGS="$MEMCMP_FLAG -D_REENTRANT -DOS_ANDROID -DLEVELDB_PLATFORM_POSIX"
+        COMMON_FLAGS="$MEMCMP_FLAG -D_REENTRANT -DOS_ANDROID -DLEVELDB_PLATFORM_POSIX -Dandroid=28"
         PLATFORM_LDFLAGS=""  # All pthread features are in the Android C library
         PORT_FILE=port/port_posix.cc
         CROSS_COMPILE=true
@@ -195,6 +195,7 @@ EOF
         PLATFORM_CXXFLAGS="-std=c++0x"
     else
         COMMON_FLAGS="$COMMON_FLAGS -DLEVELDB_PLATFORM_POSIX"
+        PLATFORM_CXXFLAGS="-std=c++11"
     fi
 
     # Test whether tcmalloc is available
