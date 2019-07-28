@@ -5,25 +5,30 @@
 // AtomicPointer provides storage for a lock-free pointer.
 // Platform-dependent implementation of AtomicPointer:
 // - If the platform provides a cheap barrier, we use it with raw pointers
-// - If <atomic> is present (on newer versions of gcc, it is), we use
-//   a <atomic>-based AtomicPointer.  However we prefer the memory
+// - If cstdatomic is present (on newer versions of gcc, it is), we use
+//   a cstdatomic-based AtomicPointer.  However we prefer the memory
 //   barrier based version, because at least on a gcc 4.4 32-bit build
-//   on linux, we have encountered a buggy <atomic> implementation.
-//   Also, some <atomic> implementations are much slower than a memory-barrier
-//   based implementation (~16ns for <atomic> based acquire-load vs. ~1ns for
-//   a barrier based acquire-load).
+//   on linux, we have encountered a buggy <cstdatomic>
+//   implementation.  Also, some <cstdatomic> implementations are much
+//   slower than a memory-barrier based implementation (~16ns for
+//   <cstdatomic> based acquire-load vs. ~1ns for a barrier based
+//   acquire-load).
 // This code is based on atomicops-internals-* in Google's perftools:
 // http://code.google.com/p/google-perftools/source/browse/#svn%2Ftrunk%2Fsrc%2Fbase
 
 #ifndef PORT_ATOMIC_POINTER_H_
 #define PORT_ATOMIC_POINTER_H_
 
-#include <stdint.h>
-
 #include <atomic>
-
+#include <stdint.h>
+#ifdef LEVELDB_CSTDATOMIC_PRESENT
+#include <cstdatomic>
+#endif
 #ifdef OS_WIN
 #include <windows.h>
+#endif
+#ifdef OS_MACOSX
+#include <libkern/OSAtomic.h>
 #endif
 
 #if defined(_M_X64) || defined(__x86_64__)
@@ -51,9 +56,9 @@ namespace port {
 #define LEVELDB_HAVE_MEMORY_BARRIER
 
 // Mac OS
-#elif defined(__APPLE__)
+#elif defined(OS_MACOSX)
 inline void MemoryBarrier() {
-  std::atomic_thread_fence(std::memory_order_seq_cst);
+  OSMemoryBarrier();
 }
 #define LEVELDB_HAVE_MEMORY_BARRIER
 
@@ -118,7 +123,7 @@ inline void MemoryBarrier() {
 
 #endif
 
-// AtomicPointer built using platform-specific MemoryBarrier().
+// AtomicPointer built using platform-specific MemoryBarrier()
 #if defined(LEVELDB_HAVE_MEMORY_BARRIER)
 class AtomicPointer {
  private:
@@ -137,6 +142,88 @@ class AtomicPointer {
     MemoryBarrier();
     rep_ = v;
   }
+};
+
+// AtomicPointer based on <cstdatomic>
+#elif defined(LEVELDB_CSTDATOMIC_PRESENT)
+class AtomicPointer {
+ private:
+  std::atomic<void*> rep_;
+ public:
+  AtomicPointer() { }
+  explicit AtomicPointer(void* v) : rep_(v) { }
+  inline void* Acquire_Load() const {
+    return rep_.load(std::memory_order_acquire);
+  }
+  inline void Release_Store(void* v) {
+    rep_.store(v, std::memory_order_release);
+  }
+  inline void* NoBarrier_Load() const {
+    return rep_.load(std::memory_order_relaxed);
+  }
+  inline void NoBarrier_Store(void* v) {
+    rep_.store(v, std::memory_order_relaxed);
+  }
+};
+
+// Atomic pointer based on sparc memory barriers
+#elif defined(__sparcv9) && defined(__GNUC__)
+class AtomicPointer {
+ private:
+  void* rep_;
+ public:
+  AtomicPointer() { }
+  explicit AtomicPointer(void* v) : rep_(v) { }
+  inline void* Acquire_Load() const {
+    void* val;
+    __asm__ __volatile__ (
+        "ldx [%[rep_]], %[val] \n\t"
+         "membar #LoadLoad|#LoadStore \n\t"
+        : [val] "=r" (val)
+        : [rep_] "r" (&rep_)
+        : "memory");
+    return val;
+  }
+  inline void Release_Store(void* v) {
+    __asm__ __volatile__ (
+        "membar #LoadStore|#StoreStore \n\t"
+        "stx %[v], [%[rep_]] \n\t"
+        :
+        : [rep_] "r" (&rep_), [v] "r" (v)
+        : "memory");
+  }
+  inline void* NoBarrier_Load() const { return rep_; }
+  inline void NoBarrier_Store(void* v) { rep_ = v; }
+};
+
+// Atomic pointer based on ia64 acq/rel
+#elif defined(__ia64) && defined(__GNUC__)
+class AtomicPointer {
+ private:
+  void* rep_;
+ public:
+  AtomicPointer() { }
+  explicit AtomicPointer(void* v) : rep_(v) { }
+  inline void* Acquire_Load() const {
+    void* val    ;
+    __asm__ __volatile__ (
+        "ld8.acq %[val] = [%[rep_]] \n\t"
+        : [val] "=r" (val)
+        : [rep_] "r" (&rep_)
+        : "memory"
+        );
+    return val;
+  }
+  inline void Release_Store(void* v) {
+    __asm__ __volatile__ (
+        "st8.rel [%[rep_]] = %[v]  \n\t"
+        :
+        : [rep_] "r" (&rep_), [v] "r" (v)
+        : "memory"
+        );
+  }
+  inline void* NoBarrier_Load() const { return rep_; }
+  inline void NoBarrier_Store(void* v) { rep_ = v; }
 };
 
 // AtomicPointer based on C++11 <atomic>.
