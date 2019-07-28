@@ -19,6 +19,7 @@
 #ifndef PORT_ATOMIC_POINTER_H_
 #define PORT_ATOMIC_POINTER_H_
 
+#include <atomic>
 #include <stdint.h>
 #ifdef LEVELDB_CSTDATOMIC_PRESENT
 #include <cstdatomic>
@@ -110,6 +111,13 @@ inline void MemoryBarrier() {
   // TODO for some powerpc expert: is there a cheaper suitable variant?
   // Perhaps by having separate barriers for acquire and release ops.
   asm volatile("sync" : : : "memory");
+}
+#define LEVELDB_HAVE_MEMORY_BARRIER
+
+// MIPS
+#elif defined(ARCH_CPU_MIPS_FAMILY) && defined(__GNUC__)
+inline void MemoryBarrier() {
+  __asm__ __volatile__("sync" : : : "memory");
 }
 #define LEVELDB_HAVE_MEMORY_BARRIER
 
@@ -218,11 +226,28 @@ class AtomicPointer {
   inline void NoBarrier_Store(void* v) { rep_ = v; }
 };
 
-// We have neither MemoryBarrier(), nor <cstdatomic>
+// AtomicPointer based on C++11 <atomic>.
 #else
-#error Please implement AtomicPointer for this platform.
+class AtomicPointer {
+ private:
+  std::atomic<void*> rep_;
+ public:
+  AtomicPointer() { }
+  explicit AtomicPointer(void* v) : rep_(v) { }
+  inline void* Acquire_Load() const {
+    return rep_.load(std::memory_order_acquire);
+  }
+  inline void Release_Store(void* v) {
+    rep_.store(v, std::memory_order_release);
+  }
+  inline void* NoBarrier_Load() const {
+    return rep_.load(std::memory_order_relaxed);
+  }
+  inline void NoBarrier_Store(void* v) {
+    rep_.store(v, std::memory_order_relaxed);
+  }
+};
 
-#endif
 #endif
 
 #undef LEVELDB_HAVE_MEMORY_BARRIER
