@@ -957,8 +957,7 @@ int64_t GetMinFee(const CTransaction& tx, unsigned int nBytes, bool fAllowFree, 
             nMinFee = 0;
     }*/
 
-    // This code can be removed after enough miners have upgraded to version 0.9.
-    // Until then, be safe when sending and require a fee if any output
+    // Be safe when sending and require a fee if any output
     // is less than CENT:
     if (nMinFee < nBaseFee && mode == GMF_SEND)
     {
