@@ -78,17 +78,34 @@ Dependency: LevelDB (Manual install)
 ----------------------------------------------
 cd phc/src
 
-cd leveldb
+wget https://github.com/profithunterscoin/android_depends_phc/raw/master/android-leveldb.tgz
 
-get http://profithunterscoin.com/leveldb/libleveldb.a
+mv leveldb leveldb-old
+wget  (this file)
+tar -xvzf android-leveldb.tgz
 
-wget http://profithunterscoin.com/leveldb/libmemenv.a
 
 cd ..
 
 
+***************
+NOTE: md5sum
+d5dcd86f595dc72094cfa62f71018718  libleveldb.a
+6ef649396938cd7eada4498223312834  libmemenv.a
+
+If build fails with above files try using the zip
+
+wget http://profithunterscoin.com/leveldb/libleveldb-android.tar
+
+tar -xvf libleveldb-android.tar
+
+cd ..
+***************
+
+
 Dependency: LevelDB (Manual compile)
 ----------------------------------------------
+WARNING: BUGGY NOT WORKING
 
 cd phc/src
 
@@ -129,7 +146,7 @@ cd phc && git checkout 1.0.0.7-dev
 
 
 
-To Build (phcd) Headless daemon
+To Build (phcd) Headless daemon  (Not working 100%)
 ----------------------------------------------
 
 git checkout 1.0.0.7-dev
@@ -137,7 +154,7 @@ cd src
 make -f makefile.android
 
 
-Static Build (phcd) Headless daemon (Release binaries)
+Static Build (phcd) Headless daemon (Release binaries - verified working)
 ----------------------------------------------
 
 Dependency: GMP (Manual compile)
@@ -216,17 +233,16 @@ termux-chroot ./bootstrap.sh --prefix=/data/data/com.termux/files/usr && ./b2 st
 cd
 
 
-Build Executable
+Build Static Executable
 ~~~~~~~~~
 cd phc
 git checkout 1.0.0.7-dev
 cd src/
-
-make STATIC=1 LDFLAGS="-static-libstdc++" -f makefile.unix phcd USE_UPNP=
+make -f makefile.android STATIC=1
 
 Or you can also try:
+make STATIC=1 LDFLAGS="-static-libstdc++" -f makefile.unix phcd USE_UPNP=
 
-make -f makefile.android STATIC=1
 
 
 

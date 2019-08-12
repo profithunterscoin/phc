@@ -3270,7 +3270,8 @@ bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsi
             else if (opcode2 == OP_SMALLDATA)
             {
                 // small pushdata, <= MAX_OP_RETURN_RELAY bytes
-                if (vch1.size() > MAX_OP_RETURN_RELAY)
+                // Modified from https://lists.linuxfoundation.org/pipermail/bitcoin-dev/2014-February/004436.html
+                if (opcode1 >= OP_PUSHDATA1 || vch1.size() > MAX_OP_RETURN_RELAY)
                 {
                     break;
                 }
