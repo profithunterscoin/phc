@@ -4239,14 +4239,19 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 setStakeSeenOrphan.insert(pblock->GetProofOfStake());
             }
 
-            // ppcoin: getblocks may not obtain the ancestor block rejected
-            // earlier by duplicate-stake check so we ask for it again directly
-            if (!IsInitialBlockDownload() && !fImporting && !fReindex)
+            // Only request Orphan chain from peer if it's the Initial Sync (Block Download)
+            // While already synced and new orphan chain is broadcast do not accept (51% attack vector)
+            // Skip if importing or reindexing database
+            if (IsInitialBlockDownload() && !fImporting && !fReindex)
             {
                 // Ask this guy to fill in what we're missing
                 PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(hash));
                 
+                // ppcoin: getblocks may not obtain the ancestor block rejected
+                // earlier by duplicate-stake check so we ask for it again directly
                 pfrom->AskFor(CInv(MSG_BLOCK, WantedByOrphan(pblock2)));
+
+                CChain::PruneOrphanBlocks();
 
                 return true;
             }
@@ -4254,7 +4259,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 
         CChain::PruneOrphanBlocks();
 
-        return error("%s : CheckBlock FAILED", __FUNCTION__);
+        return true;
     }
 
     // Store to disk
