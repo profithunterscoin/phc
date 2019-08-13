@@ -2413,7 +2413,7 @@ void static StartSync(const vector<CNode*> &vNodes)
 
 void ThreadMessageHandler()
 {
-    SetThreadPriority(THREAD_PRIORITY_BELOW_NORMAL);
+    Set_ThreadPriority(THREAD_PRIORITY_BELOW_NORMAL);
 
     while (true)
     {

@@ -970,7 +970,7 @@ bool ProcessBlockStake(CBlock* pblock, CWallet& wallet)
 
 void ThreadStakeMiner(CWallet *pwallet)
 {
-    SetThreadPriority(THREAD_PRIORITY_LOWEST);
+    Set_ThreadPriority(THREAD_PRIORITY_LOWEST);
 
     // Make this thread recognisable as the mining thread
     RenameThread("PHC-stake-miner");
@@ -1021,11 +1021,11 @@ void ThreadStakeMiner(CWallet *pwallet)
         // Trying to sign a block
         if (pblock->SignBlock(*pwallet, nFees))
         {
-            SetThreadPriority(THREAD_PRIORITY_NORMAL);
+            Set_ThreadPriority(THREAD_PRIORITY_NORMAL);
 
             ProcessBlockStake(pblock.get(), *pwallet);
             
-            SetThreadPriority(THREAD_PRIORITY_LOWEST);
+            Set_ThreadPriority(THREAD_PRIORITY_LOWEST);
             
             MilliSleep(500);
         }
@@ -1115,7 +1115,7 @@ void static InternalcoinMiner(CWallet *pwallet)
         LogPrintf("PHC-PoW-Miner - Started!\n");
     }
 
-    SetThreadPriority(THREAD_PRIORITY_LOWEST);
+    Set_ThreadPriority(THREAD_PRIORITY_LOWEST);
 
     RenameThread("PHC-PoW-Miner");
 
@@ -1206,7 +1206,7 @@ void static InternalcoinMiner(CWallet *pwallet)
                     if (thash <= hashTarget)
                     {
                         // Found a solution
-                        SetThreadPriority(THREAD_PRIORITY_NORMAL);
+                        Set_ThreadPriority(THREAD_PRIORITY_NORMAL);
                         
                         if (ProcessBlockFound(pblock, *pwallet, reservekey))
                         {
@@ -1249,7 +1249,7 @@ void static InternalcoinMiner(CWallet *pwallet)
                             MinerLogCache = "rejected:" + thash.GetHex();
                         }
                         
-                        SetThreadPriority(THREAD_PRIORITY_LOWEST);
+                        Set_ThreadPriority(THREAD_PRIORITY_LOWEST);
 
                         // In regression test mode, stop mining after a block is found.
                         /*
