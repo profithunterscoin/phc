@@ -659,7 +659,9 @@ template <typename T> class CMedianFilter
 #ifdef WIN32
 inline void SetThreadPriority(int nPriority)
 {
-    SetThreadPriority(boost::detail::win32::GetCurrentThread(), nPriority);
+    // Depreciated until needed in PHC
+    // Mostly used for generation threads as described below, but PHC internal miner uses 1 thread default.
+    //SetThreadPriority(boost::detail::win32::GetCurrentThread(), nPriority);
 }
 #else
 
