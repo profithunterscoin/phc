@@ -1908,7 +1908,9 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime)
     static set<CNetAddr> setKnown;
     
     if (!setKnown.insert(ip).second)
+    {
         return;
+    }
 
     // Add data
     static CMedianFilter<int64_t> vTimeOffsets(200,0);

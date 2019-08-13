@@ -657,9 +657,11 @@ template <typename T> class CMedianFilter
 };
 
 #ifdef WIN32
-inline void SetThreadPriority(int nPriority)
+inline void Set_ThreadPriority(int nPriority)
 {
-    SetThreadPriority(boost::detail::win32::GetCurrentThread(), nPriority);
+    // Depreciated until needed in PHC
+    // Mostly used for generation threads as described below, but PHC internal miner uses 1 thread default.
+    //SetThreadPriority(boost::detail::win32::GetCurrentThread(), nPriority);
 }
 #else
 
@@ -668,7 +670,7 @@ inline void SetThreadPriority(int nPriority)
 #define THREAD_PRIORITY_NORMAL          0
 #define THREAD_PRIORITY_ABOVE_NORMAL    0
 
-inline void SetThreadPriority(int nPriority)
+inline void Set_ThreadPriority(int nPriority)
 {
     // It's unclear if it's even possible to change thread priorities on Linux,
     // but we really and truly need it for the generation threads.
