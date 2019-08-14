@@ -4252,10 +4252,16 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 // earlier by duplicate-stake check so we ask for it again directly
                 pfrom->AskFor(CInv(MSG_BLOCK, WantedByOrphan(pblock2)));
             }
+            
+            if (!IsInitialBlockDownload() && !fImporting && !fReindex)
+            {
+                PushGetBlocks(pfrom, pindexBest, pindexBest->pprev->GetBlockHash());
+            }
         }
 
         CChain::PruneOrphanBlocks();
 
+        // Limit Orphan list to 100 max to avoid memory flooding attacks
         if (mapOrphanBlocks.size() > 100)
         {
             mapOrphanBlocks.erase(mapOrphanBlocks.begin(), mapOrphanBlocks.end());
