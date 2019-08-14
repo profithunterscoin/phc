@@ -4222,6 +4222,8 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             // Skip if importing or reindexing database
             if (IsInitialBlockDownload() && !fImporting && !fReindex)
             {
+                COrphanBlock* pblock2 = new COrphanBlock();
+
                 // Get block info
                 // Global Namespace Start
                 {
@@ -4235,8 +4237,6 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 {
                     setStakeSeenOrphan.insert(pblock->GetProofOfStake());
                 }
-
-                COrphanBlock* pblock2 = new COrphanBlock();
 
                 pblock2->hashBlock = hash;
                 pblock2->hashPrev = pblock->hashPrevBlock;
