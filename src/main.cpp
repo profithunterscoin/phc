@@ -4260,7 +4260,10 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 // In case we are on a very long side-chain, it is possible that we already have
                 // the last block in an inv bundle sent in response to getblocks. Try to detect
                 // this situation and push another getblocks to continue.
-                PushGetBlocks(pfrom, mapBlockIndex[pindexBest->pprev->GetBlockHash()], uint256(0));
+                if (!mapOrphanBlocks.count(pindexBest->pprev->GetBlockHash()))
+                {
+                    PushGetBlocks(pfrom, mapBlockIndex[pindexBest->pprev->GetBlockHash()], uint256(0));
+                }
             }
         }
 
