@@ -4254,7 +4254,43 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             }
         }
 
-        CChain::PruneOrphanBlocks();
+        //CChain::PruneOrphanBlocks();
+
+        // Recursively process any orphan blocks that depended on this one
+        vector<uint256> vWorkQueue;
+        vWorkQueue.push_back(hash);
+
+        for (unsigned int i = 0; i < vWorkQueue.size(); i++)
+        {
+            uint256 hashPrev = vWorkQueue[i];
+
+            for (multimap<uint256, COrphanBlock*>::iterator mi = mapOrphanBlocksByPrev.lower_bound(hashPrev); mi != mapOrphanBlocksByPrev.upper_bound(hashPrev); ++mi)
+            {
+                CBlock block;
+                
+                // Global Namespace Start
+                {
+                    CDataStream ss(mi->second->vchBlock, SER_DISK, CLIENT_VERSION);
+                    ss >> block;
+                }
+                // Global Namespac End
+
+                block.BuildMerkleTree();
+
+                if (block.AcceptBlock())
+                {
+                    vWorkQueue.push_back(mi->second->hashBlock);
+                }
+                
+                mapOrphanBlocks.erase(mi->second->hashBlock);
+                
+                setStakeSeenOrphan.erase(block.GetProofOfStake());
+                
+                delete mi->second;
+            }
+
+            mapOrphanBlocksByPrev.erase(hashPrev);
+        }
 
         return true;
     }
@@ -4265,41 +4301,6 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
         return error("%s : AcceptBlock FAILED", __FUNCTION__);
     }
 
-    // Recursively process any orphan blocks that depended on this one
-    vector<uint256> vWorkQueue;
-    vWorkQueue.push_back(hash);
-
-    for (unsigned int i = 0; i < vWorkQueue.size(); i++)
-    {
-        uint256 hashPrev = vWorkQueue[i];
-
-        for (multimap<uint256, COrphanBlock*>::iterator mi = mapOrphanBlocksByPrev.lower_bound(hashPrev); mi != mapOrphanBlocksByPrev.upper_bound(hashPrev); ++mi)
-        {
-            CBlock block;
-            
-            // Global Namespace Start
-            {
-                CDataStream ss(mi->second->vchBlock, SER_DISK, CLIENT_VERSION);
-                ss >> block;
-            }
-            // Global Namespac End
-
-            block.BuildMerkleTree();
-
-            if (block.AcceptBlock())
-            {
-                vWorkQueue.push_back(mi->second->hashBlock);
-            }
-            
-            mapOrphanBlocks.erase(mi->second->hashBlock);
-            
-            setStakeSeenOrphan.erase(block.GetProofOfStake());
-            
-            delete mi->second;
-        }
-
-        mapOrphanBlocksByPrev.erase(hashPrev);
-    }
 
     if(!IsInitialBlockDownload())
     {
