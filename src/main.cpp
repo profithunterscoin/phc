@@ -4216,13 +4216,12 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                     return error("%s : duplicate proof-of-stake (%s, %d) for orphan block %s", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
                 }
             }
-            
+        
+            // Only request Orphan chain from peer if it's the Initial Sync (Block Download)
+            // While already synced and new orphan chain is broadcast do not accept (51% attack vector)
+            // Skip if importing or reindexing database
             if (IsInitialBlockDownload() && !fImporting && !fReindex)
             {
-                // Only request Orphan chain from peer if it's the Initial Sync (Block Download)
-                // While already synced and new orphan chain is broadcast do not accept (51% attack vector)
-                // Skip if importing or reindexing database
-                
                 // Get block info
                 // Global Namespace Start
                 {
