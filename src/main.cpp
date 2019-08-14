@@ -4253,6 +4253,8 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 pfrom->AskFor(CInv(MSG_BLOCK, WantedByOrphan(pblock2)));
             }
             
+            // Only request known blocks (pindexBest block's parent Hash) from peer if it's NOT the Initial Sync (Block Download)
+            // Skip if importing or reindexing database
             if (!IsInitialBlockDownload() && !fImporting && !fReindex)
             {
                 PushGetBlocks(pfrom, pindexBest, pindexBest->pprev->GetBlockHash());
