@@ -4217,33 +4217,35 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 }
             }
             
-            COrphanBlock* pblock2 = new COrphanBlock();
-            
-            // Global Namespace Start
-            {
-                CDataStream ss(SER_DISK, CLIENT_VERSION);
-                ss << *pblock;
-                pblock2->vchBlock = std::vector<unsigned char>(ss.begin(), ss.end());
-            }
-            // Global Namespace End
-
-            pblock2->hashBlock = hash;
-            pblock2->hashPrev = pblock->hashPrevBlock;
-            pblock2->stake = pblock->GetProofOfStake();
-            
-            mapOrphanBlocks.insert(make_pair(hash, pblock2));
-            mapOrphanBlocksByPrev.insert(make_pair(pblock2->hashPrev, pblock2));
-            
-            if (pblock->IsProofOfStake())
-            {
-                setStakeSeenOrphan.insert(pblock->GetProofOfStake());
-            }
-
-            // Only request Orphan chain from peer if it's the Initial Sync (Block Download)
-            // While already synced and new orphan chain is broadcast do not accept (51% attack vector)
-            // Skip if importing or reindexing database
             if (IsInitialBlockDownload() && !fImporting && !fReindex)
             {
+                // Only request Orphan chain from peer if it's the Initial Sync (Block Download)
+                // While already synced and new orphan chain is broadcast do not accept (51% attack vector)
+                // Skip if importing or reindexing database
+                
+                // Get block info
+                // Global Namespace Start
+                {
+                    CDataStream ss(SER_DISK, CLIENT_VERSION);
+                    ss << *pblock;
+                    pblock2->vchBlock = std::vector<unsigned char>(ss.begin(), ss.end());
+                }
+                // Global Namespace End
+
+                if (pblock->IsProofOfStake())
+                {
+                    setStakeSeenOrphan.insert(pblock->GetProofOfStake());
+                }
+
+                COrphanBlock* pblock2 = new COrphanBlock();
+
+                pblock2->hashBlock = hash;
+                pblock2->hashPrev = pblock->hashPrevBlock;
+                pblock2->stake = pblock->GetProofOfStake();
+                
+                mapOrphanBlocks.insert(make_pair(hash, pblock2));
+                mapOrphanBlocksByPrev.insert(make_pair(pblock2->hashPrev, pblock2));
+
                 // Ask this guy to fill in what we're missing
                 PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(hash));
                 
@@ -4252,6 +4254,8 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 pfrom->AskFor(CInv(MSG_BLOCK, WantedByOrphan(pblock2)));
             }
         }
+
+        CChain::PruneOrphanBlocks;
 
         return true;
     }
