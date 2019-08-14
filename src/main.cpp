@@ -4256,7 +4256,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 
         CChain::PruneOrphanBlocks();
 
-        if (mapOrphanBlocks > 100)
+        if (mapOrphanBlocks.size() > 100)
         {
             mapOrphanBlocks.erase(mapOrphanBlocks.begin(), mapOrphanBlocks.end());
         }
