@@ -4263,6 +4263,8 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 if (!mapOrphanBlocks.count(pindexBest->pprev->GetBlockHash()))
                 {
                     PushGetBlocks(pfrom, mapBlockIndex[pindexBest->pprev->GetBlockHash()], uint256(0));
+
+                    pfrom->AskFor(CInv(MSG_BLOCK, pindexBest->pprev->GetBlockHash()));
                 }
             }
         }
