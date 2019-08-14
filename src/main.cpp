@@ -4255,8 +4255,6 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             delete pblock2;
         }
 
-        CChain::PruneOrphanBlocks();
-
         return true;
     }
 
