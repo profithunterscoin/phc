@@ -4251,8 +4251,6 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 // earlier by duplicate-stake check so we ask for it again directly
                 pfrom->AskFor(CInv(MSG_BLOCK, WantedByOrphan(pblock2)));
             }
-
-            delete pblock2;
         }
 
         return true;
