@@ -4251,10 +4251,6 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 // ppcoin: getblocks may not obtain the ancestor block rejected
                 // earlier by duplicate-stake check so we ask for it again directly
                 pfrom->AskFor(CInv(MSG_BLOCK, WantedByOrphan(pblock2)));
-
-                sleep(10000);
-
-                delete pblock2;
             }
         }
 
