@@ -4223,6 +4223,8 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             if (IsInitialBlockDownload() && !fImporting && !fReindex)
             {
                 COrphanBlock* pblock2 = new COrphanBlock();
+                
+                CChain::PruneOrphanBlocks();
 
                 // Get block info
                 // Global Namespace Start
@@ -4298,8 +4300,6 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 }
             }
         }
-
-        CChain::PruneOrphanBlocks();
 
         // Limit Orphan list to 100 max to avoid memory flooding attacks
         if (mapOrphanBlocks.size() > 100)
