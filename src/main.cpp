@@ -4206,6 +4206,15 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
         // Accept orphans as long as there is a node to request its parents from
         if (pfrom)
         {
+
+            if (pfrom->dOrphanRecv.hash != hash)
+            {
+                pfrom->dOrphanRecv.height = pindexBest->nHeight;
+                pfrom->dOrphanRecv.hash = hash;
+                pfrom->dOrphanRecv.timestamp = GetTime();
+                pfrom->dOrphanRecv.synced = true;
+            }
+
             // ppcoin: check proof-of-stake
             if (pblock->IsProofOfStake())
             {
@@ -4213,7 +4222,9 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 // Duplicate stake allowed only when there is orphan child block
                 if (setStakeSeenOrphan.count(pblock->GetProofOfStake()) && !mapOrphanBlocksByPrev.count(hash))
                 {
-                    return error("%s : duplicate proof-of-stake (%s, %d) for orphan block %s", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
+                    CChain::PruneOrphanBlocks();
+
+                    //return error("%s : duplicate proof-of-stake (%s, %d) for orphan block %s", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
                 }
             }
         
@@ -4251,11 +4262,6 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 // DO NOT request the rest of the Chain from node more than once.
                 if (pfrom->dOrphanRecv.hash != hash)
                 {
-                    pfrom->dOrphanRecv.height = pindexBest->nHeight;
-                    pfrom->dOrphanRecv.hash = hash;
-                    pfrom->dOrphanRecv.timestamp = GetTime();
-                    pfrom->dOrphanRecv.synced = true;
-
                     // Ask this guy to fill in what we're missing
                     PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(hash));
                     
@@ -4279,6 +4285,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                             tnode->AskFor(CInv(MSG_BLOCK, pindexBest->pprev->GetBlockHash()));
                         }
 
+                        MilliSleep(1000);
                     }
                 }
                 // Global Namespace End
@@ -4290,11 +4297,12 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             if (!IsInitialBlockDownload() && !fImporting && !fReindex)
             {
                 CChain::PruneOrphanBlocks();
-                
+
                 // In case we are on a very long side-chain, it is possible that we already have
                 // the last block in an inv bundle sent in response to getblocks. Try to detect
                 // this situation and push another getblocks to continue.
-                if (!mapOrphanBlocks.count(pindexBest->pprev->GetBlockHash()))
+                // DO NOT request the rest of the Chain from node more than once.
+                if (pfrom->dOrphanRecv.hash != hash)
                 {
                     PushGetBlocks(pfrom, mapBlockIndex[pindexBest->pprev->GetBlockHash()], uint256(0));
 
