@@ -4223,7 +4223,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             if (IsInitialBlockDownload() && !fImporting && !fReindex)
             {
                 COrphanBlock* pblock2 = new COrphanBlock();
-                
+
                 CChain::PruneOrphanBlocks();
 
                 // Get block info
@@ -4289,6 +4289,8 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             // Skip if importing or reindexing database or during Initial Block Sync
             if (!IsInitialBlockDownload() && !fImporting && !fReindex)
             {
+                CChain::PruneOrphanBlocks();
+                
                 // In case we are on a very long side-chain, it is possible that we already have
                 // the last block in an inv bundle sent in response to getblocks. Try to detect
                 // this situation and push another getblocks to continue.
