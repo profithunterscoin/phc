@@ -606,6 +606,7 @@ class CNode
         // Dynamic Checkpoints (C) 2019 - Profit Hunters Coin
         DynamicCheckpoints::Checkpoint dCheckpointSent;
         DynamicCheckpoints::Checkpoint dCheckpointRecv;
+        DynamicCheckpoints::Checkpoint dOrphanRecv;
 
         // strSubVer is whatever byte array we read from the wire. However, this field is intended
         // to be printed out, displayed to humans in various forms and so on. So we sanitize it and
@@ -722,11 +723,16 @@ class CNode
             dCheckpointSent.hash = 0;
             dCheckpointSent.timestamp = 0;
             dCheckpointSent.synced = false;
+
             dCheckpointRecv.height = 0;
             dCheckpointRecv.hash = 0;
             dCheckpointRecv.timestamp = 0;
             dCheckpointRecv.synced = false;
 
+            dOrphanRecv.height = 0;
+            dOrphanRecv.hash = 0;
+            dOrphanRecv.timestamp = 0;
+            dOrphanRecv.synced = false;
 
             // Global Namespace Start
             {

@@ -4186,7 +4186,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
         addrname = "Unknown";
     }
 
-    if (!fReindex || !fImporting || !IsInitialBlockDownload())
+    if (!IsInitialBlockDownload() && !fReindex && !fImporting)
     {
         // ASIC Choker checks
         if (Consensus::DynamicCoinDistribution::ASIC_Choker(addrname, pblock))
@@ -4245,16 +4245,46 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 mapOrphanBlocks.insert(make_pair(hash, pblock2));
                 mapOrphanBlocksByPrev.insert(make_pair(pblock2->hashPrev, pblock2));
 
-                // Ask this guy to fill in what we're missing
-                PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(hash));
-                
-                // ppcoin: getblocks may not obtain the ancestor block rejected
-                // earlier by duplicate-stake check so we ask for it again directly
-                pfrom->AskFor(CInv(MSG_BLOCK, WantedByOrphan(pblock2)));
+                // To prevent node from flooding local wallet with duplicate Orphan chains
+                // DO NOT request the rest of the Chain from node more than once.
+                if (pfrom->dOrphanRecv.hash != hash)
+                {
+                    pfrom->dOrphanRecv.height = pindexBest->nHeight;
+                    pfrom->dOrphanRecv.hash = hash;
+                    pfrom->dOrphanRecv.timestamp = GetTime();
+                    pfrom->dOrphanRecv.synced = true;
+
+                    // Ask this guy to fill in what we're missing
+                    PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(hash));
+                    
+                    // ppcoin: getblocks may not obtain the ancestor block rejected
+                    // earlier by duplicate-stake check so we ask for it again directly
+                    pfrom->AskFor(CInv(MSG_BLOCK, WantedByOrphan(pblock2)));
+                }
+
+                // To prevent full-syncing nodes from stalling after downloading an orphan chain
+                // Query all connected nodes (except orphaned node) with a new getblocks request.
+                // Global Namespace Start
+                {
+                    LOCK(cs_vNodes);
+                    BOOST_FOREACH(CNode* tnode, vNodes)
+                    {
+                        // Skip if current node that broadcasted last Orphan block
+                        if (pfrom != tnode && tnode->dOrphanRecv.hash != hash)
+                        {
+                            PushGetBlocks(tnode, mapBlockIndex[pindexBest->pprev->GetBlockHash()], uint256(0));
+
+                            tnode->AskFor(CInv(MSG_BLOCK, pindexBest->pprev->GetBlockHash()));
+                        }
+
+                    }
+                }
+                // Global Namespace End
             }
-            
-            // Only request known blocks (pindexBest block's parent Hash) from peer if it's NOT the Initial Sync (Block Download)
-            // Skip if importing or reindexing database
+
+            // Only request known blocks (pindexBest block's parent Hash) from peer if it's NOT the Initial Sync
+            // And if the current most trusted hash is not an Orphan block
+            // Skip if importing or reindexing database or during Initial Block Sync
             if (!IsInitialBlockDownload() && !fImporting && !fReindex)
             {
                 // In case we are on a very long side-chain, it is possible that we already have
