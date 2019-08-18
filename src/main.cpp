@@ -4338,31 +4338,6 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                         LogPrint("core", "%s : IsInitialBlockDownload = false, Asking peer for valid chain @ %s", __FUNCTION__, pindexBest->pprev->GetBlockHash().ToString());
                     }
                 }
-
-                // To prevent full-syncing nodes from stalling after downloading an orphan chain
-                // Query all connected nodes (except orphaned node) with a new getblocks request.
-                // Global Namespace Start
-                {
-                    LOCK(cs_vNodes);
-                    BOOST_FOREACH(CNode* tnode, vNodes)
-                    {
-                        // Skip if current node that broadcasted last Orphan block
-                        if (pfrom != tnode && tnode->dOrphanRecv.hash != hash)
-                        {
-                            // Start a new fresh sync
-                            tnode->fStartSync = false;
-                            PushGetBlocks(tnode, pindexBest, uint256(0));
-                        }
-
-                        if(fDebug)
-                        {
-                            LogPrint("core", "%s : IsInitialBlockDownload = false, Asking other peers %s for valid chain @ %s", __FUNCTION__, tnode->addrName, pindexBest->pprev->GetBlockHash().ToString());
-                        }
-
-                        MilliSleep(10000);
-                    }
-                }
-                // Global Namespace End
             }
         }
 
