@@ -4314,29 +4314,6 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                         LogPrint("core", "%s : IsInitialBlockDownload = true, Asking peer rest of orphaned chain @ root %s", __FUNCTION__, hash.ToString());
                     }
                 }
-
-                // To prevent full-syncing nodes from stalling after downloading an orphan chain
-                // Query all connected nodes (except orphaned node) with a new getblocks request.
-                // Global Namespace Start
-                {
-                    LOCK(cs_vNodes);
-                    BOOST_FOREACH(CNode* tnode, vNodes)
-                    {
-                        // Skip if current node that broadcasted last Orphan block
-                        if (pfrom != tnode && tnode->dOrphanRecv.hash != hash)
-                        {
-                            PushGetBlocks(tnode, mapBlockIndex[pindexBest->pprev->GetBlockHash()], uint256(0));
-                        }
-
-                        if(fDebug)
-                        {
-                            LogPrint("core", "%s : IsInitialBlockDownload = true, Asking other peers %s for valid chain @ %s", __FUNCTION__, tnode->addrName, pindexBest->pprev->GetBlockHash().ToString());
-                        }
-
-                        MilliSleep(1000);
-                    }
-                }
-                // Global Namespace End
             }
 
             // Only request known blocks (pindexBest block's parent Hash) from peer if it's NOT the Initial Sync
@@ -4352,7 +4329,9 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 // DO NOT request the rest of the Chain from node more than once.
                 if (pfrom->dOrphanRecv.hash != hash)
                 {
-                    PushGetBlocks(pfrom, mapBlockIndex[pindexBest->pprev->GetBlockHash()], uint256(0));
+                    // Start a new fresh sync
+                    pfrom->fStartSync = false;
+                    PushGetBlocks(pfrom, pindexBest, uint256(0));
 
                     if(fDebug)
                     {
@@ -4370,7 +4349,9 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                         // Skip if current node that broadcasted last Orphan block
                         if (pfrom != tnode && tnode->dOrphanRecv.hash != hash)
                         {
-                            PushGetBlocks(tnode, mapBlockIndex[pindexBest->pprev->GetBlockHash()], uint256(0));
+                            // Start a new fresh sync
+                            tnode->fStartSync = false;
+                            PushGetBlocks(tnode, pindexBest, uint256(0));
                         }
 
                         if(fDebug)
@@ -4378,7 +4359,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                             LogPrint("core", "%s : IsInitialBlockDownload = false, Asking other peers %s for valid chain @ %s", __FUNCTION__, tnode->addrName, pindexBest->pprev->GetBlockHash().ToString());
                         }
 
-                        MilliSleep(1000);
+                        MilliSleep(10000);
                     }
                 }
                 // Global Namespace End
@@ -4396,7 +4377,8 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             LogPrint("core", "%s : Orphan chain %s detected from: %s", __FUNCTION__, hash.ToString(), pfrom->addrName);
         }
 
-        return error("%s : Orphan chain %s detected from: %s", __FUNCTION__, hash.ToString(), pfrom->addrName);
+        // Orphan block processed but NOT written to disk
+        return true;
     }
 
     // Store to disk
@@ -4498,6 +4480,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
         LogPrint("core", "%s : ACCEPTED Block: %s from: %s\n", __FUNCTION__, hash.ToString(), pfrom->addrName);
     }
 
+    // Block processed and written to disk
     return true;
 }
 
@@ -7118,10 +7101,8 @@ namespace CChain
             BOOST_FOREACH(const CTransaction& tx, block.vtx)
             {
                 vDelete.push_back(tx);
-                MilliSleep(1);
+                MilliSleep(3);
             }
-
-            //MilliSleep(10);
         }
 
         if (!txdb.WriteHashBestChain(pindexNew->GetBlockHash()))
@@ -7142,7 +7123,7 @@ namespace CChain
             {
                 pindex->pprev->pnext = NULL;
             }
-            MilliSleep(1);
+            MilliSleep(3);
         }
 
         // Connect longer branch
@@ -7152,7 +7133,7 @@ namespace CChain
             {
                 pindex->pprev->pnext = pindex;
             }
-            MilliSleep(1);
+            MilliSleep(3);
         }
 
         // Resurrect memory transactions that were in the disconnected branch
@@ -7160,7 +7141,7 @@ namespace CChain
         {
             AcceptToMemoryPool(mempool, tx, false, NULL);
 
-            MilliSleep(1);
+            MilliSleep(3);
         }
 
         // Delete redundant memory transactions that are in the connected branch
@@ -7168,7 +7149,7 @@ namespace CChain
         {
             mempool.remove(tx);
             mempool.removeConflicts(tx);
-            MilliSleep(1);
+            MilliSleep(3);
         }
 
         if (fDebug)
