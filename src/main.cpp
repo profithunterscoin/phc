@@ -4128,11 +4128,21 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 
     if (mapBlockIndex.count(hash))
     {
+        if(fDebug)
+        {
+            LogPrint("core", "%s : already have block %d %s", __FUNCTION__, mapBlockIndex[hash]->nHeight, hash.ToString());
+        }
+
         return error("%s : already have block %d %s", __FUNCTION__, mapBlockIndex[hash]->nHeight, hash.ToString());
     }
 
     if (mapOrphanBlocks.count(hash))
     {
+        if(fDebug)
+        {
+            LogPrint("core", "%s : already have block (orphan) %s", __FUNCTION__, hash.ToString());
+        }
+
         return error("%s : already have block (orphan) %s", __FUNCTION__, hash.ToString());
     }
 
@@ -4140,7 +4150,12 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     // Limited duplicity on stake: prevents block flood attack
     // Duplicate stake allowed only when there is orphan child block
     if (!fReindex && !fImporting && pblock->IsProofOfStake() && setStakeSeen.count(pblock->GetProofOfStake()) && !mapOrphanBlocksByPrev.count(hash))
-    {
+    {       
+        if(fDebug)
+        {
+            LogPrint("core", "%s : duplicate proof-of-stake (%s, %d) for block %s", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
+        }
+
         return error("%s : duplicate proof-of-stake (%s, %d) for block %s", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
     }
 
@@ -4158,6 +4173,11 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 Misbehaving(pfrom->GetId(), 1);
             }
 
+            if(fDebug)
+            {
+                LogPrint("core", "%s : block with timestamp before last checkpoint", __FUNCTION__);
+            }
+
             return error("%s : block with timestamp before last checkpoint", __FUNCTION__);
         }
     }
@@ -4166,12 +4186,22 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     // For now we just strip garbage from newly received blocks
     if (!IsCanonicalBlockSignature(pblock))
     {
+        if(fDebug)
+        {
+            LogPrint("core", "%s : bad block signature encoding", __FUNCTION__);
+        }
+
         return error("%s : bad block signature encoding", __FUNCTION__);
     }
 
     // Preliminary checks
     if (!pblock->CheckBlock())
     {
+        if(fDebug)
+        {
+            LogPrint("core", "%s : CheckBlock FAILED", __FUNCTION__);
+        }
+
         return error("%s : CheckBlock FAILED", __FUNCTION__);
     }
 
@@ -4191,6 +4221,11 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
         // ASIC Choker checks
         if (Consensus::DynamicCoinDistribution::ASIC_Choker(addrname, pblock))
         {
+            if(fDebug)
+            {
+                LogPrint("core", "%s : ASIC_Choker FAILED", __FUNCTION__);
+            }
+
             return error("%s : ASIC_Choker FAILED", __FUNCTION__);
         }
     }
@@ -4224,7 +4259,12 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 {
                     CChain::PruneOrphanBlocks();
 
-                    //return error("%s : duplicate proof-of-stake (%s, %d) for orphan block %s", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
+                    if(fDebug)
+                    {
+                        LogPrint("core", "%s : duplicate proof-of-stake (%s, %d) for orphan block %s", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
+                    }
+
+                    return error("%s : duplicate proof-of-stake (%s, %d) for orphan block %s", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
                 }
             }
         
@@ -4268,6 +4308,11 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                     // ppcoin: getblocks may not obtain the ancestor block rejected
                     // earlier by duplicate-stake check so we ask for it again directly
                     pfrom->AskFor(CInv(MSG_BLOCK, WantedByOrphan(pblock2)));
+
+                    if(fDebug)
+                    {
+                        LogPrint("core", "%s : IsInitialBlockDownload = true, Asking peer rest of orphaned chain @ root %s", __FUNCTION__, hash.ToString());
+                    }
                 }
 
                 // To prevent full-syncing nodes from stalling after downloading an orphan chain
@@ -4281,8 +4326,11 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                         if (pfrom != tnode && tnode->dOrphanRecv.hash != hash)
                         {
                             PushGetBlocks(tnode, mapBlockIndex[pindexBest->pprev->GetBlockHash()], uint256(0));
+                        }
 
-                            tnode->AskFor(CInv(MSG_BLOCK, pindexBest->pprev->GetBlockHash()));
+                        if(fDebug)
+                        {
+                            LogPrint("core", "%s : IsInitialBlockDownload = true, Asking other peers %s for valid chain @ %s", __FUNCTION__, tnode->addrName, pindexBest->pprev->GetBlockHash().ToString());
                         }
 
                         MilliSleep(1000);
@@ -4306,8 +4354,34 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 {
                     PushGetBlocks(pfrom, mapBlockIndex[pindexBest->pprev->GetBlockHash()], uint256(0));
 
-                    pfrom->AskFor(CInv(MSG_BLOCK, pindexBest->pprev->GetBlockHash()));
+                    if(fDebug)
+                    {
+                        LogPrint("core", "%s : IsInitialBlockDownload = false, Asking peer for valid chain @ %s", __FUNCTION__, pindexBest->pprev->GetBlockHash().ToString());
+                    }
                 }
+
+                // To prevent full-syncing nodes from stalling after downloading an orphan chain
+                // Query all connected nodes (except orphaned node) with a new getblocks request.
+                // Global Namespace Start
+                {
+                    LOCK(cs_vNodes);
+                    BOOST_FOREACH(CNode* tnode, vNodes)
+                    {
+                        // Skip if current node that broadcasted last Orphan block
+                        if (pfrom != tnode && tnode->dOrphanRecv.hash != hash)
+                        {
+                            PushGetBlocks(tnode, mapBlockIndex[pindexBest->pprev->GetBlockHash()], uint256(0));
+                        }
+
+                        if(fDebug)
+                        {
+                            LogPrint("core", "%s : IsInitialBlockDownload = false, Asking other peers %s for valid chain @ %s", __FUNCTION__, tnode->addrName, pindexBest->pprev->GetBlockHash().ToString());
+                        }
+
+                        MilliSleep(1000);
+                    }
+                }
+                // Global Namespace End
             }
         }
 
@@ -4317,13 +4391,18 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             mapOrphanBlocks.erase(mapOrphanBlocks.begin(), mapOrphanBlocks.end());
         }
 
-        return true;
+        if(fDebug)
+        {
+            LogPrint("core", "%s : Orphan chain %s detected from: %s", __FUNCTION__, hash.ToString(), pfrom->addrName);
+        }
+
+        return error("%s : Orphan chain %s detected from: %s", __FUNCTION__, hash.ToString(), pfrom->addrName);
     }
 
     // Store to disk
     if (!pblock->AcceptBlock())
     {
-        return error("%s : AcceptBlock FAILED", __FUNCTION__);
+        return error("%s : AcceptBlock FAILED @ Block: %s from: %s\n", __FUNCTION__, hash.ToString(), pfrom->addrName);
     }
 
     // Recursively process any orphan blocks that depended on this one
@@ -4416,7 +4495,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 
     if(fDebug)
     {
-        LogPrint("core", "%s : ACCEPTED\n", __FUNCTION__);
+        LogPrint("core", "%s : ACCEPTED Block: %s from: %s\n", __FUNCTION__, hash.ToString(), pfrom->addrName);
     }
 
     return true;
