@@ -166,7 +166,7 @@ namespace CChain
     int RollbackChain(int nBlockCount);
 
     /** Force Sync from current Block (Request all connected nodes) */
-    int ForceSync();
+    int ForceSync(CNode* pfrom, uint256 hashfilter);
 
     /** Prune Orphan blocks from index */
     void PruneOrphanBlocks();
