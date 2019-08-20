@@ -6837,13 +6837,13 @@ namespace CChain
 
             BOOST_FOREACH(CNode* pnode, vNodes)
             {
-                // Enable syncing to to node if different than current broadcasted last Orphan block
+                // Enable syncing to to node if different than Node Filter Input
                 if (pfrom != pnode)
                 {
                     SyncNode = true;
                 }
 
-                // Skip sync to node if it has the Orphan block in their CheckpointRecv or OrphanRecv buffers
+                // Skip sync to node if it has the Hash Filter in their CheckpointRecv or OrphanRecv buffers
                 if (hashfilter != uint256(0))
                 {
                     if (pnode->dOrphanRecv.hash == hashfilter || pnode->dCheckpointRecv.hash == hashfilter)
