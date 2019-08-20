@@ -4314,6 +4314,13 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                         LogPrint("core", "%s : IsInitialBlockDownload = true, Asking peer rest of orphaned chain @ root %s", __FUNCTION__, hash.ToString());
                     }
                 }
+
+                // Quickly download the rest of chain from other peers during InitialBlockDownload
+                // Warning: uses excessive bandwidth
+                if (GetBoolArg("-hypersync", false) == true)
+                {
+                    CChain::ForceSync(pfrom, hash);
+                }
             }
 
             // Only request known blocks (pindexBest block's parent Hash) from peer if it's NOT the Initial Sync
@@ -4338,6 +4345,10 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                         LogPrint("core", "%s : IsInitialBlockDownload = false, Asking peer for valid chain @ %s", __FUNCTION__, pindexBest->pprev->GetBlockHash().ToString());
                     }
                 }
+
+                // To prevent local wallet getting stuck
+                // Query all connected nodes (except orphaned node) with a new getblocks request.
+                CChain::ForceSync(pfrom, hash);
             }
         }
 
@@ -6771,7 +6782,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
             pto->mapAskFor.erase(pto->mapAskFor.begin());
         }
 
-        if (!vGetData.empty())
+       if (!vGetData.empty())
         {
             pto->PushMessage("getdata", vGetData);
         }
@@ -6805,30 +6816,59 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
 namespace CChain
 {
 
-    int ForceSync()
+    int ForceSync(CNode* pfrom, uint256 hashfilter)
     {
         // ForceSync - Forces all connected nodes to resend blocks
         // (C) 2019 Profit Hunters Coin
 
         if (vNodes.size() < 1)
         {
+            // Zero connections available, skip
             return 0;
         }
 
-        LOCK(cs_vNodes);
-
         int NodeCount = 0;
 
-        BOOST_FOREACH(CNode* pnode, vNodes)
+        int SyncNode = false;
+
+        // Global Namespace Start
         {
-            pnode->fStartSync = false;
+            LOCK(cs_vNodes);
 
-            PushGetBlocks(pnode, pindexBest->pprev, pnode->dCheckpointRecv.hash);
+            BOOST_FOREACH(CNode* pnode, vNodes)
+            {
+                // Enable syncing to to node if different than current broadcasted last Orphan block
+                if (pfrom != pnode)
+                {
+                    SyncNode = true;
+                }
 
-            MilliSleep(5000);
+                // Skip sync to node if it has the Orphan block in their CheckpointRecv or OrphanRecv buffers
+                if (hashfilter != uint256(0))
+                {
+                    if (pnode->dOrphanRecv.hash == hashfilter || pnode->dCheckpointRecv.hash == hashfilter)
+                    {
+                        SyncNode = false;
+                    }
+                }
 
-            NodeCount++;
+                if (SyncNode == true)
+                {
+                    // Start a new fresh sync
+                    pnode->fStartSync = false;
+
+                    PushGetBlocks(pnode, pindexBest->pprev, uint256(0));
+
+                    NodeCount++;
+
+                    if(fDebug)
+                    {
+                        LogPrint("core", "%s : Asking other peer %s for valid chain @ %s", __FUNCTION__, pnode->addrName, pindexBest->pprev->GetBlockHash().ToString());
+                    }
+                }
+            }
         }
+        // Global Namespace End
 
         return NodeCount;
     }
@@ -7002,6 +7042,7 @@ namespace CChain
         for (CBlockIndex* pindex = pindexBest; pindex != pfork; pindex = pindex->pprev)
         {
             vDisconnect.push_back(pindex);
+
             MilliSleep(1);
         }
 
@@ -7011,6 +7052,7 @@ namespace CChain
         for (CBlockIndex* pindex = pindexNew; pindex != pfork; pindex = pindex->pprev)
         {
             vConnect.push_back(pindex);
+            
             MilliSleep(1);
         }
 
@@ -7076,6 +7118,7 @@ namespace CChain
             BOOST_FOREACH(const CTransaction& tx, block.vtx)
             {
                 vDelete.push_back(tx);
+
                 MilliSleep(3);
             }
         }
@@ -7098,6 +7141,7 @@ namespace CChain
             {
                 pindex->pprev->pnext = NULL;
             }
+
             MilliSleep(3);
         }
 
@@ -7108,6 +7152,7 @@ namespace CChain
             {
                 pindex->pprev->pnext = pindex;
             }
+
             MilliSleep(3);
         }
 
@@ -7124,6 +7169,7 @@ namespace CChain
         {
             mempool.remove(tx);
             mempool.removeConflicts(tx);
+
             MilliSleep(3);
         }
 

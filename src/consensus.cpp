@@ -1179,7 +1179,9 @@ namespace Consensus
 
             MilliSleep(10000);
 
-            CChain::ForceSync();
+            CNode* blank_filter = 0;
+
+            CChain::ForceSync(blank_filter, uint256(0));
 
             return true; // Shielding forced to protect local blockchain database
         }
