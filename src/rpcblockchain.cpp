@@ -446,7 +446,7 @@ Value forcesync(const Array& params, bool fHelp)
                             "Forces nodes to sync from current local block height.");
     }
 
-    CNode* blank_filter;
+    CNode* blank_filter = 0;
     
     return strprintf("ForceSync nodes: %d", CChain::ForceSync(blank_filter, uint256(0)));
 }
