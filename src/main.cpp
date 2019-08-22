@@ -4359,7 +4359,15 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
         // Limit Orphan list to 100 max to avoid memory flooding attacks
         if (mapOrphanBlocks.size() > 100)
         {
+            COrphanBlock* pblock3 = new COrphanBlock();
+
             mapOrphanBlocks.erase(mapOrphanBlocks.begin(), mapOrphanBlocks.end());
+
+            pblock3->hashBlock = hash;
+            pblock3->hashPrev = pblock->hashPrevBlock;
+            pblock3->stake = pblock->GetProofOfStake();
+
+            mapOrphanBlocks.insert(make_pair(hash, pblock3));
         }
 
         if(fDebug)
