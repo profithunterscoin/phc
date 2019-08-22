@@ -632,6 +632,10 @@ class CNode
         CBlockIndex* pindexLastGetBlocksBegin;
         uint256 hashLastGetBlocksEnd;
 
+        // Erebus protection
+        uint256 hashAskedFor;
+        uint256 hashReceived;
+
         // flood relay
         std::vector<CAddress> vAddrToSend;
         mruset<CAddress> setAddrKnown;
