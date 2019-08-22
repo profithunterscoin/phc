@@ -666,7 +666,7 @@ string Firewall::InvalidWalletCheck(CNode *pnode, int SyncHeight, int TimeConnec
         {
             if ((int)TimeConnected > Firewall::InvalidWallet_MinCheck)
             {
-                if (pnode->nStartingHeight + 1000 > pindexBest->nHeight)
+                if (pindexBest->nHeight - pnode->nStartingHeight > 1000)
                 {
                     /** Detected **/
                     Attack_Type = "3-Low-Bandwidth-Enabled";
