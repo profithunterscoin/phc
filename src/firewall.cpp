@@ -1,7 +1,7 @@
 /*
    |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
    ||||                                                                                             ||||
-   |||| Bitcoin Firewall 2.0.0.2  April, 2019                                                       ||||
+   |||| Bitcoin Firewall 2.0.0.3  Aug, 2019                                                         ||||
    |||| Biznatch Enterprises & Profit Hunters Coin (PHC) & BATA Development (bata.io)               ||||
    |||| https://github.com/BiznatchEnterprises/BitcoinFirewall                                      ||||
    |||| Distributed under the MIT/X11 software license, see the accompanying                        ||||
@@ -659,6 +659,24 @@ string Firewall::InvalidWalletCheck(CNode *pnode, int SyncHeight, int TimeConnec
 
         /** -------------------------- 
             Attack Detection #3
+            Protocol: lower than mimimum protocol
+            Check for more than Firewall::InvalidWallet_MinCheck minutes connection length
+        **/
+        if (GetBoolArg("-lowbandwidth", false) == true)
+        {
+            if ((int)TimeConnected > Firewall::InvalidWallet_MinCheck)
+            {
+                if (pnode->nStartingHeight + 1000 > pindexBest->nHeight)
+                {
+                    /** Detected **/
+                    Attack_Type = "3-Low-Bandwidth-Enabled";
+                }
+            }
+        }
+        /** -------------------------- **/
+
+        /** -------------------------- 
+            Attack Detection #4
             NOT USED
             Resetting sync Height
         **/
@@ -673,7 +691,7 @@ string Firewall::InvalidWalletCheck(CNode *pnode, int SyncHeight, int TimeConnec
             if (pnode->nSyncHeight < pnode->nSyncHeightCache - Firewall::AVERAGE_RANGE)
             {
                 Trigger Blacklisting
-                ATTACK_TYPE = "1-SyncReset";
+                ATTACK_TYPE = "4-SyncReset";
             }
 
         }
