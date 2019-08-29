@@ -48,7 +48,7 @@ cd
 echo "Downloading & Installing LevelDB..."
 wget https://github.com/profithunterscoin/android_depends_phc/raw/master/android-leveldb.tgz
 tar -xvzf android-leveldb.tgz
-mv phc/src/leveldb phc/src/leveldb-old
+rm -rf leveldb
 cp -r leveldb phc/src/leveldb
 cd
 
