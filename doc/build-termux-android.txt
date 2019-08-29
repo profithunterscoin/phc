@@ -18,10 +18,13 @@ https://termux.com  (Available through Google Play Store)
 
 Dependencies (Install with package manager)
 ----------------------------------------------
+pkg install root-repo
+pkg install x11-repo
+pkg install unstable-repo
 apt update
 apt upgrade
 apt install make
-apt install boost-dev
+apt install boost
 apt install git
 apt install g++
 apt install openssl-dev
@@ -48,11 +51,19 @@ apt install proot
 apt install stdatomic
 
 
+Prepare to compile: Grab the source
+----------------------------------------------
+
+git clone http://github.com/profithunterscoin/phc
+
+cd phc/src && git checkout 1.0.0.7-dev
+
+cd
+
+
 
 Dependency: Berkely DB (Manual compile)
 ----------------------------------------------
-
-cd
 
 wget https://fossies.org/linux/misc/db-18.1.32.tar.gz
 
@@ -74,56 +85,26 @@ cd
 
 
 
+
 Dependency: LevelDB (Manual install)
 ----------------------------------------------
-cd phc/src
-
-wget https://github.com/profithunterscoin/android_depends_phc/raw/master/android-leveldb.tgz
-
-mv leveldb leveldb-old
-wget  (this file)
-tar -xvzf android-leveldb.tgz
-
-
-cd ..
-
-
-***************
 NOTE: md5sum
 d5dcd86f595dc72094cfa62f71018718  libleveldb.a
 6ef649396938cd7eada4498223312834  libmemenv.a
 
-If build fails with above files try using the zip
+wget https://github.com/profithunterscoin/android_depends_phc/raw/master/android-leveldb.tgz
 
-wget http://profithunterscoin.com/leveldb/libleveldb-android.tar
+tar -xvzf android-leveldb.tgz
 
-tar -xvf libleveldb-android.tar
+mv phc/src/leveldb phc/src/leveldb-old
+cp -r leveldb phc/src/leveldb
+cd
 
-cd ..
-***************
-
-
-Dependency: LevelDB (Manual compile)
-----------------------------------------------
-WARNING: BUGGY NOT WORKING
-
-cd phc/src
-
-wget http://profithunterscoin.com/leveldb/leveldb-android.sh && chmod ugo+x leveldb-android.sh
-
-./leveldb-android.sh
-
-TO FIX: Doesn't build libmemenv (use one from linux instead)
-
-wget http://profithunterscoin.com/leveldb/libmemenv.a
-
-cd ..
 
 
 Prepare to compile: Termux Mods
 ----------------------------------------------
 
-cd
 
 git clone https://github.com/profithunterscoin/android-ifaddrs
 
@@ -133,25 +114,8 @@ cd android-ifaddrs
 
 cp * /data/data/com.termux/files/usr/include/
 
-
-
-Prepare to compile: Grab the source
-----------------------------------------------
-
 cd
 
-git clone http://github.com/profithunterscoin/phc
-
-cd phc && git checkout 1.0.0.7-dev
-
-
-
-To Build (phcd) Headless daemon  (Not working 100%)
-----------------------------------------------
-
-git checkout 1.0.0.7-dev
-cd src
-make -f makefile.android
 
 
 Static Build (phcd) Headless daemon (Release binaries - verified working)
@@ -159,7 +123,6 @@ Static Build (phcd) Headless daemon (Release binaries - verified working)
 
 Dependency: GMP (Manual compile)
 ~~~~~~~~~
-cd 
 
 git clone https://github.com/profithunterscoin/GMP
 
@@ -167,18 +130,13 @@ cd GMP
 ./configure
 make
 termux-chroot make install
-
+termux-chroot cp gmp.h ../../usr/include
+termux-chroot cp libgmp.la ../../usr/lib
 cd
-cd ..
-cd usr/local/include
-cp gmp.h ../../../usr/include
-cd lib
-cp libgmp.a ../../../usr/lib
 
 
 Dependency: Openssl (Manual compile)
 ~~~~~~~~~
-cd
 
 git clone https://github.com/profithunterscoin/openssl
 
@@ -188,15 +146,14 @@ cd openssl
 make
 termux-chroot make install
 
-cp libssl.a ../../usr/libssl
-cp libcrypto.a ../../usr/lib
+termux-chroot cp libssl.a ../../usr/libssl
+termux-chroot cp libcrypto.a ../../usr/lib
 
 cd
 
 
 Dependency: Miniupnp (Manual compile)
 ~~~~~~~~~
-cd
 
 git clone https://github.com/profithunterscoin/miniupnp
 
@@ -289,3 +246,31 @@ exploit even if a vulnerability is found, you can take the following measures:
 
 
 
+Troubleshooting
+-------------------------------
+
+
+Dependency: LevelDB (Manual compile)
+----------------------------------------------
+WARNING: BUGGY NOT WORKING
+
+cd phc/src
+
+wget http://profithunterscoin.com/leveldb/leveldb-android.sh && chmod ugo+x leveldb-android.sh
+
+./leveldb-android.sh
+
+TO FIX: Doesn't build libmemenv (use one from linux instead)
+
+wget http://profithunterscoin.com/leveldb/libmemenv.a
+
+cd ..
+
+
+
+To Build (phcd) Headless daemon  (Not working 100%)
+----------------------------------------------
+
+git checkout 1.0.0.7-dev
+cd src
+make -f makefile.android
