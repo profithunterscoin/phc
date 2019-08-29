@@ -1580,8 +1580,8 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
                 "] [Start Height: " << pnode->nStartingHeight <<
                 "] [Sync Height: " << SyncHeight <<
                 "] [Protocol: " << pnode->nRecvVersion <<
-                "] [HashAskedFor: " << pnode->hashAskedFor <<
-                "] [HashReceived: " << pnode->hashReceived <<
+                "] [HashAskedFor: " << pnode->hashAskedFor.ToString() <<
+                "] [HashReceived: " << pnode->hashReceived.ToString() <<
                 "]\n" << endl;
             }
             /** -------------------------- **/
@@ -1616,8 +1616,8 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
                                         pnode->nStartingHeight,
                                         SyncHeight,
                                         pnode->nRecvVersion,
-                                        pnode->hashAskedFor,
-                                        pnode->hashReceived
+                                        pnode->hashAskedFor.ToString(),
+                                        pnode->hashReceived.ToString()
                                         );
             }
             /** -------------------------- **/
