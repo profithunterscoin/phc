@@ -58,12 +58,8 @@ LIBPATHS = \
  -I "$(DEPSDIR)/local/lib" \
  -I "$(DEPSDIR)/lib/boost" \
  -I "$(BASEDIR)/home/GMP" \
- -I "$(BASEDIR)/home/openssl"
-
-ifdef STATIC
-LIBPATHS = \
- -I "$(BASEDIR)/home/boost_1_70_0/stage/lib" \
-endif
+ -I "$(BASEDIR)/home/openssl" \
+ -I "$(BASEDIR)/home/boost_1_70_0/stage/lib"
 
 # *****************************************************
 
