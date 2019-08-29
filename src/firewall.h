@@ -22,6 +22,9 @@ class Firewall
 {
     public:
 
+        // Eclipse Attack protection
+        vector<pair<int, std::string>> PeerPrefixMap;
+
         /* VARIABLES: Global Firewall Variables */
         static std::string ModuleName;                      /* String                                               */
         static bool FirstRun;                               /* True/False                                           */

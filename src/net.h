@@ -635,6 +635,7 @@ class CNode
         // Erebus protection
         uint256 hashAskedFor;
         uint256 hashReceived;
+        int ErebusWarnings;
 
         // flood relay
         std::vector<CAddress> vAddrToSend;
@@ -708,6 +709,11 @@ class CNode
             nPingNonceSent = 0;
             nPingUsecStart = 0;
             nPingUsecTime = 0;
+
+            // Erebus protection
+            uint256 hashAskedFor;
+            uint256 hashReceived;
+            int ErebusWarnings;
 
             fPingQueued = false;
 

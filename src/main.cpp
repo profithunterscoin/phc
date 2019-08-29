@@ -5732,6 +5732,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             LogPrint("net", "%s : received getdata for: %s\n", __FUNCTION__, vInv[0].ToString());
         }
 
+        // Erebus Protection
+        // Keep track of received hash from node
+        pfrom->hashReceived = vInv[0].hash;
+
         pfrom->vRecvGetData.insert(pfrom->vRecvGetData.end(), vInv.begin(), vInv.end());
 
         ProcessGetData(pfrom);
@@ -6744,6 +6748,11 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
                     if ((signed)vInv.size() >= (signed)GetMaxAddrBandwidth(pto->nTurboSync))
                     {
                         pto->PushMessage("inv", vInv);
+
+                        // Erebus Attack Protection
+                        // Keep track of hash asked for from node
+                        pto->hashAskedFor = inv.hash;
+
                         vInv.clear();
                     }
                 }
@@ -6779,9 +6788,11 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
                 }
 
                 vGetData.push_back(inv);
+
                 if ((signed)vGetData.size() >= (signed)GetMaxAddrBandwidth(pto->nTurboSync))
                 {
                     pto->PushMessage("getdata", vGetData);
+
                     vGetData.clear();
                 }
             }

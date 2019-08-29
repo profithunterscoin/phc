@@ -150,6 +150,9 @@ string Firewall::BlackList[256] =
 
 };
 
+// Eclipse Attack protection
+vector<pair<int, std::string>> Firewall::PeerPrefixMap;
+
 /* FUNCTION: LoadFirewallSettings */
 void Firewall::LoadFirewallSettings()
 {
@@ -664,7 +667,7 @@ string Firewall::InvalidWalletCheck(CNode *pnode, int SyncHeight, int TimeConnec
         **/
         if (GetBoolArg("-lowbandwidth", false) == true)
         {
-            if ((int)TimeConnected > Firewall::InvalidWallet_MinCheck)
+            if ((int)TimeConnected > Firewall::InvalidWallet_MinCheck / 4) // 30 Seconds
             {
                 if (pindexBest->nHeight - pnode->nStartingHeight > 1000)
                 {
@@ -675,8 +678,48 @@ string Firewall::InvalidWalletCheck(CNode *pnode, int SyncHeight, int TimeConnec
         }
         /** -------------------------- **/
 
+
         /** -------------------------- 
             Attack Detection #4
+            Protocol: Eclipse Attacks
+            This attack allows an adversary controlling a sufficient number of IP addresses to monopolize all connections
+            Report: https://eprint.iacr.org/2015/263.pdf
+        **/
+
+        /*
+        if ((int)TimeConnected > Firewall::InvalidWallet_MinCheck)
+        {
+            Firewall::PeerPrefixMap
+
+
+        }
+        */
+
+        /** -------------------------- **/
+
+        /** -------------------------- 
+            Attack Detection #5
+            Protocol: Erebus Protection
+            Allows large malicious Internet Service Providers (ISPs) to isolate any targeted public nodes from the peer-to-peer network
+            Report: https://erebus-attack.comp.nus.edu.sg/
+        **/
+
+        /*
+        if ((int)TimeConnected > Firewall::InvalidWallet_MinCheck)
+        {
+
+            uint256 hashAskedFor;
+            uint256 hashReceived;
+            int ErebusWarnings;
+
+        }
+        */
+
+        /** -------------------------- **/          
+         
+
+        /** -------------------------- 
+            Attack Detection #6
             NOT USED
             Resetting sync Height
         **/
@@ -1351,6 +1394,19 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
             DETECTED_ATTACK = true;
         }
 
+        // Low Bandwidth Mode
+        // Override default Attack settings
+        if (GetBoolArg("-lowbandwidth", false) == true)
+        {
+            if (Attack_BandwidthAbuse == "2-HighBW-HighHeight" || Attack_BandwidthAbuse == "4-HighBW-LowHeight")
+            {
+                BAN_ATTACK = true;
+                BAN_TIME = Firewall::BandwidthAbuse_BanTime;
+                BAN_REASON = BanReasonBandwidthAbuse;
+                DETECTED_ATTACK = true;
+            }
+        }
+
         ATTACK_CHECK_LOG = ATTACK_CHECK_LOG + Attack_BandwidthAbuse;
     }
     /** -------------------------- **/
@@ -1524,6 +1580,8 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
                 "] [Start Height: " << pnode->nStartingHeight <<
                 "] [Sync Height: " << SyncHeight <<
                 "] [Protocol: " << pnode->nRecvVersion <<
+                "] [HashAskedFor: " << pnode->hashAskedFor <<
+                "] [HashReceived: " << pnode->hashReceived <<
                 "]\n" << endl;
             }
             /** -------------------------- **/
@@ -1542,7 +1600,9 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
                                         "[Recv Bytes: %d] "
                                         "[Start Height: %i] "
                                         "[Sync Height: %i] "
-                                        "[Protocol: %i]"
+                                        "[Protocol: %i] "
+                                        "[HashAskedFor: %i] "
+                                        "[HashReceived: %i] "
                                         "\n",
 
                                         ModuleName.c_str(),
@@ -1555,7 +1615,9 @@ bool Firewall::CheckAttack(CNode *pnode, string FromFunction)
                                         pnode->nRecvBytes,
                                         pnode->nStartingHeight,
                                         SyncHeight,
-                                        pnode->nRecvVersion
+                                        pnode->nRecvVersion,
+                                        pnode->hashAskedFor,
+                                        pnode->hashReceived
                                         );
             }
             /** -------------------------- **/

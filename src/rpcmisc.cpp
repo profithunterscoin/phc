@@ -75,7 +75,10 @@ Value getinfo(const Array& params, bool fHelp)
     if (pwalletMain)
     {
         obj.push_back(Pair("walletversion",                         pwalletMain->GetVersion()));
+        obj.push_back(Pair("total_balance",                         ValueFromAmount(pwalletMain->GetBalance() + ValueFromAmount(pwalletMain->GetStake() + ValueFromAmount(pwalletMain->GetAnonymizedBalance()))));
         obj.push_back(Pair("balance",                               ValueFromAmount(pwalletMain->GetBalance())));
+        //obj.push_back(Pair("unconfirmed_balance",                   ValueFromAmount(pwalletMain->GetBalance())));
+        //obj.push_back(Pair("immature_balance",                      ValueFromAmount(pwalletMain->GetBalance())));
 
         if(!fLiteMode)
         {
