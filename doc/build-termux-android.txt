@@ -49,6 +49,7 @@ apt install libandroid-shmem-dev
 apt install libc*
 apt install proot
 apt install stdatomic
+apt install libgmp
 
 
 Prepare to compile: Grab the source

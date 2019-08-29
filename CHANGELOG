@@ -36,7 +36,6 @@ v1.0.0.7 (Pre-release - unfinished)
 * FIX: LoadblockIndex Initialization
 * Installed: OnStartup PruneOrphanBlocks
 * Installed: InitArgs Prune, Backtoblock, Rollbackchain, Clearchainfiles
-* ProcessBlock() fixed Orphan handling
 * FIX: Network specific .conf
 * Installed: New Testnet
 * FIX: PoW & PoS New Mint value (GetInfo RPC / BlockToJSON)
@@ -58,8 +57,15 @@ v1.0.0.7 (Pre-release - unfinished)
 * Upgraded: Uint256 with SetNull & IsNull https://gitlab.crown.tech/Edwardmorra/crown-core/commit/c655cca28ba620bdcf90a8c540c840c736aa318d
 * Installed: DynamicCoinDistribution & Upgraded ASIC Choker
 * Upgraded: Blockcount GUI
-* Added initial support for Android (Termux build of phcd)
+* Added Daemon support for Android using Termux (makefile.android)
 * Boost 1.70 support & Berkeley 18.1.23
+* Orphan Sync bugs in ProcessBlock
+* Hypersync mode
+* Lowbandwidth mode
+* Apostolaki Hijack fix (Firewall)
+* Eclipse Attack fix (Firewall)
+* Erebus Attack fix (Firewall)
+* Upgraded getinfo RPC
 
 v1.0.0.7 (To Finish before release)
 --------

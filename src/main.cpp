@@ -5732,7 +5732,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             LogPrint("net", "%s : received getdata for: %s\n", __FUNCTION__, vInv[0].ToString());
         }
 
-        // Erebus Protection
+        // BGP Hijack Protection
         // Keep track of received hash from node
         pfrom->hashReceived = vInv[0].hash;
 
@@ -6057,6 +6057,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
         CInv inv(MSG_BLOCK, hashBlock);
         pfrom->AddInventoryKnown(inv);
+
+        // BGP Attack Protection
+        // Keep track of hash asked for from node
+        pfrom->hashReceived = inv.hash;
 
         LOCK(cs_main);
 
@@ -6710,6 +6714,9 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
             vInv.reserve(pto->vInventoryToSend.size());
             vInvWait.reserve(pto->vInventoryToSend.size());
 
+            pto->hashAskedFor = uint256(0);
+            pto->hashReceived = uint256(0);
+
             BOOST_FOREACH(const CInv& inv, pto->vInventoryToSend)
             {
                 if (pto->setInventoryKnown.count(inv))
@@ -6749,7 +6756,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
                     {
                         pto->PushMessage("inv", vInv);
 
-                        // Erebus Attack Protection
+                        // BGP Attack Protection
                         // Keep track of hash asked for from node
                         pto->hashAskedFor = inv.hash;
 

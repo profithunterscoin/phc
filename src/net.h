@@ -632,10 +632,10 @@ class CNode
         CBlockIndex* pindexLastGetBlocksBegin;
         uint256 hashLastGetBlocksEnd;
 
-        // Erebus protection
+        // BGP Hijack protection
         uint256 hashAskedFor;
         uint256 hashReceived;
-        int ErebusWarnings;
+        int BGPWarnings;
 
         // flood relay
         std::vector<CAddress> vAddrToSend;
@@ -710,10 +710,10 @@ class CNode
             nPingUsecStart = 0;
             nPingUsecTime = 0;
 
-            // Erebus protection
+            // BGP protection
             uint256 hashAskedFor;
             uint256 hashReceived;
-            int ErebusWarnings;
+            int BGPWarnings;
 
             fPingQueued = false;
 
