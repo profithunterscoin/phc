@@ -104,5 +104,15 @@ make -f makefile.android STATIC=1
 echo "Installing PHCd..."
 termux-chroot cp phcd /usr/bin
 
+echo "Creating PHC configuration..."
+read -p "Enter an RPC username" USER
+read -p "Enter an RPC password" PASS
+echo "rpcuser=$USER" > phc.conf
+echo "rpcpassword=$PASS" > phc.conf
+echo "server=1" > phc.conf
+echo "listen=1" > phc.conf
+echo "daemon=1" > phc.conf
+echo "lowbandwidth=1" > phc.conf
+
 echo "Loading PHCd..."
 phcd
