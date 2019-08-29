@@ -691,6 +691,7 @@ string Firewall::InvalidWalletCheck(CNode *pnode, int SyncHeight, int TimeConnec
         {
             Firewall::PeerPrefixMap
 
+            // check connections for duplicate prefixes
 
         }
         */
@@ -701,7 +702,26 @@ string Firewall::InvalidWalletCheck(CNode *pnode, int SyncHeight, int TimeConnec
             Attack Detection #5
             Protocol: Erebus Protection
             Allows large malicious Internet Service Providers (ISPs) to isolate any targeted public nodes from the peer-to-peer network
-            Report: https://erebus-attack.comp.nus.edu.sg/
+            Report: https://erebus-attack.comp.nus.edu.sg/erebus-attack.pdf
+        **/
+
+        /*
+        if ((int)TimeConnected > Firewall::InvalidWallet_MinCheck)
+        {
+
+            // check addr log for duplicate prefixes
+
+        }
+        */
+
+        /** -------------------------- **/          
+         
+        /** -------------------------- 
+            Attack Detection #6
+            Protocol: BGP Protection
+            By manipulating routing advertisements (BGP hijacks) or by naturally intercepting traffic,
+            Autonomous Systems (ASes) can intercept and manipulate a large fraction of Bitcoin traffic
+            Report: https://btc-hijack.ethz.ch/files/btc_hijack.pdf
         **/
 
         /*
@@ -710,16 +730,15 @@ string Firewall::InvalidWalletCheck(CNode *pnode, int SyncHeight, int TimeConnec
 
             uint256 hashAskedFor;
             uint256 hashReceived;
-            int ErebusWarnings;
+            int BGPWarnings;
 
         }
         */
 
-        /** -------------------------- **/          
-         
+        /** -------------------------- **/        
 
         /** -------------------------- 
-            Attack Detection #6
+            Attack Detection #7
             NOT USED
             Resetting sync Height
         **/
