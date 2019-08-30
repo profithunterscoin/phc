@@ -23,7 +23,8 @@ apt install libcln
 apt install miniupnpc
 apt install libprotobuf
 apt install leveldb
-apt install leveldb-dev
+apt install libleveldb-dev
+apt install libleveldb
 apt install libandroid-shmem
 apt install libc*
 apt install proot
