@@ -20,45 +20,37 @@ Dependencies (Install with package manager)
 ----------------------------------------------
 pkg install root-repo
 pkg install x11-repo
-pkg install unstable-repo
-apt update
-apt upgrade
+pkg update
+pkg upgrade
 apt install make
+pkg install clang
 apt install boost
 apt install git
 apt install g++
-apt install openssl-dev
+apt install openssl
 apt install libdb
-apt install libdb-dev
 apt install automake
 apt install build-essential
-apt inatall libllvm-dev
-apt install libcurl-dev
+apt inatall libllvm
+apt install libcurl
 apt install attr
-apt install libcrypt-dev
+apt install libcrypt
 apt install libcln
-apt install miniupnpc
-apt install miniupnpc-dev
-apt install libprotobuf-dev
+apt install libprotobuf
 apt install leveldb
-apt install leveldb-dev
-apt install sqlite
-apt install libsqlite3-dev
+apt install libleveldb
 apt install libandroid-shmem
-apt install libandroid-shmem-dev
 apt install libc*
 apt install proot
 apt install stdatomic
-apt install libgmp
+pkg install libgmp
 
 
 Prepare to compile: Grab the source
 ----------------------------------------------
 
 git clone http://github.com/profithunterscoin/phc
-
 cd phc/src && git checkout 1.0.0.7-dev
-
 cd
 
 
@@ -71,17 +63,11 @@ wget https://fossies.org/linux/misc/db-18.1.32.tar.gz
 NOTE: If the link above is broken use mirror: wget https://profithunterscoin.com/db-18.1.32.tar.gz
 
 tar -xzvf db-18.1.32.tar.gz
-
 cd db-18.1.32
-
 cd build_android
-
 ../dist/configure --enable-cxx --with-static
-
 make
-
 termux-chroot make install
-
 cd
 
 
@@ -96,9 +82,8 @@ d5dcd86f595dc72094cfa62f71018718  libleveldb.a
 wget https://github.com/profithunterscoin/android_depends_phc/raw/master/android-leveldb.tgz
 
 tar -xvzf android-leveldb.tgz
-rm -rf leveldb
+rm -rf phc/src/leveldb
 cp -r leveldb phc/src/leveldb
-cd
 
 
 
@@ -107,13 +92,9 @@ Prepare to compile: Termux Mods
 
 
 git clone https://github.com/profithunterscoin/android-ifaddrs
-
 mv /data/data/com.termux/files/usr/include/ifaddrs.h ifaddrs-old.h
-
 cd android-ifaddrs 
-
 cp * /data/data/com.termux/files/usr/include/
-
 cd
 
 
@@ -128,6 +109,7 @@ git clone https://github.com/profithunterscoin/GMP
 
 cd GMP
 ./configure
+make check
 make
 termux-chroot make install
 termux-chroot cp gmp.h ../../usr/include
@@ -139,16 +121,12 @@ Dependency: Openssl (Manual compile)
 ~~~~~~~~~
 
 git clone https://github.com/profithunterscoin/openssl
-
 cd openssl
-
 ./config
 make
 termux-chroot make install
-
 termux-chroot cp libssl.a ../../usr/libssl
 termux-chroot cp libcrypto.a ../../usr/lib
-
 cd
 
 
@@ -156,12 +134,9 @@ Dependency: Miniupnp (Manual compile)
 ~~~~~~~~~
 
 git clone https://github.com/profithunterscoin/miniupnp
-
 cd miniupnp/miniupnpc
-
 make
 termux-chroot make install
-
 cd
 
 
@@ -179,11 +154,11 @@ mv /data/data/com.termux.files/usr/lib/libpython3.7m.so /data/data/com.termux/fi
 
 cd boost_1_70_0
 
- Install Boost by running the following commands:
+Install Boost by running the following commands:
 
 termux-chroot ./bootstrap.sh --prefix=/data/data/com.termux/files/usr && ./b2 stage threading=multi link=shared
 
- Install Boost Libs by running the following commands:
+Install Boost Libs by running the following commands:
 
 termux-chroot ./bootstrap.sh --prefix=/data/data/com.termux/files/usr && ./b2 stage threading=multi link=static
 
@@ -248,6 +223,44 @@ exploit even if a vulnerability is found, you can take the following measures:
 
 Troubleshooting
 -------------------------------
+
+********
+secp256k1.o no such file or directory
+
+chmod +x secp256k1
+cd secp256k1
+./autogen.sh
+./configure
+make
+termux-chroot make install
+cd ..
+make -f makefile.android STATIC=1
+********
+
+********
+cannot find -lgmp
+
+cd
+cd GMP
+wget http://profithunterscoin.com/libgmp.a
+cd
+cd phc/src
+make -f makefile.android STATIC=1
+********
+
+********
+secp256k1_ecdsa_recover linker command failed
+
+cd secp256k1
+./autogen.sh
+./configure --enable-module-recovery
+make
+cd ..
+make -f makefile.android STATIC=1
+********
+
+
+
 
 
 Dependency: LevelDB (Manual compile)

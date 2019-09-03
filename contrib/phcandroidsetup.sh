@@ -1,13 +1,13 @@
 #!/bin/bash
-echo "PHCD Android Setup Script 1.0 - Aug 28, 2019"
+echo "PHCD Android Setup Script 1.1 - Sept 3, 2019"
 
 echo "Installing dependencies..."
 pkg install root-repo
-pkg install unstable-repo
 pkg install x11-repo
 pkg update
 pkg upgrade
 apt install make
+pkg install clang
 apt install boost
 apt install git
 apt install g++
@@ -20,10 +20,8 @@ apt install libcurl
 apt install attr
 apt install libcrypt
 apt install libcln
-apt install miniupnpc
 apt install libprotobuf
 apt install leveldb
-apt install libleveldb-dev
 apt install libleveldb
 apt install libandroid-shmem
 apt install libc*
@@ -49,9 +47,8 @@ cd
 echo "Downloading & Installing LevelDB..."
 wget https://github.com/profithunterscoin/android_depends_phc/raw/master/android-leveldb.tgz
 tar -xvzf android-leveldb.tgz
-rm -rf leveldb
+rm -rf phc/src/leveldb
 cp -r leveldb phc/src/leveldb
-cd
 
 echo "Downloading & Installing Ifaddrs patch..."
 git clone https://github.com/profithunterscoin/android-ifaddrs
