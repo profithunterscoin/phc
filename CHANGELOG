@@ -66,6 +66,7 @@ v1.0.0.7 (Pre-release - unfinished)
 * Eclipse Attack fix (Firewall)
 * Erebus Attack fix (Firewall)
 * Upgraded getinfo RPC
+* Disable connections when bootstrapping
 
 v1.0.0.7 (To Finish before release)
 --------

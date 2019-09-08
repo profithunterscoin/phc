@@ -4272,7 +4272,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             // Skip if importing or reindexing database
             if (IsInitialBlockDownload() && !fImporting && !fReindex)
             {
-                if (GetBoolArg("-orphansync", false) == true)
+                if (GetBoolArg("-orphansync", true) == true)
                 {
                     // Process Parent/Child blocks of current orphaned block recieved from node
                     COrphanBlock* pblock2 = new COrphanBlock();
