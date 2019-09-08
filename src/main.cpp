@@ -4360,6 +4360,8 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 
                 if (fReorganizeCount < 10)
                 {
+                    mempool.clear();
+
                     CTxDB txdbAddr("rw");
                     CBlock block;
                     block.ReadFromDisk(pindexBest->pprev->pprev);
