@@ -48,7 +48,7 @@ echo "Downloading & Installing LevelDB..."
 wget https://github.com/profithunterscoin/android_depends_phc/raw/master/android-leveldb.tgz
 tar -xvzf android-leveldb.tgz
 rm -rf phc/src/leveldb
-cp -r leveldb phc/src/leveldb
+cp -r leveldb phc/src
 
 echo "Downloading & Installing Ifaddrs patch..."
 git clone https://github.com/profithunterscoin/android-ifaddrs
@@ -60,11 +60,20 @@ cd
 echo "Downloading & Installing GMP..."
 git clone https://github.com/profithunterscoin/GMP
 cd GMP
-./configure
+./configure --build=none
 make
 termux-chroot make install
 termux-chroot cp gmp.h ../../usr/include
-termux-chroot cp libgmp.la ../../usr/lib
+termux-chroot cp libgmp.a ../../usr/lib
+DIR="../../usr/lib/.libs"
+if [ -d "$DIR" ]; then
+  ### Take action if $DIR exists ###
+  echo "Installing config files in ${DIR}..."
+else
+  ###  Control will jump here if $DIR does NOT exists ###
+  echo "Error: ${DIR} not found. Can not continue."
+  exit 1
+fi
 cd
 
 echo "Downloading & Installing Openssl..."
