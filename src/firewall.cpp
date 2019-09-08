@@ -117,7 +117,11 @@ int Firewall::FloodingWallet_MaxCheck = 90;                                 /* 9
 /* VARIABLES (Array): Flooding Wallet Attack Patterns */
 string Firewall::FloodingWallet_Patterns[256] =
 {
-
+    "~1~4~6~8~10~12~15~17~18~20~22~27~{Bandwidth Abuse:4-HighBW-LowHeight}",
+    "~1~5~6~8~10~12~15~17~18~19~22~27~{Bandwidth Abuse:4-HighBW-LowHeight}",
+    "~1~2~3~4~6~8~10~12~15~17~18~19~22~27",
+    "~1~4~6~8~10~12~15~17~18~19~22~27",
+    "~1~2~3~4~6~9~11~13~15~17~18~20~22~27"
 };
 
 /* VARIABLES (Array): Flooding Wallet Ignored Patterns */

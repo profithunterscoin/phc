@@ -115,6 +115,7 @@ int64_t nHPSTimerStart;
 std::set<uint256> setValidatedTx;
 
 int fReorganizeCount; // Keep track of reorganization cycles when OrphanBlock is received, Reset when Block is accepted.
+int fForceSyncAfterOrphan; // Keep track of ForceSync cyles when OrphanBlock is received, Reset when Block is accepted.
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -4324,7 +4325,12 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 // Skips downloading orphan chain (Hypersync)
                 if (GetBoolArg("-hypersync", false) == true)
                 {
-                    CChain::ForceSync(pfrom, hash);
+                    if (fForceSyncAfterOrphan < 1)
+                    {
+                        CChain::ForceSync(pfrom, hash);
+
+                        fForceSyncAfterOrphan = fForceSyncAfterOrphan + 1;
+                    }
                 }
 
             }
@@ -4352,7 +4358,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                     }
                 }
 
-                if (fReorganizeCount < 10)
+                if (fReorganizeCount < 5)
                 {
                     CTxDB txdbAddr("rw");
                     CBlock block;
@@ -4364,7 +4370,12 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 
                 // To prevent local wallet getting stuck
                 // Query all connected nodes (except orphaned node) with a new getblocks request.
-                CChain::ForceSync(pfrom, hash);
+                if (fForceSyncAfterOrphan < 1)
+                {
+                    CChain::ForceSync(pfrom, hash);
+                    
+                    fForceSyncAfterOrphan = fForceSyncAfterOrphan + 1;
+                }
             }
         }
 
@@ -4398,6 +4409,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     }
 
     fReorganizeCount = 0;
+    fForceSyncAfterOrphan = 0;
 
     // Recursively process any orphan blocks that depended on this one
     vector<uint256> vWorkQueue;
