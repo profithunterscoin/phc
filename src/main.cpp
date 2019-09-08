@@ -114,6 +114,8 @@ int64_t nHPSTimerStart;
 
 std::set<uint256> setValidatedTx;
 
+int fReorganizeCount; // Keep track of reorganization cycles when OrphanBlock is received, Reset when Block is accepted.
+
 //////////////////////////////////////////////////////////////////////////////
 //
 // dispatching functions
@@ -4350,6 +4352,16 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                     }
                 }
 
+                if (fReorganizeCount < 10)
+                {
+                    CTxDB txdbAddr("rw");
+                    CBlock block;
+                    block.ReadFromDisk(pindexBest->pprev->pprev);
+                    block.SetBestChain(txdbAddr, pindexBest->pprev->pprev);
+
+                    fReorganizeCount = fReorganizeCount + 1;
+                }
+
                 // To prevent local wallet getting stuck
                 // Query all connected nodes (except orphaned node) with a new getblocks request.
                 CChain::ForceSync(pfrom, hash);
@@ -4384,6 +4396,8 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     {
         return error("%s : AcceptBlock FAILED @ Block: %s from: %s\n", __FUNCTION__, hash.ToString(), pfrom->addrName);
     }
+
+    fReorganizeCount = 0;
 
     // Recursively process any orphan blocks that depended on this one
     vector<uint256> vWorkQueue;
