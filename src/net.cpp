@@ -548,6 +548,11 @@ bool CheckNode(CAddress addrConnect)
 
 CNode* ConnectNode(CAddress addrConnect, const char *pszDest, bool darkSendMaster)
 {
+    if (fImporting || fReindex)
+    {
+        return NULL;
+    }
+
     if (pszDest == NULL)
     {
         if (IsLocal(addrConnect))
@@ -1314,6 +1319,11 @@ static list<CNode*> vNodesDisconnected;
 
 void ThreadSocketHandler()
 {
+    if (fImporting || fReindex)
+    {
+        return;
+    }
+
     unsigned int nPrevNodeCount = 0;
 
     while (true)
@@ -2079,6 +2089,11 @@ void static ProcessOneShot()
 
 void ThreadOpenConnections()
 {
+    if (fImporting || fReindex)
+    {
+        return;
+    }
+
     // Connect to specific addresses
     if (mapArgs.count("-connect") && mapMultiArgs["-connect"].size() > 0)
     {
@@ -2313,6 +2328,11 @@ void ThreadOpenAddedConnections()
 // if successful, this moves the passed grant to the constructed node
 bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant *grantOutbound, const char *strDest, bool fOneShot)
 {
+    if (fImporting || fReindex)
+    {
+        return false;
+    }
+
     //
     // Initiate outbound network connection
     //
