@@ -113,7 +113,8 @@ make check
 make
 termux-chroot make install
 termux-chroot cp gmp.h ../../usr/include
-termux-chroot cp libgmp.la ../../usr/lib
+termux-chroot mkdir ../../usr/lib/.libs/
+termux-chroot cp ../../usr/local/lib/libgmp.a ../../usr/lib/.libs/libgmp.a
 cd
 
 
