@@ -67,12 +67,12 @@ termux-chroot cp gmp.h ../../usr/include
 termux-chroot cp libgmp.a ../../usr/lib
 DIR="../../usr/lib/.libs"
 if [ -d "$DIR" ]; then
-  ### Take action if $DIR exists ###
-  echo "Installing config files in ${DIR}..."
+  ### Copy compiled libgmp to proper folder ###
+termux-chroot cp ../../usr/local/lib/libgmp.a ../../usr/lib/.libs/libgmp.a
 else
-  ###  Control will jump here if $DIR does NOT exists ###
-  echo "Error: ${DIR} not found. Can not continue."
-  exit 1
+  ###  Create Dir and copy to proper folder ###
+mkdir ../../usr/lib/.libs/
+termux-chroot cp ../../usr/local/lib/libgmp.a ../../usr/lib/.libs/libgmp.a
 fi
 cd
 
