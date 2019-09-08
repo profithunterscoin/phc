@@ -4358,16 +4358,20 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                     }
                 }
 
-                if (fReorganizeCount < 10)
+                // Auto Chain pruning enabled by default
+                if (GetBoolArg("-autoprune", false) == true)
                 {
-                    mempool.clear();
+                    if (fReorganizeCount < 10)
+                    {
+                        mempool.clear();
 
-                    CTxDB txdbAddr("rw");
-                    CBlock block;
-                    block.ReadFromDisk(pindexBest->pprev->pprev);
-                    block.SetBestChain(txdbAddr, pindexBest->pprev->pprev);
+                        CTxDB txdbAddr("rw");
+                        CBlock block;
+                        block.ReadFromDisk(pindexBest->pprev->pprev);
+                        block.SetBestChain(txdbAddr, pindexBest->pprev->pprev);
 
-                    fReorganizeCount = fReorganizeCount + 1;
+                        fReorganizeCount = fReorganizeCount + 1;
+                    }
                 }
 
                 // To prevent local wallet getting stuck
