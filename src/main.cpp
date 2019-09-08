@@ -3435,7 +3435,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                         int DeActivationHeight = 1;
 
                         // PHC Hard Fork 2
-                        //* Do not allow blank payments
+                        // Do not allow blank payments
                         
                         DeActivationHeight = Params().GetHardFork_2(); // DeActivation
 
@@ -4358,7 +4358,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                     }
                 }
 
-                if (fReorganizeCount < 5)
+                if (fReorganizeCount < 10)
                 {
                     CTxDB txdbAddr("rw");
                     CBlock block;
@@ -4370,7 +4370,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 
                 // To prevent local wallet getting stuck
                 // Query all connected nodes (except orphaned node) with a new getblocks request.
-                if (fForceSyncAfterOrphan < 1)
+                if (fForceSyncAfterOrphan < 3)
                 {
                     CChain::ForceSync(pfrom, hash);
                     
