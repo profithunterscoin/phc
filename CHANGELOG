@@ -62,11 +62,14 @@ v1.0.0.7 (Pre-release - unfinished)
 * Orphan Sync bugs in ProcessBlock
 * Hypersync mode
 * Lowbandwidth mode
+* Upgraded getinfo RPC
+* Disable connections when bootstrapping
+* Added -autoprune mode (Disabled by default) when ProcessBlock gets an orphan block after InitialBlockDownload
+
+TO FINISH:
 * Apostolaki Hijack fix (Firewall)
 * Eclipse Attack fix (Firewall)
 * Erebus Attack fix (Firewall)
-* Upgraded getinfo RPC
-* Disable connections when bootstrapping
 
 v1.0.0.7 (To Finish before release)
 --------
