@@ -633,11 +633,9 @@ class CNode
         uint256 hashLastGetBlocksEnd;
 
         // BGP Hijack protection
-        /*
         uint256 hashAskedFor;
         uint256 hashReceived;
-        int BGPWarnings;
-        */ 
+        // int BGPWarnings;
 
         // flood relay
         std::vector<CAddress> vAddrToSend;
@@ -713,11 +711,9 @@ class CNode
             nPingUsecTime = 0;
 
             // BGP protection
-            /*
             uint256 hashAskedFor;
             uint256 hashReceived;
-            int BGPWarnings;
-            */
+            // int BGPWarnings;
 
             fPingQueued = false;
 
