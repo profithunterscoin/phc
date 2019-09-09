@@ -4241,6 +4241,8 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             LogPrint("core", "%s : ORPHAN BLOCK %lu, prev=%s\n", __FUNCTION__, (unsigned long)mapOrphanBlocks.size(), pblock->hashPrevBlock.ToString());
         }
 
+        mempool.clear();
+
         // Accept orphans as long as there is a node to request its parents from
         if (pfrom)
         {
@@ -4358,13 +4360,13 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                     }
                 }
 
-                // Auto Chain pruning enabled by default
-                if (GetBoolArg("-autoprune", false) == true)
-                {
-                    if (fReorganizeCount < 10)
-                    {
-                        mempool.clear();
+                // Auto Chain pruning Max X blocks, 1 block max default
+                int nAutoPrune = GetArg("-autoprune", 1);
 
+                if (nAutoPrune > 0)
+                {
+                    if (fReorganizeCount < nAutoPrune)
+                    {
                         CTxDB txdbAddr("rw");
                         CBlock block;
                         block.ReadFromDisk(pindexBest->pprev->pprev);
