@@ -4361,7 +4361,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 CChain::PruneOrphanBlocks();
 
                 // Auto Chain pruning Max X blocks, 1 block max default
-                int nAutoPrune = GetArg("-autoprune", 0);
+                int nAutoPrune = GetArg("-autoprune", 1);
 
                 if (nAutoPrune > 0)
                 {

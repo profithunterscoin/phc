@@ -1181,7 +1181,6 @@ bool AppInit2(boost::thread_group& threadGroup)
     // Rebuilds local blockchain Database
     if(GetBoolArg("-rebuild", false))
     {
-
         uiInterface.InitMessage(("Rebuilding local blockchain...\n"));
         fprintf(stdout, "Rebuilding local blockchain...\n");
 
@@ -1226,6 +1225,12 @@ bool AppInit2(boost::thread_group& threadGroup)
 
         return InitError(strprintf("%s : Rebuild local blockchain complete, restart wallet again to auto-bootstrap local blockchain index.", __FUNCTION__));
             
+    }
+
+    // Bootstraps local blockchain from ProfitHuntersCoin.com/bootstraps/bootstrap.dat
+    if(GetBoolArg("-rebuild", false))
+    {
+        
     }
 
     // Loads Blockchain database normally if -rebuild is not present in params
