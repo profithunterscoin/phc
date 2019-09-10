@@ -64,7 +64,8 @@ v1.0.0.7 (Pre-release - unfinished)
 * Lowbandwidth mode
 * Upgraded getinfo RPC
 * Disable connections when bootstrapping
-* Added -autoprune mode (1 block max default) when ProcessBlock gets an orphan block after InitialBlockDownload
+* Added -orphansync to request full orphan chains from nodes (Disabled by default)
+* Added -autoprune=maxblocks mode (1 block max default) when ProcessBlock gets an orphan block after InitialBlockDownload
 
 TO FINISH:
 * Apostolaki Hijack fix (Firewall)
