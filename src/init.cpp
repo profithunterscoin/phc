@@ -1228,9 +1228,9 @@ bool AppInit2(boost::thread_group& threadGroup)
     }
 
     // Bootstraps local blockchain from ProfitHuntersCoin.com/bootstraps/bootstrap.dat
-    if(GetBoolArg("-rebuild", false))
+    if(GetBoolArg("-bootstrap", false))
     {
-        
+
     }
 
     // Loads Blockchain database normally if -rebuild is not present in params
