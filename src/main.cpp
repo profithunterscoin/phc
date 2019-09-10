@@ -4265,7 +4265,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 
                     if(fDebug)
                     {
-                        LogPrint("core", "%s : duplicate proof-of-stake (%s, %d) for orphan block %s", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
+                        LogPrint("core", "%s : duplicate proof-of-stake (%s, %d) for orphan block %s\n", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
                     }
 
                     return error("%s : duplicate proof-of-stake (%s, %d) for orphan block %s", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
@@ -4318,7 +4318,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 
                         if(fDebug)
                         {
-                            LogPrint("core", "%s : IsInitialBlockDownload = true, Asking peer rest of orphaned chain @ root %s", __FUNCTION__, hash.ToString());
+                            LogPrint("core", "%s : IsInitialBlockDownload = true, Asking peer rest of orphaned chain @ root %s\n", __FUNCTION__, hash.ToString());
                         }
                     }
                 }
@@ -4354,7 +4354,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 
                     if(fDebug)
                     {
-                        LogPrint("core", "%s : IsInitialBlockDownload = false, Asking peer for valid chain @ %s", __FUNCTION__, pindexBest->pprev->GetBlockHash().ToString());
+                        LogPrint("core", "%s : IsInitialBlockDownload = false, Asking peer for valid chain @ %s\n", __FUNCTION__, pindexBest->pprev->GetBlockHash().ToString());
                     }
                 }
 
@@ -6927,7 +6927,7 @@ namespace CChain
 
                     if(fDebug)
                     {
-                        LogPrint("core", "%s : Asking other peer %s for valid chain @ %s", __FUNCTION__, pnode->addrName, pindexBest->pprev->GetBlockHash().ToString());
+                        LogPrint("core", "%s : Asking other peer %s for valid chain @ %s\n", __FUNCTION__, pnode->addrName, pindexBest->pprev->GetBlockHash().ToString());
                     }
                 }
             }
