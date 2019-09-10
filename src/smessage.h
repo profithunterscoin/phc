@@ -398,7 +398,6 @@ int SecureMsgStore(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload, bool 
 int SecureMsgStore(SecureMessage& smsg, bool fUpdateBucket);
 
 
-
 int SecureMsgSend(std::string &addressFrom, std::string &addressTo, std::string &message, std::string &sError);
 
 int SecureMsgValidate(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload);

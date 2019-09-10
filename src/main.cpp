@@ -4277,12 +4277,10 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             // Skip if importing or reindexing database
             if (IsInitialBlockDownload() && !fImporting && !fReindex)
             {
-                if (GetBoolArg("-orphansync", true) == true)
+                if (GetBoolArg("-orphansync", false) == true)
                 {
                     // Process Parent/Child blocks of current orphaned block recieved from node
                     COrphanBlock* pblock2 = new COrphanBlock();
-
-                    CChain::PruneOrphanBlocks();
 
                     // Get block info
                     // Global Namespace Start
@@ -4304,6 +4302,8 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 
                     mapOrphanBlocks.insert(make_pair(hash, pblock2));
                     mapOrphanBlocksByPrev.insert(make_pair(pblock2->hashPrev, pblock2));
+
+                    CChain::PruneOrphanBlocks();
 
                     // To prevent node from flooding local wallet with duplicate Orphan chains
                     // DO NOT request the rest of the Chain from node more than once.
@@ -4342,8 +4342,6 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             // Skip if importing or reindexing database or during Initial Block Sync
             if (!IsInitialBlockDownload() && !fImporting && !fReindex)
             {
-                CChain::PruneOrphanBlocks();
-
                 // In case we are on a very long side-chain, it is possible that we already have
                 // the last block in an inv bundle sent in response to getblocks. Try to detect
                 // this situation and push another getblocks to continue.
@@ -4360,8 +4358,10 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                     }
                 }
 
+                CChain::PruneOrphanBlocks();
+
                 // Auto Chain pruning Max X blocks, 1 block max default
-                int nAutoPrune = GetArg("-autoprune", 1);
+                int nAutoPrune = GetArg("-autoprune", 0);
 
                 if (nAutoPrune > 0)
                 {
@@ -4403,7 +4403,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 
         if(fDebug)
         {
-            LogPrint("core", "%s : Orphan chain %s detected from: %s", __FUNCTION__, hash.ToString(), pfrom->addrName);
+            LogPrint("core", "%s : Orphan chain %s detected from: %s\n", __FUNCTION__, hash.ToString(), pfrom->addrName);
         }
 
         // Orphan block processed but NOT written to disk

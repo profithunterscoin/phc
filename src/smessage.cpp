@@ -3051,7 +3051,7 @@ bool SecureMsgScanBlock(CBlock& block)
     {
         if (fDebug)
         {
-            LogPrint("smessage", "%s : Found %u transactions, %u elements, %u new public keys, %u duplicates.\n", __FUNCTION__, nTransactions, nElements, nPubkeys, nDuplicates);
+            LogPrint("smessage", "%s : Found %u transactions, %u elements, %u new public keys, %u duplicates. \n", __FUNCTION__, nTransactions, nElements, nPubkeys, nDuplicates);
         }
     }
 
