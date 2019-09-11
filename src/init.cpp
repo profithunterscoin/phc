@@ -1175,7 +1175,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         filesystem::remove_all(pathTxleveldb);
         filesystem::remove_all(pathMncache);
 
-        return InitError(strprintf("%s : Removal of local blockchain files complete, start wallet again to re-sync fresh. Or Bootstrap manually.", __FUNCTION__));
+        return InitError(strprintf("%s : Removal of local blockchain files complete, start wallet again to re-sync fresh, or Bootstrap manually.", __FUNCTION__));
     }
 
     // Rebuilds local blockchain Database
@@ -1223,14 +1223,39 @@ bool AppInit2(boost::thread_group& threadGroup)
             }
         }
 
-        return InitError(strprintf("%s : Rebuild local blockchain complete, restart wallet again to auto-bootstrap local blockchain index.", __FUNCTION__));
-            
+        return InitError(strprintf("%s : Rebuild local blockchain complete, restart wallet again (phc-qt or phcd) to auto-bootstrap local blockchain index.", __FUNCTION__)); 
     }
 
     // Bootstraps local blockchain from ProfitHuntersCoin.com/bootstraps/bootstrap.dat
     if(GetBoolArg("-bootstrap", false))
     {
+        uiInterface.InitMessage(("Clearing local blockchain files...\n"));
+        fprintf(stdout, "Clearing local blockchain files...\n");
 
+        filesystem::path pathBlockchain = GetDataDir(true) / "blk0001.dat";
+        filesystem::path pathBootstrap = GetDataDir(true) / "bootstrap.dat";
+        filesystem::path pathDatabase = GetDataDir(true) / "database";
+        filesystem::path pathsmsgDB = GetDataDir(true) / "smsgDB";
+        filesystem::path pathTxleveldb = GetDataDir(true) / "txleveldb";
+        filesystem::path pathMncache = GetDataDir(true) / "mncache.dat";
+
+        if (filesystem::exists(pathBlockchain))
+        {
+            filesystem::rename(pathBlockchain, pathBootstrap);
+            filesystem::remove_all(pathDatabase);
+            filesystem::remove_all(pathsmsgDB);
+            filesystem::remove_all(pathTxleveldb);
+            filesystem::remove_all(pathMncache);
+        }
+
+        MilliSleep(1000);
+
+        uiInterface.InitMessage(("Downloading Bootstrap...\n"));
+        fprintf(stdout, "Downloading Bootstrap...\n");
+
+        download_bootstrap(pathBootstrap.string());
+
+        return InitError(strprintf("%s : Bootstrap downloaded, please restart wallet (phc-qt or phcd) to begin importing blockchain data.", __FUNCTION__));
     }
 
     // Loads Blockchain database normally if -rebuild is not present in params

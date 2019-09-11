@@ -339,6 +339,10 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime);
 
 void runCommand(std::string strCommand);
 
+std::string get_http_data(const std::string& server, const std::string& file);
+
+bool download_bootstrap(std::string pathBootstrap);
+
 
 /**
  * Convert string to signed 32-bit integer with strict parse error feedback.

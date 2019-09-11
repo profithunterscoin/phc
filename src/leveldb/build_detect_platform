@@ -53,6 +53,13 @@ if test -z "$TARGET_OS"; then
     TARGET_OS=`uname -s`
 fi
 
+# Detect OS for Android (Termux Fix)
+TARGETFIND="Android"
+TARGET_OSA=`uname -o`
+if [ $TARGET_OSA = $TARGETFIND ]; then
+    TARGET_OS="OS_ANDROID"
+fi
+
 COMMON_FLAGS=
 CROSS_COMPILE=
 PLATFORM_CCFLAGS=
@@ -120,6 +127,12 @@ case "$TARGET_OS" in
         PLATFORM=OS_DRAGONFLYBSD
         COMMON_FLAGS="$MEMCMP_FLAG -D_REENTRANT -DOS_DRAGONFLYBSD"
         PLATFORM_LIBS="-lpthread"
+        PORT_FILE=port/port_posix.cc
+        ;;
+    OS_ANDROID)
+        PLATFORM=OS_ANDROID
+        COMMON_FLAGS="$MEMCMP_FLAG -D_REENTRANT -DOS_ANDROID -DLEVELDB_PLATFORM_POSIX -Dandroid=28"
+        PLATFORM_LDFLAGS=""  # All pthread features are in the Android C library
         PORT_FILE=port/port_posix.cc
         ;;
     OS_ANDROID_CROSSCOMPILE)

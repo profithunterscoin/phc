@@ -72,25 +72,8 @@ cd
 
 
 
-
-Dependency: LevelDB (Manual install)
-----------------------------------------------
-NOTE: md5sum
-d5dcd86f595dc72094cfa62f71018718  libleveldb.a
-6ef649396938cd7eada4498223312834  libmemenv.a
-
-wget https://github.com/profithunterscoin/android_depends_phc/raw/master/android-leveldb.tgz
-
-tar -xvzf android-leveldb.tgz
-rm -rf phc/src/leveldb
-cp -r leveldb phc/src/leveldb
-
-
-
 Prepare to compile: Termux Mods
 ----------------------------------------------
-
-
 git clone https://github.com/profithunterscoin/android-ifaddrs
 mv /data/data/com.termux/files/usr/include/ifaddrs.h ifaddrs-old.h
 cd android-ifaddrs 
@@ -261,24 +244,6 @@ make -f makefile.android STATIC=1
 ********
 
 
-
-
-
-Dependency: LevelDB (Manual compile)
-----------------------------------------------
-WARNING: BUGGY NOT WORKING
-
-cd phc/src
-
-wget http://profithunterscoin.com/leveldb/leveldb-android.sh && chmod ugo+x leveldb-android.sh
-
-./leveldb-android.sh
-
-TO FIX: Doesn't build libmemenv (use one from linux instead)
-
-wget http://profithunterscoin.com/leveldb/libmemenv.a
-
-cd ..
 
 
 
