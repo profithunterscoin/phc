@@ -2141,7 +2141,15 @@ std::string get_http_data(const std::string& server, const std::string& file)
 	try
 	{
 		boost::asio::ip::tcp::iostream s(server, "http");
+#ifndef __ANDROID__
 		s.expires_from_now(boost::posix_time::seconds(60));
+#else
+    // TO FIX for Android
+    // https://www.boost.org/doc/libs/1_71_0/doc/html/boost_asio/overview/cpp2011/chrono.html
+    // http://detercode121.blogspot.com/2011/05/c11-who-is-failing-boost-clang-or-gcc.html
+    // http://www.howtobuildsoftware.com/index.php/how-do/b6fO/c-11-boost-clang-boost-asio-who-is-failing-boost-clang-or-gcc-issue-with-stdchrono-used-with-boostasio
+    // https://www.boost.org/doc/libs/1_45_0/doc/html/boost_asio/example/timers/time_t_timer.cpp
+#endif
 
 		if (!s){ throw "Unable to connect: " + s.error().message(); }
 
@@ -2159,7 +2167,7 @@ std::string get_http_data(const std::string& server, const std::string& file)
 		std::string status_message;
 		std::getline(s, status_message);
 		if (!s && http_version.substr(0, 5) != "HTTP/"){ throw "Invalid response\n"; }
-		if (status_code != 200){ throw "Response returned with status code " + status_code; }
+		if (status_code != 200){ throw "Response returned with status code " + std::to_string(status_code); }
 
 		// Process the response headers, which are terminated by a blank line.
 		std::string header;
