@@ -64,8 +64,10 @@ v1.0.0.7 (Pre-release - unfinished)
 * Lowbandwidth mode
 * Upgraded getinfo RPC
 * Disable connections when bootstrapping
-* Added -orphansync to request full orphan chains from nodes (Disabled by default)
-* Added -autoprune=maxblocks mode (1 block max default) when ProcessBlock gets an orphan block after InitialBlockDownload
+* Installed: -orphansync to request full orphan chains from nodes (Disabled by default)
+* Installed: -autoprune=maxblocks mode (1 block max default) when ProcessBlock gets an orphan block after InitialBlockDownload
+* Installed: -bootstrap downloads recent version from ProfitHuntersCoin.com automatically
+* FIX: LevelDB (Android)
 
 TO FINISH:
 * Apostolaki Hijack fix (Firewall)

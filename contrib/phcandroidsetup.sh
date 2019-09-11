@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "PHCD Android Setup Script 1.1 - Sept 3, 2019"
+echo "PHCD Android Setup Script 1.2 - Sept 10, 2019"
 
 echo "Installing dependencies..."
 pkg install root-repo
@@ -44,12 +44,6 @@ make
 termux-chroot make install
 cd
 
-echo "Downloading & Installing LevelDB..."
-wget https://github.com/profithunterscoin/android_depends_phc/raw/master/android-leveldb.tgz
-tar -xvzf android-leveldb.tgz
-rm -rf phc/src/leveldb
-cp -r leveldb phc/src
-
 echo "Downloading & Installing Ifaddrs patch..."
 git clone https://github.com/profithunterscoin/android-ifaddrs
 mv /data/data/com.termux/files/usr/include/ifaddrs.h ifaddrs-old.h
@@ -60,21 +54,20 @@ cd
 echo "Downloading & Installing GMP..."
 git clone https://github.com/profithunterscoin/GMP
 cd GMP
-./configure --build=none
+./configure CFLAGS="-g -Wall -Wconversion -Wno-sign-compare"
 make
 termux-chroot make install
 termux-chroot cp gmp.h ../../usr/include
-termux-chroot cp libgmp.a ../../usr/lib
-DIR="../../usr/lib/.libs"
-if [ -d "$DIR" ]; then
-  ### Copy compiled libgmp to proper folder ###
-termux-chroot cp ../../usr/local/lib/libgmp.a ../../usr/lib/.libs/libgmp.a
-else
-  ###  Create Dir and copy to proper folder ###
-mkdir ../../usr/lib/.libs/
-termux-chroot cp ../../usr/local/lib/libgmp.a ../../usr/lib/.libs/libgmp.a
-fi
 cd
+DIR="../../usr/lib/.libs"
+if [! -d "$DIR" ]; then
+mkdir ../../usr/lib/.libs/
+fi
+DIR="../../usr/local/lib/libgmp.a"
+if [-f "$DIR" ]; then
+termux-chroot cp ../usr/local/lib/libgmp* ../usr/lib/.libs
+termux-chroot cp ../usr/local/lib/libgmp* GMP/
+fi
 
 echo "Downloading & Installing Openssl..."
 git clone https://github.com/profithunterscoin/openssl

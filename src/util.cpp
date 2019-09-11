@@ -40,6 +40,12 @@ namespace boost
 #include <boost/filesystem/fstream.hpp>
 #include <boost/foreach.hpp>
 #include <boost/thread.hpp>
+
+#include <boost/asio.hpp>
+#include <iostream>
+#include <string>
+#include <fstream>
+
 #include <openssl/crypto.h>
 #include <openssl/rand.h>
 #include <openssl/err.h>
@@ -2128,3 +2134,57 @@ std::string DateTimeStrFormat(const char* pszFormat, int64_t nTime)
 }
 
 
+std::string get_http_data(const std::string& server, const std::string& file)
+{
+    // Source: http://www.boost.org/doc/libs/1_54_0/doc/html/boost_asio/example/cpp03/iostreams/http_client.cpp
+
+	try
+	{
+		boost::asio::ip::tcp::iostream s(server, "http");
+		s.expires_from_now(boost::posix_time::seconds(60));
+
+		if (!s){ throw "Unable to connect: " + s.error().message(); }
+
+		// ask for the file
+		s << "GET " << file << " HTTP/1.0\r\n";
+		s << "Host: " << server << "\r\n";
+		s << "Accept: */*\r\n";
+		s << "Connection: close\r\n\r\n";
+
+		// Check that response is OK.
+		std::string http_version;
+		s >> http_version;
+		unsigned int status_code;
+		s >> status_code;
+		std::string status_message;
+		std::getline(s, status_message);
+		if (!s && http_version.substr(0, 5) != "HTTP/"){ throw "Invalid response\n"; }
+		if (status_code != 200){ throw "Response returned with status code " + status_code; }
+
+		// Process the response headers, which are terminated by a blank line.
+		std::string header;
+		while (std::getline(s, header) && header != "\r"){}
+
+		// Write the remaining data to output.
+		std::stringstream ss;
+		ss << s.rdbuf();
+		return ss.str();
+	}
+	catch(std::exception& e)
+	{
+		return e.what();
+	}
+}
+
+
+bool download_bootstrap(std::string pathBootstrap) 
+{
+    std::string result = get_http_data("www.profithunterscoin.com", "/bootstraps/bootstrap.dat");
+
+    std::ofstream outFile;
+    outFile.open (pathBootstrap, std::ios::binary);
+    outFile << result;
+    outFile.close();
+
+    return true;
+}
