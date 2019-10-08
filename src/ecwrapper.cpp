@@ -726,18 +726,13 @@ bool CECKey::Recover(const uint256 &hash, const unsigned char *p64, int rec)
     
     ECDSA_SIG *sig = ECDSA_SIG_new();
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L  // OPENSSL 1.0
+    BN_bin2bn(&p64[0],  32, sig->r);
+    BN_bin2bn(&p64[32], 32, sig->s);
+#else  // OPENSSL 1.1+
     BIGNUM *sig_r(BN_new());
     BIGNUM *sig_s(BN_new());
 
-    BN_bin2bn(&p64[0],  32, sig->r);
-    BN_bin2bn(&p64[32], 32, sig->s);
-
-#if OPENSSL_VERSION_NUMBER < 0x10100000L  // OPENSSL 1.0
-    BN_clear_free(sig->r);
-    BN_clear_free(sig->s);
-    sig->r = sig_r;
-    sig->s = sig_s;
-#else  // OPENSSL 1.1+
     ECDSA_SIG_set0(sig, sig_r, sig_s);
 #endif
 
