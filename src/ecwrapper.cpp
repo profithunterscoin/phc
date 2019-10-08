@@ -334,7 +334,7 @@ void CECKey::GetSecretBytes(unsigned char vch[32]) const
 {
     const BIGNUM *bn = EC_KEY_get0_private_key(pkey);
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L  // OPENSSL 1.0
+//#if OPENSSL_VERSION_NUMBER < 0x10100000L  // OPENSSL 1.0
     if (bn == 0)
     {
         if (fDebug)
@@ -362,6 +362,8 @@ void CECKey::GetSecretBytes(unsigned char vch[32]) const
 
         return;
     }
+/*   Does not appear to be working with 1.1+
+
 #else  // OPENSSL 1.1+
     if (&bn == 0)
     {
@@ -392,7 +394,8 @@ void CECKey::GetSecretBytes(unsigned char vch[32]) const
     }
 
 #endif
-    
+*/
+
     memset(vch, 0, 32 - nBytes);
 }
 
