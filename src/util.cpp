@@ -1,8 +1,16 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2012 The Bitcoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
+
 
 #include "util.h"
 #include "sync.h"
@@ -320,8 +328,25 @@ static boost::mutex* mutexDebugLog = NULL;
 
 static void DebugPrintInit()
 {
-    assert(fileout == NULL);
-    assert(mutexDebugLog == NULL);
+    if (fileout != NULL)
+    {
+        if (fDebug)
+        {
+            LogPrint("util", "%s : Fileout is NOT null\n", __FUNCTION__);
+        }
+
+        return;
+    }
+
+    if (mutexDebugLog != NULL)
+    {
+        if (fDebug)
+        {
+            LogPrint("util", "%s : mutexDebugLog != NULL\n", __FUNCTION__);
+        }
+
+        return;
+    }
 
     boost::filesystem::path pathDebug = GetDataDir(true) / "debug.log";
     fileout = fopen(pathDebug.string().c_str(), "a");
@@ -367,6 +392,7 @@ bool LogAcceptCategory(const char* category)
                 ptrCategory->insert(string("alert"));
                 ptrCategory->insert(string("core"));
                 ptrCategory->insert(string("db"));
+                ptrCategory->insert(string("leveldb"));
                 ptrCategory->insert(string("rand"));
                 ptrCategory->insert(string("rpc"));
                 ptrCategory->insert(string("coincontrol"));
@@ -391,6 +417,18 @@ bool LogAcceptCategory(const char* category)
                 ptrCategory->insert(string("blocktree"));
                 ptrCategory->insert(string("asicchoker"));
                 ptrCategory->insert(string("noui"));
+                ptrCategory->insert(string("gui"));
+                ptrCategory->insert(string("mining"));
+                ptrCategory->insert(string("key"));
+                ptrCategory->insert(string("uint"));
+                ptrCategory->insert(string("socks"));
+                ptrCategory->insert(string("chainbuddy"));
+                ptrCategory->insert(string("chainshield"));
+                ptrCategory->insert(string("coinage"));
+                ptrCategory->insert(string("smgessage"));
+                ptrCategory->insert(string("base58"));
+                ptrCategory->insert(string("script"));
+                ptrCategory->insert(string("wallet"));
             }
         }
 

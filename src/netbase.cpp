@@ -1,8 +1,15 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #include "netbase.h"
@@ -22,6 +29,9 @@
 #if !defined(HAVE_MSG_NOSIGNAL) && !defined(MSG_NOSIGNAL)
 #define MSG_NOSIGNAL 0
 #endif
+
+/* ONLY NEEDED FOR UNIT TESTING */
+#include <iostream>
 
 using namespace std;
 
@@ -142,13 +152,35 @@ bool static LookupIntern(const char *pszName, std::vector<CNetAddr>& vIP, unsign
     {
         if (aiTrav->ai_family == AF_INET)
         {
-            assert(aiTrav->ai_addrlen >= sizeof(sockaddr_in));
+            if (aiTrav->ai_addrlen < sizeof(sockaddr_in))
+            {
+                if (fDebug)
+                {
+                    LogPrint("net", "%s : aiTrav->ai_addrlen < sizeof(sockaddr_in) (assert-1)\n", __FUNCTION__);
+                }
+
+                cout << __FUNCTION__ << " (assert-1)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+                return false;
+            }
+
             vIP.push_back(CNetAddr(((struct sockaddr_in*)(aiTrav->ai_addr))->sin_addr));
         }
 
         if (aiTrav->ai_family == AF_INET6)
         {
-            assert(aiTrav->ai_addrlen >= sizeof(sockaddr_in6));
+            if (aiTrav->ai_addrlen < sizeof(sockaddr_in6))
+            {
+                if (fDebug)
+                {
+                    LogPrint("net", "%s : aiTrav->ai_addrlen < sizeof(sockaddr_in6) (assert-2)\n", __FUNCTION__);
+                }
+
+                cout << __FUNCTION__ << " (assert-2)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+                return false;
+            }
+
             vIP.push_back(CNetAddr(((struct sockaddr_in6*)(aiTrav->ai_addr))->sin6_addr));
         }
 
@@ -319,6 +351,7 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
     if (strDest.size() > 255)
     {
         closesocket(hSocket);
+
         return error("%s : Hostname too long", __FUNCTION__);
     }
 
@@ -330,6 +363,7 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
     if (ret != nSize)
     {
         closesocket(hSocket);
+
         return error("%s : Error sending to proxy", __FUNCTION__);
     }
 
@@ -340,6 +374,7 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
 
         return error("%s : Error reading proxy response", __FUNCTION__);
     }
+
     if (pchRet1[0] != 0x05 || pchRet1[1] != 0x00)
     {
         closesocket(hSocket);
@@ -668,7 +703,17 @@ bool static ConnectSocketDirectly(const CService &addrConnect, SOCKET& hSocketRe
 
 bool SetProxy(enum Network net, CService addrProxy, int nSocksVersion)
 {
-    assert(net >= 0 && net < NET_MAX);
+    if (net < 0 && net > NET_MAX)
+    {
+        if (fDebug)
+        {
+            LogPrint("net", "%s : net < 0 && net > NET_MAX (assert-3)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-3)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return false;
+    }
 
     if (nSocksVersion != 0 && nSocksVersion != 4 && nSocksVersion != 5)
     {
@@ -690,7 +735,17 @@ bool SetProxy(enum Network net, CService addrProxy, int nSocksVersion)
 
 bool GetProxy(enum Network net, proxyType &proxyInfoOut)
 {
-    assert(net >= 0 && net < NET_MAX);
+    if (net < 0 && net > NET_MAX)
+    {
+        if (fDebug)
+        {
+            LogPrint("net", "%s : net < 0 && net > NET_MAX (assert-4)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-4)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return false;
+    }
 
     LOCK(cs_proxyInfos);
     
@@ -911,8 +966,14 @@ void CNetAddr::SetRaw(Network network, const uint8_t *ip_in)
 
         default:
         {
-            assert(!"invalid network");
+            if (fDebug)
+            {
+                LogPrint("net", "%s : Invalid network (assert-5)\n", __FUNCTION__);
+            }
+
+            cout << __FUNCTION__ << " (assert-5)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
         }
+        break;
     }
 }
 
@@ -1657,13 +1718,29 @@ CService::CService(const struct in6_addr& ipv6Addr, unsigned short portIn) : CNe
 
 CService::CService(const struct sockaddr_in& addr) : CNetAddr(addr.sin_addr), port(ntohs(addr.sin_port))
 {
-    assert(addr.sin_family == AF_INET);
+    if (addr.sin_family != AF_INET)
+    {
+        if (fDebug)
+        {
+            LogPrint("net", "%s : addr.sin_family != AF_INET (assert-6)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-6)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+    }
 }
 
 
 CService::CService(const struct sockaddr_in6 &addr) : CNetAddr(addr.sin6_addr), port(ntohs(addr.sin6_port))
 {
-   assert(addr.sin6_family == AF_INET6);
+    if (addr.sin6_family != AF_INET6)
+    {
+        if (fDebug)
+        {
+            LogPrint("net", "%s : addr.sin6_family != AF_INET6 (assert-7)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-7)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+    }
 }
 
 
@@ -2153,6 +2230,7 @@ std::string NetworkErrorString(int err)
 #else /* POSIX variant always returns message in buffer */
     (void)strerror_r(err, buf, sizeof(buf));
 #endif
+
     return strprintf("%s : %s (%d)", __FUNCTION__, s, err);
 }
 #endif

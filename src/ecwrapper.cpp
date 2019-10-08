@@ -1,17 +1,30 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #include "ecwrapper.h"
-
+#include "util.h"
 #include "serialize.h"
 #include "uint256.h"
 
 #include <openssl/bn.h>
 #include <openssl/ecdsa.h>
 #include <openssl/obj_mac.h>
+
+/* ONLY NEEDED FOR UNIT TESTING */
+#include <iostream>
+using namespace std;
+
 
 // Global Namespace Start
 namespace
@@ -106,10 +119,9 @@ namespace
 #if OPENSSL_VERSION_NUMBER < 0x10100000L  // OPENSSL 1.0
         ecsig_r = ecsig->r;
         ecsig_s = ecsig->s;
-#else
+#else  // OPENSSL 1.1+
         ECDSA_SIG_get0(ecsig, &ecsig_r, &ecsig_s);
 #endif
-
         const EC_GROUP *group = EC_KEY_get0_group(eckey);
         
         if ((ctx = BN_CTX_new()) == NULL)
@@ -297,7 +309,18 @@ namespace
 CECKey::CECKey()
 {
     pkey = EC_KEY_new_by_curve_name(NID_secp256k1);
-    assert(pkey != NULL);
+
+    if (pkey == NULL)
+    {
+        if (fDebug)
+        {
+            LogPrint("key", "%s : pkey == NULL (assert-1)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-1)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return;
+    }
 }
 
 
@@ -312,20 +335,63 @@ void CECKey::GetSecretBytes(unsigned char vch[32]) const
     const BIGNUM *bn = EC_KEY_get0_private_key(pkey);
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L  // OPENSSL 1.0
-    assert(bn);
+    if (bn == 0)
+    {
+        if (fDebug)
+        {
+            LogPrint("key", "%s : bn == 0 (assert-2)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-2)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return;
+    }
 
     int nBytes = BN_num_bytes(bn);
 
-    int n=BN_bn2bin(bn,&vch[32 - nBytes]);
-#else
-    assert(bn);
+    int n = BN_bn2bin(bn, &vch[32 - nBytes]);
 
-    int nBytes = BN_num_bytes(bn);
+    if (n != nBytes)
+    {
+        if (fDebug)
+        {
+            LogPrint("key", "%s : n != nBytes (assert-3)\n", __FUNCTION__);
+        }
 
-    int n=BN_bn2bin(bn, &vch[32 - nBytes]);
+        cout << __FUNCTION__ << " (assert-3)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return;
+    }
+#else  // OPENSSL 1.1+
+    if (&bn == 0)
+    {
+        if (fDebug)
+        {
+            LogPrint("key", "%s : bn == 0 (assert-4)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-4)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return;
+    }
+
+    int nBytes = BN_num_bytes(&bn);
+
+    int n = BN_bn2bin(&bn, &vch[32 - nBytes]);
+
+    if (n != nBytes)
+    {
+        if (fDebug)
+        {
+            LogPrint("key", "%s : n != nBytes (assert-5)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-5)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return;
+    }
+
 #endif
-
-    assert(n == nBytes);
     
     memset(vch, 0, 32 - nBytes);
 }
@@ -340,22 +406,63 @@ void CECKey::SetSecretBytes(const unsigned char vch[32])
     BN_init(&bn);
 
     ret = BN_bin2bn(vch, 32, &bn) != NULL;
-    assert(ret);
+
+    if (ret == 0)
+    {
+        if (fDebug)
+        {
+            LogPrint("key", "%s : ret == 0 (assert-6)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-6)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return;
+    }
     
     ret = EC_KEY_regenerate_key(pkey, &bn) != 0;
 
-    assert(ret);
+    if (ret == 0)
+    {
+        if (fDebug)
+        {
+            LogPrint("key", "%s : ret == 0 (assert-7)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-7)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return;
+    }
 
     BN_clear_free(&bn);
-#else
+#else  // OPENSSL 1.1+
     BIGNUM* bn(BN_new());
     
     ret = BN_bin2bn(vch, 32, bn) != NULL;
-    assert(ret);
+    if (ret == 0)
+    {
+        if (fDebug)
+        {
+            LogPrint("key", "%s : ret == 0 (assert-8)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-8)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return;
+    }
 
     ret = EC_KEY_regenerate_key(pkey, bn) != 0;
 
-    assert(ret);
+    if (ret == 0)
+    {
+        if (fDebug)
+        {
+            LogPrint("key", "%s : ret == 0 (assert-9)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-9)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return;
+    }
 
     BN_clear_free(bn);
 #endif
@@ -406,8 +513,29 @@ void CECKey::GetPubKey(std::vector<unsigned char> &pubkey, bool fCompressed)
     
     int nSize = i2o_ECPublicKey(pkey, NULL);
     
-    assert(nSize);
-    assert(nSize <= 65);
+    if (nSize == 0)
+    {
+        if (fDebug)
+        {
+            LogPrint("key", "%s : nSize == 0 (assert-10)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-10)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return;
+    }
+
+    if (nSize > 65)
+    {
+        if (fDebug)
+        {
+            LogPrint("key", "%s : nSize > 65 (assert-11)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-11)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return;
+    }
     
     pubkey.clear();
     pubkey.resize(nSize);
@@ -416,7 +544,17 @@ void CECKey::GetPubKey(std::vector<unsigned char> &pubkey, bool fCompressed)
     
     int nSize2 = i2o_ECPublicKey(pkey, &pbegin);
     
-    assert(nSize == nSize2);
+    if (nSize != nSize2)
+    {
+        if (fDebug)
+        {
+            LogPrint("key", "%s : nSize != nSize2 (assert-12)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-12)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return;
+    }
 }
 
 
@@ -443,7 +581,7 @@ bool CECKey::Sign(const uint256 &hash, std::vector<unsigned char>& vchSig)
 #if OPENSSL_VERSION_NUMBER < 0x10100000L  // OPENSSL 1.0
     sig_r = sig->r;
     sig_s = sig->s;
-#else
+#else  // OPENSSL 1.1+
     ECDSA_SIG_get0(sig, &sig_r, &sig_s);
 #endif
     
@@ -465,13 +603,13 @@ bool CECKey::Sign(const uint256 &hash, std::vector<unsigned char>& vchSig)
         BIGNUM *sig_r_new = BN_dup(sig_r);
         BN_sub(sig_s_new, order, sig_s);
 
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
-        ECDSA_SIG_set0(sig, sig_r_new, sig_s_new);
-#else
+#if OPENSSL_VERSION_NUMBER < 0x10100000L  // OPENSSL 1.0
         BN_clear_free(sig->r);
         BN_clear_free(sig->s);
         sig->r = sig_r_new;
         sig->s = sig_s_new;
+#else  // OPENSSL 1.1+
+        ECDSA_SIG_set0(sig, sig_r_new, sig_s_new);
 #endif
     }
     
@@ -520,7 +658,7 @@ bool CECKey::SignCompact(const uint256 &hash, unsigned char *p64, int &rec)
 #if OPENSSL_VERSION_NUMBER < 0x10100000L  // OPENSSL 1.0
     sig_r = sig->r;
     sig_s = sig->s;
-#else
+#else  // OPENSSL 1.1+
     ECDSA_SIG_get0(sig, &sig_r, &sig_s);
 #endif
 
@@ -554,7 +692,17 @@ bool CECKey::SignCompact(const uint256 &hash, unsigned char *p64, int &rec)
             }
         }
         
-        assert(fOk);
+        if (fOk == 0)
+        {
+            if (fDebug)
+            {
+                LogPrint("key", "%s : fOk == 0 (assert-13)\n", __FUNCTION__);
+            }
+            
+            cout << __FUNCTION__ << " (assert-13)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+            return false;
+        }
         
         BN_bn2bin(sig_r,&p64[32-(nBitsR+7)/8]);
         BN_bn2bin(sig_s,&p64[64-(nBitsS+7)/8]);
@@ -575,14 +723,18 @@ bool CECKey::Recover(const uint256 &hash, const unsigned char *p64, int rec)
     
     ECDSA_SIG *sig = ECDSA_SIG_new();
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L  // OPENSSL 1.0
-    BN_bin2bn(&p64[0],  32, sig->r);
-    BN_bin2bn(&p64[32], 32, sig->s);
-
-#else
     BIGNUM *sig_r(BN_new());
     BIGNUM *sig_s(BN_new());
 
+    BN_bin2bn(&p64[0],  32, sig->r);
+    BN_bin2bn(&p64[32], 32, sig->s);
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L  // OPENSSL 1.0
+    BN_clear_free(sig->r);
+    BN_clear_free(sig->s);
+    sig->r = sig_r;
+    sig->s = sig_s;
+#else  // OPENSSL 1.1+
     ECDSA_SIG_set0(sig, sig_r, sig_s);
 #endif
 

@@ -1,8 +1,16 @@
-// Copyright (c) 2010 Satoshi Nakamoto
-// Copyright (c) 2009-2012 The Bitcoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (C) 2017-2018 Crypostle Core developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #include "rpcserver.h"
@@ -166,7 +174,15 @@ Value setgenerate(const Array& params, bool fHelp)
         }
     }   
 
-    assert(pwalletMain != NULL);
+    if (pwalletMain == NULL)
+    {
+        if (fDebug)
+        {
+            LogPrint("rpc", "%s : pwalletMain == NULL\n", __FUNCTION__);
+        }
+
+        return Value::null;
+    }
     
     GeneratePoWcoins(fGenerate, pwalletMain, fDebugConsoleOutputMining);
 
@@ -564,7 +580,17 @@ Value getworkex(const Array& params, bool fHelp)
 
         pblock->hashMerkleRoot = pblock->BuildMerkleTree();
 
-        assert(pwalletMain != NULL);
+        if (pwalletMain == NULL)
+        {
+            if (fDebug)
+            {
+                LogPrint("rpc", "%s : pwalletMain == NULL (assert-1)\n", __FUNCTION__);
+            }
+
+            cout << __FUNCTION__ << " (assert-1)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+            return Value::null;
+        }
 
         return ProcessBlockFound(pblock, *pwalletMain, *pMiningKey);
     }
@@ -708,7 +734,17 @@ Value getwork(const Array& params, bool fHelp)
         pblock->vtx[0].vin[0].scriptSig = mapNewBlock[pdata->hashMerkleRoot].second;
         pblock->hashMerkleRoot = pblock->BuildMerkleTree();
 
-        assert(pwalletMain != NULL);
+        if (pwalletMain == NULL)
+        {
+            if (fDebug)
+            {
+                LogPrint("rpc", "%s : pwalletMain == NULL (assert-2)\n", __FUNCTION__);
+            }
+                        
+            cout << __FUNCTION__ << " (assert-2)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+            return Value::null;
+        }
         
         return ProcessBlockFound(pblock, *pwalletMain, *pMiningKey);
     }

@@ -1,8 +1,15 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2012 The Bitcoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #ifndef TRANSFER_ALLOCATORS_H
@@ -14,6 +21,11 @@
 #include <map>
 #include <string>
 #include <string.h>
+
+/* ONLY NEEDED FOR UNIT TESTING */
+#include <iostream>
+using namespace std;
+
 
 /**
  * Thread-safe class to keep track of locked (ie, non-swappable) memory pages.
@@ -33,13 +45,23 @@ template <class Locker> class LockedPageManagerBase
         LockedPageManagerBase(size_t page_size): page_size(page_size)
         {
             // Determine bitmask for extracting page from address
-            assert(!(page_size & (page_size-1))); // size must be power of two
-            page_mask = ~(page_size - 1);
+            //assert(!(page_size & (page_size-1))); // size must be power of two
+
+            if (page_size != 0 && (page_size-1) != 0)
+            {
+                // size must be power of two
+                page_mask = ~(page_size - 1);
+            }
         }
 
         ~LockedPageManagerBase()
         {
-            assert(this->GetLockedPageCount() == 0);
+            if (this->GetLockedPageCount() != 0)
+            {
+                cout << "Shutdown completed!" << endl;
+
+                exit(10); 
+            }
         }
 
         // For all pages in affected range, increase lock count
@@ -88,15 +110,19 @@ template <class Locker> class LockedPageManagerBase
             for(size_t page = start_page; page <= end_page; page += page_size)
             {
                 Histogram::iterator it = histogram.find(page);
-                assert(it != histogram.end()); // Cannot unlock an area that was not locked
 
-                // Decrease counter for page, when it is zero, the page will be unlocked
-                it->second -= 1;
-                if(it->second == 0) // Nothing on the page anymore that keeps it locked
+                if (it == histogram.end())
                 {
-                    // Unlock page and remove the count from histogram
-                    locker.Unlock(reinterpret_cast<void*>(page), page_size);
-                    histogram.erase(it);
+                    // Cannot unlock an area that was not locked
+
+                    // Decrease counter for page, when it is zero, the page will be unlocked
+                    it->second -= 1;
+                    if(it->second == 0) // Nothing on the page anymore that keeps it locked
+                    {
+                        // Unlock page and remove the count from histogram
+                        locker.Unlock(reinterpret_cast<void*>(page), page_size);
+                        histogram.erase(it);
+                    }
                 }
             }
         }

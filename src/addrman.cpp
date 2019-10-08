@@ -1,12 +1,17 @@
-// Copyright (c) 2012 Pieter Wuille
+// Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2012 The Bitcoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2012 Pieter Wuille
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #include "addrman.h"
 #include "hash.h"
+
+/* ONLY NEEDED FOR UNIT TESTING */
+#include <iostream>
 
 using namespace std;
 
@@ -161,13 +166,45 @@ void CAddrMan::SwapRandom(unsigned int nRndPos1, unsigned int nRndPos2)
         return;
     }
 
-    assert(nRndPos1 < vRandom.size() && nRndPos2 < vRandom.size());
+    if (nRndPos1 > vRandom.size() && nRndPos2 > vRandom.size())
+    {
+        if (fDebug)
+        {
+            LogPrint("addrman", "%s : nRndPos1 > vRandom.size() && nRndPos2 > vRandom.size() (assert-1)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-1)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return;
+    }
 
     int nId1 = vRandom[nRndPos1];
     int nId2 = vRandom[nRndPos2];
 
-    assert(mapInfo.count(nId1) == 1);
-    assert(mapInfo.count(nId2) == 1);
+    if (mapInfo.count(nId1) != 1)
+    {
+        if (fDebug)
+        {
+            LogPrint("addrman", "%s : mapInfo.count(nId1) != 1 (assert-2)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-2)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return;
+    }
+
+
+    if (mapInfo.count(nId2) != 1)
+    {
+        if (fDebug)
+        {
+            LogPrint("addrman", "%s : mapInfo.count(nId2) != 1 (assert-3)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-3)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return;
+    }
 
     mapInfo[nId1].nRandomPos = nRndPos2;
     mapInfo[nId2].nRandomPos = nRndPos1;
@@ -195,7 +232,17 @@ int CAddrMan::SelectTried(int nKBucket)
         vTried[nPos] = vTried[i];
         vTried[i] = nTemp;
         
-        assert(nOldest == -1 || mapInfo.count(nTemp) == 1);
+        if (nOldest != -1 || mapInfo.count(nTemp) != 1)
+        {
+            if (fDebug)
+            {
+                LogPrint("addrman", "%s : nOldest != -1 || mapInfo.count(nTemp) != 1  (assert-4)\n", __FUNCTION__);
+            }
+
+            cout << __FUNCTION__ << " assert-4" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+            return 0;
+        }
         
         if (nOldest == -1 || mapInfo[nTemp].nLastSuccess < mapInfo[nOldest].nLastSuccess)
         {
@@ -209,15 +256,35 @@ int CAddrMan::SelectTried(int nKBucket)
 
 
 int CAddrMan::ShrinkNew(int nUBucket)
-{
-    assert(nUBucket >= 0 && (unsigned int)nUBucket < vvNew.size());
+{   
+    if (nUBucket < 0 && (unsigned int)nUBucket >= vvNew.size())
+    {
+        if (fDebug)
+        {
+            LogPrint("addrman", "%s : nUBucket < 0 && (unsigned int)nUBucket >= vvNew.size() (assert-5)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-5)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return 0;
+    }
     
     std::set<int> &vNew = vvNew[nUBucket];
 
     // first look for deletable items
     for (std::set<int>::iterator it = vNew.begin(); it != vNew.end(); it++)
     {
-        assert(mapInfo.count(*it));
+        if (mapInfo.count(*it) == 0)
+        {
+            if (fDebug)
+            {
+                LogPrint("addrman", "%s : mapInfo.count(*it) == 0 (assert-6)\n", __FUNCTION__);
+            }
+
+            cout << __FUNCTION__ << " (assert-6)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+            return 0;
+        }
         
         CAddrInfo &info = mapInfo[*it];
         
@@ -250,7 +317,17 @@ int CAddrMan::ShrinkNew(int nUBucket)
     {
         if (nI == n[0] || nI == n[1] || nI == n[2] || nI == n[3])
         {
-            assert(nOldest == -1 || mapInfo.count(*it) == 1);
+            if (nOldest != -1 || mapInfo.count(*it) != 1)
+            {
+                if (fDebug)
+                {
+                    LogPrint("addrman", "%s : nOldest != -1 || mapInfo.count(*it) != 1 (assert-7)\n", __FUNCTION__);
+                }
+
+                cout << __FUNCTION__ << " (assert-7)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+                return 0;
+            }
 
             if (nOldest == -1 || mapInfo[*it].nTime < mapInfo[nOldest].nTime)
             {
@@ -261,7 +338,17 @@ int CAddrMan::ShrinkNew(int nUBucket)
         nI++;
     }
 
-    assert(mapInfo.count(nOldest) == 1);
+    if (mapInfo.count(nOldest) != 1)
+    {
+        if (fDebug)
+        {
+            LogPrint("addrman", "%s : mapInfo.count(nOldest) != 1 (assert-8)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-8)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return 0;
+    }
     
     CAddrInfo &info = mapInfo[nOldest];
     
@@ -285,7 +372,17 @@ int CAddrMan::ShrinkNew(int nUBucket)
 
 void CAddrMan::MakeTried(CAddrInfo& info, int nId, int nOrigin)
 {
-    assert(vvNew[nOrigin].count(nId) == 1);
+    if (vvNew[nOrigin].count(nId) != 1)
+    {
+        if (fDebug)
+        {
+            LogPrint("addrman", "%s : vvNew[nOrigin].count(nId) != 1 (assert-9)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-9)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return;
+    }
 
     // remove the entry from all new buckets
     for (std::vector<std::set<int> >::iterator it = vvNew.begin(); it != vvNew.end(); it++)
@@ -298,7 +395,17 @@ void CAddrMan::MakeTried(CAddrInfo& info, int nId, int nOrigin)
 
     nNew--;
 
-    assert(info.nRefCount == 0);
+    if (info.nRefCount != 0)
+    {
+        if (fDebug)
+        {
+            LogPrint("addrman", "%s : info.nRefCount != 0 (assert-10)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-10)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return;
+    }
 
     // what tried bucket to move the entry to
     int nKBucket = info.GetTriedBucket(nKey);
@@ -320,7 +427,17 @@ void CAddrMan::MakeTried(CAddrInfo& info, int nId, int nOrigin)
     int nPos = SelectTried(nKBucket);
 
     // find which new bucket it belongs to
-    assert(mapInfo.count(vTried[nPos]) == 1);
+    if (mapInfo.count(vTried[nPos]) != 1)
+    {
+        if (fDebug)
+        {
+            LogPrint("addrman", "%s : mapInfo.count(vTried[nPos]) != 1 (assert-11)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-11)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return;        
+    }
     
     int nUBucket = mapInfo[vTried[nPos]].GetNewBucket(nKey);
     std::set<int> &vNew = vvNew[nUBucket];
@@ -566,7 +683,17 @@ CAddress CAddrMan::Select_(int nUnkBias)
             
             int nPos = GetRandInt(vTried.size());
             
-            assert(mapInfo.count(vTried[nPos]) == 1);
+            if (mapInfo.count(vTried[nPos]) != 1)
+            {
+                if (fDebug)
+                {
+                    LogPrint("addrman", "%s : mapInfo.count(vTried[nPos]) != 1 (assert-12)\n", __FUNCTION__);
+                }
+                
+                cout << __FUNCTION__ << " (assert-12)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+                continue;
+            }
             
             CAddrInfo &info = mapInfo[vTried[nPos]];
             
@@ -603,7 +730,17 @@ CAddress CAddrMan::Select_(int nUnkBias)
                 it++;
             }
             
-            assert(mapInfo.count(*it) == 1);
+            if (mapInfo.count(*it) != 1)
+            {
+                if (fDebug)
+                {
+                    LogPrint("addrman", "%s : mapInfo.count(*it) != 1 (assert-13)\n", __FUNCTION__);
+                }
+
+                cout << __FUNCTION__ << " (assert-13)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+                continue;
+            }
             
             CAddrInfo &info = mapInfo[*it];
             
@@ -760,7 +897,17 @@ void CAddrMan::GetAddr_(std::vector<CAddress> &vAddr)
         
         SwapRandom(n, nRndPos);
         
-        assert(mapInfo.count(vRandom[n]) == 1);
+        if (mapInfo.count(vRandom[n]) != 1)
+        {
+            if (fDebug)
+            {
+                LogPrint("addrman", "%s : mapInfo.count(vRandom[n]) != 1 (assert-14)\n", __FUNCTION__);
+            }
+
+            cout << __FUNCTION__ << " (assert-14)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+            return;
+        }
         
         vAddr.push_back(mapInfo[vRandom[n]]);
     }

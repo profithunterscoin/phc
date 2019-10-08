@@ -1,18 +1,24 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2015 The Bitcoin developers
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
 // Copyright (C) 2017-2018 Crypostle Core developers
-// Distributed under the MIT software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
+
 
 #ifndef BITCOIN_ARITH_UINT256_H
 #define BITCOIN_ARITH_UINT256_H
 
-#include <assert.h>
 #include <cstring>
 #include <stdexcept>
 #include <stdint.h>
-#include <string>
-#include <vector>
 
 class uint256;
 
@@ -305,7 +311,10 @@ template<unsigned int BITS> class base_uint2
 
         uint64_t GetLow64() const
         {
-            assert(WIDTH >= 2);
+            if (WIDTH < 2)
+            {
+                return pn[0];
+            }
 
             return pn[0] | (uint64_t)pn[1] << 32;
         }

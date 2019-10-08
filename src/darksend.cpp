@@ -1,10 +1,15 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
-// Copyright (c) 2014-2015 The Darkcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
 // Copyright (c) 2014-2015 The Dash developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #include "darksend.h"
@@ -23,6 +28,9 @@
 #include <algorithm>
 #include <boost/assign/list_of.hpp>
 #include <openssl/rand.h>
+
+/* ONLY NEEDED FOR UNIT TESTING */
+#include <iostream>
 
 using namespace std;
 using namespace boost;
@@ -2890,7 +2898,20 @@ bool CDarksendPool::SendRandomPaymentToSelf()
 
     CScript scriptChange;
     CPubKey vchPubKey;
-    assert(reservekey.GetReservedKey(vchPubKey)); // should never fail, as we just unlocked
+
+    if (reservekey.GetReservedKey(vchPubKey) == 0)
+    {
+        // should never fail, as we just unlocked
+        if (fDebug)
+        {
+            LogPrint("darksend", "%s : reservekey.GetReservedKey(vchPubKey) == 0 (assert-1)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-1)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return false;
+    } 
+
     scriptChange = GetScriptForDestination(vchPubKey.GetID());
 
     CWalletTx wtx;
@@ -2952,7 +2973,18 @@ bool CDarksendPool::MakeCollateralAmounts()
     CScript scriptCollateral;
     CPubKey vchPubKey;
 
-    assert(reservekeyCollateral.GetReservedKey(vchPubKey)); // should never fail, as we just unlocked
+    if (reservekeyCollateral.GetReservedKey(vchPubKey) == 0)
+    {
+        // should never fail, as we just unlocked
+        if (fDebug)
+        {
+            LogPrint("darksend", "%s : reservekeyCollateral.GetReservedKey(vchPubKey) == 0 (assert-2)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-2)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return false;
+    }
     
     scriptCollateral = GetScriptForDestination(vchPubKey.GetID());
 
@@ -3037,7 +3069,19 @@ bool CDarksendPool::CreateDenominated(int64_t nTotalValue)
 
     CPubKey vchPubKey;
 
-    assert(reservekeyCollateral.GetReservedKey(vchPubKey)); // should never fail, as we just unlocked
+    if (reservekeyCollateral.GetReservedKey(vchPubKey) == 0)
+    {
+        // should never fail, as we just unlocked
+
+        if (fDebug)
+        {
+            LogPrint("darksend", "%s : reservekeyCollateral.GetReservedKey(vchPubKey) == 0 (assert-3)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-3)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return false;
+    } 
 
     scriptCollateral = GetScriptForDestination(vchPubKey.GetID());
 
@@ -3060,7 +3104,18 @@ bool CDarksendPool::CreateDenominated(int64_t nTotalValue)
             CPubKey vchPubKey;
 
             //use a unique change address
-            assert(reservekeyDenom.GetReservedKey(vchPubKey)); // should never fail, as we just unlocked
+            if (reservekeyDenom.GetReservedKey(vchPubKey) == 0)
+            {
+                if (fDebug)
+                {
+                    LogPrint("darksend", "%s : reservekeyDenom.GetReservedKey(vchPubKey) == 0 (assert-1)\n", __FUNCTION__);
+                }
+
+                // should never fail, as we just unlocked
+                cout << __FUNCTION__ << " (assert-4)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+                return false;
+            } 
 
             scriptDenom = GetScriptForDestination(vchPubKey.GetID());
 

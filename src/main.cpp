@@ -1,8 +1,16 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
+
 
 #include "main.h"
 
@@ -2302,7 +2310,11 @@ bool CTransaction::FetchInputs(CTxDB& txdb, const map<uint256, CTxIndex>& mapTes
     for (unsigned int i = 0; i < vin.size(); i++)
     {
         const COutPoint prevout = vin[i].prevout;
-        assert(inputsRet.count(prevout.hash) != 0);
+
+        if (inputsRet.count(prevout.hash) == 0)
+        {
+            return error("%s : inputsRet.count(prevout.hash) == 0", __FUNCTION__);
+        }
 
         const CTxIndex& txindex = inputsRet[prevout.hash].first;
         const CTransaction& txPrev = inputsRet[prevout.hash].second;
@@ -2369,7 +2381,11 @@ bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs, map<uint256, CTx
         for (unsigned int i = 0; i < vin.size(); i++)
         {
             COutPoint prevout = vin[i].prevout;
-            assert(inputs.count(prevout.hash) > 0);
+
+            if (inputs.count(prevout.hash) == 0) 
+            {
+                return DoS(100, error("%s : inputs.count(prevout.hash) == 0", __FUNCTION__));
+            }
 
             CTxIndex& txindex = inputs[prevout.hash].first;
             CTransaction& txPrev = inputs[prevout.hash].second;
@@ -2409,7 +2425,11 @@ bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs, map<uint256, CTx
         for (unsigned int i = 0; i < vin.size(); i++)
         {
             COutPoint prevout = vin[i].prevout;
-            assert(inputs.count(prevout.hash) > 0);
+
+            if (inputs.count(prevout.hash) == 0)
+            {
+                return DoS(100, error("%s : inputs.count(prevout.hash) == 0", __FUNCTION__));
+            }
 
             CTxIndex& txindex = inputs[prevout.hash].first;
             CTransaction& txPrev = inputs[prevout.hash].second;
@@ -3066,6 +3086,16 @@ bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
     // Update best block in wallet (so we can detect restored wallets)
     bool fIsInitialDownload = IsInitialBlockDownload();
 
+    if (fImporting == true)
+    {
+        fIsInitialDownload = true;
+    }
+
+    if (fReindex == true)
+    {
+        fIsInitialDownload = true;
+    }
+
     if ((pindexNew->nHeight % 20160) == 0 || (!fIsInitialDownload && (pindexNew->nHeight % 144) == 0))
     {
         const CBlockLocator locator(pindexNew);
@@ -3081,11 +3111,11 @@ bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
     nTimeBestReceived = GetTime();
     mempool.AddTransactionsUpdated(1);
 
-    uint256 nBestBlockTrust = pindexBest->nHeight != 0 ? (pindexBest->nChainTrust - pindexBest->pprev->nChainTrust) : pindexBest->nChainTrust;
+    //uint256 nBestBlockTrust = pindexBest->nHeight != 0 ? (pindexBest->nChainTrust - pindexBest->pprev->nChainTrust) : pindexBest->nChainTrust;
 
     if (fDebug)
     {
-        LogPrint("core", "%s : new best=%s  height=%d  trust=%s  blocktrust=%d  date=%s\n", __FUNCTION__, hashBestChain.ToString(), nBestHeight, CBigNum(nBestChainTrust).ToString(), nBestBlockTrust.Get64(), DateTimeStrFormat("%x %H:%M:%S", pindexBest->GetBlockTime()));
+        LogPrint("core", "%s : new best=%s  height=%d  trust=%s\n", __FUNCTION__, hashBestChain.ToString(), nBestHeight, CBigNum(nBestChainTrust).ToString());
     }
 
     // Check the version of the last 100 blocks to see if we need to upgrade:
@@ -4133,20 +4163,20 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     {
         if(fDebug)
         {
-            LogPrint("core", "%s : already have block %d %s", __FUNCTION__, mapBlockIndex[hash]->nHeight, hash.ToString());
+            LogPrint("core", "%s : already have block %d %s\n", __FUNCTION__, mapBlockIndex[hash]->nHeight, hash.ToString());
         }
 
-        return error("%s : already have block %d %s", __FUNCTION__, mapBlockIndex[hash]->nHeight, hash.ToString());
+        return error("%s : already have block %d %s\n", __FUNCTION__, mapBlockIndex[hash]->nHeight, hash.ToString());
     }
 
     if (mapOrphanBlocks.count(hash))
     {
         if(fDebug)
         {
-            LogPrint("core", "%s : already have block (orphan) %s", __FUNCTION__, hash.ToString());
+            LogPrint("core", "%s : already have block (orphan) %s\n", __FUNCTION__, hash.ToString());
         }
 
-        return error("%s : already have block (orphan) %s", __FUNCTION__, hash.ToString());
+        return error("%s : already have block (orphan) %s\n", __FUNCTION__, hash.ToString());
     }
 
     // ppcoin: check proof-of-stake
@@ -4156,10 +4186,10 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     {       
         if(fDebug)
         {
-            LogPrint("core", "%s : duplicate proof-of-stake (%s, %d) for block %s", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
+            LogPrint("core", "%s : duplicate proof-of-stake (%s, %d) for block %s\n", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
         }
 
-        return error("%s : duplicate proof-of-stake (%s, %d) for block %s", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
+        return error("%s : duplicate proof-of-stake (%s, %d) for block %s\n", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
     }
 
     if (pblock->hashPrevBlock != hashBestChain)
@@ -4178,10 +4208,10 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 
             if(fDebug)
             {
-                LogPrint("core", "%s : block with timestamp before last checkpoint", __FUNCTION__);
+                LogPrint("core", "%s : block with timestamp before last checkpoint\n", __FUNCTION__);
             }
 
-            return error("%s : block with timestamp before last checkpoint", __FUNCTION__);
+            return error("%s : block with timestamp before last checkpoint\n", __FUNCTION__);
         }
     }
 
@@ -4191,10 +4221,10 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     {
         if(fDebug)
         {
-            LogPrint("core", "%s : bad block signature encoding", __FUNCTION__);
+            LogPrint("core", "%s : bad block signature encoding\n", __FUNCTION__);
         }
 
-        return error("%s : bad block signature encoding", __FUNCTION__);
+        return error("%s : bad block signature encoding\n", __FUNCTION__);
     }
 
     // Preliminary checks
@@ -4202,36 +4232,37 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     {
         if(fDebug)
         {
-            LogPrint("core", "%s : CheckBlock FAILED", __FUNCTION__);
+            LogPrint("core", "%s : CheckBlock FAILED\n", __FUNCTION__);
         }
 
-        return error("%s : CheckBlock FAILED", __FUNCTION__);
-    }
-
-    std::string addrname;
-
-    if (pfrom)
-    {
-        addrname = pfrom->addrName;
-    }
-    else
-    {
-        addrname = "Unknown";
+        return error("%s : CheckBlock FAILED\n", __FUNCTION__);
     }
 
     if (!IsInitialBlockDownload() && !fReindex && !fImporting)
     {
+        std::string addrname;
+
+        if (pfrom)
+        {
+            addrname = pfrom->addrName;
+        }
+        else
+        {
+            addrname = "Unknown";
+        }
+        
         // ASIC Choker checks
         if (Consensus::DynamicCoinDistribution::ASIC_Choker(addrname, pblock))
         {
             if(fDebug)
             {
-                LogPrint("core", "%s : ASIC_Choker FAILED", __FUNCTION__);
+                LogPrint("core", "%s : ASIC_Choker FAILED\n", __FUNCTION__);
             }
 
-            return error("%s : ASIC_Choker FAILED", __FUNCTION__);
+            return error("%s : ASIC_Choker FAILED\n", __FUNCTION__);
         }
     }
+
 
     // If we don't already have its previous block, shunt it off to holding area until we get it
     if (!mapBlockIndex.count(pblock->hashPrevBlock))
@@ -4240,8 +4271,6 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
         {
             LogPrint("core", "%s : ORPHAN BLOCK %lu, prev=%s\n", __FUNCTION__, (unsigned long)mapOrphanBlocks.size(), pblock->hashPrevBlock.ToString());
         }
-
-        mempool.clear();
 
         // Accept orphans as long as there is a node to request its parents from
         if (pfrom)
@@ -4261,16 +4290,16 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 // Duplicate stake allowed only when there is orphan child block
                 if (setStakeSeenOrphan.count(pblock->GetProofOfStake()) && !mapOrphanBlocksByPrev.count(hash))
                 {
-                    CChain::PruneOrphanBlocks();
-
                     if(fDebug)
                     {
                         LogPrint("core", "%s : duplicate proof-of-stake (%s, %d) for orphan block %s\n", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
                     }
 
-                    return error("%s : duplicate proof-of-stake (%s, %d) for orphan block %s", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
+                    return error("%s : duplicate proof-of-stake (%s, %d) for orphan block %s\n", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
                 }
             }
+
+            CChain::PruneOrphanBlocks();
         
             // Only request Orphan chain from peer if it's the Initial Sync (Block Download)
             // While already synced and new orphan chain is broadcast do not accept (51% attack vector)
@@ -4303,8 +4332,6 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                     mapOrphanBlocks.insert(make_pair(hash, pblock2));
                     mapOrphanBlocksByPrev.insert(make_pair(pblock2->hashPrev, pblock2));
 
-                    CChain::PruneOrphanBlocks();
-
                     // To prevent node from flooding local wallet with duplicate Orphan chains
                     // DO NOT request the rest of the Chain from node more than once.
                     if (pfrom->dOrphanRecv.hash != hash)
@@ -4334,6 +4361,11 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                         fForceSyncAfterOrphan = fForceSyncAfterOrphan + 1;
                     }
                 }
+                else
+                {
+                    // Force Random Sync with 3 connected nodes, filter nodes with orphan hash checkpoint
+                    CChain::ForceRandomSync(pfrom, hash, 3);
+                }
 
             }
 
@@ -4358,53 +4390,57 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                     }
                 }
 
-                CChain::PruneOrphanBlocks();
-
-                // Auto Chain pruning Max X blocks, 1 block max default
-                int nAutoPrune = GetArg("-autoprune", 1);
-
-                if (nAutoPrune > 0)
-                {
-                    if (fReorganizeCount < nAutoPrune)
-                    {
-                        CTxDB txdbAddr("rw");
-                        CBlock block;
-                        block.ReadFromDisk(pindexBest->pprev->pprev);
-                        block.SetBestChain(txdbAddr, pindexBest->pprev->pprev);
-
-                        fReorganizeCount = fReorganizeCount + 1;
-                    }
-                }
-
                 // To prevent local wallet getting stuck
                 // Query all connected nodes (except orphaned node) with a new getblocks request.
                 if (fForceSyncAfterOrphan < 3)
                 {
-                    CChain::ForceSync(pfrom, hash);
-                    
+                    // Quickly download the rest of chain from other peers during InitialBlockDownload
+                    // Skips downloading orphan chain (Hypersync)
+                    if (GetBoolArg("-hypersync", false) == true)
+                    {
+                        CChain::ForceSync(pfrom, hash);
+                    }
+                    else
+                    {
+                        CChain::ForceRandomSync(pfrom, hash, 3);
+                    }
+
                     fForceSyncAfterOrphan = fForceSyncAfterOrphan + 1;
                 }
             }
         }
 
-        // Limit Orphan list to 100 max to avoid memory flooding attacks
-        if (mapOrphanBlocks.size() > 100)
+        // Auto Chain pruning Max X blocks, 0 block max default
+        // EXPERIMENTAL
+        int nAutoPrune = GetArg("-autoprune", 0);
+
+        if (nAutoPrune > 0)
         {
-            COrphanBlock* pblock3 = new COrphanBlock();
+            if (fReorganizeCount < nAutoPrune)
+            {
+                CTxDB txdbAddr("rw");
 
+                CBlock block;
+
+                block.ReadFromDisk(pindexBest->pprev);
+                block.SetBestChain(txdbAddr, pindexBest->pprev);
+
+                fReorganizeCount = fReorganizeCount + 1;
+            }
+        }
+
+        // Limit Orphan list to 10000 max to avoid memory flooding attacks
+        if (mapOrphanBlocks.size() > 10000)
+        {
             mapOrphanBlocks.erase(mapOrphanBlocks.begin(), mapOrphanBlocks.end());
-
-            pblock3->hashBlock = hash;
-            pblock3->hashPrev = pblock->hashPrevBlock;
-            pblock3->stake = pblock->GetProofOfStake();
-
-            mapOrphanBlocks.insert(make_pair(hash, pblock3));
         }
 
         if(fDebug)
         {
-            LogPrint("core", "%s : Orphan chain %s detected from: %s\n", __FUNCTION__, hash.ToString(), pfrom->addrName);
+            LogPrint("core", "%s : Orphan chain %s detected\n", __FUNCTION__, hash.ToString());
         }
+
+        //CChain::PruneOrphanBlocks();
 
         // Orphan block processed but NOT written to disk
         return true;
@@ -4413,11 +4449,8 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     // Store to disk
     if (!pblock->AcceptBlock())
     {
-        return error("%s : AcceptBlock FAILED @ Block: %s from: %s\n", __FUNCTION__, hash.ToString(), pfrom->addrName);
+        return error("%s : AcceptBlock FAILED @ Block: %s\n", __FUNCTION__, hash.ToString());
     }
-
-    fReorganizeCount = 0;
-    fForceSyncAfterOrphan = 0;
 
     // Recursively process any orphan blocks that depended on this one
     vector<uint256> vWorkQueue;
@@ -4454,7 +4487,6 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 
         mapOrphanBlocksByPrev.erase(hashPrev);
     }
-
 
     if(!IsInitialBlockDownload())
     {
@@ -4509,8 +4541,11 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 
     if(fDebug)
     {
-        LogPrint("core", "%s : ACCEPTED Block: %s from: %s\n", __FUNCTION__, hash.ToString(), pfrom->addrName);
+        LogPrint("core", "%s : ACCEPTED Block: %s\n", __FUNCTION__, hash.ToString());
     }
+
+    fReorganizeCount = 0;
+    fForceSyncAfterOrphan = 0;
 
     // Block processed and written to disk
     return true;
@@ -4948,14 +4983,26 @@ struct CImportingNow
 {
     CImportingNow()
     {
-        assert(fImporting == false);
-        fImporting = true;
+        if (fImporting == true)
+        {
+            LogPrint("core", "%s : fImporting == true\n", __FUNCTION__);
+        }
+        else
+        {
+            fImporting = true;
+        }
     }
 
     ~CImportingNow()
     {
-        assert(fImporting == true);
-        fImporting = false;
+        if (fImporting == false)
+        {
+            LogPrint("core", "%s : fImporting == false\n", __FUNCTION__);
+        }
+        else
+        {
+            fImporting = false;
+        }
     }
 };
 
@@ -5054,9 +5101,7 @@ string GetWarnings(string strFor)
         return strRPC;
     }
 
-    assert(!"GetWarnings() : invalid parameter");
-
-    return "error";
+    return strprintf("%s : GetWarnings() : invalid parameter", __FUNCTION__);
 }
 
 
@@ -6879,6 +6924,78 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
 
 namespace CChain
 {
+    int ForceRandomSync(CNode* pfrom, uint256 hashfilter, int maxrandom)
+    {
+        // ForceSync - Forces random sync of X amount of nodes to resend blocks
+        // (C) 2019 Profit Hunters Coin
+
+        if (vNodes.size() < 1)
+        {
+            // Zero connections available, skip
+            return 0;
+        }
+
+        int NodeCount = 0;
+
+        int SyncNode = false;
+
+        std::vector<int> NodePos;
+        std::vector<int>::iterator it; 
+
+        // select random nodes X times
+        for (int i=0; i<maxrandom - 1; i++)
+        {
+            NodePos.push_back ((rand() % vNodes.size()) + 1);
+        }
+        
+        // look through nodes and see if it should try resync
+        // Global Namespace Start
+        {
+            LOCK(cs_vNodes);
+
+            int tNodePos;
+
+            BOOST_FOREACH(CNode* pnode, vNodes)
+            {
+                // Enable syncing to to node if different than Node Filter Input
+                it = std::find (NodePos.begin(), NodePos.end(), tNodePos); 
+
+                if (it != NodePos.end() && pfrom != pnode) 
+                {
+                    SyncNode = true;
+                }
+
+                // Skip sync to node if it has the Hash Filter in their CheckpointRecv or OrphanRecv buffers
+                if (hashfilter != uint256(0))
+                {
+                    if (pnode->dOrphanRecv.hash == hashfilter || pnode->dCheckpointRecv.hash == hashfilter)
+                    {
+                        SyncNode = false;
+                    }
+                }
+
+                if (SyncNode == true)
+                {
+                    // Start a new fresh sync
+                    pnode->fStartSync = false;
+
+                    PushGetBlocks(pnode, pindexBest->pprev, uint256(0));
+
+                    NodeCount++;
+
+                    if(fDebug)
+                    {
+                        LogPrint("core", "%s : Asking other peer %s for valid chain @ %s\n", __FUNCTION__, pnode->addrName, pindexBest->pprev->GetBlockHash().ToString());
+                    }
+                }
+
+                tNodePos++;
+            }
+        }
+        // Global Namespace End
+
+        return NodeCount;
+    }
 
     int ForceSync(CNode* pfrom, uint256 hashfilter)
     {
@@ -7074,7 +7191,7 @@ namespace CChain
         }
 
         // Find the fork
-        CBlockIndex* pfork = pindexBest->pprev->pprev;
+        CBlockIndex* pfork = pindexBest;
         CBlockIndex* plonger = pindexNew;
 
         while (pfork != plonger)
@@ -7096,8 +7213,6 @@ namespace CChain
             {
                 return error("%s : pfork->pprev is null", __FUNCTION__);
             }
-
-            MilliSleep(1);
         }
         
         // List of what to disconnect
@@ -7106,8 +7221,6 @@ namespace CChain
         for (CBlockIndex* pindex = pindexBest; pindex != pfork; pindex = pindex->pprev)
         {
             vDisconnect.push_back(pindex);
-
-            MilliSleep(1);
         }
 
         // List of what to connect
@@ -7116,8 +7229,6 @@ namespace CChain
         for (CBlockIndex* pindex = pindexNew; pindex != pfork; pindex = pindex->pprev)
         {
             vConnect.push_back(pindex);
-            
-            MilliSleep(1);
         }
 
         reverse(vConnect.begin(), vConnect.end());
@@ -7155,8 +7266,6 @@ namespace CChain
                     vResurrect.push_front(tx);
                 }
             }
-
-            MilliSleep(1);
         }
 
         // Connect longer branch
@@ -7182,8 +7291,6 @@ namespace CChain
             BOOST_FOREACH(const CTransaction& tx, block.vtx)
             {
                 vDelete.push_back(tx);
-
-                MilliSleep(3);
             }
         }
 

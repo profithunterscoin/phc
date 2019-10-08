@@ -1,7 +1,15 @@
-// Copyright (c) 2012 The Bitcoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #ifndef BITCOIN_LIMITEDMAP_H
@@ -116,8 +124,8 @@ template <typename K, typename V> class limitedmap
             }
             
             // Shouldn't ever get here
-            assert(0); //TODO remove me
-            map.erase(itTarget);
+
+            //map.erase(itTarget);
         }
 
         void update(const_iterator itIn, const mapped_type& v)
@@ -147,11 +155,12 @@ template <typename K, typename V> class limitedmap
             }
             
             // Shouldn't ever get here
-            assert(0); //TODO remove me
             
+            /*
             itTarget->second = v;
             
             rmap.insert(make_pair(v, itTarget));
+            */
         }
         
         size_type max_size() const

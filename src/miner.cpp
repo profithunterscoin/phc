@@ -1,9 +1,17 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2012 The Bitcoin developers
-// Copyright (c) 2013 The NovaCoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (C) 2017-2018 Crypostle Core developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
+
 
 #include "txdb.h"
 #include "main.h"
@@ -270,8 +278,6 @@ CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
                             LogPrint("mempool", "%s : ERROR: mempool transaction missing input\n", __FUNCTION__);
                         }
 
-                        assert("mempool transaction missing input" == 0);
-
                         fMissingInputs = true;
 
                         if (porphan)
@@ -528,7 +534,16 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
     {
         // Height first in coinbase required for block.version=2
         txNew.vin[0].scriptSig = (CScript() << nHeight) + COINBASE_FLAGS;
-        assert(txNew.vin[0].scriptSig.size() <= 100);
+
+        if (txNew.vin[0].scriptSig.size() > 100)
+        {
+            if (fDebug)
+            {
+                LogPrint("miner", "%s : VIN ScriptSig Size Invalid: %d\n", __FUNCTION__, pblock->vtx[0].vin[0].scriptSig.size());
+            }
+
+            return NULL;
+        }
 
         txNew.vout[0].SetEmpty();
     }
@@ -612,8 +627,6 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
                         {
                             LogPrint("mempool", "%s : ERROR: mempool transaction missing input\n", __FUNCTION__);
                         }
-
-                        assert("mempool transaction missing input" == 0);
 
                         fMissingInputs = true;
 
@@ -841,7 +854,16 @@ void IncrementExtraNonce(CBlock* pblock, CBlockIndex* pindexPrev, unsigned int& 
     unsigned int nHeight = pindexPrev->nHeight+1; // Height first in coinbase required for block.version=2
 
     pblock->vtx[0].vin[0].scriptSig = (CScript() << nHeight << CBigNum(nExtraNonce)) + COINBASE_FLAGS;
-    assert(pblock->vtx[0].vin[0].scriptSig.size() <= 100);
+
+    if (pblock->vtx[0].vin[0].scriptSig.size() > 100)
+    {
+        if (fDebug)
+        {
+            LogPrint("miner", "%s : VIN ScriptSig Size Invalid: %d\n", __FUNCTION__, pblock->vtx[0].vin[0].scriptSig.size());
+        }
+
+        return NULL;
+    }
 
     pblock->hashMerkleRoot = pblock->BuildMerkleTree();
 }
@@ -1112,7 +1134,7 @@ void static InternalcoinMiner(CWallet *pwallet)
 
     if (fDebug)
     {
-        LogPrintf("PHC-PoW-Miner - Started!\n");
+        LogPrint("miner", "%s : PHC-PoW-Miner - Started!\n", __FUNCTION__);
     }
 
     Set_ThreadPriority(THREAD_PRIORITY_LOWEST);
@@ -1167,7 +1189,7 @@ void static InternalcoinMiner(CWallet *pwallet)
 
                 if (fDebug)
                 {
-                    LogPrintf("Error in PHC-PoW-Miner: Keypool ran out, please call keypoolrefill before restarting the mining thread\n");
+                    LogPrint("miner", "%s : Error in PHC-PoW-Miner: Keypool ran out, please call keypoolrefill before restarting the mining thread\n", __FUNCTION__);
                 }
 
                 return;
