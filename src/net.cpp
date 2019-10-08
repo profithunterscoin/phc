@@ -1,8 +1,16 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
+
 
 #include "db.h"
 #include "net.h"
@@ -39,6 +47,9 @@
 #if !defined(HAVE_MSG_NOSIGNAL) && !defined(MSG_NOSIGNAL)
 #define MSG_NOSIGNAL 0
 #endif
+
+/* ONLY NEEDED FOR UNIT TESTING */
+#include <iostream>
 
 using namespace std;
 using namespace boost;
@@ -1244,7 +1255,17 @@ void SocketSendData(CNode *pnode)
 
         const CSerializeData &data = *it;
 
-        assert(data.size() > pnode->nSendOffset);
+        if (data.size() <= pnode->nSendOffset)
+        {
+            if (fDebug)
+            {
+                LogPrint("net", "%s : data.size() <= pnode->nSendOffset (assert-1)\n", __FUNCTION__);
+            }
+
+            cout << __FUNCTION__ << " (assert-1)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+            return;
+        }
         
         int nBytes = send(pnode->hSocket, &data[pnode->nSendOffset], data.size() - pnode->nSendOffset, MSG_NOSIGNAL | MSG_DONTWAIT);
         
@@ -1306,8 +1327,29 @@ void SocketSendData(CNode *pnode)
 
     if (it == pnode->vSendMsg.end())
     {
-        assert(pnode->nSendOffset == 0);
-        assert(pnode->nSendSize == 0);
+        if (pnode->nSendOffset != 0)
+        {
+            if (fDebug)
+            {
+                LogPrint("net", "%s : pnode->nSendOffset != 0 (assert-2)\n", __FUNCTION__);
+            }
+
+            cout << __FUNCTION__ << " (assert-2)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+            return;
+        }
+
+        if (pnode->nSendSize != 0)
+        {
+            if (fDebug)
+            {
+                LogPrint("net", "%s : pnode->nSendOffset != 0 (assert-3)\n", __FUNCTION__);
+            }
+
+            cout << __FUNCTION__ << " (assert-3)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+            return;
+        }
     }
 
     pnode->vSendMsg.erase(pnode->vSendMsg.begin(), it);

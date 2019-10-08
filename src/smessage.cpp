@@ -1,7 +1,9 @@
 // Copyright (c) 2014-2015 The ShadowCoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
+
 
 /*
 Notes:
@@ -124,10 +126,28 @@ bool SecMsgCrypter::Encrypt(uint8_t* chPlaintext, uint32_t nPlain, std::vector<u
     int nCLen = nLen + AES_BLOCK_SIZE, nFLen = 0;
     vchCiphertext = std::vector<uint8_t> (nCLen);
 
-    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-
     bool fOk = true;
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L  // OPENSSL 1.0
+    EVP_CIPHER_CTX ctx;
+    EVP_CIPHER_CTX_init(&ctx);
+
+    if (fOk)
+    {
+        fOk = EVP_EncryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, &chKey[0], &chIV[0]);
+    }
+
+    if (fOk)
+    {
+        fOk = EVP_EncryptUpdate(&ctx, &vchCiphertext[0], &nCLen, chPlaintext, nLen);
+    }
+
+    if(fOk)
+    {
+        fOk = EVP_EncryptFinal_ex(&ctx, (&vchCiphertext[0])+nCLen, &nFLen);
+    }
+#else  // OPENSSL 1.1+
+    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
     EVP_CIPHER_CTX_init(ctx);
 
     if (fOk)
@@ -144,9 +164,15 @@ bool SecMsgCrypter::Encrypt(uint8_t* chPlaintext, uint32_t nPlain, std::vector<u
     {
         fOk = EVP_EncryptFinal_ex(ctx, (&vchCiphertext[0])+nCLen, &nFLen);
     }
-    
+#endif
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L  // OPENSSL 1.0
+    EVP_CIPHER_CTX_cleanup(&ctx);
+#else  // OPENSSL 1.1+
     EVP_CIPHER_CTX_cleanup(ctx);
     EVP_CIPHER_CTX_free(ctx);
+#endif
+
 
     if (!fOk)
     {
@@ -223,6 +249,7 @@ bool SecMsgCrypter::Decrypt(uint8_t* chCiphertext, uint32_t nCipher, std::vector
     EVP_CIPHER_CTX_free(ctx);
 
 #endif
+
     if (!fOk)
     {
         return false;

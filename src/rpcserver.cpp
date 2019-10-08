@@ -1,8 +1,15 @@
-// Copyright (c) 2010 Satoshi Nakamoto
-// Copyright (c) 2009-2012 The Bitcoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #include "rpcserver.h"
@@ -302,7 +309,7 @@ Value debug(const Array& params, bool fHelp)
                             "|net|socks|darksend|instantsend|wallet|masternode|firewall|stealth"
                             "|protocol|uint|stakemodifier|kernel|util|daemon|proxy"
                             "|smessage|gui|qt|mining|coinage|spork|blockshield|blocktree"
-                            "|asicchoker|phc|noui|chainbuddy|chainshield|"
+                            "|asicchoker|phc|noui|chainbuddy|chainshield|key|uint|leveldb|base58|script|wallet|"
                             "Change debug category on the fly."
                             "Specify single category or use comma to specify many.\n"
                             "Special note: phcd must be run with -debug option and"
@@ -813,7 +820,15 @@ void StartRPCThreads()
         }
     }
 
-    assert(rpc_io_service == NULL);
+    if (rpc_io_service != NULL)
+    {
+        if (fDebug)
+        {
+            LogPrint("rpc", "%s : rpc_io_service != NULL\n", __FUNCTION__);
+        }
+
+        return;
+    }
     
     rpc_io_service = new asio::io_service();
 
@@ -981,7 +996,15 @@ void RPCRunHandler(const boost::system::error_code& err, boost::function<void(vo
 
 void RPCRunLater(const std::string& name, boost::function<void(void)> func, int64_t nSeconds)
 {
-    assert(rpc_io_service != NULL);
+    if (rpc_io_service == NULL)
+    {
+        if (fDebug)
+        {
+            LogPrint("rpc", "%s : rpc_io_service == NULL\n", __FUNCTION__);
+        }
+
+        return;
+    }
 
     if (deadlineTimers.count(name) == 0)
     {

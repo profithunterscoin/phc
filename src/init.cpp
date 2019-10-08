@@ -1,8 +1,15 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #include "init.h"
@@ -306,11 +313,15 @@ std::string HelpMessage()
 
 #endif
     strUsage += "  -testnet               " + _("Use the test network") + "\n";
+    strUsage += "  -lowbandwidth          " + _("Use low bandwidth sync mode") + "\n";
+    strUsage += "  -hypersync             " + _("Use very high bandwidth sync mode") + "\n";
+    strUsage += "  -orphansync            " + _("Use orphan chain sync mode") + "\n";
+    strUsage += "  -debugrpc              " + _("Live debug to console from RPC Request Data") + "\n";
     strUsage += "  -debug=<category>      " + _("Output debugging information (default: 0, supplying <category> is optional)") + "\n";
     strUsage +=                               _("If <category> is not supplied, output all debugging information.") + "\n";
     strUsage +=                               _("<category> can be: alert, core, init, db, wallet, masternode, instantx, firewall,") + "\n";
     strUsage +=                               _("stealth, protocol, net, darksend, mempool, uint, stakemodifier, kernel, util, rpc,") + "\n";
-    strUsage +=                               _("addrman, daemon, sync, socks, smessage, mining, coinage, spork") + "\n";
+    strUsage +=                               _("addrman, daemon, sync, socks, smessage, mining, coinage, spork, leveldb, key, base58, script, wallet") + "\n";
 
     if (fHaveGUI)
     {
@@ -355,6 +366,7 @@ std::string HelpMessage()
     strUsage += "  -reindex               " + _("Reindex addresses found in blockchain database") + "\n";
     strUsage += "  -rebuild               " + _("Rebuilds local Blockchain Database") + "\n";
     strUsage += "  -clearchainfiles       " + _("Removes local Blockchain Database files") + "\n";
+    strUsage += "  -autoprune=<n>         " + _("Autoprune when orphan found X amount of blocks (default: 0") + "\n";
     strUsage += "  -rollbackchain=<n>     " + _("Rollbackchain local database X amount of blocks (default: 100") + "\n";
     strUsage += "  -backtoblock=<n>       " + _("Rollbacktoblock local database to block height (default: 100000)") + "\n";
     strUsage += "  -maxorphanblocks=<n>   " + strprintf(_("Keep at most <n> unconnectable blocks in memory (default: %u)"), DEFAULT_MAX_ORPHAN_BLOCKS) + "\n";

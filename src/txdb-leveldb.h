@@ -1,8 +1,16 @@
-// Copyright (c) 2009-2012 The Bitcoin Developers.
-// Authored by Google, Inc.
-// Edited by: Profit Hunters Coin developers (2018)
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
+// Authored by Google, Inc. Learn more: http://code.google.com/p/leveldb/
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #ifndef BITCOIN_LEVELDB_H
@@ -28,7 +36,7 @@
 // newer files overriding older files. A background thread compacts them
 // together when too many files stack up.
 //
-// Learn more: http://code.google.com/p/leveldb/
+
 class CTxDB
 {
     public:
@@ -101,7 +109,7 @@ class CTxDB
                     if (fDebug)
                     {
                         // Some unexpected error.
-                        LogPrint("db", "%s : LevelDB read failure: %s\n", __FUNCTION__, status.ToString());
+                        LogPrint("leveldb", "%s : LevelDB read failure: %s\n", __FUNCTION__, status.ToString());
                     }
 
                     return false;
@@ -124,9 +132,16 @@ class CTxDB
 
         template<typename K, typename T> bool Write(const K& key, const T& value)
         {
-            if (fReadOnly)
+            if (fReadOnly == true)
             {
-                assert(!"Write called on database in read-only mode");
+                if (fDebug)
+                {
+                    LogPrint("leveldb", "%s : fReadOnly == true Write called on database in read-only mode (assert-1)\n", __FUNCTION__);
+                }
+
+                cout << __FUNCTION__ << " (assert-1)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+                return false;
             }
 
             CDataStream ssKey(SER_DISK, CLIENT_VERSION);
@@ -150,7 +165,7 @@ class CTxDB
             {
                 if (fDebug)
                 {
-                    LogPrint("db", "%s : LevelDB write failure: %s\n", __FUNCTION__, status.ToString());
+                    LogPrint("leveldb", "%s : LevelDB write failure: %s\n", __FUNCTION__, status.ToString());
                 }
 
                 return false;
@@ -166,9 +181,16 @@ class CTxDB
                 return false;
             }
 
-            if (fReadOnly)
+            if (fReadOnly == true)
             {
-                assert(!"Erase called on database in read-only mode");
+                if (fDebug)
+                {
+                    LogPrint("leveldb", "%s : fReadOnly == true Erase called on database in read-only mode (assert-2)\n", __FUNCTION__);
+                }
+
+                cout << __FUNCTION__ << " (assert-2)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+                return false;
             }
 
             CDataStream ssKey(SER_DISK, CLIENT_VERSION);

@@ -1,10 +1,15 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
 // Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
 // Copyright (c) 2014-2015 The Dash developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #include "masternode.h"
@@ -17,6 +22,9 @@
 #include "addrman.h"
 #include <boost/lexical_cast.hpp>
 
+/* ONLY NEEDED FOR UNIT TESTING */
+#include <iostream>
+using namespace std;
 
 CCriticalSection cs_masternodes;
 // keep track of the scanning errors I've seen
@@ -67,7 +75,17 @@ bool GetBlockHash(uint256& hash, int nBlockHeight)
         nBlocksAgo = (pindexBest->nHeight+1)-nBlockHeight;
     }
 
-    assert(nBlocksAgo >= 0);
+    if (nBlocksAgo < 0)
+    {
+        if (fDebug)
+        {
+            LogPrint("masternode", "%s : nBlocksAgo < 0 (assert-1)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-1)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return false;
+    }
 
     int n = 0;
 
@@ -85,7 +103,17 @@ bool GetBlockHash(uint256& hash, int nBlockHeight)
 
         if (BlockReading->pprev == NULL)
         {
-            assert(BlockReading);
+            if (BlockReading == 0)
+            {
+                if (fDebug)
+                {
+                    LogPrint("masternode", "%s : BlockReading == 0 (assert-2)\n", __FUNCTION__);
+                }
+
+                cout << __FUNCTION__ << " (assert-2)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+                return false;
+            }
             
             break;
         }

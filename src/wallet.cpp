@@ -1,8 +1,15 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2012 The Bitcoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #include "wallet.h"
@@ -26,6 +33,9 @@
 #include "smessage.h"
 
 #include <boost/algorithm/string/replace.hpp>
+
+/* ONLY NEEDED FOR UNIT TESTING */
+#include <iostream>
 
 using namespace std;
 
@@ -93,10 +103,24 @@ CPubKey CWallet::GenerateNewKey()
     }
 
     CPubKey pubkey = secret.GetPubKey();
-    assert(secret.VerifyPubKey(pubkey));
+
+    if (secret.VerifyPubKey(pubkey) == false)
+    {
+        if (fDebug)
+        {
+            LogPrint("wallet", "%s : secret.VerifyPubKey(pubkey) == false (assert-1)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-1)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        CPubKey pubkey_null;
+
+        return pubkey_null;
+    }
 
     // Create new metadata
     int64_t nCreationTime = GetTime();
+
     mapKeyMetadata[pubkey.GetID()] = CKeyMetadata(nCreationTime);
 
     if (!nTimeFirstKey || nCreationTime < nTimeFirstKey)
@@ -669,8 +693,20 @@ void CWallet::AddToSpends(const COutPoint& outpoint, const uint256& wtxid)
 
 void CWallet::AddToSpends(const uint256& wtxid)
 {
-    assert(mapWallet.count(wtxid));
+    if (mapWallet.count(wtxid) == 0)
+    {
+        if (fDebug)
+        {
+            LogPrint("wallet", "%s : mapWallet.count(wtxid) == 0 (assert-2)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-2)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return;
+    }
+
     CWalletTx& thisTx = mapWallet[wtxid];
+
     if (thisTx.IsCoinBase())
     {
          // Coinbases don't spend anything!
@@ -1700,6 +1736,7 @@ int CWallet::ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate)
 void CWallet::ReacceptWalletTransactions()
 {
     CTxDB txdb("r");
+
     bool fRepeat = true;
 
     while (fRepeat)
@@ -1713,8 +1750,20 @@ void CWallet::ReacceptWalletTransactions()
         BOOST_FOREACH(PAIRTYPE(const uint256, CWalletTx)& item, mapWallet)
         {
             const uint256& wtxid = item.first;
+
             CWalletTx& wtx = item.second;
-            assert(wtx.GetHash() == wtxid);
+
+            if (wtx.GetHash() != wtxid)
+            {
+                if (fDebug)
+                {
+                    LogPrint("wallet", "%s : wtx.GetHash() != wtxid (assert-3)\n", __FUNCTION__);
+                }
+
+                cout << __FUNCTION__ << " (assert-3)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+                return;
+            }
 
             int nDepth = wtx.GetDepthInMainChain();
 
@@ -3330,7 +3379,19 @@ bool CWallet::CreateCollateralTransaction(CTransaction& txCollateral, std::strin
     CScript scriptChange;
     CPubKey vchPubKey;
 
-    assert(reservekey.GetReservedKey(vchPubKey)); // should never fail, as we just unlocked
+    if (reservekey.GetReservedKey(vchPubKey) == 0)
+    {
+        // should never fail, as we just unlocked
+        if (fDebug)
+        {
+            LogPrint("wallet", "%s : reservekey.GetReservedKey(vchPubKey) == 0 (assert-4)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-4)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return false;
+    }
+
     scriptChange = GetScriptForDestination(vchPubKey.GetID());
     reservekey.KeepKey();
 
@@ -3539,6 +3600,7 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend, 
                 {
                     nFeeRet += nChange;
                     nChange = 0;
+
                     wtxNew.mapValue["DS"] = "1";
                 }
 
@@ -3567,9 +3629,24 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend, 
 
                         // Reserve a new key pair from key pool
                         CPubKey vchPubKey;
+
                         bool ret;
+
                         ret = reservekey.GetReservedKey(vchPubKey);
-                        assert(ret); // should never fail, as we just unlocked
+
+                        if (ret == 0)
+                        {
+                            // should never fail, as we just unlocked
+
+                            if (fDebug)
+                            {
+                                LogPrint("key", "%s : ret == 0 (assert-5)\n", __FUNCTION__);
+                            }
+
+                            cout << __FUNCTION__ << " (assert-5)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+                            return false;
+                        } 
 
                         scriptChange.SetDestination(vchPubKey.GetID());
                     }
@@ -3582,12 +3659,14 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend, 
                     {
                         nFeeRet += nChange;
                         nChange = 0;
+
                         reservekey.ReturnKey();
                     }
                     else
                     {
                         // Insert change txn at random position:
                         vector<CTxOut>::iterator position = wtxNew.vout.begin()+GetRandInt(wtxNew.vout.size()+1);
+                        
                         wtxNew.vout.insert(position, newTxOut);
                     }
                 }
@@ -5557,12 +5636,26 @@ string CWallet::PrepareDarksendDenominate(int minRounds, int maxRounds)
                         CPubKey vchPubKey;
 
                         // use a unique change address
-                        assert(reservekey.GetReservedKey(vchPubKey)); // should never fail, as we just unlocked
+                        if (reservekey.GetReservedKey(vchPubKey) == 0)
+                        {
+                            // should never fail, as we just unlocked
+                            if (fDebug)
+                            {
+                                LogPrint("wallet", "%s : reservekey.GetReservedKey(vchPubKey) == 0 (assert-7)\n", __FUNCTION__);
+                            }
+
+                            cout << __FUNCTION__ << " (assert-7)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+                            
+                            return "Error: reservekey.GetReservedKey(vchPubKey) == 0";
+                        }
+                        
                         scriptChange = GetScriptForDestination(vchPubKey.GetID());
+                        
                         reservekey.KeepKey();
 
                         // add new output
                         CTxOut o(v, scriptChange);
+
                         vOut.push_back(o);
 
                         // subtract denomination amount
@@ -5897,7 +5990,17 @@ void CWallet::ReserveKeyFromKeyPool(int64_t& nIndex, CKeyPool& keypool)
             throw runtime_error(strprintf("%s : unknown key in key pool", __FUNCTION__));
         }
 
-        assert(keypool.vchPubKey.IsValid());
+        if (keypool.vchPubKey.IsValid() == false)
+        {
+            if (fDebug)
+            {
+                LogPrint("wallet", "%s : keypool.vchPubKey.IsValid() == false (assert-8)\n", __FUNCTION__);
+            }
+
+            cout << __FUNCTION__ << " (assert-8)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+            
+            return;
+        }
 
         if (fDebug)
         {
@@ -6336,7 +6439,17 @@ bool CReserveKey::GetReservedKey(CPubKey& pubkey)
         }
     }
 
-    assert(vchPubKey.IsValid());
+    if (vchPubKey.IsValid() == false)
+    {
+        if (fDebug)
+        {
+            LogPrint("wallet", "%s : vchPubKey.IsValid() == false (assert-9)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-9)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+        
+        return false;
+    }
 
     pubkey = vchPubKey;
     
@@ -6379,12 +6492,23 @@ void CWallet::GetAllReserveKeys(set<CKeyID>& setAddress) const
     BOOST_FOREACH(const int64_t& id, setKeyPool)
     {
         CKeyPool keypool;
+
         if (!walletdb.ReadPool(id, keypool))
         {
             throw runtime_error(strprintf("%s : read failed", __FUNCTION__));
         }
 
-        assert(keypool.vchPubKey.IsValid());
+        if (keypool.vchPubKey.IsValid() == false)
+        {
+            if (fDebug)
+            {
+                LogPrint("wallet", "%s : keypool.vchPubKey.IsValid() == false (assert-10)\n", __FUNCTION__);
+            }
+
+            cout << __FUNCTION__ << " (assert-10)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+            
+            throw runtime_error(strprintf("%s :  keypool.vchPubKey.IsValid() == false (assert-10)", __FUNCTION__));
+        }
 
         CKeyID keyID = keypool.vchPubKey.GetID();
 
@@ -6555,7 +6679,19 @@ bool CWallet::ImportPrivateKey(CPHCcoinSecret vchSecret, string strLabel, bool f
 
     CKey key = vchSecret.GetKey();
     CPubKey pubkey = key.GetPubKey();
-    assert(key.VerifyPubKey(pubkey));
+
+    if (key.VerifyPubKey(pubkey) == false)
+    {
+        if (fDebug)
+        {
+            LogPrint("wallet", "%s : key.VerifyPubKey(pubkey) == false (assert-11)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-11)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return false;
+    }
+
     CKeyID vchAddress = pubkey.GetID();
 
     // Global Namespace Start
@@ -6563,6 +6699,7 @@ bool CWallet::ImportPrivateKey(CPHCcoinSecret vchSecret, string strLabel, bool f
         LOCK2(cs_main, cs_wallet);
 
         MarkDirty();
+
         SetAddressBookName(vchAddress, strLabel);
 
          // Don't throw error in case a key is already there
@@ -6585,6 +6722,7 @@ bool CWallet::ImportPrivateKey(CPHCcoinSecret vchSecret, string strLabel, bool f
         if (fRescan)
         {
             ScanForWalletTransactions(pindexGenesisBlock, true);
+
             ReacceptWalletTransactions();
         }
     }

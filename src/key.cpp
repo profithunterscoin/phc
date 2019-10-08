@@ -1,7 +1,16 @@
-// Copyright (c) 2009-2012 The Bitcoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
+
 
 #include "key.h"
 
@@ -13,6 +22,9 @@
 #include <secp256k1_recovery.h>
 #include "util.h"
 
+/* ONLY NEEDED FOR UNIT TESTING */
+#include <iostream>
+using namespace std;
 
 // Global Namespace Start
 namespace
@@ -231,7 +243,20 @@ bool CKey::SetPrivKey(const CPrivKey &privkey, bool fCompressedIn)
 
 CPrivKey CKey::GetPrivKey() const
 {
-    assert(fValid);
+    if (fValid == false)
+    {
+        if (fDebug)
+        {
+            LogPrint("key", "%s : fValid == false (assert-1)\n", __FUNCTION__);
+        }
+        
+        cout << __FUNCTION__ << " (assert-1)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        CPrivKey privkey;
+        
+        return privkey;
+    }
+
     CPrivKey privkey;
 
     int ret;
@@ -241,7 +266,20 @@ CPrivKey CKey::GetPrivKey() const
     privkeylen = 279;
 
     ret = ec_privkey_export_der(secp256k1_context_sign, (unsigned char*)&privkey[0], &privkeylen, begin(), fCompressed ? SECP256K1_EC_COMPRESSED : SECP256K1_EC_UNCOMPRESSED);
-    assert(ret);
+    
+    if (ret == 0)
+    {
+        if (fDebug)
+        {
+            LogPrint("key", "%s : ret == 0 (assert-2)\n", __FUNCTION__);
+        }
+        
+        cout << __FUNCTION__ << " (assert-2)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        CPrivKey privkey;
+        
+        return privkey;
+    }
 
     privkey.resize(privkeylen);
 
@@ -251,7 +289,19 @@ CPrivKey CKey::GetPrivKey() const
 
 CPubKey CKey::GetPubKey() const
 {
-    assert(fValid);
+    if (fValid == false)
+    {
+        if (fDebug)
+        {
+            LogPrint("key", "%s : fValid == false (assert-3)\n", __FUNCTION__);
+        }
+        
+        cout << __FUNCTION__ << " (assert-3)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        CPubKey null_key;
+        
+        return null_key; // Fail (NULL)
+    }
 
     secp256k1_pubkey pubkey;
     size_t clen = 65;
@@ -259,14 +309,51 @@ CPubKey CKey::GetPubKey() const
 
     int ret = secp256k1_ec_pubkey_create(secp256k1_context_sign, &pubkey, begin());
 
-    assert(ret);
+    if (ret == 0)
+    {
+        if (fDebug)
+        {
+            LogPrint("key", "%s : ret == 0 (assert-4)\n", __FUNCTION__);
+        }
+        
+        cout << __FUNCTION__ << " (assert-4)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        CPubKey null_key;
+        
+        return null_key; // Fail (NULL)
+    }
 
     secp256k1_ec_pubkey_serialize(secp256k1_context_sign, (unsigned char*)result.begin(), &clen, &pubkey, fCompressed ? SECP256K1_EC_COMPRESSED : SECP256K1_EC_UNCOMPRESSED);
     
-    assert(result.size() == clen);
-    assert(result.IsValid());
+    if (result.size() != clen)
+    {
+        if (fDebug)
+        {
+            LogPrint("key", "%s : result.size() != clen (assert-5)\n", __FUNCTION__);
+        }
+        
+        cout << __FUNCTION__ << " (assert-5)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
-    return result;
+        CPubKey null_key;
+        
+        return null_key; // Fail (NULL)
+    }
+
+    if(result.IsValid() == false)
+    {
+        if (fDebug)
+        {
+            LogPrint("key", "%s : result.IsValid() == false (assert-6)\n", __FUNCTION__);
+        }
+        
+        cout << __FUNCTION__ << " (assert-6)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        CPubKey null_key;
+        
+        return null_key; // Fail (NULL)
+    }
+
+    return result; // Success
 }
 
 
@@ -288,7 +375,17 @@ bool CKey::Sign(const uint256 &hash, std::vector<unsigned char>& vchSig, uint32_
     
     int ret = secp256k1_ecdsa_sign(secp256k1_context_sign, &sig, hash.begin(), begin(), secp256k1_nonce_function_rfc6979, test_case ? extra_entropy : NULL);
     
-    assert(ret);
+    if (ret == 0)
+    {
+        if (fDebug)
+        {
+            LogPrint("key", "%s : ret == 0 (assert-7)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-7)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return false;
+    }
 
     secp256k1_ecdsa_signature_serialize_der(secp256k1_context_sign, (unsigned char*)&vchSig[0], &nSigLen, &sig);
     vchSig.resize(nSigLen);
@@ -337,12 +434,43 @@ bool CKey::SignCompact(const uint256 &hash, std::vector<unsigned char>& vchSig) 
     
     int ret = secp256k1_ecdsa_sign_recoverable(secp256k1_context_sign, &sig, hash.begin(), begin(), secp256k1_nonce_function_rfc6979, NULL);
     
-    assert(ret);
+    if (ret == 0)
+    {
+        if (fDebug)
+        {
+            LogPrint("key", "%s : ret == 0 (assert-8)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-8)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return false;
+    }
     
     secp256k1_ecdsa_recoverable_signature_serialize_compact(secp256k1_context_sign, (unsigned char*)&vchSig[1], &rec, &sig);
     
-    assert(ret);
-    assert(rec != -1);
+    if (ret == 0)
+    {
+        if (fDebug)
+        {
+            LogPrint("key", "%s : ret == 0 (assert-9)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-9)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return false;
+    }
+
+    if (rec == -1)
+    {
+        if (fDebug)
+        {
+            LogPrint("key", "%s : rec == -1 (assert-10)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-10)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return false;
+    }
     
     vchSig[0] = 27 + rec + (fCompressed ? 4 : 0);
 
@@ -371,8 +499,29 @@ bool CKey::Load(CPrivKey &privkey, CPubKey &vchPubKey, bool fSkipCheck=false)
 
 bool CKey::Derive(CKey& keyChild, unsigned char ccChild[32], unsigned int nChild, const unsigned char cc[32]) const
 {
-    assert(IsValid());
-    assert(IsCompressed());
+    if (IsValid() == false)
+    {
+        if (fDebug)
+        {
+            LogPrint("key", "%s : IsValid() == false (assert-11)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-11)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return false;
+    }
+
+    if (IsCompressed() == false)
+    {
+        if (fDebug)
+        {
+            LogPrint("key", "%s : IsCompressed() == false (assert-12)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-12)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return false;
+    }
 
     unsigned char out[64];
     LockObject(out);
@@ -380,12 +529,35 @@ bool CKey::Derive(CKey& keyChild, unsigned char ccChild[32], unsigned int nChild
     if ((nChild >> 31) == 0)
     {
         CPubKey pubkey = GetPubKey();
-        assert(pubkey.begin() + 33 == pubkey.end());
+
+        if (pubkey.begin() + 33 != pubkey.end())
+        {
+            if (fDebug)
+            {
+                LogPrint("key", "%s : pubkey.begin() + 33 != pubkey.end() (assert-13)\n", __FUNCTION__);
+            }
+
+            cout << __FUNCTION__ << " (assert-13)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+            return false;
+        }
+
         BIP32Hash(cc, nChild, *pubkey.begin(), pubkey.begin()+1, out);
     }
     else
     {
-        assert(begin() + 32 == end());
+        if (begin() + 32 != end())
+        {
+            if (fDebug)
+            {
+                LogPrint("key", "%s : begin() + 32 != end() (assert-14)\n", __FUNCTION__);
+            }
+
+            cout << __FUNCTION__ << " (assert-14)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+            return false;
+        }
+
         BIP32Hash(cc, nChild, 0, begin(), out);
     }
 
@@ -458,7 +630,19 @@ void CExtKey::Encode(unsigned char code[74]) const
     code[7] = (nChild >>  8) & 0xFF; code[8] = (nChild >>  0) & 0xFF;
     memcpy(code+9, vchChainCode, 32);
     code[41] = 0;
-    assert(key.size() == 32);
+
+    if (key.size() != 32)
+    {
+        if (fDebug)
+        {
+            LogPrint("key", "%s : key.size() != 32 (assert-15)\n", __FUNCTION__);
+        }
+        
+        cout << __FUNCTION__ << " (assert-15)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return;
+    }
+
     memcpy(code+42, key.begin(), 32);
 }
 
@@ -467,8 +651,10 @@ void CExtKey::Decode(const unsigned char code[74])
 {
     nDepth = code[0];
     memcpy(vchFingerprint, code+1, 4);
+
     nChild = (code[5] << 24) | (code[6] << 16) | (code[7] << 8) | code[8];
     memcpy(vchChainCode, code+9, 32);
+
     key.Set(code+42, code+74, true);
 }
 
@@ -476,7 +662,9 @@ void CExtKey::Decode(const unsigned char code[74])
 bool ECC_InitSanityCheck()
 {
     CKey key;
+
     key.MakeNewKey(true);
+
     CPubKey pubkey = key.GetPubKey();
 
     return key.VerifyPubKey(pubkey);
@@ -485,19 +673,55 @@ bool ECC_InitSanityCheck()
 
 void ECC_Start()
 {
-    assert(secp256k1_context_sign == NULL);
+    if (secp256k1_context_sign != NULL)
+    {
+        if (fDebug)
+        {
+            LogPrint("key", "%s : secp256k1_context_sign != NULL (assert-16)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-16)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return;
+    }
 
     secp256k1_context *ctx = secp256k1_context_create(SECP256K1_CONTEXT_SIGN);
-    assert(ctx != NULL);
+
+    if (ctx == NULL)
+    {
+        if (fDebug)
+        {
+            LogPrint("key", "%s : ctx == NULL (assert-17)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-17)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return;
+    }
 
     // Global Namespace Start
     {
         // Pass in a random blinding seed to the secp256k1 context.
         unsigned char seed[32];
+
         LockObject(seed);
         GetRandBytes(seed, 32);
+
         bool ret = secp256k1_context_randomize(ctx, seed);
-        assert(ret);
+
+        if (ret == false)
+        {
+            if (fDebug)
+            {
+                LogPrint("key", "%s : ret == 0 (assert-18)\n", __FUNCTION__);
+            }
+
+            cout << __FUNCTION__ << " (assert-18)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+            return;
+        }
+
+
         UnlockObject(seed);
     }
     // Global Namespace End

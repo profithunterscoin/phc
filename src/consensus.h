@@ -1,6 +1,7 @@
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 //////////////////////////////////////////////////////////////////////////////

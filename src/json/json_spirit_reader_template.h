@@ -2,6 +2,7 @@
 #define JSON_SPIRIT_READER_TEMPLATE
 
 //          Copyright John W. Wilkinson 2007 - 2009.
+//          Copyright (c) 2019 Profit Hunters Coin developers
 // Distributed under the MIT License, see accompanying file LICENSE.txt
 
 // json spirit version 4.03
