@@ -862,7 +862,7 @@ void IncrementExtraNonce(CBlock* pblock, CBlockIndex* pindexPrev, unsigned int& 
             LogPrint("miner", "%s : VIN ScriptSig Size Invalid: %d\n", __FUNCTION__, pblock->vtx[0].vin[0].scriptSig.size());
         }
 
-        return NULL;
+        return;
     }
 
     pblock->hashMerkleRoot = pblock->BuildMerkleTree();

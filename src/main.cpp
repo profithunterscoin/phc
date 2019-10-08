@@ -6953,7 +6953,7 @@ namespace CChain
         {
             LOCK(cs_vNodes);
 
-            int tNodePos;
+            int tNodePos = 0;
 
             BOOST_FOREACH(CNode* pnode, vNodes)
             {
