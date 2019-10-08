@@ -173,6 +173,9 @@ namespace CChain
     /** Rollback Blockchain Index */
     int RollbackChain(int nBlockCount);
 
+    /** Force Random Sync from current Block (Request all connected nodes) */
+    int ForceRandomSync(CNode* pfrom, uint256 hashfilter, int maxrandom);
+
     /** Force Sync from current Block (Request all connected nodes) */
     int ForceSync(CNode* pfrom, uint256 hashfilter);
 

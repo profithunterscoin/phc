@@ -4361,6 +4361,11 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                         fForceSyncAfterOrphan = fForceSyncAfterOrphan + 1;
                     }
                 }
+                else
+                {
+                    // Force Random Sync with 3 connected nodes, filter nodes with orphan hash checkpoint
+                    CChain::ForceRandomSync(pfrom, hash, 3);
+                }
 
             }
 
@@ -4389,8 +4394,17 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 // Query all connected nodes (except orphaned node) with a new getblocks request.
                 if (fForceSyncAfterOrphan < 3)
                 {
-                    CChain::ForceSync(pfrom, hash);
-                    
+                    // Quickly download the rest of chain from other peers during InitialBlockDownload
+                    // Skips downloading orphan chain (Hypersync)
+                    if (GetBoolArg("-hypersync", false) == true)
+                    {
+                        CChain::ForceSync(pfrom, hash);
+                    }
+                    else
+                    {
+                        CChain::ForceRandomSync(pfrom, hash, 3);
+                    }
+
                     fForceSyncAfterOrphan = fForceSyncAfterOrphan + 1;
                 }
             }
@@ -4405,7 +4419,9 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             if (fReorganizeCount < nAutoPrune)
             {
                 CTxDB txdbAddr("rw");
+
                 CBlock block;
+
                 block.ReadFromDisk(pindexBest->pprev);
                 block.SetBestChain(txdbAddr, pindexBest->pprev);
 
@@ -6908,6 +6924,78 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
 
 namespace CChain
 {
+    int ForceRandomSync(CNode* pfrom, uint256 hashfilter, int maxrandom)
+    {
+        // ForceSync - Forces random sync of X amount of nodes to resend blocks
+        // (C) 2019 Profit Hunters Coin
+
+        if (vNodes.size() < 1)
+        {
+            // Zero connections available, skip
+            return 0;
+        }
+
+        int NodeCount = 0;
+
+        int SyncNode = false;
+
+        std::vector<int> NodePos;
+        std::vector<int>::iterator it; 
+
+        // select random nodes X times
+        for (int i=0; i<maxrandom - 1; i++)
+        {
+            NodePos.push_back ((rand() % vNodes.size()) + 1);
+        }
+        
+        // look through nodes and see if it should try resync
+        // Global Namespace Start
+        {
+            LOCK(cs_vNodes);
+
+            int tNodePos;
+
+            BOOST_FOREACH(CNode* pnode, vNodes)
+            {
+                // Enable syncing to to node if different than Node Filter Input
+                it = std::find (NodePos.begin(), NodePos.end(), tNodePos); 
+
+                if (it != NodePos.end() && pfrom != pnode) 
+                {
+                    SyncNode = true;
+                }
+
+                // Skip sync to node if it has the Hash Filter in their CheckpointRecv or OrphanRecv buffers
+                if (hashfilter != uint256(0))
+                {
+                    if (pnode->dOrphanRecv.hash == hashfilter || pnode->dCheckpointRecv.hash == hashfilter)
+                    {
+                        SyncNode = false;
+                    }
+                }
+
+                if (SyncNode == true)
+                {
+                    // Start a new fresh sync
+                    pnode->fStartSync = false;
+
+                    PushGetBlocks(pnode, pindexBest->pprev, uint256(0));
+
+                    NodeCount++;
+
+                    if(fDebug)
+                    {
+                        LogPrint("core", "%s : Asking other peer %s for valid chain @ %s\n", __FUNCTION__, pnode->addrName, pindexBest->pprev->GetBlockHash().ToString());
+                    }
+                }
+
+                tNodePos++;
+            }
+        }
+        // Global Namespace End
+
+        return NodeCount;
+    }
 
     int ForceSync(CNode* pfrom, uint256 hashfilter)
     {

@@ -70,6 +70,7 @@ v1.0.0.7 (Pre-release - unfinished)
 * FIX: LevelDB (Android)
 * Disabled: accountingDeprecationCheck
 * Assert() replaced by proper debuging in core functions/classes
+* Installed ForceRandomSync of X amount of nodes
 
 TO FINISH:
 * Apostolaki Hijack fix (Firewall)
