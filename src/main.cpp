@@ -4412,7 +4412,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 
         // Auto Chain pruning Max X blocks, 0 block max default
         // EXPERIMENTAL
-        int nAutoPrune = GetArg("-autoprune", 0);
+        int nAutoPrune = GetArg("-autoprune", 3);
 
         if (nAutoPrune > 0)
         {
@@ -4423,6 +4423,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 CBlock block;
 
                 block.ReadFromDisk(pindexBest->pprev);
+                block.DisconnectBlock(txdbAddr, pindexBest->pprev);
                 block.SetBestChain(txdbAddr, pindexBest->pprev);
 
                 fReorganizeCount = fReorganizeCount + 1;
@@ -7089,6 +7090,8 @@ namespace CChain
 
             block.ReadFromDisk(pindex);
 
+            block.DisconnectBlock(txdbAddr, pindex);
+
             block.SetBestChain(txdbAddr, pindex);
 
             return nNewHeight;
@@ -7128,6 +7131,8 @@ namespace CChain
             CBlock block;
 
             block.ReadFromDisk(pindex);
+
+            block.DisconnectBlock(txdbAddr, pindex);
 
             block.SetBestChain(txdbAddr, pindex);
 
