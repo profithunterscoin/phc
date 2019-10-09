@@ -4298,8 +4298,6 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                     return error("%s : duplicate proof-of-stake (%s, %d) for orphan block %s\n", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
                 }
             }
-
-            CChain::PruneOrphanBlocks();
         
             // Only request Orphan chain from peer if it's the Initial Sync (Block Download)
             // While already synced and new orphan chain is broadcast do not accept (51% attack vector)
@@ -4443,7 +4441,9 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             LogPrint("core", "%s : Orphan chain %s detected\n", __FUNCTION__, hash.ToString());
         }
 
-        //CChain::PruneOrphanBlocks();
+        CChain::PruneOrphanBlocks();
+
+        mempool.clear();
 
         // Orphan block processed but NOT written to disk
         return true;
