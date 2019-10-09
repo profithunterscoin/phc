@@ -183,6 +183,10 @@ class Firewall
         /* FUNCTION: Init */
         static bool Init(CNode *pnode, std::string FromFunction);
 
+        //EclipseMap   IP/VERSION/TIMECONNECTED/SendBytes//RecvBytes//addrsize
+
+        
+
 };
 
 /*

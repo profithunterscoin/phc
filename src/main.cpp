@@ -4298,8 +4298,6 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                     return error("%s : duplicate proof-of-stake (%s, %d) for orphan block %s\n", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
                 }
             }
-
-            CChain::PruneOrphanBlocks();
         
             // Only request Orphan chain from peer if it's the Initial Sync (Block Download)
             // While already synced and new orphan chain is broadcast do not accept (51% attack vector)
@@ -4354,7 +4352,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 // Skips downloading orphan chain (Hypersync)
                 if (GetBoolArg("-hypersync", false) == true)
                 {
-                    if (fForceSyncAfterOrphan < 1)
+                    if (fForceSyncAfterOrphan < 100)
                     {
                         CChain::ForceSync(pfrom, hash);
 
@@ -4392,7 +4390,8 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 
                 // To prevent local wallet getting stuck
                 // Query all connected nodes (except orphaned node) with a new getblocks request.
-                if (fForceSyncAfterOrphan < 3)
+
+                if (fForceSyncAfterOrphan < 100)
                 {
                     // Quickly download the rest of chain from other peers during InitialBlockDownload
                     // Skips downloading orphan chain (Hypersync)
@@ -4412,7 +4411,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 
         // Auto Chain pruning Max X blocks, 0 block max default
         // EXPERIMENTAL
-        int nAutoPrune = GetArg("-autoprune", 3);
+        int nAutoPrune = GetArg("-autoprune", 0);
 
         if (nAutoPrune > 0)
         {
@@ -4423,7 +4422,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 CBlock block;
 
                 block.ReadFromDisk(pindexBest->pprev);
-                pindexBest->pprev->pnext = NULL;
+                pindexBest->pprev->pprev->pnext = NULL;
                 block.DisconnectBlock(txdbAddr, pindexBest->pprev);
                 block.SetBestChain(txdbAddr, pindexBest->pprev);
 
@@ -4442,7 +4441,9 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             LogPrint("core", "%s : Orphan chain %s detected\n", __FUNCTION__, hash.ToString());
         }
 
-        //CChain::PruneOrphanBlocks();
+        CChain::PruneOrphanBlocks();
+
+        mempool.clear();
 
         // Orphan block processed but NOT written to disk
         return true;
