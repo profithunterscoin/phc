@@ -4423,6 +4423,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 CBlock block;
 
                 block.ReadFromDisk(pindexBest->pprev);
+                pindexBest->pprev->pnext = NULL;
                 block.DisconnectBlock(txdbAddr, pindexBest->pprev);
                 block.SetBestChain(txdbAddr, pindexBest->pprev);
 
@@ -7074,6 +7075,7 @@ namespace CChain
 
         while (pindex != NULL && pindex->nHeight > nNewHeight)
         {
+            pindex->pprev->pnext = NULL;
             pindex = pindex->pprev;
         }
 
@@ -7116,6 +7118,7 @@ namespace CChain
 
         for (int counter = 1; counter != nBlockCount + 1; counter = counter + 1)
         {
+            pindex->pprev->pnext = NULL;
             pindex = pindex->pprev;
         }
 
