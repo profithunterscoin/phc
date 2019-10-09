@@ -317,18 +317,6 @@ int CAddrMan::ShrinkNew(int nUBucket)
     {
         if (nI == n[0] || nI == n[1] || nI == n[2] || nI == n[3])
         {
-            if (nOldest != -1 || mapInfo.count(*it) != 1)
-            {
-                if (fDebug)
-                {
-                    LogPrint("addrman", "%s : nOldest != -1 || mapInfo.count(*it) != 1 (assert-7)\n", __FUNCTION__);
-                }
-
-                cout << __FUNCTION__ << " (assert-7)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
-
-                return 0;
-            }
-
             if (nOldest == -1 || mapInfo[*it].nTime < mapInfo[nOldest].nTime)
             {
                 nOldest = *it;
