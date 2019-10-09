@@ -693,9 +693,8 @@ string Firewall::InvalidWalletCheck(CNode *pnode, int SyncHeight, int TimeConnec
         /*
         if ((int)TimeConnected > Firewall::InvalidWallet_MinCheck)
         {
-            Firewall::PeerPrefixMap
 
-            // check connections for duplicate prefixes
+
 
         }
         */
@@ -712,6 +711,9 @@ string Firewall::InvalidWalletCheck(CNode *pnode, int SyncHeight, int TimeConnec
         /*
         if ((int)TimeConnected > Firewall::InvalidWallet_MinCheck)
         {
+            Firewall::PeerPrefixMap
+
+            // check connections for duplicate prefixes
 
             // check addr log for duplicate prefixes
 
@@ -722,7 +724,7 @@ string Firewall::InvalidWalletCheck(CNode *pnode, int SyncHeight, int TimeConnec
          
         /** -------------------------- 
             Attack Detection #6
-            Protocol: BGP Protection
+            Protocol: BGP Protection (Apostolaki Hijack)
             By manipulating routing advertisements (BGP hijacks) or by naturally intercepting traffic,
             Autonomous Systems (ASes) can intercept and manipulate a large fraction of Bitcoin traffic
             Report: https://btc-hijack.ethz.ch/files/btc_hijack.pdf
