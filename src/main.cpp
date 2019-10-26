@@ -4263,7 +4263,6 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
         }
     }
 
-
     // If we don't already have its previous block, shunt it off to holding area until we get it
     if (!mapBlockIndex.count(pblock->hashPrevBlock))
     {
@@ -4272,17 +4271,9 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             LogPrint("core", "%s : ORPHAN BLOCK %lu, prev=%s\n", __FUNCTION__, (unsigned long)mapOrphanBlocks.size(), pblock->hashPrevBlock.ToString());
         }
 
-        // Accept orphans as long as there is a node to request its parents from
-        if (pfrom)
+        // Accept orphans as long as there is a node to request its parents from & not Importing or Reindexing
+        if (pfrom && !fImporting && !fReindex)
         {
-            if (pfrom->dOrphanRecv.hash != hash)
-            {
-                pfrom->dOrphanRecv.height = pindexBest->nHeight;
-                pfrom->dOrphanRecv.hash = hash;
-                pfrom->dOrphanRecv.timestamp = GetTime();
-                pfrom->dOrphanRecv.synced = true;
-            }
-
             // ppcoin: check proof-of-stake
             if (pblock->IsProofOfStake())
             {
@@ -4295,118 +4286,54 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                         LogPrint("core", "%s : duplicate proof-of-stake (%s, %d) for orphan block %s\n", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
                     }
 
-                    return error("%s : duplicate proof-of-stake (%s, %d) for orphan block %s\n", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
+                    return error("ProcessBlock() : duplicate proof-of-stake (%s, %d) for orphan block %s", pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
                 }
             }
-        
-            // Only request Orphan chain from peer if it's the Initial Sync (Block Download)
-            // While already synced and new orphan chain is broadcast do not accept (51% attack vector)
-            // Skip if importing or reindexing database
-            if (IsInitialBlockDownload() && !fImporting && !fReindex)
+
+            CChain::PruneOrphanBlocks();
+
+            COrphanBlock* pblock2 = new COrphanBlock();
             {
-                if (GetBoolArg("-orphansync", false) == true)
-                {
-                    // Process Parent/Child blocks of current orphaned block recieved from node
-                    COrphanBlock* pblock2 = new COrphanBlock();
-
-                    // Get block info
-                    // Global Namespace Start
-                    {
-                        CDataStream ss(SER_DISK, CLIENT_VERSION);
-                        ss << *pblock;
-                        pblock2->vchBlock = std::vector<unsigned char>(ss.begin(), ss.end());
-                    }
-                    // Global Namespace End
-
-                    if (pblock->IsProofOfStake())
-                    {
-                        setStakeSeenOrphan.insert(pblock->GetProofOfStake());
-                    }
-
-                    pblock2->hashBlock = hash;
-                    pblock2->hashPrev = pblock->hashPrevBlock;
-                    pblock2->stake = pblock->GetProofOfStake();
-
-                    mapOrphanBlocks.insert(make_pair(hash, pblock2));
-                    mapOrphanBlocksByPrev.insert(make_pair(pblock2->hashPrev, pblock2));
-
-                    // To prevent node from flooding local wallet with duplicate Orphan chains
-                    // DO NOT request the rest of the Chain from node more than once.
-                    if (pfrom->dOrphanRecv.hash != hash)
-                    {
-                        // Ask this guy to fill in what we're missing
-                        PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(hash));
-                        
-                        // ppcoin: getblocks may not obtain the ancestor block rejected
-                        // earlier by duplicate-stake check so we ask for it again directly
-                        pfrom->AskFor(CInv(MSG_BLOCK, WantedByOrphan(pblock2)));
-
-                        if(fDebug)
-                        {
-                            LogPrint("core", "%s : IsInitialBlockDownload = true, Asking peer rest of orphaned chain @ root %s\n", __FUNCTION__, hash.ToString());
-                        }
-                    }
-                }
-                
-                // Quickly download the rest of chain from other peers during InitialBlockDownload
-                // Skips downloading orphan chain (Hypersync)
-                if (GetBoolArg("-hypersync", false) == true)
-                {
-                    if (fForceSyncAfterOrphan < 100)
-                    {
-                        CChain::ForceSync(pfrom, hash);
-
-                        fForceSyncAfterOrphan = fForceSyncAfterOrphan + 1;
-                    }
-                }
-                else
-                {
-                    // Force Random Sync with 3 connected nodes, filter nodes with orphan hash checkpoint
-                    CChain::ForceRandomSync(pfrom, hash, 3);
-                }
-
+                CDataStream ss(SER_DISK, CLIENT_VERSION);
+                ss << *pblock;
+                pblock2->vchBlock = std::vector<unsigned char>(ss.begin(), ss.end());
             }
 
-            // Only request known blocks (pindexBest block's parent Hash) from peer if it's NOT the Initial Sync
-            // And if the current most trusted hash is not an Orphan block
-            // Skip if importing or reindexing database or during Initial Block Sync
-            if (!IsInitialBlockDownload() && !fImporting && !fReindex)
+            pblock2->hashBlock = hash;
+            pblock2->hashPrev = pblock->hashPrevBlock;
+            pblock2->stake = pblock->GetProofOfStake();
+
+            mapOrphanBlocks.insert(make_pair(hash, pblock2));
+            mapOrphanBlocksByPrev.insert(make_pair(pblock2->hashPrev, pblock2));
+
+            if (pblock->IsProofOfStake())
             {
-                // In case we are on a very long side-chain, it is possible that we already have
-                // the last block in an inv bundle sent in response to getblocks. Try to detect
-                // this situation and push another getblocks to continue.
-                // DO NOT request the rest of the Chain from node more than once.
-                if (pfrom->dOrphanRecv.hash != hash)
+                setStakeSeenOrphan.insert(pblock->GetProofOfStake());
+            }
+
+            // Only request orphan chain if enabled (default) and node has not previously sent a duplicate orphan block
+            if (GetBoolArg("-orphansync", true) == true && pfrom->dOrphanRecv.hash != hash)
+            {
+                // Only request for orphan chain if not InitialBlockDownload or Importing
+                if (!IsInitialBlockDownload() && !fImporting && !fReindex)
                 {
-                    // Start a new fresh sync
-                    pfrom->fStartSync = false;
-                    PushGetBlocks(pfrom, pindexBest->pprev, uint256(0));
+                    // Ask this guy to fill in what we're missing
+                    PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(hash));
 
-                    if(fDebug)
-                    {
-                        LogPrint("core", "%s : IsInitialBlockDownload = false, Asking peer for valid chain @ %s\n", __FUNCTION__, pindexBest->pprev->GetBlockHash().ToString());
-                    }
-                }
-
-                // To prevent local wallet getting stuck
-                // Query all connected nodes (except orphaned node) with a new getblocks request.
-
-                if (fForceSyncAfterOrphan < 100)
-                {
-                    // Quickly download the rest of chain from other peers during InitialBlockDownload
-                    // Skips downloading orphan chain (Hypersync)
-                    if (GetBoolArg("-hypersync", false) == true)
-                    {
-                        CChain::ForceSync(pfrom, hash);
-                    }
-                    else
-                    {
-                        CChain::ForceRandomSync(pfrom, hash, 3);
-                    }
-
-                    fForceSyncAfterOrphan = fForceSyncAfterOrphan + 1;
+                    // ppcoin: getblocks may not obtain the ancestor block rejected
+                    // earlier by duplicate-stake check so we ask for it again directly
+                    pfrom->AskFor(CInv(MSG_BLOCK, WantedByOrphan(pblock2)));
                 }
             }
+        }
+
+        // Keep track of last received orphans from nodes to prevent flooding attacks
+        if (pfrom->dOrphanRecv.hash != hash)
+        {
+            pfrom->dOrphanRecv.height = pindexBest->nHeight;
+            pfrom->dOrphanRecv.hash = hash;
+            pfrom->dOrphanRecv.timestamp = GetTime();
+            pfrom->dOrphanRecv.synced = true;
         }
 
         // Auto Chain pruning Max X blocks, 0 block max default
@@ -4430,8 +4357,25 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             }
         }
 
-        // Limit Orphan list to 10000 max to avoid memory flooding attacks
-        if (mapOrphanBlocks.size() > 10000)
+        // Quickly download the rest of chain from other peers
+        // Skips downloading orphan chain (Hypersync)
+        if (GetBoolArg("-hypersync", false) == true)
+        {
+            if (fForceSyncAfterOrphan < 100)
+            {
+                CChain::ForceSync(pfrom, hash);
+
+                fForceSyncAfterOrphan = fForceSyncAfterOrphan + 1;
+            }
+        }
+        else
+        {
+            // Force Random Sync with 3 connected nodes, filter nodes with orphan hash checkpoint
+            CChain::ForceRandomSync(pfrom, hash, 3);
+        }
+
+        // Limit Orphan list to 1000 max to avoid memory flooding attacks
+        if (mapOrphanBlocks.size() > 1000)
         {
             mapOrphanBlocks.erase(mapOrphanBlocks.begin(), mapOrphanBlocks.end());
         }
@@ -4440,10 +4384,6 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
         {
             LogPrint("core", "%s : Orphan chain %s detected\n", __FUNCTION__, hash.ToString());
         }
-
-        CChain::PruneOrphanBlocks();
-
-        mempool.clear();
 
         // Orphan block processed but NOT written to disk
         return true;
@@ -7199,8 +7139,8 @@ namespace CChain
             LogPrint("core", "%s : REORGANIZE\n", __FUNCTION__);
         }
 
-        // Find the fork
-        CBlockIndex* pfork = pindexBest;
+        // Find the fork (Step back 5 parent blocks to reduce resource use & increase security)
+        CBlockIndex* pfork = pindexBest->pprev->pprev->pprev->pprev->pprev;
         CBlockIndex* plonger = pindexNew;
 
         while (pfork != plonger)
