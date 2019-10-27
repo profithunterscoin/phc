@@ -4325,15 +4325,15 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                     pfrom->AskFor(CInv(MSG_BLOCK, WantedByOrphan(pblock2)));
                 }
             }
-        }
 
-        // Keep track of last received orphans from nodes to prevent flooding attacks
-        if (pfrom->dOrphanRecv.hash != hash)
-        {
-            pfrom->dOrphanRecv.height = pindexBest->nHeight;
-            pfrom->dOrphanRecv.hash = hash;
-            pfrom->dOrphanRecv.timestamp = GetTime();
-            pfrom->dOrphanRecv.synced = true;
+            // Keep track of last received orphans from nodes to prevent flooding attacks
+            if (pfrom->dOrphanRecv.hash != hash)
+            {
+                pfrom->dOrphanRecv.height = pindexBest->nHeight;
+                pfrom->dOrphanRecv.hash = hash;
+                pfrom->dOrphanRecv.timestamp = GetTime();
+                pfrom->dOrphanRecv.synced = true;
+            }
         }
 
         // Auto Chain pruning Max X blocks, 0 block max default
