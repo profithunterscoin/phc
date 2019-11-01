@@ -4357,28 +4357,33 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             }
         }
 
-        // Quickly download the rest of chain from other peers
-        // Skips downloading orphan chain (Hypersync)
-        if (GetBoolArg("-hypersync", false) == true)
+        if (!fReindex && !fImporting)
         {
-            if (fForceSyncAfterOrphan < 100)
+            // Quickly download the rest of chain from other peers
+            // Skips downloading orphan chain (Hypersync)
+            if (GetBoolArg("-hypersync", false) == true)
             {
-                CChain::ForceSync(pfrom, hash);
+                if (fForceSyncAfterOrphan < 100)
+                {
+                    CChain::ForceSync(pfrom, hash);
 
-                fForceSyncAfterOrphan = fForceSyncAfterOrphan + 1;
+                    fForceSyncAfterOrphan = fForceSyncAfterOrphan + 1;
+                }
+            }
+            else
+            {
+                // Force Random Sync with 3 connected nodes, filter nodes with orphan hash checkpoint
+                CChain::ForceRandomSync(pfrom, hash, 3);
             }
         }
-        else
-        {
-            // Force Random Sync with 3 connected nodes, filter nodes with orphan hash checkpoint
-            CChain::ForceRandomSync(pfrom, hash, 3);
-        }
-
+        
+        /*
         // Limit Orphan list to 1000 max to avoid memory flooding attacks
         if (mapOrphanBlocks.size() > 1000)
         {
             mapOrphanBlocks.erase(mapOrphanBlocks.begin(), mapOrphanBlocks.end());
         }
+        */
 
         if(fDebug)
         {
