@@ -394,6 +394,8 @@ bool CheckProofOfStake(CBlockIndex* pindexPrev, const CTransaction& tx, unsigned
         // previous transaction not in main chain, may occur during initial download
     }
 
+    txdb.Close();
+
     // Verify signature
     if (!VerifySignature(txPrev, tx, 0, SCRIPT_VERIFY_NONE, 0))
     {

@@ -4166,7 +4166,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             LogPrint("core", "%s : already have block %d %s\n", __FUNCTION__, mapBlockIndex[hash]->nHeight, hash.ToString());
         }
 
-        return error("%s : already have block %d %s\n", __FUNCTION__, mapBlockIndex[hash]->nHeight, hash.ToString());
+        return error("%s : already have block %d %s", __FUNCTION__, mapBlockIndex[hash]->nHeight, hash.ToString());
     }
 
     if (mapOrphanBlocks.count(hash))
@@ -4176,7 +4176,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             LogPrint("core", "%s : already have block (orphan) %s\n", __FUNCTION__, hash.ToString());
         }
 
-        return error("%s : already have block (orphan) %s\n", __FUNCTION__, hash.ToString());
+        return error("%s : already have block (orphan) %s", __FUNCTION__, hash.ToString());
     }
 
     // ppcoin: check proof-of-stake
@@ -4189,7 +4189,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             LogPrint("core", "%s : duplicate proof-of-stake (%s, %d) for block %s\n", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
         }
 
-        return error("%s : duplicate proof-of-stake (%s, %d) for block %s\n", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
+        return error("%s : duplicate proof-of-stake (%s, %d) for block %s", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
     }
 
     if (pblock->hashPrevBlock != hashBestChain)
@@ -4211,7 +4211,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 LogPrint("core", "%s : block with timestamp before last checkpoint\n", __FUNCTION__);
             }
 
-            return error("%s : block with timestamp before last checkpoint\n", __FUNCTION__);
+            return error("%s : block with timestamp before last checkpoint", __FUNCTION__);
         }
     }
 
@@ -4224,7 +4224,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             LogPrint("core", "%s : bad block signature encoding\n", __FUNCTION__);
         }
 
-        return error("%s : bad block signature encoding\n", __FUNCTION__);
+        return error("%s : bad block signature encoding", __FUNCTION__);
     }
 
     // Preliminary checks
@@ -4235,7 +4235,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             LogPrint("core", "%s : CheckBlock FAILED\n", __FUNCTION__);
         }
 
-        return error("%s : CheckBlock FAILED\n", __FUNCTION__);
+        return error("%s : CheckBlock FAILED", __FUNCTION__);
     }
 
     if (!IsInitialBlockDownload() && !fReindex && !fImporting)
@@ -4259,7 +4259,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 LogPrint("core", "%s : ASIC_Choker FAILED\n", __FUNCTION__);
             }
 
-            return error("%s : ASIC_Choker FAILED\n", __FUNCTION__);
+            return error("%s : ASIC_Choker FAILED", __FUNCTION__);
         }
     }
 
@@ -4377,13 +4377,14 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             }
         }
         
-        /*
-        // Limit Orphan list to 1000 max to avoid memory flooding attacks
-        if (mapOrphanBlocks.size() > 1000)
+        if (!IsInitialBlockDownload() && !fReindex && !fImporting)
         {
-            mapOrphanBlocks.erase(mapOrphanBlocks.begin(), mapOrphanBlocks.end());
+            // Limit Orphan list to 100 max to avoid memory flooding attacks
+            if (mapOrphanBlocks.size() > 100)
+            {
+                mapOrphanBlocks.erase(mapOrphanBlocks.begin(), mapOrphanBlocks.end());
+            }
         }
-        */
 
         if(fDebug)
         {
@@ -4397,7 +4398,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     // Store to disk
     if (!pblock->AcceptBlock())
     {
-        return error("%s : AcceptBlock FAILED @ Block: %s\n", __FUNCTION__, hash.ToString());
+        return error("%s : AcceptBlock FAILED @ Block: %s", __FUNCTION__, hash.ToString());
     }
 
     // Recursively process any orphan blocks that depended on this one
