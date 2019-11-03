@@ -127,8 +127,9 @@ static bool SelectBlockFromCandidates(vector<pair<int64_t, uint256> >& vSortedBy
 
         // compute the selection hash by hashing its proof-hash and the
         // previous proof-of-stake modifier
+        uint256 hashProof = pindex->IsProofOfStake()? pindex->hashProof : pindex->GetBlockHash();
         CDataStream ss(SER_GETHASH, 0);
-        ss << pindex->hashProof << nStakeModifierPrev;
+        ss << hashProof << nStakeModifierPrev;
         uint256 hashSelection = Hash(ss.begin(), ss.end());
 
         // the selection hash is divided by 2**32 so that proof-of-stake block
@@ -337,7 +338,6 @@ bool CheckStakeKernelHash(CBlockIndex* pindexPrev, unsigned int nBits, unsigned 
 
     // Calculate hash
     CDataStream ss(SER_GETHASH, 0);
-
     ss << nStakeModifier << nTimeBlockFrom << txPrev.nTime << prevout.hash << prevout.n << nTimeTx;
     hashProofOfStake = Hash(ss.begin(), ss.end());
 
@@ -346,10 +346,18 @@ bool CheckStakeKernelHash(CBlockIndex* pindexPrev, unsigned int nBits, unsigned 
         if (fDebug)
         {
             LogPrint("kernel", "%s : using modifier 0x%016x at height=%d timestamp=%s for block from timestamp=%s\n", __FUNCTION__,
-                nStakeModifier, nStakeModifierHeight, DateTimeStrFormat(nStakeModifierTime), DateTimeStrFormat(nTimeBlockFrom));
+                nStakeModifier,
+                nStakeModifierHeight,
+                DateTimeStrFormat(nStakeModifierTime),
+                DateTimeStrFormat(nTimeBlockFrom));
 
-            LogPrint("kernel", "%s : check modifier=0x%016x nTimeBlockFrom=%u nTimeTxPrev=%u nPrevout=%u nTimeTx=%u hashProof=%s\n", __FUNCTION__, 
-                nStakeModifier, nTimeBlockFrom, txPrev.nTime, prevout.n, nTimeTx, hashProofOfStake.ToString());
+            LogPrint("kernel", "%s : check modifier=0x%016x nTimeBlockFrom=%u nTimeTxPrev=%u nPrevout=%u nTimeTx=%u hashProofOfStake=%s\n", __FUNCTION__, 
+                nStakeModifier,
+                nTimeBlockFrom,
+                txPrev.nTime,
+                prevout.n,
+                nTimeTx,
+                hashProofOfStake.ToString());
         }
     }
 
@@ -362,10 +370,18 @@ bool CheckStakeKernelHash(CBlockIndex* pindexPrev, unsigned int nBits, unsigned 
     if (fDebug && !fPrintProofOfStake)
     {
         LogPrint("kernel", "%s : using modifier 0x%016x at height=%d timestamp=%s for block from timestamp=%s\n", __FUNCTION__,
-            nStakeModifier, nStakeModifierHeight, DateTimeStrFormat(nStakeModifierTime), DateTimeStrFormat(nTimeBlockFrom));
+            nStakeModifier,
+            nStakeModifierHeight,
+            DateTimeStrFormat(nStakeModifierTime),
+            DateTimeStrFormat(nTimeBlockFrom));
 
-        LogPrint("kernel", "%s : pass modifier=0x%016x nTimeBlockFrom=%u nTimeTxPrev=%u nPrevout=%u nTimeTx=%u hashProof=%s\n", __FUNCTION__,
-            nStakeModifier, nTimeBlockFrom, txPrev.nTime, prevout.n, nTimeTx, hashProofOfStake.ToString());
+        LogPrint("kernel", "%s : pass modifier=0x%016x nTimeBlockFrom=%u nTimeTxPrev=%u nPrevout=%u nTimeTx=%u hashProofOfStake=%s\n", __FUNCTION__,
+            nStakeModifier,
+            nTimeBlockFrom,
+            txPrev.nTime,
+            prevout.n,
+            nTimeTx,
+            hashProofOfStake.ToString());
     }
 
     return true;
@@ -390,11 +406,9 @@ bool CheckProofOfStake(CBlockIndex* pindexPrev, const CTransaction& tx, unsigned
 
     if (!txPrev.ReadFromDisk(txdb, txin.prevout, txindex))
     {
-        return tx.DoS(1, error("%s : INFO: read txPrev failed", __FUNCTION__)); 
         // previous transaction not in main chain, may occur during initial download
+        return tx.DoS(1, error("%s : INFO: read txPrev failed", __FUNCTION__)); 
     }
-
-    txdb.Close();
 
     // Verify signature
     if (!VerifySignature(txPrev, tx, 0, SCRIPT_VERIFY_NONE, 0))
@@ -402,18 +416,20 @@ bool CheckProofOfStake(CBlockIndex* pindexPrev, const CTransaction& tx, unsigned
         return tx.DoS(100, error("%s : VerifySignature failed on coinstake %s", __FUNCTION__, tx.GetHash().ToString()));
     }
 
+    txdb.Close();
+
     // Read block header
     CBlock block;
     if (!block.ReadFromDisk(txindex.pos.nFile, txindex.pos.nBlockPos, false))
     {
-        return fDebug? error("%s : read block failed") : false;
         // unable to read block of previous transaction
+        return fDebug? error("%s : read block failed") : false;
     }
 
     if (!CheckStakeKernelHash(pindexPrev, nBits, block.GetBlockTime(), txPrev, txin.prevout, tx.nTime, hashProofOfStake, targetProofOfStake, fDebug))
     {
-        return tx.DoS(1, error("%s : INFO: check kernel failed on coinstake %s, hashProof=%s", __FUNCTION__, tx.GetHash().ToString(), hashProofOfStake.ToString()));
         // may occur during initial download or if behind on block chain sync
+        return tx.DoS(1, error("%s : INFO: check kernel failed on coinstake %s, hashProofOfStake=%s", __FUNCTION__, tx.GetHash().ToString(), hashProofOfStake.ToString()));
     }
 
     return true;
@@ -450,8 +466,8 @@ bool CheckKernel(CBlockIndex* pindexPrev, unsigned int nBits, int64_t nTime, con
 
     if (block.GetBlockTime() + nStakeMinAge > nTime)
     {
-        return false;
         // only count coins meeting min age requirement
+        return false;
     }
 
     if (pBlockTime)

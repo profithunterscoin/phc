@@ -61,6 +61,7 @@ CTxMemPool mempool;
 
 map<uint256, CBlockIndex*> mapBlockIndex;
 set<pair<COutPoint, unsigned int> > setStakeSeen;
+map<uint256, uint256> mapProofOfStake;
 
 CBigNum bnProofOfStakeLimit(~uint256(0) >> 20);
 
@@ -3261,8 +3262,21 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos, const u
         return error("%s : SetStakeEntropyBit() failed", __FUNCTION__);
     }
 
-    // Record proof hash value
-    pindexNew->hashProof = hashProof;
+    // peercoin: record proof-of-stake hash value
+    if (pindexNew->IsProofOfStake())
+    {
+        if (!mapProofOfStake.count(hash))
+        {
+            return error("AddToBlockIndex() : hashProofOfStake not found in map");
+        }
+
+        pindexNew->hashProof = mapProofOfStake[hash];
+    }
+    else
+    {
+        // Record proof hash value
+        pindexNew->hashProof = hashProof;
+    }
 
     // ppcoin: compute stake modifier
     uint64_t nStakeModifier = 0;
@@ -3989,16 +4003,6 @@ bool CBlock::AcceptBlock()
         return DoS(100, error("%s : rejected by hardened checkpoint lock-in at %d", __FUNCTION__, nHeight));
     }
 
-    // Verify hash target and signature of coinstake tx
-    if (IsProofOfStake())
-    {
-        uint256 targetProofOfStake;
-        if (!CheckProofOfStake(pindexPrev, vtx[1], nBits, hashProof, targetProofOfStake))
-        {
-            return error("%s : check proof-of-stake failed for block %s", __FUNCTION__, hash.ToString());
-        }
-    }
-
     // Check that the block satisfies synchronized checkpoint
     if (!Checkpoints::CheckSync(nHeight))
     {
@@ -4093,21 +4097,6 @@ uint256 CBlockIndex::GetBlockTrust() const
 }
 
 
-void PushGetBlocks(CNode* pnode, CBlockIndex* pindexBegin, uint256 hashEnd)
-{
-    // Filter out duplicate requests
-    if (pindexBegin == pnode->pindexLastGetBlocksBegin && hashEnd == pnode->hashLastGetBlocksEnd)
-    {
-        return;
-    }
-
-    pnode->pindexLastGetBlocksBegin = pindexBegin;
-    pnode->hashLastGetBlocksEnd = hashEnd;
-
-    pnode->PushMessage("getblocks", CBlockLocator(pindexBegin), hashEnd);
-}
-
-
 bool static IsCanonicalBlockSignature(CBlock* pblock)
 {
     if (pblock->IsProofOfWork())
@@ -4166,7 +4155,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             LogPrint("core", "%s : already have block %d %s\n", __FUNCTION__, mapBlockIndex[hash]->nHeight, hash.ToString());
         }
 
-        return error("%s : already have block %d %s", __FUNCTION__, mapBlockIndex[hash]->nHeight, hash.ToString());
+        return error("%s : already have block %d %s\n", __FUNCTION__, mapBlockIndex[hash]->nHeight, hash.ToString());
     }
 
     if (mapOrphanBlocks.count(hash))
@@ -4189,7 +4178,45 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             LogPrint("core", "%s : duplicate proof-of-stake (%s, %d) for block %s\n", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
         }
 
-        return error("%s : duplicate proof-of-stake (%s, %d) for block %s", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
+        return error("%s : duplicate proof-of-stake (%s, %d) for block %s\n", __FUNCTION__, pblock->GetProofOfStake().first.ToString(), pblock->GetProofOfStake().second, hash.ToString());
+    }
+
+    // Preliminary checks
+    if (!pblock->CheckBlock())
+    {
+        if(fDebug)
+        {
+            LogPrint("core", "%s : CheckBlock FAILED\n", __FUNCTION__);
+        }
+
+        return error("%s : CheckBlock FAILED\n", __FUNCTION__);
+    }
+
+    // peercoin: verify hash target and signature of coinstake tx
+    if (pblock->IsProofOfStake())
+    {
+        uint256 hashProofOfStake = 0;
+        uint256 TargetProofOfStake = 0;
+
+        if (!CheckProofOfStake(pindexBest, pblock->vtx[1], pblock->nBits, hashProofOfStake, TargetProofOfStake))
+        {
+            LogPrint("core", "%s : WARNING: check proof-of-stake failed for block %s\n", __FUNCTION__, hash.ToString().c_str());
+
+            // peershares: ask for missing blocks
+            if (pfrom)
+            {
+                pfrom->PushGetBlocks(pindexBest->pprev, pblock->GetHash());
+            }
+
+            // do not error here as we expect this during initial block download
+            //return false;
+        }
+
+        if (!mapProofOfStake.count(hash))
+        {
+            // add to mapProofOfStake
+            mapProofOfStake.insert(make_pair(hash, hashProofOfStake));
+        } 
     }
 
     if (pblock->hashPrevBlock != hashBestChain)
@@ -4211,7 +4238,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 LogPrint("core", "%s : block with timestamp before last checkpoint\n", __FUNCTION__);
             }
 
-            return error("%s : block with timestamp before last checkpoint", __FUNCTION__);
+            return error("%s : block with timestamp before last checkpoint\n", __FUNCTION__);
         }
     }
 
@@ -4224,18 +4251,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             LogPrint("core", "%s : bad block signature encoding\n", __FUNCTION__);
         }
 
-        return error("%s : bad block signature encoding", __FUNCTION__);
-    }
-
-    // Preliminary checks
-    if (!pblock->CheckBlock())
-    {
-        if(fDebug)
-        {
-            LogPrint("core", "%s : CheckBlock FAILED\n", __FUNCTION__);
-        }
-
-        return error("%s : CheckBlock FAILED", __FUNCTION__);
+        return error("%s : bad block signature encoding\n", __FUNCTION__);
     }
 
     if (!IsInitialBlockDownload() && !fReindex && !fImporting)
@@ -4259,7 +4275,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 LogPrint("core", "%s : ASIC_Choker FAILED\n", __FUNCTION__);
             }
 
-            return error("%s : ASIC_Choker FAILED", __FUNCTION__);
+            return error("%s : ASIC_Choker FAILED\n", __FUNCTION__);
         }
     }
 
@@ -4271,8 +4287,8 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             LogPrint("core", "%s : ORPHAN BLOCK %lu, prev=%s\n", __FUNCTION__, (unsigned long)mapOrphanBlocks.size(), pblock->hashPrevBlock.ToString());
         }
 
-        // Accept orphans as long as there is a node to request its parents from & not Importing or Reindexing
-        if (pfrom && !fImporting && !fReindex)
+        // Accept orphans as long as there's a node to request its parents from & not Importing or Reindexing
+        if (pfrom)
         {
             // ppcoin: check proof-of-stake
             if (pblock->IsProofOfStake())
@@ -4318,7 +4334,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 if (!IsInitialBlockDownload() && !fImporting && !fReindex)
                 {
                     // Ask this guy to fill in what we're missing
-                    PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(hash));
+                    pfrom->PushGetBlocks(pindexBest, GetOrphanRoot(hash));
 
                     // ppcoin: getblocks may not obtain the ancestor block rejected
                     // earlier by duplicate-stake check so we ask for it again directly
@@ -4376,7 +4392,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                 CChain::ForceRandomSync(pfrom, hash, 3);
             }
         }
-        
+
         if (!IsInitialBlockDownload() && !fReindex && !fImporting)
         {
             // Limit Orphan list to 100 max to avoid memory flooding attacks
@@ -4398,7 +4414,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     // Store to disk
     if (!pblock->AcceptBlock())
     {
-        return error("%s : AcceptBlock FAILED @ Block: %s", __FUNCTION__, hash.ToString());
+        return error("%s : AcceptBlock FAILED @ Block: %s\n", __FUNCTION__, hash.ToString());
     }
 
     // Recursively process any orphan blocks that depended on this one
@@ -5707,22 +5723,18 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
             if (!fAlreadyHave)
             {
-                if (!fImporting)
-                {
-                    pfrom->AskFor(inv);
-                }
-
+                pfrom->AskFor(inv, IsInitialBlockDownload()); // peershares: immediate retry during initial download
             }
             else if (inv.type == MSG_BLOCK && mapOrphanBlocks.count(inv.hash))
             {
-                PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(inv.hash));
+                pfrom->PushGetBlocks(pindexBest, GetOrphanRoot(inv.hash));
             }
             else if (nInv == nLastBlock)
             {
                 // In case we are on a very long side-chain, it is possible that we already have
                 // the last block in an inv bundle sent in response to getblocks. Try to detect
                 // this situation and push another getblocks to continue.
-                PushGetBlocks(pfrom, mapBlockIndex[inv.hash], uint256(0));
+                pfrom->PushGetBlocks(mapBlockIndex[inv.hash], uint256(0));
 
                 if (fDebug)
                 {
@@ -6591,7 +6603,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         if (pto->fStartSync && !fImporting && !fReindex)
         {
             pto->fStartSync = false;
-            PushGetBlocks(pto, pindexBest, uint256(0));
+            pto->PushGetBlocks(pindexBest, uint256(0));
         }
 
         // Resend wallet transactions that haven't gotten in a block yet
@@ -6928,7 +6940,7 @@ namespace CChain
                     // Start a new fresh sync
                     pnode->fStartSync = false;
 
-                    PushGetBlocks(pnode, pindexBest->pprev, uint256(0));
+                    pnode->PushGetBlocks(pindexBest->pprev, uint256(0));
 
                     NodeCount++;
 
@@ -6987,7 +6999,7 @@ namespace CChain
                     // Start a new fresh sync
                     pnode->fStartSync = false;
 
-                    PushGetBlocks(pnode, pindexBest->pprev, uint256(0));
+                    pnode->PushGetBlocks(pindexBest->pprev, uint256(0));
 
                     NodeCount++;
 

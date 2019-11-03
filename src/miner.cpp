@@ -114,7 +114,6 @@ uint64_t nLastBlockTx = 0;
 uint64_t nLastBlockSize = 0;
 int64_t nLastCoinStakeSearchInterval = 0;
 
-
 // We want to sort transactions by priority and fee, so:
 typedef boost::tuple<double, double, CTransaction*> TxPriority; class TxPriorityCompare
 {
@@ -179,7 +178,7 @@ CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
     CScript scriptPubKey = CScript() << ToByteVector(pubkey) << OP_CHECKSIG;
 
     // Create new block
-    auto_ptr<CBlock> pblock(new CBlock());
+    unique_ptr<CBlock> pblock(new CBlock());
 
     if (!pblock.get())
     {
@@ -505,7 +504,8 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
     }
 
     // Create new block
-    auto_ptr<CBlock> pblock(new CBlock());
+    unique_ptr<CBlock> pblock(new CBlock());
+
     if (!pblock.get())
     {
         return NULL;
@@ -1001,30 +1001,43 @@ void ThreadStakeMiner(CWallet *pwallet)
 
     bool fTryToSync = true;
 
+
     while (true)
     {
+        bool fvNodesEmpty = true;
+
         while (pwallet->IsLocked())
         {
             nLastCoinStakeSearchInterval = 0;
 
-            MilliSleep(1000);
+            MilliSleep(600000); // wait 10 minutes
         }
 
-        while (vNodes.empty() || IsInitialBlockDownload())
+        // Global Namespace Start
+        {
+            LOCK(cs_vNodes);
+
+            fvNodesEmpty = vNodes.empty();
+        }
+        // Global Namespace End
+
+        // Minimum required 8 nodes for staking to activate & Synced
+        while (fvNodesEmpty || IsInitialBlockDownload())
         {
             nLastCoinStakeSearchInterval = 0;
             
             fTryToSync = true;
             
-            MilliSleep(1000);
+            MilliSleep(600000); // wait 10 minutes
         }
 
         if (fTryToSync)
         {
             fTryToSync = false;
+
             if (vNodes.size() < 8 || pindexBest->GetBlockTime() < GetTime() - 10 * 60)
             {
-                MilliSleep(10000);
+                MilliSleep(600000); // wait 10 minutes
             
                 continue;
             }
@@ -1034,7 +1047,9 @@ void ThreadStakeMiner(CWallet *pwallet)
         // Create new block
         //
         int64_t nFees;
-        auto_ptr<CBlock> pblock(CreateNewBlock(reservekey, true, &nFees));
+
+        unique_ptr<CBlock> pblock(CreateNewBlock(reservekey, true, &nFees));
+
         if (!pblock.get())
         {
             return;
@@ -1048,14 +1063,9 @@ void ThreadStakeMiner(CWallet *pwallet)
             ProcessBlockStake(pblock.get(), *pwallet);
             
             Set_ThreadPriority(THREAD_PRIORITY_LOWEST);
-            
-            MilliSleep(500);
-        }
-        else
-        {
-            MilliSleep(nMinerSleep);
         }
 
+        MilliSleep(nMinerSleep);
     }
 }
 
@@ -1150,26 +1160,33 @@ void static InternalcoinMiner(CWallet *pwallet)
     {
         while (true)
         {
-                // Busy-wait for the network to come online so we don't waste time mining
-                // on an obsolete chain. In regtest mode we expect to fly solo.
-                do
+            // Busy-wait for the network to come online so we don't waste time mining
+            // on an obsolete chain. In regtest mode we expect to fly solo.
+
+            bool fvNodesEmpty;
+
+            // Global Namespace Start
+            {
+                LOCK(cs_vNodes);
+
+                fvNodesEmpty = vNodes.empty();
+            }
+            // Global Namespace End
+
+            if (fvNodesEmpty == true
+                || IsInitialBlockDownload() == true
+                || vNodes.size() < 2 
+                || pindexBest->GetBlockTime() < GetTime() - 10 * 60)
+            {
+                printf("PHC-PoW-Miner - Aborted: Not Synced!\n");
+
+                if (fDebug)
                 {
-                    bool fvNodesEmpty;
-                    {
-                        LOCK(cs_vNodes);
-
-                        fvNodesEmpty = vNodes.empty();
-                    }
-
-                    if (!fvNodesEmpty && !IsInitialBlockDownload())
-                    {
-                        break;
-                    }
-
-                    MilliSleep(1000);
+                    LogPrint("miner", "%s : PHC-PoW-Miner - Aborted: Not Synced!\n", __FUNCTION__);
                 }
-                while (true);
-
+                
+                return;
+            }
 
             //
             // Create new block
@@ -1178,7 +1195,7 @@ void static InternalcoinMiner(CWallet *pwallet)
 
             CBlockIndex* pindexPrev = pindexBest;
            
-            auto_ptr<CBlock> pblocktemplate(CreateNewBlockWithKey(reservekey, pwallet));
+            unique_ptr<CBlock> pblocktemplate(CreateNewBlockWithKey(reservekey, pwallet));
 
             if (!pblocktemplate.get())
             {
