@@ -177,7 +177,7 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool fPri
     }
 
     result.push_back(Pair("flags", strprintf("%s%s", blockindex->IsProofOfStake()? "proof-of-stake" : "proof-of-work", blockindex->GeneratedStakeModifier()? " stake-modifier": "")));
-    result.push_back(Pair("proofhash", blockindex->hashProof.GetHex()));
+    result.push_back(Pair("proofhash", blockindex->IsProofOfStake()? blockindex->hashProof.GetHex() : blockindex->GetBlockHash().GetHex()));
     result.push_back(Pair("entropybit", (int)blockindex->GetStakeEntropyBit()));
     result.push_back(Pair("modifier", strprintf("%016x", blockindex->nStakeModifier)));
     
@@ -381,8 +381,8 @@ Value prune(const Array& params, bool fHelp)
     // Accept the deprecated and ignored 'detach' boolean argument
     if (fHelp || params.size() > 1)
     {
-        throw runtime_error("Prune\n"
-                            "Prune Orphan blocks (blockchain index)"
+        throw runtime_error("prune\n"
+                            "prune Orphan blocks (blockchain index)"
                             );
     }
     

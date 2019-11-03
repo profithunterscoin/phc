@@ -209,8 +209,6 @@ void RegisterNodeSignals(CNodeSignals& nodeSignals);
 /** Unregister a network node */
 void UnregisterNodeSignals(CNodeSignals& nodeSignals);
 
-void PushGetBlocks(CNode* pnode, CBlockIndex* pindexBegin, uint256 hashEnd);
-
 /** Process an incoming block */
 bool ProcessBlock(CNode* pfrom, CBlock* pblock);
 
@@ -1200,6 +1198,7 @@ class CBlockIndex
             bnStakeModifierV2 = 0;
     #endif
             hashProof = 0;
+
             prevoutStake.SetNull();
             nStakeTime = 0;
 
@@ -1230,6 +1229,7 @@ class CBlockIndex
             bnStakeModifierV2 = 0;
     #endif
             hashProof = 0;
+
             if (block.IsProofOfStake())
             {
                 SetProofOfStake();
@@ -1363,12 +1363,25 @@ class CBlockIndex
 
 #ifndef LOWMEM
             return strprintf("CBlockIndex(nprev=%p, pnext=%p, nFile=%u, nBlockPos=%-6d nHeight=%d, nPOWMint=%s, nMoneySupply=%s, nFlags=(%s)(%d)(%s), nStakeModifier=%016x, hashProof=%s, prevoutStake=(%s), nStakeTime=%d merkle=%s, hashBlock=%s)",
-                pprev, pnext, nFile, nBlockPos, nHeight, FormatMoney(nPOWMint), FormatMoney(nMoneySupply), GeneratedStakeModifier() ? "MOD" : "-", GetStakeEntropyBit(), IsProofOfStake()? "PoS" : "PoW",
-                nStakeModifier, hashProof.ToString(), prevoutStake.ToString(), nStakeTime, hashMerkleRoot.ToString(), GetBlockHash().ToString());
+                pprev, pnext, nFile, nBlockPos, nHeight,
+                FormatMoney(nPOWMint), FormatMoney(nMoneySupply),
+                GeneratedStakeModifier() ? "MOD" : "-", GetStakeEntropyBit(), IsProofOfStake()? "PoS" : "PoW",
+                nStakeModifier,
+                hashProof.ToString(),
+                prevoutStake.ToString(),
+                nStakeTime,
+                hashMerkleRoot.ToString(),
+                GetBlockHash().ToString());
 #else
             return strprintf("CBlockIndex(nprev=%p, pnext=%p, nFile=%u, nBlockPos=%-6d nHeight=%d, nFlags=(%s)(%d)(%s), nStakeModifier=%016x, hashProof=%s, prevoutStake=(%s), nStakeTime=%d merkle=%s, hashBlock=%s)",
-                pprev, pnext, nFile, nBlockPos, nHeight, GeneratedStakeModifier() ? "MOD" : "-", GetStakeEntropyBit(), IsProofOfStake()? "PoS" : "PoW",
-                nStakeModifier, hashProof.ToString(), prevoutStake.ToString(), nStakeTime, hashMerkleRoot.ToString(), GetBlockHash().ToString());
+                pprev, pnext, nFile, nBlockPos, nHeight,
+                GeneratedStakeModifier() ? "MOD" : "-", GetStakeEntropyBit(), IsProofOfStake()? "PoS" : "PoW",
+                nStakeModifier,
+                hashProof.ToString(),
+                prevoutStake.ToString(),
+                nStakeTime,
+                hashMerkleRoot.ToString(),
+                GetBlockHash().ToString());
 #endif     
 
         }
@@ -1425,6 +1438,7 @@ class CDiskBlockIndex : public CBlockIndex
             {
                 READWRITE(prevoutStake);
                 READWRITE(nStakeTime);
+
             }
             else if (fRead)
             {

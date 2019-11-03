@@ -72,7 +72,9 @@ v1.0.0.7 (Pre-release - unfinished)
 * Assert() replaced by proper debuging in core functions/classes
 * Installed ForceRandomSync of X amount of nodes
 * Sanitize command strings (Evil-Knievel) https://github.com/bitcoin/bitcoin/pull/5770/commits/28d4cff0ed2d4438da4bbf2d4ca0465715603af5
-
+* FIX: slow full-sync, bootstrapping issues
+* FIX: InitialBlockDownload from Peercoin https://github.com/sigmike/peercoin/commit/ad71a3b1890208c9ef8ea005c76ee18fbf0b6065
+* Optimized InternalMiner/Staking functions
 
 TO FINISH:
 * Apostolaki Hijack (BGP) fix (Firewall)
