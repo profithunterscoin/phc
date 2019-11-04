@@ -6729,19 +6729,22 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
 
         if (SendCheckpoint == true)
         {
-            pto->dCheckpointSent.height = pindexBest->nHeight;
-            pto->dCheckpointSent.hash = pindexBest->GetBlockHash();
-            pto->dCheckpointSent.timestamp = GetTime();
-            pto->dCheckpointSent.synced = true;
-
-            vector<DynamicCheckpoints::Checkpoint> vCheckpoint;
-
-            vCheckpoint.push_back(pto->dCheckpointSent);
-
-            if (!vCheckpoint.empty())
+            if (pindexBest)
             {
-                pto->PushMessage("checkpoint", vCheckpoint);
-                vCheckpoint.clear();
+                pto->dCheckpointSent.height = pindexBest->nHeight;
+                pto->dCheckpointSent.hash = pindexBest->GetBlockHash();
+                pto->dCheckpointSent.timestamp = GetTime();
+                pto->dCheckpointSent.synced = true;
+
+                vector<DynamicCheckpoints::Checkpoint> vCheckpoint;
+
+                vCheckpoint.push_back(pto->dCheckpointSent);
+
+                if (!vCheckpoint.empty())
+                {
+                    pto->PushMessage("checkpoint", vCheckpoint);
+                    vCheckpoint.clear();
+                }
             }
         }
 
