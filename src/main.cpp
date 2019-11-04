@@ -3940,6 +3940,12 @@ bool CBlock::AcceptBlock()
     int nHeight = pindexPrev->nHeight+1;
 
     uint256 hashProof;
+
+    if (IsProofOfStake() && nHeight < Params().POSStartBlock())
+    {
+        return DoS(100, error("%s : reject proof-of-stake at height <= %d", __FUNCTION__, nHeight));
+    }
+
     if (IsProofOfWork() && nHeight > Params().LastPOWBlock())
     {
         return DoS(100, error("%s : reject proof-of-work at height %d", __FUNCTION__, nHeight));
@@ -3951,11 +3957,10 @@ bool CBlock::AcceptBlock()
         {
             hashProof = GetPoWHash();
         }
-    }
-
-    if (IsProofOfStake() && nHeight < Params().POSStartBlock())
-    {
-        return DoS(100, error("%s : reject proof-of-stake at height <= %d", __FUNCTION__, nHeight));
+        else
+        {
+            hashProof = GetHash();
+        }
     }
 
     // BlockShield
