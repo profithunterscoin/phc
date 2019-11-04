@@ -1010,7 +1010,7 @@ void ThreadStakeMiner(CWallet *pwallet)
         {
             nLastCoinStakeSearchInterval = 0;
 
-            MilliSleep(600000); // wait 10 minutes
+            MilliSleep(60000); // wait 1 minute
         }
 
         // Global Namespace Start
@@ -1028,7 +1028,7 @@ void ThreadStakeMiner(CWallet *pwallet)
             
             fTryToSync = true;
             
-            MilliSleep(600000); // wait 10 minutes
+            MilliSleep(1000);
         }
 
         if (fTryToSync)
@@ -1037,7 +1037,7 @@ void ThreadStakeMiner(CWallet *pwallet)
 
             if (vNodes.size() < 8 || pindexBest->GetBlockTime() < GetTime() - 10 * 60)
             {
-                MilliSleep(600000); // wait 10 minutes
+                MilliSleep(60000); // wait 1 minute
             
                 continue;
             }
