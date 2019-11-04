@@ -4193,30 +4193,31 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     }
 
     // peercoin: verify hash target and signature of coinstake tx
+    // PHC: modified to avoid getting stuck on a fork or invalid stake block (Prev not found)
     if (pblock->IsProofOfStake())
     {
-        uint256 hashProofOfStake = 0;
-        uint256 TargetProofOfStake = 0;
+        uint256 proofHash = 0, hashTarget = 0;
 
-        if (!CheckProofOfStake(pindexBest, pblock->vtx[1], pblock->nBits, hashProofOfStake, TargetProofOfStake))
+        if (!CheckProofOfStake(pindexBest->pprev, pblock->vtx[1], pblock->nBits, proofHash, hashTarget))
         {
             LogPrint("core", "%s : WARNING: check proof-of-stake failed for block %s\n", __FUNCTION__, hash.ToString().c_str());
 
             // peershares: ask for missing blocks
+            // Modified by Profit Hunters Coin
             if (pfrom)
             {
-                pfrom->PushGetBlocks(pindexBest->pprev, pblock->GetHash());
+                pfrom->PushGetBlocks(pindexBest->pprev, hash);
             }
 
             // do not error here as we expect this during initial block download
-            //return false;
+            //return true;
         }
 
         if (!mapProofOfStake.count(hash))
         {
             // add to mapProofOfStake
-            mapProofOfStake.insert(make_pair(hash, hashProofOfStake));
-        } 
+            mapProofOfStake.insert(make_pair(hash, pblock->hashPrevBlock));
+        }
     }
 
     if (pblock->hashPrevBlock != hashBestChain)
