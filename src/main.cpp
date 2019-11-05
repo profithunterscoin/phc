@@ -3262,6 +3262,7 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos, const u
         return error("%s : SetStakeEntropyBit() failed", __FUNCTION__);
     }
 
+    /*
     // peercoin: record proof-of-stake hash value
     if (pindexNew->IsProofOfStake())
     {
@@ -3277,6 +3278,10 @@ bool CBlock::AddToBlockIndex(unsigned int nFile, unsigned int nBlockPos, const u
         // Record proof hash value
         pindexNew->hashProof = hashProof;
     }
+    */
+
+    // Record proof hash value
+    pindexNew->hashProof = hashProof;
 
     // ppcoin: compute stake modifier
     uint64_t nStakeModifier = 0;
