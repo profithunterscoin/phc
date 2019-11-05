@@ -1268,7 +1268,12 @@ class CBlockIndex
 
         uint256 GetBlockHash() const
         {
-            return *phashBlock;
+            if (phashBlock)
+            {
+                return *phashBlock;
+            }
+
+            return 0;
         }
 
         int64_t GetBlockTime() const
