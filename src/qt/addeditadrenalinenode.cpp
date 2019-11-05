@@ -1,8 +1,15 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #include "addeditadrenalinenode.h"
@@ -32,8 +39,8 @@ AddEditAdrenalineNode::AddEditAdrenalineNode(QWidget *parent) : QDialog(parent),
     ui->privkeyLineEdit->setPlaceholderText("Enter your Masternode private key");
     ui->txhashLineEdit->setPlaceholderText("Enter your 10,000 PHC TXID");
     ui->outputindexLineEdit->setPlaceholderText("Enter your transaction output index");
-    ui->rewardaddressLineEdit->setPlaceholderText("Enter a reward recive address");
-    ui->rewardpercentageLineEdit->setPlaceholderText("Input the % for the reward");
+    //ui->rewardaddressLineEdit->setPlaceholderText("Enter a reward recive address");
+    //ui->rewardpercentageLineEdit->setPlaceholderText("Input the % for the reward");
 }
 
 AddEditAdrenalineNode::~AddEditAdrenalineNode()
@@ -96,10 +103,12 @@ void AddEditAdrenalineNode::on_okButton_clicked()
         std::string sMasternodePrivKey = ui->privkeyLineEdit->text().toStdString();
         std::string sTxHash = ui->txhashLineEdit->text().toStdString();
         std::string sOutputIndex = ui->outputindexLineEdit->text().toStdString();
-        std::string sRewardAddress = ui->rewardaddressLineEdit->text().toStdString();
-        std::string sRewardPercentage = ui->rewardpercentageLineEdit->text().toStdString();
+        //std::string sRewardAddress = ui->rewardaddressLineEdit->text().toStdString();
+        //std::string sRewardPercentage = ui->rewardpercentageLineEdit->text().toStdString();
+        std::string sRewardAddress = "";
+        std::string sRewardPercentage = "";
 
-        boost::filesystem::path pathConfigFile = GetDataDir() / "masternode.conf";
+        boost::filesystem::path pathConfigFile = GetDataDir(true) / "masternode.conf";
         boost::filesystem::ofstream stream (pathConfigFile.string(), ios::out | ios::app);
         
         if (stream.is_open())

@@ -1,13 +1,25 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2012 The Bitcoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/tuple/tuple_comparison.hpp>
+
+/* ONLY NEEDED FOR UNIT TESTING */
+#include <iostream>
 
 using namespace std;
 using namespace boost;
@@ -1351,7 +1363,16 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
                             
                             default:
                             {
-                                assert(!"invalid opcode");
+                                if (fDebug)
+                                {
+                                    // REMOVE AFTER UNIT TESTING COMPLETED
+                                    LogPrint("script", "%s : Invalid op code (assert-2)\n", __FUNCTION__);
+                                }
+
+                                cout << __FUNCTION__ << " (assert-2)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+                                return error("Invalid op code (assert-2)");
+
                             }
                             break;
                         }
@@ -1520,7 +1541,15 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
                             
                             default:
                             {
-                                assert(!"invalid opcode");
+                                if (fDebug)
+                                {
+                                    // REMOVE AFTER UNIT TESTING COMPLETED
+                                    LogPrint("script", "%s : Invalid op code (assert-3)\n", __FUNCTION__);
+                                }
+
+                                cout << __FUNCTION__ << " (assert-3)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+                                return error("Invalid op code (assert-3)");
                             }
                             break;
                         }
@@ -2465,7 +2494,15 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
                             
                             default:
                             {
-                                assert(!"invalid opcode");
+                                if (fDebug)
+                                {
+                                    // REMOVE AFTER UNIT TESTING COMPLETED
+                                    LogPrint("script", "%s : Invalid op code (assert-4)\n", __FUNCTION__);
+                                }
+
+                                cout << __FUNCTION__ << " (assert-4)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+                                return error("Invalid op code (assert-4)");
                             }
                             break;
                         }
@@ -2567,7 +2604,15 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
 
                             default:
                             {
-                                assert(!"invalid opcode");
+                                if (fDebug)
+                                {
+                                    // REMOVE AFTER UNIT TESTING COMPLETED
+                                    LogPrint("script", "%s : Invalid op code (assert-5)\n", __FUNCTION__);
+                                }
+
+                                cout << __FUNCTION__ << " (assert-5)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+                                return error("Invalid op code (assert-5)");
                             }
                             break;
                         }
@@ -2959,7 +3004,17 @@ uint256 SignatureHash(CScript scriptCode, const CTransaction& txTo, unsigned int
 
 bool SignSignature(const CKeyStore &keystore, const CScript& fromPubKey, CTransaction& txTo, unsigned int nIn, int nHashType)
 {
-    assert(nIn < txTo.vin.size());
+    if (nIn >= txTo.vin.size())
+    {
+        if (fDebug)
+        {
+            LogPrint("script", "%s : nIn >= txTo.vin.size() (assert-4)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-4)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return false;
+    }
 
     CTxIn& txin = txTo.vin[nIn];
 
@@ -3003,11 +3058,31 @@ bool SignSignature(const CKeyStore &keystore, const CScript& fromPubKey, CTransa
 
 bool SignSignature(const CKeyStore &keystore, const CTransaction& txFrom, CTransaction& txTo, unsigned int nIn, int nHashType)
 {
-    assert(nIn < txTo.vin.size());
+    if (nIn >= txTo.vin.size())
+    {
+        if (fDebug)
+        {
+            LogPrint("script", "%s : nIn >= txTo.vin.size() (assert-5)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-5)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return false;
+    }
 
     CTxIn& txin = txTo.vin[nIn];
 
-    assert(txin.prevout.n < txFrom.vout.size());
+    if (txin.prevout.n >= txFrom.vout.size())
+    {
+        if (fDebug)
+        {
+            LogPrint("script", "%s : txin.prevout.n >= txFrom.vout.size() (assert-6)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-6)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return false;
+    }
 
     const CTxOut& txout = txFrom.vout[txin.prevout.n];
 
@@ -3270,7 +3345,8 @@ bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsi
             else if (opcode2 == OP_SMALLDATA)
             {
                 // small pushdata, <= MAX_OP_RETURN_RELAY bytes
-                if (vch1.size() > MAX_OP_RETURN_RELAY)
+                // Modified from https://lists.linuxfoundation.org/pipermail/bitcoin-dev/2014-February/004436.html
+                if (opcode1 >= OP_PUSHDATA1 || vch1.size() > MAX_OP_RETURN_RELAY)
                 {
                     break;
                 }
@@ -3947,10 +4023,22 @@ bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, unsigne
         // stackCopy cannot be empty here, because if it was the
         // P2SH  HASH <> EQUAL  scriptPubKey would be evaluated with
         // an empty stack and the EvalScript above would return false.
-        assert(!stackCopy.empty());
+        if (stackCopy.empty() == true)
+        {
+            if (fDebug)
+            {
+                LogPrint("script", "%s : stackCopy.empty() == true (assert-7)\n", __FUNCTION__);
+            }
+            
+            cout << __FUNCTION__ << " (assert-7)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+            return false;
+        }
 
         const valtype& pubKeySerialized = stackCopy.back();
+
         CScript pubKey2(pubKeySerialized.begin(), pubKeySerialized.end());
+
         popstack(stackCopy);
 
         if (!EvalScript(stackCopy, pubKey2, flags, checker, serror))
@@ -3978,55 +4066,20 @@ bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, unsigne
 }
 
 
-/*bool SignSignature(const CKeyStore &keystore, const CScript& fromPubKey, CTransaction& txTo, unsigned int nIn, int nHashType)
-{
-    assert(nIn < txTo.vin.size());
-    CTxIn& txin = txTo.vin[nIn];
-
-    // Leave out the signature from the hash, since a signature can't sign itself.
-    // The checksig op will also drop the signatures from its hash.
-    uint256 hash = SignatureHash(fromPubKey, txTo, nIn, nHashType);
-
-    txnouttype whichType;
-    if (!Solver(keystore, fromPubKey, hash, nHashType, txin.scriptSig, whichType))
-        return false;
-
-    if (whichType == TX_SCRIPTHASH)
-    {
-        // Solver returns the subscript that need to be evaluated;
-        // the final scriptSig is the signatures from that
-        // and then the serialized subscript:
-        CScript subscript = txin.scriptSig;
-
-        // Recompute txn hash using subscript in place of scriptPubKey:
-        uint256 hash2 = SignatureHash(subscript, txTo, nIn, nHashType);
-
-        txnouttype subType;
-        bool fSolved =
-            Solver(keystore, subscript, hash2, nHashType, txin.scriptSig, subType) && subType != TX_SCRIPTHASH;
-        // Append serialized subscript whether or not it is completely signed:
-        txin.scriptSig << static_cast<valtype>(subscript);
-        if (!fSolved) return false;
-    }
-
-    // Test solution
-    return VerifyScript(txin.scriptSig, fromPubKey, txTo, nIn, STANDARD_SCRIPT_VERIFY_FLAGS, 0);
-}*/
-
-/*bool SignSignature(const CKeyStore &keystore, const CTransaction& txFrom, CTransaction& txTo, unsigned int nIn, int nHashType)
-{
-    assert(nIn < txTo.vin.size());
-    CTxIn& txin = txTo.vin[nIn];
-    assert(txin.prevout.n < txFrom.vout.size());
-    assert(txin.prevout.hash == txFrom.GetHash());
-    const CTxOut& txout = txFrom.vout[txin.prevout.n];
-
-    return SignSignature(keystore, txout.scriptPubKey, txTo, nIn, nHashType);
-}*/
-
 bool VerifySignature(const CTransaction& txFrom, const CTransaction& txTo, unsigned int nIn, unsigned int flags, int nHashType)
 {
-    assert(nIn < txTo.vin.size());
+    if (nIn >= txTo.vin.size())
+    {
+        if (fDebug)
+        {
+            LogPrint("script", "%s : nIn >= txTo.vin.size() (assert-8)\n", __FUNCTION__);
+        }
+        
+        cout << __FUNCTION__ << " (assert-8)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return false;
+    }
+
     
     const CTxIn& txin = txTo.vin[nIn];
 
@@ -4061,6 +4114,8 @@ static CScript PushAll(const vector<valtype>& values)
 
 static CScript CombineMultisig(CScript scriptPubKey, const CTransaction& txTo, unsigned int nIn, const vector<valtype>& vSolutions, vector<valtype>& sigs1, vector<valtype>& sigs2)
 {
+    CScript result; result << OP_0; // pop-one-too-many workaround
+
     // Combine all the signatures we've got:
     set<valtype> allsigs;
     BOOST_FOREACH(const valtype& v, sigs1)
@@ -4080,7 +4135,17 @@ static CScript CombineMultisig(CScript scriptPubKey, const CTransaction& txTo, u
     }
 
     // Build a map of pubkey -> signature by matching sigs to pubkeys:
-    assert(vSolutions.size() > 1);
+    if (vSolutions.size() <= 1)
+    {
+        if (fDebug)
+        {
+            LogPrint("script", "%s : vSolutions.size() <= 1 (assert-9)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-9)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return result;
+    }
 
     unsigned int nSigsRequired = vSolutions.front()[0];
     unsigned int nPubKeys = vSolutions.size()-2;
@@ -4107,8 +4172,6 @@ static CScript CombineMultisig(CScript scriptPubKey, const CTransaction& txTo, u
     }
     // Now build a merged CScript:
     unsigned int nSigsHave = 0;
-
-    CScript result; result << OP_0; // pop-one-too-many workaround
     
     for (unsigned int i = 0; i < nPubKeys && nSigsHave < nSigsRequired; i++)
     {
@@ -4582,7 +4645,17 @@ bool CScriptCompressor::Decompress(unsigned int nSize, const std::vector<unsigne
                 return false;
             }
 
-            assert(pubkey.size() == 65);
+            if (pubkey.size() != 65)
+            {
+                if (fDebug)
+                {
+                    LogPrint("script", "%s : pubkey.size() != 65 (assert-1)\n", __FUNCTION__);
+                }
+
+                cout << __FUNCTION__ << " (assert-1)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+                return false;
+            }
 
             script.resize(67);
             script[0] = 65;

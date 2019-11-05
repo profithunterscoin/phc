@@ -1,7 +1,15 @@
-// Copyright (c) 2012 The Bitcoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #ifndef BITCOIN_VERSION_H
@@ -49,6 +57,12 @@ static const int MIN_INSTANTX_PROTO_VERSION = 10006;
 // V2 - Newest protocol version
 static const int MIN_MASTERNODE_PAYMENT_PROTO_VERSION_1 = 10006;
 static const int MIN_MASTERNODE_PAYMENT_PROTO_VERSION_2 = 10006;
+
+// Dynamic Checkpoints starting at version #
+static const int MIN_PEER_DCHECKPOINTS_VERSION = 10007;
+
+// Dynamic Checkpoints starting at version #
+static const int MIN_PEER_TURBOSYNC_VERSION = 10007;
 
 // nTime field added to CAddress, starting with this version;
 // if possible, avoid requesting addresses nodes older than this

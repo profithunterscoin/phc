@@ -1,8 +1,16 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
+
 
 #include "assert.h"
 
@@ -71,6 +79,7 @@ class CMainParams : public CChainParams
             nDefaultPort = 20060;
             nRPCPort = 20061;
             bnProofOfWorkLimit = CBigNum(~uint256(0) >> 16);
+            strDataDir = ""; // Default
 
             // Build the genesis block. Note that the output of the genesis coinbase cannot
             // be spent as it did not originally exist in the database.
@@ -272,12 +281,20 @@ class CMainParams : public CChainParams
             convertSeeds(vFixedSeeds, pnSeed, ARRAYLEN(pnSeed), nDefaultPort);
 
             nPoolMaxTransactions = 3;
+
             //strSporkKey = "046f78dcf911fbd61910136f7f0f8d90578f68d0b3ac973b5040fb7afb501b5939f39b108b0569dca71488f5bbf498d92e4d1194f6f941307ffd95f75e76869f0e";
             //strMasternodePaymentsPubKey = "046f78dcf911fbd61910136f7f0f8d90578f68d0b3ac973b5040fb7afb501b5939f39b108b0569dca71488f5bbf498d92e4d1194f6f941307ffd95f75e76869f0e";
             strDarksendPoolDummyAddress = "PXeU4EGgDEnFJHuNptvqsWHs4qsdYg3Ypu";
-            nLastPOWBlock = 5184000;
+
+            strDevRewardAddress = "PTxSxCoYi7nVs5hhDMKE5B8JuBVFdgWFaz";
+            
+            nLastPOWBlock = 0x7fffffff;
             nPOSStartBlock = 10000;
             //nStakeMaxAge = 9999; // 9999 days
+
+            // 1.0.0.7 - Hard Forks
+            nHardFork_1 = 120000; // Block #120000 Activation (HardFork_1)
+            nHardFork_2 = 10000000; // Block #10000000 Activation (HardFork_2) (UNDECIDED)
         }
 
         virtual const CBlock& GenesisBlock() const
@@ -325,7 +342,7 @@ class CTestNetParams : public CMainParams
             vAlertPubKey = ParseHex("04344278bdac5f6e1e1711a3672a5002e54369b984c97df9d36e5aa2123dec228e85da0b88f3a38ba62746a1ca20726dd73a806767620c830ffb99ab1e6c45a778");
             nDefaultPort = 20062;
             nRPCPort = 20063;
-            strDataDir = "testnet";
+            strDataDir = "testnet/";
 
             // Build the genesis block. Note that the output of the genesis coinbase cannot
             // be spent as it did not originally exist in the database.
@@ -333,25 +350,24 @@ class CTestNetParams : public CMainParams
 
             /*
             testnet.genesis : 
-            CBlock(hash=0000171a86f5d5a6d2038d0cfd270f065cbecaa8ea3b78cc3912b90468df386e, ver=1, hashPrevBlock=0000000000000000000000000000000000000000000000000000000000000000, hashMerkleRoot=10a0a2b5415e856e2920e10add027cf52aa801a046fc466285555c3c7603dff4, nTime=1514844000, nBits=1f00ffff, nNonce=300106, vtx=1, vchBlockSig=)
+            CBlock(hash=0000ce8f49c8c59ed8a4c50cdacddc1f84b1be04e52232989887c99aad3e8e4e, ver=1, hashPrevBlock=0000000000000000000000000000000000000000000000000000000000000000, hashMerkleRoot=10a0a2b5415e856e2920e10add027cf52aa801a046fc466285555c3c7603dff4, nTime=1548626154, nBits=1f00ffff, nNonce=319349, vtx=1, vchBlockSig=)
             Coinbase(hash=10a0a2b5415e856e2920e10add027cf52aa801a046fc466285555c3c7603dff4, nTime=1514844000, ver=1, vin.size=1, vout.size=1, nLockTime=0)
             CTxIn(COutPoint(0000000000, 4294967295), coinbase 00012a24426974636f696e202e2e2e20616e6f746865722062696720626f6f7374202d20434e4243)
             CTxOut(nValue=0.00, scriptPubKey=045ae8e09a456a2ae88f9a2fdb9912)
 
             vMerkleTree:  10a0a2b5415e856e2920e10add027cf52aa801a046fc466285555c3c7603dff4
 
-            testnet.genesis.GetHash(): 0000171a86f5d5a6d2038d0cfd270f065cbecaa8ea3b78cc3912b90468df386e
+            testnet.genesis.GetHash(): 0000ce8f49c8c59ed8a4c50cdacddc1f84b1be04e52232989887c99aad3e8e4e
             testnet.genesis.hashMerkleRoot: 10a0a2b5415e856e2920e10add027cf52aa801a046fc466285555c3c7603dff4
-            testnet.genesis.nTime: 1514844000
-            testnet.genesis.nNonce: 300106
+            testnet.genesis.nTime: 1548626154
+            testnet.genesis.nNonce: 319349
             */
 
             // Modify the testnet genesis block so the timestamp is valid for a later start.
-            genesis.nTime = 1514844000; // GMT: Monday, January 1, 2018 10:00:00 PM
+            genesis.nTime = 1548626154; // GMT: Sunday, January 27, 2019 9:55:54 PM
             genesis.nBits  = 520159231;
-            genesis.nNonce = 300106;
+            genesis.nNonce = 319349;
 
-            /*
             hashGenesisBlock = uint256("0x01");
             if (true && (genesis.GetHash() != hashGenesisBlock))
             {
@@ -367,6 +383,7 @@ class CTestNetParams : public CMainParams
 
             }
 
+            /*
             hashGenesisBlock = genesis.GetHash();
 
             cout << "testnet.genesis : \n" << genesis.ToString() << endl;
@@ -378,16 +395,17 @@ class CTestNetParams : public CMainParams
 
             hashGenesisBlock = genesis.GetHash();
 
-            assert(hashGenesisBlock == uint256("0000171a86f5d5a6d2038d0cfd270f065cbecaa8ea3b78cc3912b90468df386e"));
+            assert(hashGenesisBlock == uint256("0000ce8f49c8c59ed8a4c50cdacddc1f84b1be04e52232989887c99aad3e8e4e"));
 
             vFixedSeeds.clear();
             vSeeds.clear();
 
-            vSeeds.push_back(CDNSSeedData("1",  "178.33.146.163"));
-            vSeeds.push_back(CDNSSeedData("1",  "194.182.66.218"));
-            vSeeds.push_back(CDNSSeedData("1",  "80.211.194.210"));
-            vSeeds.push_back(CDNSSeedData("1",  "81.2.248.42"));
-
+            vSeeds.push_back(CDNSSeedData("1",  "54.37.233.45"));
+            vSeeds.push_back(CDNSSeedData("2",  "173.199.114.227"));
+            vSeeds.push_back(CDNSSeedData("3",  "178.33.146.163"));
+            vSeeds.push_back(CDNSSeedData("4",  "194.182.66.218"));
+            vSeeds.push_back(CDNSSeedData("5",  "80.211.194.210"));
+            vSeeds.push_back(CDNSSeedData("6",  "81.2.248.42"));
 
             base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,127);
             base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,196);
@@ -398,7 +416,18 @@ class CTestNetParams : public CMainParams
 
             convertSeeds(vFixedSeeds, pnTestnetSeed, ARRAYLEN(pnTestnetSeed), nDefaultPort);
 
-            nLastPOWBlock = 5184000;
+            strDarksendPoolDummyAddress = "PXeU4EGgDEnFJHuNptvqsWHs4qsdYg3Ypu";
+
+            strDevRewardAddress = "tDFQKd4v6GoqjmoimRAmgH33fn5NnGLuYm";
+
+            nLastPOWBlock = 0x7fffffff;
+            nPOSStartBlock = 10000;
+
+            //nStakeMaxAge = 9999; // 9999 days
+
+            // 1.0.0.7 - Hard Forks
+            nHardFork_1 = 1200; // Block #1 Activation (HardFork_1)
+            nHardFork_2 = 1; // Block #1 Activation (HardFork_2)
         }
 
         virtual Network NetworkID() const
@@ -425,18 +454,21 @@ void SelectParams(CChainParams::Network network)
         case CChainParams::MAIN:
         {
             pCurrentParams = &mainParams;
+            
             break;
         }
 
         case CChainParams::TESTNET:
         {
             pCurrentParams = &testNetParams;
+
             break;
         }
 
         default:
         {
             assert(false && "Unimplemented network");
+
             return;
         }
     }

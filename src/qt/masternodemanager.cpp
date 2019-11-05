@@ -1,10 +1,15 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
 // Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
 // Copyright (c) 2014-2015 The Dash developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #include "masternodemanager.h"
@@ -142,15 +147,11 @@ void MasternodeManager::updateAdrenalineNode(QString alias, QString addr, QStrin
 
     QTableWidgetItem *aliasItem = new QTableWidgetItem(alias);
     QTableWidgetItem *addrItem = new QTableWidgetItem(addr);
-    QTableWidgetItem *rewardAddressItem = new QTableWidgetItem(rewardAddress);
-    QTableWidgetItem *rewardPercentageItem = new QTableWidgetItem(rewardPercentage);
     QTableWidgetItem *statusItem = new QTableWidgetItem(status);
 
     ui->tableWidget_2->setItem(nodeRow, 0, aliasItem);
     ui->tableWidget_2->setItem(nodeRow, 1, addrItem);
-    ui->tableWidget_2->setItem(nodeRow, 2, rewardPercentageItem);
-    ui->tableWidget_2->setItem(nodeRow, 3, rewardAddressItem);
-    ui->tableWidget_2->setItem(nodeRow, 4, statusItem);
+    ui->tableWidget_2->setItem(nodeRow, 2, statusItem);
 }
 
 
@@ -271,9 +272,11 @@ void MasternodeManager::on_startButton_clicked()
     QItemSelectionModel* selectionModel = ui->tableWidget_2->selectionModel();
     
     QModelIndexList selected = selectionModel->selectedRows();
+    
     if(selected.count() == 0)
     {
         statusObj += "<br>Select a Masternode alias to start" ;
+
         QMessageBox msg;
         msg.setText(QString::fromStdString(statusObj));
         msg.exec();

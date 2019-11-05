@@ -1,10 +1,15 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
 // Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
 // Copyright (c) 2014-2015 The Dash developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #ifndef RPCCONSOLE_H
@@ -16,6 +21,7 @@
 #include "peertablemodel.h"
 
 #include <QWidget>
+#include <QCompleter>
 
 namespace Ui
 {
@@ -125,6 +131,24 @@ class RPCConsole: public QWidget
         
         /** Scroll console view to end */
         void scrollToEnd();
+
+        /** Shows Information Window **/
+        void showInfo();
+
+        /** Shows RPC Console **/
+        void showConsole();
+
+        /** Shows Network Traffic **/
+        void showNetTraffic();
+
+        /** Show Peers **/
+        void showPeers();
+
+        /** Starts the Internal PoW Miner **/
+        void setgenerateTRUE();
+
+        /** Stops the internal PoW Miner **/
+        void setgenerateFALSE();
         
         /** Handle selection of peer in peers list */
         void peerSelected(const QItemSelection &selected, const QItemSelection &deselected);
@@ -184,6 +208,7 @@ class RPCConsole: public QWidget
         
         QMenu *peersTableContextMenu;
         QMenu *banTableContextMenu;
+        QCompleter *autoCompleter;
 
 };
 

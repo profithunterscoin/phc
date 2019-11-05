@@ -20,11 +20,20 @@ DEFINES += BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE QT_DISABLE_DEPRECATED_BE
 CONFIG += no_include_pwd
 CONFIG += thread
 CONFIG += static
+CONFIG += c++11
 #CONFIG += openssl-linked
 CONFIG += openssl
 OBJECTS_DIR = build
 MOC_DIR = build
 UI_DIR = build
+USE_LOWMEM = 0
+# *****************************************************
+
+# *****************************************************
+greaterThan(QT_MAJOR_VERSION, 4){
+    QT += widgets gui
+    DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0
+}
 # *****************************************************
 
 # *****************************************************
@@ -43,55 +52,95 @@ BOOST = -lboost_system -lboost_filesystem
 
 # workaround for boost 1.58
 DEFINES += BOOST_VARIANT_USE_RELAXED_GET_BY_DEFAULT
+# *****************************************************
 
+# *****************************************************
 win32:BOOST_LIB_SUFFIX=-mgw49-mt-s-1_57
 win32:BOOST_INCLUDE_PATH=C:/deps/boost_1_57_0
 win32:BOOST_LIB_PATH=C:/deps/boost_1_57_0/stage/lib
-win32:BDB_INCLUDE_PATH=C:/deps/db-6.0.20/build_unix
-win32:BDB_LIB_PATH=C:/deps/db-6.0.20/build_unix
+# *****************************************************
+
+# *****************************************************
+macx:BOOST_INCLUDE_PATH = /usr/local/Cellar/boost@1.59/1.59.0/include
+macx:BOOST_LIB_PATH = /usr/local/Cellar/boost@1.59/1.59.0/lib
+macx:BDB_INCLUDE_PATH = /usr/local/Cellar/berkeley-db@4/4.8.30/include
+macx:BDB_LIB_PATH = /usr/local/Cellar/berkeley-db@4/4.8.30/lib
+macx:OPENSSL_INCLUDE_PATH = /usr/local/Cellar/openssl/1.0.2n/include
+macx:OPENSSL_LIB_PATH = /usr/local/Cellar/openssl/1.0.2n/lib
+macx:MINIUPNPC_INCLUDE_PATH = /usr/local/Cellar/miniupnpc/include
+macx:MINIUPNPC_LIB_PATH = /usr/local/Cellar/miniupnpc/lib
+# *****************************************************
+
+# --------------------------------------------------
+# RGPickles AKA Jimmy updated new version of berkley
+# --------------------------------------------------
+
+win32:BDB_INCLUDE_PATH=C:/deps/db-18.1.32/build_unix
+win32:BDB_LIB_PATH=C:/deps/db-18.1.32/build_unix/.libs
+
 win32:OPENSSL_INCLUDE_PATH=C:/deps/openssl-1.0.2/include
 win32:OPENSSL_LIB_PATH=C:/deps/openssl-1.0.2
 win32:MINIUPNPC_INCLUDE_PATH=C:/deps/
 win32:MINIUPNPC_LIB_PATH=C:/deps/miniupnpc
 win32:QRENCODE_INCLUDE_PATH=C:/deps/qrencode-3.4.4
 win32:QRENCODE_LIB_PATH=C:/deps/qrencode-3.4.4/.libs		
-# *****************************************************
 
-# *****************************************************
+# --------------------------------------------------
+# RGPickles AKA Jimmy updated correct dependency folders
+# --------------------------------------------------
+
+win32:SECP256K1_LIB_PATH=C:/deps/secp256k1_win/lib32
+win32:SECP256K1_INCLUDE_PATH=C:/deps/secp256k1_win/include	
+
+OBJECTS_DIR = build
+MOC_DIR = build
+UI_DIR = build
+
 # use: qmake "RELEASE=1"
-contains(RELEASE, 1){
+contains(RELEASE, 1) {
     # Mac: compile for maximum compatibility (10.5, 32-bit)
-        macx:QMAKE_CXXFLAGS += -mmacosx-version-min=10.7 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk
-        macx:QMAKE_CFLAGS += -mmacosx-version-min=10.7 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk
-        macx:QMAKE_LFLAGS += -mmacosx-version-min=10.7 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk
-        macx:QMAKE_OBJECTIVE_CFLAGS += -mmacosx-version-min=10.7 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk
+    macx:QMAKE_CXXFLAGS += -mmacosx-version-min=10.7 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk
+    macx:QMAKE_CFLAGS += -mmacosx-version-min=10.7 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk
+    macx:QMAKE_LFLAGS += -mmacosx-version-min=10.7 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk
+    macx:QMAKE_OBJECTIVE_CFLAGS += -mmacosx-version-min=10.7 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk
 
-    !windows:!macx{
+
+    !windows:!macx {
         # Linux: static link
         # LIBS += -Wl,-Bstatic
     }
 }
+# *****************************************************
 
-!win32{
+# *****************************************************
+!win32 {
 # for extra security against potential buffer overflows: enable GCCs Stack Smashing Protection
-QMAKE_CXXFLAGS *= -fstack-protector-all --param ssp-buffer-size=1 -std=c++11 -Wno-deprecated-declarations
+QMAKE_CXXFLAGS *= -fstack-protector-all --param ssp-buffer-size=1
 QMAKE_LFLAGS *= -fstack-protector-all --param ssp-buffer-size=1
 # We need to exclude this for Windows cross compile with MinGW 4.2.x, as it will result in a non-working executable!
 # This can be enabled for Windows, when we switch to MinGW >= 4.4.x.
 }
-
 # for extra security (see: https://wiki.debian.org/Hardening): this flag is GCC compiler-specific
-QMAKE_CXXFLAGS *= -D_FORTIFY_SOURCE=2 -std=c++11 -Wno-deprecated-declarations
-
+QMAKE_CXXFLAGS *= -D_FORTIFY_SOURCE=2
 # for extra security on Windows: enable ASLR and DEP via GCC linker flags
 win32:QMAKE_LFLAGS *= -Wl,--dynamicbase -Wl,--nxcompat
-
 # on Windows: enable GCC large address aware linker flag
 win32:QMAKE_LFLAGS *= -Wl,--large-address-aware -static
-
 # i686-w64-mingw32
 win32:QMAKE_LFLAGS *= -static-libgcc -static-libstdc++
+# *****************************************************
 
+# *****************************************************
+# use: qmake "USE_QRCODE=1"
+# libqrencode (http://fukuchi.org/works/qrencode/index.en.html) must be installed for support
+contains(USE_QRCODE, 1) {
+    message(Building with QRCode support)
+    DEFINES += USE_QRCODE
+    LIBS += -lqrencode
+}
+# *****************************************************
+
+# *****************************************************
 # use: qmake "USE_QRCODE=1"
 # libqrencode (http://fukuchi.org/works/qrencode/index.en.html) must be installed for support
 contains(USE_QRCODE, 1){
@@ -99,7 +148,9 @@ contains(USE_QRCODE, 1){
     DEFINES += USE_QRCODE
     LIBS += -lqrencode
 }
+# *****************************************************
 
+# *****************************************************
 # use: qmake "USE_DBUS=1" or qmake "USE_DBUS=0"
 linux:count(USE_DBUS, 0){
     USE_DBUS=1
@@ -110,7 +161,9 @@ contains(USE_DBUS, 1){
     DEFINES += USE_DBUS
     QT += dbus
 }
+# *****************************************************
 
+# *****************************************************
 contains(BITCOIN_NEED_QT_PLUGINS, 1){
     DEFINES += BITCOIN_NEED_QT_PLUGINS
     QTPLUGIN += qcncodecs qjpcodecs qtwcodecs qkrcodecs qtaccessiblewidgets
@@ -125,7 +178,7 @@ SOURCES += src/txdb-leveldb.cpp
 
 !win32 {
     # we use QMAKE_CXXFLAGS_RELEASE even without RELEASE=1 because we use RELEASE to indicate linking preferences not -O preferences
-    genleveldb.commands = cd $$PWD/src/leveldb && CC=$$QMAKE_CC CXX=$$QMAKE_CXX $(MAKE) OPT=\"$$QMAKE_CXXFLAGS $$QMAKE_CXXFLAGS_RELEASE\" libleveldb.a libmemenv.a
+    genleveldb.commands = cd $$PWD/src/leveldb && chmod 755 * && CC=$$QMAKE_CC CXX=$$QMAKE_CXX $(MAKE) OPT=\"$$QMAKE_CXXFLAGS $$QMAKE_CXXFLAGS_RELEASE\" libleveldb.a libmemenv.a
 } else {
     # make an educated guess about what the ranlib command is called
     isEmpty(QMAKE_RANLIB)
@@ -148,28 +201,23 @@ QMAKE_CLEAN += $$PWD/src/leveldb/libleveldb.a; cd $$PWD/src/leveldb ; $(MAKE) cl
 
 # *****************************************************
 #Build Secp256k1
+# RGPickles AKA Jimmy updated for Windows
+
+#Build Secp256k1
 !win32 {
-    INCLUDEPATH += src/secp256k1/include
-    LIBS += $$PWD/src/secp256k1/src/libsecp256k1_la-secp256k1.o
+INCLUDEPATH += src/secp256k1/include
+LIBS += $$PWD/src/secp256k1/src/libsecp256k1_la-secp256k1.o
     # we use QMAKE_CXXFLAGS_RELEASE even without RELEASE=1 because we use RELEASE to indicate linking preferences not -O preferences
-        gensecp256k1.commands = cd $$PWD/src/secp256k1 && ./autogen.sh && ./configure --enable-module-recovery && CC=$$QMAKE_CC CXX=$$QMAKE_CXX $(MAKE) OPT=\"$$QMAKE_CXXFLAGS $$QMAKE_CXXFLAGS_RELEASE\"
-        gensecp256k1.target = $$PWD/src/secp256k1/src/libsecp256k1_la-secp256k1.o
-        gensecp256k1.depends = FORCE
-        PRE_TARGETDEPS += $$PWD/src/secp256k1/src/libsecp256k1_la-secp256k1.o
-        QMAKE_EXTRA_TARGETS += gensecp256k1
+    gensecp256k1.commands = cd $$PWD/src/secp256k1 && ./autogen.sh && ./configure --enable-module-recovery && CC=$$QMAKE_CC CXX=$$QMAKE_CXX $(MAKE) OPT=\"$$QMAKE_CXXFLAGS $$QMAKE_CXXFLAGS_RELEASE\"
+    gensecp256k1.target = $$PWD/src/secp256k1/src/libsecp256k1_la-secp256k1.o
+    gensecp256k1.depends = FORCE
+    PRE_TARGETDEPS += $$PWD/src/secp256k1/src/libsecp256k1_la-secp256k1.o
+    QMAKE_EXTRA_TARGETS += gensecp256k1
     # Gross ugly hack that depends on qmake internals, unfortunately there is no other way to do it.
-        QMAKE_CLEAN += $$PWD/src/secp256k1/src/libsecp256k1_la-secp256k1.o; cd $$PWD/src/secp256k1; $(MAKE) clean
+    QMAKE_CLEAN += $$PWD/src/secp256k1/src/libsecp256k1_la-secp256k1.o; cd $$PWD/src/secp256k1; $(MAKE) clean
 } else {
-    
-    isEmpty(SECP256K1_LIB_PATH)
-    {
-        win32:SECP256K1_LIB_PATH=C:/deps/secp256k1/.libs
-    }
-    
-    isEmpty(SECP256K1_INCLUDE_PATH)
-    {
-        win32:SECP256K1_INCLUDE_PATH=C:/deps/secp256k1/include
-    }
+
+   
 }
 
 # regenerate src/build.h
@@ -234,6 +282,7 @@ HEADERS += \
     src/qt/signverifymessagedialog.h \
     src/qt/aboutdialog.h \
     src/qt/editaddressdialog.h \
+    src/qt/importprivatekeydialog.h \
     src/qt/bitcoinaddressvalidator.h \
     src/alert.h \
     src/allocators.h \
@@ -254,8 +303,10 @@ HEADERS += \
     src/support/cleanse.h \
     src/core.h \
     src/main.h \
+    src/consensus.h \
     src/miner.h \
     src/net.h \
+    src/firewall.h \
     src/ecwrapper.h \
     src/key.h \
     src/pubkey.h \
@@ -363,6 +414,7 @@ SOURCES += \
     src/qt/signverifymessagedialog.cpp \
     src/qt/aboutdialog.cpp \
     src/qt/editaddressdialog.cpp \
+    src/qt/importprivatekeydialog.cpp \
     src/qt/bitcoinaddressvalidator.cpp \
     src/alert.cpp \
     src/allocators.cpp \
@@ -381,9 +433,11 @@ SOURCES += \
     src/scrypt.cpp \
     src/core.cpp \
     src/main.cpp \
+    src/consensus.cpp \
     src/miner.cpp \
     src/init.cpp \
     src/net.cpp \
+    src/firewall.cpp \
     src/checkpoints.cpp \
     src/addrman.cpp \
     src/db.cpp \
@@ -415,6 +469,7 @@ SOURCES += \
     src/rpcwallet.cpp \
     src/rpcblockchain.cpp \
     src/rpcrawtransaction.cpp \
+    src/rpcfirewall.cpp \
     src/qt/overviewpage.cpp \
     src/qt/csvmodelwriter.cpp \
     src/crypter.cpp \
@@ -476,6 +531,7 @@ FORMS += \
     src/qt/forms/signverifymessagedialog.ui \
     src/qt/forms/aboutdialog.ui \
     src/qt/forms/editaddressdialog.ui \
+    src/qt/forms/importprivatekeydialog.ui \
     src/qt/forms/transactiondescdialog.ui \
     src/qt/forms/overviewpage.ui \
     src/qt/forms/sendcoinsentry.ui \
@@ -635,7 +691,7 @@ windows:!contains(MINGW_THREAD_BUGFIX, 0) {
 macx:HEADERS += src/qt/macdockiconhandler.h src/qt/macnotificationhandler.h
 macx:OBJECTIVE_SOURCES += src/qt/macdockiconhandler.mm src/qt/macnotificationhandler.mm
 macx:LIBS += -framework Foundation -framework ApplicationServices -framework AppKit -framework CoreServices
-macx:DEFINES += MAC_OSX MSG_NOSIGNAL=0
+macx:DEFINES += MAC_OSX MSG_NOSIGNAL=0 Q_OS_MAC
 macx:ICON = src/qt/res/icons/phc.icns
 macx:TARGET = "PHC-Qt"
 macx:QMAKE_CFLAGS_THREAD += -pthread
@@ -646,20 +702,26 @@ macx:QMAKE_INFO_PLIST = share/qt/Info.plist
 
 # *****************************************************
 # Set libraries and includes at end, to use platform-defined defaults if not overridden
-INCLUDEPATH += $$BOOST_INCLUDE_PATH $$BDB_INCLUDE_PATH $$OPENSSL_INCLUDE_PATH $$QRENCODE_INCLUDE_PATH
-LIBS += $$join(BOOST_LIB_PATH,,-L,) $$join(BDB_LIB_PATH,,-L,) $$join(OPENSSL_LIB_PATH,,-L,) $$join(QRENCODE_LIB_PATH,,-L,)
-LIBS += -lssl -lcrypto -ldb_cxx$$BDB_LIB_SUFFIX
+INCLUDEPATH += $$BOOST_INCLUDE_PATH $$BDB_INCLUDE_PATH $$OPENSSL_INCLUDE_PATH $$QRENCODE_INCLUDE_PATH $$MINIUPNPC_INCLUDE_PATH
+LIBS += $$join(BOOST_LIB_PATH,,-L,) $$join(BDB_LIB_PATH,,-L,) $$join(OPENSSL_LIB_PATH,,-L,) $$join(QRENCODE_LIB_PATH,,-L,) $$join(MINIUPNPC_LIB_PATH,,-L,)
+
+# Added -lminiupnpc -lqrencode to LIBS for OS X builds
+LIBS += -lssl -lcrypto -ldb_cxx$$BDB_LIB_SUFFIX -lminiupnpc -lqrencode
+
+# --------------------------------------------------
+# RGPickles AKA Jimmy -ldb_cxx changed to -ldb_cxx-18.1
+# --------------------------------------------------
+
+win32:LIBS += -lssl -lcrypto -ldb_cxx-18.1$$BDB_LIB_SUFFIX
 
 # -lgdi32 has to happen after -lcrypto (see  #681)
 windows:LIBS += -lws2_32 -lshlwapi -lmswsock -lole32 -loleaut32 -luuid -lgdi32
-
 !windows: {
     LIBS += -lgmp
 } else {
     INCLUDEPATH += $$SECP256K1_INCLUDE_PATH
     LIBS += $$join(SECP256K1_LIB_PATH,,-L,) -lsecp256k1
 }
-
 LIBS += -lboost_system$$BOOST_LIB_SUFFIX -lboost_filesystem$$BOOST_LIB_SUFFIX -lboost_program_options$$BOOST_LIB_SUFFIX -lboost_thread$$BOOST_THREAD_LIB_SUFFIX
 windows:LIBS += -lboost_chrono$$BOOST_LIB_SUFFIX
 

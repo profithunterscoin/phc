@@ -1,8 +1,15 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2012 The Bitcoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #ifndef BITCOIN_UTIL_H
@@ -16,6 +23,12 @@
 
 #include "serialize.h"
 #include "tinyformat.h"
+
+#ifdef WIN32
+#include <windows.h>
+#include <dbghelp.h>
+#include <cstdlib>
+#endif
 
 #include <map>
 #include <list>
@@ -42,6 +55,11 @@
 
 class CNetAddr;
 class uint256;
+
+/* ONLY NEEDED FOR UNIT TESTING */
+#include <iostream>
+
+using namespace std;
 
 static const int64_t COIN = 100000000;
 static const int64_t CENT = 1000000;
@@ -139,6 +157,8 @@ extern bool fSucessfullyLoaded;
 extern std::vector<int64_t> darkSendDenominations;
 extern std::map<std::string, std::string> mapArgs;
 extern std::map<std::string, std::vector<std::string> > mapMultiArgs;
+
+
 extern bool fDebug;
 extern bool fDebugSmsg;
 extern bool fNoSmsg;
@@ -151,6 +171,7 @@ extern std::string strMiscWarning;
 extern bool fNoListen;
 extern bool fLogTimestamps;
 extern volatile bool fReopenDebugLog;
+extern vector<string> DebugCategories;
 
 void RandAddSeed();
 void RandAddSeedPerfmon();
@@ -328,6 +349,10 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime);
 
 void runCommand(std::string strCommand);
 
+std::string get_http_data(const std::string& server, const std::string& file);
+
+bool download_bootstrap(std::string pathBootstrap);
+
 
 /**
  * Convert string to signed 32-bit integer with strict parse error feedback.
@@ -438,13 +463,10 @@ inline int64_t GetPerformanceCounter()
 {
     int64_t nCounter = 0;
 
-#ifdef WIN32
-    QueryPerformanceCounter((LARGE_INTEGER*)&nCounter);
-#else
     timeval t;
     gettimeofday(&t, NULL);
     nCounter = (int64_t) t.tv_sec * 1000000 + t.tv_usec;
-#endif
+
     return nCounter;
 }
 
@@ -625,8 +647,18 @@ template <typename T> class CMedianFilter
         {
             int size = vSorted.size();
 
-            assert(size>0);
-            
+            if (size <= 0)
+            {
+                if (fDebug)
+                {
+                    LogPrint("core", "%s : size <= 0 (assert-1)\n", __FUNCTION__);
+                }
+
+                cout << __FUNCTION__ << " (assert-1)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+                return vSorted[0];
+            }
+
             if(size & 1) // Odd number of elements
             {
                 return vSorted[size/2];
@@ -649,9 +681,11 @@ template <typename T> class CMedianFilter
 };
 
 #ifdef WIN32
-inline void SetThreadPriority(int nPriority)
+inline void Set_ThreadPriority(int nPriority)
 {
-    SetThreadPriority(GetCurrentThread(), nPriority);
+    // Depreciated until needed in PHC
+    // Mostly used for generation threads as described below, but PHC internal miner uses 1 thread default.
+    //SetThreadPriority(boost::detail::win32::GetCurrentThread(), nPriority);
 }
 #else
 
@@ -660,7 +694,7 @@ inline void SetThreadPriority(int nPriority)
 #define THREAD_PRIORITY_NORMAL          0
 #define THREAD_PRIORITY_ABOVE_NORMAL    0
 
-inline void SetThreadPriority(int nPriority)
+inline void Set_ThreadPriority(int nPriority)
 {
     // It's unclear if it's even possible to change thread priorities on Linux,
     // but we really and truly need it for the generation threads.
@@ -767,5 +801,75 @@ template <typename Callable> void TraceThread(const char* name,  Callable func)
         PrintException(NULL, name);
     }
 }
+
+
+// * Function: CountArray *
+inline int CountStringArray(string *ArrayName)
+{
+    int tmp_cnt;
+    tmp_cnt = 0;
+
+    while(ArrayName[tmp_cnt] != "")
+    {
+        tmp_cnt++;
+    }
+
+    return tmp_cnt;
+}
+
+
+// * Function: CountArray *
+inline int CountIntArray(int *ArrayName)
+{
+    int tmp_cnt;
+    tmp_cnt = 0;
+
+    while(ArrayName[tmp_cnt] > 0)
+    {
+        tmp_cnt++;
+    }
+
+    return tmp_cnt;
+}
+
+// * Function: BoolToString *
+inline const char * const BoolToString(bool b)
+{
+    return b ? "true" : "false";
+}
+
+// * Function: StringToBool *
+inline const bool StringToBool(string b)
+{
+    if (b == "true")
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+inline const std::string StripPortFromAddrName(string str)
+{
+    if (str == "" || str.empty() == true)
+    {
+        return str;
+    }
+
+    std::size_t pos = str.find(":");
+
+    std::string Tempstr;
+    Tempstr = "";
+
+    if ((int)pos > 0)
+    {
+        Tempstr = str.substr(0, pos);
+    }
+
+    return Tempstr; 
+}
+
 
 #endif

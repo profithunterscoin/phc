@@ -1,8 +1,16 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2012 The Bitcoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
+
 
 #ifndef BITCOIN_UINT256_H
 #define BITCOIN_UINT256_H
@@ -412,6 +420,24 @@ template<unsigned int BITS> class base_uint
             return (!(a == b));
         }
 
+        bool IsNull() const
+        {
+            for (int i = 0; i < WIDTH; i++)
+            {
+                if (pn[i] != 0)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        void SetNull()
+        {
+            memset(pn, 0, sizeof(pn));
+        }
+
         std::string GetHex() const
         {
             char psz[sizeof(pn)*2 + 1];
@@ -744,6 +770,13 @@ class uint256 : public base_uint256
                 *this = 0;
             }
         }
+
+    //~~~~~~~~~~~~~~~~~~~~~ FROM BITCOIN CORE 10 START ~~~~~~~~~~~~~~~~~~~~~
+    // NOTE: Not working 100% yet
+    uint256& SetCompact(uint32_t nCompact, bool *pfNegative = NULL, bool *pfOverflow = NULL);
+    uint32_t GetCompact(bool fNegative = false) const;
+    //~~~~~~~~~~~~~~~~~~~~~ FROM BITCOIN CORE 10 END ~~~~~~~~~~~~~~~~~~~~~
+
 };
 
 inline bool operator==(const uint256& a, uint64_t b)                         { return (base_uint256)a == b; }
@@ -1250,6 +1283,9 @@ inline int Testuint256AdHoc(std::vector<std::string> vArg)
 
 #endif
 
+
 #endif
+
+
 
 

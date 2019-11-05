@@ -1,10 +1,15 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
 // Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
 // Copyright (c) 2014-2015 The Dash developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #include "sendmessagesentry.h"
@@ -32,7 +37,7 @@ SendMessagesEntry::SendMessagesEntry(QWidget *parent) : QFrame(parent), ui(new U
     /* Do not move this to the XML file, Qt before 4.7 will choke on it */
     ui->addAsLabel->setPlaceholderText(tr("Enter a label for this address to add it to your address book"));
     ui->sendTo->setPlaceholderText(tr("Enter a PHC address (e.g. P8gZqgY4r2RoEdqYk3QsAqFckyf9pRHN6i)"));
-    ui->publicKey->setPlaceholderText(tr("Enter the public key for the address above, it is not in the blockchain"));
+    ui->publicKey->setPlaceholderText(tr("Enter the public key for the address above, if is not in the blockchain"));
     ui->messageText->setErrorText(tr("You cannot send a blank message!"));
 #endif
     setFocusPolicy(Qt::TabFocus);

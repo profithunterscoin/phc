@@ -12,25 +12,85 @@ PHC is a Pow/PoS/Masternode-based cryptocurrency to be used for affiliate
 opportunities and online marketing. Assisting new crypto-currency users get
 started with peer to peer profits from trading coins on our decentralized exchange.
 
-v1.0.0.7 (Pre-release)
+
+v1.0.0.8 (Next Release)
+* Multisig - GUI Update, Codebase changes from Hempcoin V1, Critical Bitcoin Core 10+ updates
+* New GUIs: ExportWalletKeys (umpwallet), ExportAddressKey(dumpkeys), ChangeGenProcLimit
+
+v1.0.0.7 (Pre-release - unfinished)
 --------
 * Cleaned Core and QT source files
-* OpenSSL 1.1 Support
+* OpenSSL 1.1 Support from Ignition coin (https://github.com/ignitioncoin/ignitioncoin/commit/8c08f09ef639a9c48b00661297619c23b9514966)
 * FIX: Excessive CPU use during mining
 * Upgrade: Debug to Logfile (Disabled by default, Added Categories and Function Names)
 * FIX: Removed peer banning ProcessBlock, upgraded some Misbehaving calls in main.cpp
-* Installed: Retarget Hard Fork (TimeFrame changed from 120 to 60 seconds) (Mainnet: Inactive, Testnet: Block # 338250)
-* Installed: Block Shield 1.2.1 (Mainnet: Inactive, Testnet: Block # 338250)
-* FIX: Blank Masternode Payee in CBlock::AddToBlockIndex()
-* Install Internal PoW Miner (setgenerate)
+* Installed: Retarget Hard Fork (TimeFrame changed from 120 to 60 seconds) (Hard-Fork 1)
+* Installed: Block Shield 1.2.1 (Hard-Fork 1)
+* Installed: ASIC Choker 1.0.1 (Hard-Fork 1)
+* FIX: Blank Masternode Payee in CBlock::AddToBlockIndex() (Hard-Fork 1)
+* Installed: Internal PoW Miner (setgenerate)
+* Upgraded: Internal PoW Miner (Wait for approx expected block times, PrintToConsole, LogFlooding prevention)
 * FIX: Sync time minimized & Reorganize/Prune orphan blocks
-* FIX: RPC Client & INIT Msg
-* FIX: Swapped BOOST::copy_file for STD copy_file (BOOST 1.55)
-* FIX: LoadblockIndex Init
-* Installed: Init PruneOrphanBlocks
-* Installed: RPC Prune & Reorganize
-* Installed: RollbackChain function
+* FIX: RPC Client & Initialization Msg
+* FIX: BOOST::copy_file & STD copy_file (BOOST 1.55 compatibility)
+* FIX: LoadblockIndex Initialization
+* Installed: OnStartup PruneOrphanBlocks
+* Installed: InitArgs Prune, Backtoblock, Rollbackchain, Clearchainfiles
+* FIX: Network specific .conf
+* Installed: New Testnet
+* FIX: PoW & PoS New Mint value (GetInfo RPC / BlockToJSON)
+* Installed GetNewPOWMint & GetNewPOSMint in CWallet
+* Installed: RPC Prune & Reorganize & Backtoblock, Rollbackchain, Clearchainfiles,
+* FIX: MoneySupply (CBlockIndex)
+* FIX: Compiling on Ubuntu 16
+* Menu Items update: File -> Main, Settings -> Wallet, Added: Tools, Mining & Social Links
+* Fixes from Talium coin (https://github.com/taliumtech/talium/commit/f673d50f41b4f5ee6f9e670d859a9de634620071)
+* Installed: Developer Fee, 10% of block reward (Hard Fork 1)
+* TurboSync 1.0.0 (2x network sync speedup, unlimited scaling)
+* Installed: RPC forcesync, getpeeraverageheight
+* Dynamic Checkpoints 1.0.0
+* Chain Shield 1.0.0 (default check every 1 block)
+* Consensus::ChainBuddy 1.0.0 (Satoshi's Vision 2.0 - Wallet & Network Consensus)
+* Installed: DynamicCheckpointRecv && DynamicCheckpointSent values output from CNode to GetPeerInfo RPC
+* Installed RPC: getchainshieldinfo, chainshieldenabled, getchainbuddyinfo, chainshieldenabled
+* Upgraded: Firewall to 2.0.0.2
+* Upgraded: Uint256 with SetNull & IsNull https://gitlab.crown.tech/Edwardmorra/crown-core/commit/c655cca28ba620bdcf90a8c540c840c736aa318d
+* Installed: DynamicCoinDistribution & Upgraded ASIC Choker
+* Upgraded: Blockcount GUI
+* Added Daemon support for Android using Termux (makefile.android)
+* Boost 1.70 support & Berkeley 18.1.23
+* Orphan Sync bugs in ProcessBlock
+* Hypersync mode
+* Lowbandwidth mode
+* Upgraded getinfo RPC
+* Disable connections when bootstrapping
+* Installed: -orphansync to request full orphan chains from nodes (Disabled by default)
+* Installed: -autoprune=maxblocks mode (1 block max default) when ProcessBlock gets an orphan block after InitialBlockDownload
+* Installed: -bootstrap downloads recent version from ProfitHuntersCoin.com automatically
+* FIX: LevelDB (Android)
+* Disabled: accountingDeprecationCheck
+* Assert() replaced by proper debuging in core functions/classes
+* Installed ForceRandomSync of X amount of nodes
+* Sanitize command strings (Evil-Knievel) https://github.com/bitcoin/bitcoin/pull/5770/commits/28d4cff0ed2d4438da4bbf2d4ca0465715603af5
+* FIX: slow full-sync, bootstrapping issues
+* FIX: InitialBlockDownload from Peercoin https://github.com/sigmike/peercoin/commit/ad71a3b1890208c9ef8ea005c76ee18fbf0b6065
+* Optimized InternalMiner/Staking functions
 
+TO FINISH:
+* Apostolaki Hijack (BGP) fix (Firewall)
+* Eclipse Attack fix (Firewall)
+* Erebus Attack fix (Firewall)
+* https://bitcointalk.org/index.php?topic=1039713.0
+* https://github.com/dashpay/dash/pull/178/commits/864338a2b2405f3f598961fcc20c0881ae06391e
+* https://github.com/bitcoin/bitcoin/commit/f676c80f437e15ab0ee190e93baea733a88db0f2#commitcomment-8996114
+* Replace BOOST_FOR with c++11 FOR()
+
+v1.0.0.7 (To Finish before release)
+--------
+* DDoS Shield & Firewall upgrades
+* Masternode reward decentralization (Hard-Fork 1)
+* New RPC: getasicchokerlog, blockshield, dynamiccheckpoint
+* Transaction View Masternode payments / staking / mining
 
 v1.0.0.6
 --------

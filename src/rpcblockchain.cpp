@@ -1,17 +1,28 @@
-// Copyright (c) 2010 Satoshi Nakamoto
-// Copyright (c) 2009-2012 The Bitcoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #include "rpcserver.h"
 #include "main.h"
+#include "net.h"
 #include "kernel.h"
 #include "checkpoints.h"
+#include "init.h"
+#include "consensus.h"
 
 using namespace json_spirit;
 using namespace std;
+using namespace CBan;
 
 
 extern void TxToJSON(const CTransaction& tx, const uint256 hashBlock, json_spirit::Object& entry);
@@ -144,7 +155,8 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool fPri
     result.push_back(Pair("version", block.nVersion));
     result.push_back(Pair("merkleroot", block.hashMerkleRoot.GetHex()));
 #ifndef LOWMEM
-    result.push_back(Pair("mint", ValueFromAmount(blockindex->nMint)));
+    result.push_back(Pair("POWmint", ValueFromAmount(blockindex->nPOWMint)));
+    result.push_back(Pair("POSmint", ValueFromAmount(blockindex->nPOSMint)));
 #endif
     result.push_back(Pair("moneysupply", ValueFromAmount(blockindex->nMoneySupply)));
     result.push_back(Pair("time", (int64_t)block.GetBlockTime()));
@@ -165,7 +177,7 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool fPri
     }
 
     result.push_back(Pair("flags", strprintf("%s%s", blockindex->IsProofOfStake()? "proof-of-stake" : "proof-of-work", blockindex->GeneratedStakeModifier()? " stake-modifier": "")));
-    result.push_back(Pair("proofhash", blockindex->hashProof.GetHex()));
+    result.push_back(Pair("proofhash", blockindex->IsProofOfStake()? blockindex->hashProof.GetHex() : blockindex->GetBlockHash().GetHex()));
     result.push_back(Pair("entropybit", (int)blockindex->GetStakeEntropyBit()));
     result.push_back(Pair("modifier", strprintf("%016x", blockindex->nStakeModifier)));
     
@@ -369,25 +381,24 @@ Value prune(const Array& params, bool fHelp)
     // Accept the deprecated and ignored 'detach' boolean argument
     if (fHelp || params.size() > 1)
     {
-        throw runtime_error("Prune\n"
-                            "Prune Orphan blocks (blockchain index)");
+        throw runtime_error("prune\n"
+                            "prune Orphan blocks (blockchain index)"
+                            );
     }
     
-    PruneOrphanBlocks();
+    CChain::PruneOrphanBlocks();
 
     return true;
 }
 
 
-Value rollback(const Array& params, bool fHelp)
+Value rollbackchain(const Array& params, bool fHelp)
 {
-
     if (fHelp || params.size() < 1)
     {
-        throw runtime_error("rollback <blockcount>\n"
-                            "Rollback blockchain index by X blocks (100 default)"
-                            "NOTE: Daemon or QT restart required after."
-                            "NOTE: Not working 100% correctly yet");
+        throw runtime_error("rollbackchain <blockcount>\n"
+                            "Rollbackchain blockchain index by X blocks (100 default)"
+                            );
     }
 
     int nBlockCount = (int)strtod(params[0].get_str().c_str(), NULL);
@@ -397,8 +408,161 @@ Value rollback(const Array& params, bool fHelp)
         nBlockCount = 100;
     }
 
+    int OldHeight = nBestHeight;
 
-    // Rollback chain to ensure correct sync
-    return RollbackChain(nBlockCount);
+    nBestHeight = CChain::RollbackChain(nBlockCount);
 
+    throw runtime_error(strprintf("%s : Rollback completed: %d blocks total (%d -> %d)", __FUNCTION__, nBlockCount, OldHeight, nBestHeight));
+
+    return true;
 }
+
+
+Value backtoblock(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() < 1)
+    {
+        throw runtime_error("backtoblock <blockheight>\n"
+                            "Rollbacktoblock local database to block height (default: 100000)"
+                            );
+    }
+
+    int nNewHeight = (int)strtod(params[0].get_str().c_str(), NULL);
+
+    if (nNewHeight == 0)
+    {
+        nNewHeight = 100000;
+    }
+
+    int OldHeight = nBestHeight;
+    int nBlockCount = nBestHeight - nNewHeight;
+
+    nBestHeight = CChain::Backtoblock(nNewHeight);
+
+    throw runtime_error(strprintf("%s : Backtoblock %d completed: %d blocks total (%d -> %d)", __FUNCTION__, nNewHeight, nBlockCount, OldHeight, nBestHeight));
+
+    return true;
+}
+
+
+Value forcesync(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 0)
+    {
+        throw runtime_error("forcesync\n"
+                            "Forces nodes to sync from current local block height.");
+    }
+
+    CNode* blank_filter = 0;
+    
+    return strprintf("ForceSync nodes: %d", CChain::ForceSync(blank_filter, uint256(0)));
+}
+
+
+Value getchainbuddyinfo(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 0)
+    {
+        throw runtime_error("getchainbuddyinfo\n"
+                            "Show info of Chain Buddy.\n");
+    }
+
+    Object result, map, mapitem;
+
+    result.push_back(Pair("enabled",                            Consensus::ChainBuddy::Enabled));
+    result.push_back(Pair("wallethasconsensus",                 Consensus::ChainBuddy::WalletHasConsensus()));
+    result.push_back(Pair("nodeshaveconsensus",                 Consensus::ChainBuddy::GetNodeCount(Consensus::ChainBuddy::BestCheckpoint.hash)));
+    result.push_back(Pair("bestcheckpointheight",               (int)Consensus::ChainBuddy::BestCheckpoint.height));
+    result.push_back(Pair("bestcheckpointhash",                 Consensus::ChainBuddy::BestCheckpoint.hash.GetHex()));
+    result.push_back(Pair("bestcheckpointtimestamp",            Consensus::ChainBuddy::BestCheckpoint.timestamp));
+    result.push_back(Pair("bestcheckpointaddrlog",              Consensus::ChainBuddy::BestCheckpoint.fromnode));
+    result.push_back(Pair("checkpointmapsize",                  (int)Consensus::ChainBuddy::ConsensusCheckpointMap.size()));
+
+        if (Consensus::ChainBuddy::ConsensusCheckpointMap.size() > 0)
+        {
+            int cnt;
+
+            for (int item = 0; item <= (signed)Consensus::ChainBuddy::ConsensusCheckpointMap.size() - 1; ++item)
+            {
+                cnt = cnt + 1;
+                Object mapitem;
+
+                    mapitem.push_back(Pair("hash",              Consensus::ChainBuddy::ConsensusCheckpointMap[item].second.hash.GetHex()));
+                    mapitem.push_back(Pair("nodes",             Consensus::ChainBuddy::ConsensusCheckpointMap[item].first));
+                    mapitem.push_back(Pair("height",            Consensus::ChainBuddy::ConsensusCheckpointMap[item].second.height));
+                    mapitem.push_back(Pair("timestamp",         Consensus::ChainBuddy::ConsensusCheckpointMap[item].second.timestamp));
+                    //mapitem.push_back(Pair("synced",            Consensus::ChainBuddy::ConsensusCheckpointMap[item].second.synced));
+                    mapitem.push_back(Pair("nodelog",            Consensus::ChainBuddy::ConsensusCheckpointMap[item].second.fromnode));
+                
+                map.push_back(Pair(strprintf("%d", cnt),         mapitem));       
+            }
+        }
+
+    result.push_back(Pair("checkpointmap",                      map));
+
+    return result;
+}
+
+
+Value chainbuddyenabled(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 1)
+    {
+        throw runtime_error("chainbuddyenabled\n"
+                            "Set Chain Buddy Enabled: TRUE/FALSE.");
+    }
+
+    if (params.size()  == 1)
+    {
+        Consensus::ChainBuddy::Enabled = StringToBool(params[0].get_str());
+    }
+
+    return strprintf("Consensus::ChainBuddy::Enabled %d", Consensus::ChainBuddy::Enabled);
+}
+
+
+Value getchainshieldinfo(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 0)
+    {
+        throw runtime_error("getchainshieldinfo\n"
+                            "Show info of Chain Shield.\n");
+    }
+
+    Object result;
+    
+    result.push_back(Pair("enabled",                           Consensus::ChainShield::Enabled));
+    result.push_back(Pair("disablenewblocks",                  Consensus::ChainShield::DisableNewBlocks));
+    result.push_back(Pair("cacheheight",                       Consensus::ChainShield::ChainShieldCache));
+    result.push_back(Pair("rollbackrunaway",                   Consensus::ChainShield::Rollback_Runaway));
+    
+    return result;
+}
+
+
+Value chainshieldenabled(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 1)
+    {
+        throw runtime_error("chainshieldenabled\n"
+                            "Set Chain Shield Enabled: TRUE/FALSE.");
+    }
+
+    Consensus::ChainShield::Enabled = StringToBool(params[0].get_str());
+
+    return strprintf("Consensus::ChainShield::Enabled %d", Consensus::ChainShield::Enabled);
+}
+
+Value chainshieldrollbackrunaway(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 1)
+    {
+        throw runtime_error("chainshieldrollbackrunaway\n"
+                            "Set Chain Shield Rollback Runaway Exception (Auto-Fix) Enabled: TRUE/FALSE.");
+    }
+
+    Consensus::ChainShield::Rollback_Runaway = StringToBool(params[0].get_str());
+
+    return strprintf("Consensus::ChainShield::Rollback_Runaway %d", Consensus::ChainShield::Rollback_Runaway);
+}
+

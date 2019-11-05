@@ -1,8 +1,15 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #include "init.h"
@@ -69,6 +76,10 @@ unsigned int nMinerSleep;
 bool fUseFastIndex;
 bool fOnlyTor = false;
 
+extern vector<string> DebugCategories; 
+
+// Turbosync (C) 2019 - Profit Hunters Coin
+int64_t TURBOSYNC_MAX;
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -302,11 +313,15 @@ std::string HelpMessage()
 
 #endif
     strUsage += "  -testnet               " + _("Use the test network") + "\n";
+    strUsage += "  -lowbandwidth          " + _("Use low bandwidth sync mode") + "\n";
+    strUsage += "  -hypersync             " + _("Use very high bandwidth sync mode") + "\n";
+    strUsage += "  -orphansync            " + _("Use orphan chain sync mode") + "\n";
+    strUsage += "  -debugrpc              " + _("Live debug to console from RPC Request Data") + "\n";
     strUsage += "  -debug=<category>      " + _("Output debugging information (default: 0, supplying <category> is optional)") + "\n";
     strUsage +=                               _("If <category> is not supplied, output all debugging information.") + "\n";
     strUsage +=                               _("<category> can be: alert, core, init, db, wallet, masternode, instantx, firewall,") + "\n";
     strUsage +=                               _("stealth, protocol, net, darksend, mempool, uint, stakemodifier, kernel, util, rpc,") + "\n";
-    strUsage +=                               _("addrman, daemon, sync, socks, smessage, mining, coinage, spork") + "\n";
+    strUsage +=                               _("addrman, daemon, sync, socks, smessage, mining, coinage, spork, leveldb, key, base58, script, wallet") + "\n";
 
     if (fHaveGUI)
     {
@@ -348,6 +363,12 @@ std::string HelpMessage()
     strUsage += "  -checkblocks=<n>       " + _("How many blocks to check at startup (default: 500, 0 = all)") + "\n";
     strUsage += "  -checklevel=<n>        " + _("How thorough the block verification is (0-6, default: 1)") + "\n";
     strUsage += "  -loadblock=<file>      " + _("Imports blocks from external blk000?.dat file") + "\n";
+    strUsage += "  -reindex               " + _("Reindex addresses found in blockchain database") + "\n";
+    strUsage += "  -rebuild               " + _("Rebuilds local Blockchain Database") + "\n";
+    strUsage += "  -clearchainfiles       " + _("Removes local Blockchain Database files") + "\n";
+    strUsage += "  -autoprune=<n>         " + _("Autoprune when orphan found X amount of blocks (default: 0") + "\n";
+    strUsage += "  -rollbackchain=<n>     " + _("Rollbackchain local database X amount of blocks (default: 100") + "\n";
+    strUsage += "  -backtoblock=<n>       " + _("Rollbacktoblock local database to block height (default: 100000)") + "\n";
     strUsage += "  -maxorphanblocks=<n>   " + strprintf(_("Keep at most <n> unconnectable blocks in memory (default: %u)"), DEFAULT_MAX_ORPHAN_BLOCKS) + "\n";
 
     strUsage += "\n" + _("Block creation options:") + "\n";
@@ -361,7 +382,7 @@ std::string HelpMessage()
     strUsage += "  -rpcsslprivatekeyfile=<file.pem>         " + _("Server private key (default: server.pem)") + "\n";
     strUsage += "  -rpcsslciphers=<ciphers>                 " + _("Acceptable ciphers (default: TLSv1.2+HIGH:TLSv1+HIGH:!SSLv3:!SSLv2:!aNULL:!eNULL:!3DES:@STRENGTH)") + "\n";
     strUsage += "  -litemode=<n>          " + _("Disable all Darksend and Stealth Messaging related functionality (0-1, default: 0)") + "\n";
-strUsage += "\n" + _("Masternode options:") + "\n";
+    strUsage += "\n" + _("Masternode options:") + "\n";
     strUsage += "  -masternode=<n>            " + _("Enable the client to act as a masternode (0-1, default: 0)") + "\n";
     strUsage += "  -mnconf=<file>             " + _("Specify masternode configuration file (default: masternode.conf)") + "\n";
     strUsage += "  -mnconflock=<n>            " + _("Lock masternodes from masternode configuration file (default: 1)") + "\n";
@@ -383,6 +404,15 @@ strUsage += "\n" + _("Masternode options:") + "\n";
         "  -debugsmsg                               " + _("Log extra debug messages.") + "\n" +
         "  -smsgscanchain                           " + _("Scan the block chain for public key addresses on startup.") + "\n" +
     strUsage += "  -stakethreshold=<n> " + _("This will set the output size of your stakes to never be below this number (default: 100)") + "\n";
+
+    strUsage += "\n" + _("Network Options:") + "\n";
+    strUsage += "  -turbosyncmax=<n> " + _("Maximum level 0-5 (default: 5)") + "\n" +
+    "           0 = disabled (10000 Max Inv) (1000 Max Addr) (500 Max Blocks)\n" +
+    "           1 = enabled (20000 Max Inv) (2000 Max Addr) (1000 Max Blocks)\n" +
+    "           2 = enabled (40000 Max Inv) (4000 Max Addr) (2000 Max Blocks)\n" +
+    "           3 = enabled (80000 Max Inv) (8000 Max Addr) (4000 Max Blocks)\n" +
+    "           4 = enabled (160000 Max Inv) (16000 Max Addr) (8000 Max Blocks)\n" +
+    "           5 = enabled (320000 Max Inv) (32000 Max Addr) (16000 Max Blocks)\n";
 
     return strUsage;
 }
@@ -411,6 +441,15 @@ bool InitSanityCheck(void)
  */
 bool AppInit2(boost::thread_group& threadGroup)
 {
+    // Turbosync (C) 2019 - Profit Hunters Coin
+    // 0 = disabled (10000 Max Inv) (1000 Max Addr) (500 Max Blocks)
+    // 1 = enabled (20000 Max Inv) (2000 Max Addr) (1000 Max Blocks)
+    // 2 = enabled (40000 Max Inv) (4000 Max Addr) (2000 Max Blocks)
+    // 3 = enabled (80000 Max Inv) (8000 Max Addr) (4000 Max Blocks)
+    // 4 = enabled (160000 Max Inv) (16000 Max Addr) (8000 Max Blocks)
+    // 5 = enabled (320000 Max Inv) (32000 Max Addr) (16000 Max Blocks)
+    TURBOSYNC_MAX = GetArg("-turbosyncmax", 5);
+
     // ********************************************************* Step 1: setup
 #ifdef _MSC_VER
     // Turn off Microsoft heap dump noise
@@ -459,14 +498,36 @@ bool AppInit2(boost::thread_group& threadGroup)
     // ********************************************************* Step 2: parameter interactions
 
     fDebug = false;
-
-    // Special-case: if -debug=0/-nodebug is set, turn off debugging messages
-    const vector<string>& categories = mapMultiArgs["-debug"];
+    DebugCategories = mapMultiArgs["-debug"];
 
     // Special-case: if -debug=1/ is set, turn on debugging messages
-    if (GetBoolArg("-debug", false) || find(categories.begin(), categories.end(), string("1")) != categories.end())
+    if (GetBoolArg("-debug", false) == true || DebugCategories.empty() == false)
     {
         fDebug = true;
+    }
+
+    if(fDebug)
+    {
+	    fDebugSmsg = true;
+    }
+    else
+    {
+        fDebugSmsg = GetBoolArg("-debugsmsg", false);
+    }
+
+    if (fLiteMode)
+    {
+        fNoSmsg = true;
+    }
+    else
+    {
+        fNoSmsg = GetBoolArg("-nosmsg", false);
+    }
+
+    // Check for -debugnet (deprecated)
+    if (GetBoolArg("-debugnet", false))
+    {
+        InitWarning(_("Warning: Deprecated argument -debugnet ignored, use -debug=net"));
     }
 
     nNodeLifespan = GetArg("-addrlifespan", 7);
@@ -474,11 +535,6 @@ bool AppInit2(boost::thread_group& threadGroup)
     nMinerSleep = GetArg("-minersleep", 500);
 
     nDerivationMethodIndex = 0;
-
-    if (!SelectParamsFromCommandLine())
-    {
-        return InitError("Invalid combination of -testnet and -regtest.");
-    }
 
     if (mapArgs.count("-bind"))
     {
@@ -593,29 +649,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     // ********************************************************* Step 3: parameter-to-internal-flags
 
-    if(fDebug)
-    {
-	    fDebugSmsg = true;
-    }
-    else
-    {
-        fDebugSmsg = GetBoolArg("-debugsmsg", false);
-    }
 
-    if (fLiteMode)
-    {
-        fNoSmsg = true;
-    }
-    else
-    {
-        fNoSmsg = GetBoolArg("-nosmsg", false);
-    }
-
-    // Check for -debugnet (deprecated)
-    if (GetBoolArg("-debugnet", false))
-    {
-        InitWarning(_("Warning: Deprecated argument -debugnet ignored, use -debug=net"));
-    }
 
     // Check for -socks - as this is a privacy risk to continue, exit here
     if (mapArgs.count("-socks"))
@@ -683,6 +717,25 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     // ********************************************************* Step 4: application initialization: dir lock, daemonize, pidfile, debug log
 
+    // AppData Directory doesn't exist, create it.
+    if (!boost::filesystem::is_directory(GetDataDir(true)))
+    {
+        fprintf(stderr, "Error: Specified directory does not exist. Creating directory now... Please wait.\n");
+
+        if (boost::filesystem::create_directory(GetDataDir(true)))
+        {
+            fprintf(stderr, "Created directory (wallet shutting down, restart using: phcd)\n");
+
+            MilliSleep(10000);
+
+            Shutdown();
+        }
+        else
+        {
+            fprintf(stderr, "Created directory failed.\n");
+        }
+    }
+
     // Initialize elliptic curve code
     ECC_Start();
 
@@ -694,7 +747,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         return InitError(_("Initialization sanity check failed. PHC is shutting down."));
     }
 
-    std::string strDataDir = GetDataDir().string();
+    std::string strDataDir = GetDataDir(true).string();
 #ifdef ENABLE_WALLET
 
     std::string strWalletFileName = GetArg("-wallet", "wallet.dat");
@@ -707,7 +760,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
 #endif
     // Make sure only a single Bitcoin process is using the data directory.
-    boost::filesystem::path pathLockFile = GetDataDir() / ".lock";
+    boost::filesystem::path pathLockFile = GetDataDir(true) / ".lock";
     FILE* file = fopen(pathLockFile.string().c_str(), "a"); // empty lock file; created if it doesn't exist.
 
     if (file)
@@ -773,16 +826,19 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     int64_t nStart;
 
+
+
+
     // ********************************************************* Step 5: Backup wallet and verify wallet database integrity
 #ifdef ENABLE_WALLET
     if (!fDisableWallet)
     {
 
-        filesystem::path backupDir = GetDataDir() / "backups";
+        filesystem::path backupDir = GetDataDir(true) / "backups";
         if (!filesystem::exists(backupDir))
         {
             // Always create backup folder to not confuse the operating system's file browser
-            filesystem::create_directories(backupDir);
+            filesystem::create_directory(backupDir);
         }
 
         nWalletBackups = GetArg("-createwalletbackups", 10);
@@ -797,7 +853,7 @@ bool AppInit2(boost::thread_group& threadGroup)
                 std::string backupPathStr = backupDir.string();
 
                 backupPathStr += "/" + strWalletFileName;
-                std::string sourcePathStr = GetDataDir().string();
+                std::string sourcePathStr = GetDataDir(true).string();
                 sourcePathStr += "/" + strWalletFileName;
 
                 boost::filesystem::path sourceFile = sourcePathStr;
@@ -871,11 +927,11 @@ bool AppInit2(boost::thread_group& threadGroup)
 
         uiInterface.InitMessage(_("Verifying database integrity..."));
 
-        if (!bitdb.Open(GetDataDir()))
+        if (!bitdb.Open(GetDataDir(true)))
         {
             // try moving the database env out of the way
-            boost::filesystem::path pathDatabase = GetDataDir() / "database";
-            boost::filesystem::path pathDatabaseBak = GetDataDir() / strprintf("database.%d.bak", GetTime());
+            boost::filesystem::path pathDatabase = GetDataDir(true) / "database";
+            boost::filesystem::path pathDatabaseBak = GetDataDir(true) / strprintf("database.%d.bak", GetTime());
 
             try
             {
@@ -892,7 +948,7 @@ bool AppInit2(boost::thread_group& threadGroup)
             }
 
             // try again
-            if (!bitdb.Open(GetDataDir()))
+            if (!bitdb.Open(GetDataDir(true)))
             {
                 // if it still fails, it probably means we can't even create the database env
                 string msg = strprintf(_("Error initializing wallet database environment %s!"), strDataDir);
@@ -910,7 +966,7 @@ bool AppInit2(boost::thread_group& threadGroup)
             }
         }
 
-        if (filesystem::exists(GetDataDir() / strWalletFileName))
+        if (filesystem::exists(GetDataDir(true) / strWalletFileName))
         {
             CDBEnv::VerifyResult r = bitdb.Verify(strWalletFileName, CWalletDB::Recover);
 
@@ -1110,6 +1166,139 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     // ********************************************************* Step 7: load blockchain
 
+    uiInterface.InitMessage(_("Loading block index..."));
+
+    nStart = GetTimeMillis();
+
+    bool DbsLoaded = false;
+
+    // Rebuilds local blockchain Database
+    if(GetBoolArg("-clearchainfiles", false))
+    {
+        filesystem::path pathBlockchain = GetDataDir(true) / "blk0001.dat";
+        filesystem::path pathDatabase = GetDataDir(true) / "database";
+        filesystem::path pathsmsgDB = GetDataDir(true) / "smsgDB";
+        filesystem::path pathTxleveldb = GetDataDir(true) / "txleveldb";
+        filesystem::path pathMncache = GetDataDir(true) / "mncache.dat";
+
+        filesystem::remove_all(pathBlockchain);
+        filesystem::remove_all(pathDatabase);
+        filesystem::remove_all(pathsmsgDB);
+        filesystem::remove_all(pathTxleveldb);
+        filesystem::remove_all(pathMncache);
+
+        return InitError(strprintf("%s : Removal of local blockchain files complete, start wallet again to re-sync fresh, or Bootstrap manually.", __FUNCTION__));
+    }
+
+    // Rebuilds local blockchain Database
+    if(GetBoolArg("-rebuild", false))
+    {
+        uiInterface.InitMessage(("Rebuilding local blockchain...\n"));
+        fprintf(stdout, "Rebuilding local blockchain...\n");
+
+        filesystem::path pathBlockchain = GetDataDir(true) / "blk0001.dat";
+        filesystem::path pathBootstrap = GetDataDir(true) / "bootstrap.dat";
+        filesystem::path pathDatabase = GetDataDir(true) / "database";
+        filesystem::path pathsmsgDB = GetDataDir(true) / "smsgDB";
+        filesystem::path pathTxleveldb = GetDataDir(true) / "txleveldb";
+        filesystem::path pathMncache = GetDataDir(true) / "mncache.dat";
+
+        if (filesystem::exists(pathBlockchain))
+        {
+            filesystem::rename(pathBlockchain, pathBootstrap);
+            filesystem::remove_all(pathDatabase);
+            filesystem::remove_all(pathsmsgDB);
+            filesystem::remove_all(pathTxleveldb);
+            filesystem::remove_all(pathMncache);
+        }
+
+        MilliSleep(1000);
+
+        // Load bootstrap
+        if (filesystem::exists(pathBootstrap))
+        {
+            FILE *file = fopen(pathBootstrap.string().c_str(), "rb");
+
+            if (file)
+            {
+                filesystem::path pathBootstrapOld = GetDataDir(true) / "bootstrap.dat.old";
+
+                uiInterface.InitMessage(("Bootstraping after rebuild..\n"));
+                fprintf(stdout, "Bootstraping after rebuild...\n");
+
+                DbsLoaded = LoadExternalBlockFile(file);
+                
+                RenameOver(pathBootstrap, pathBootstrapOld);
+
+                uiInterface.InitMessage(("Bootstraping completed.\n"));
+                fprintf(stdout, "Bootstrap completed.\n");
+            }
+        }
+
+        return InitError(strprintf("%s : Rebuild local blockchain complete, restart wallet again (phc-qt or phcd) to auto-bootstrap local blockchain index.", __FUNCTION__)); 
+    }
+
+    // Bootstraps local blockchain from ProfitHuntersCoin.com/bootstraps/bootstrap.dat
+    if(GetBoolArg("-bootstrap", false))
+    {
+        uiInterface.InitMessage(("Clearing local blockchain files...\n"));
+        fprintf(stdout, "Clearing local blockchain files...\n");
+
+        filesystem::path pathBlockchain = GetDataDir(true) / "blk0001.dat";
+        filesystem::path pathBootstrap = GetDataDir(true) / "bootstrap.dat";
+        filesystem::path pathDatabase = GetDataDir(true) / "database";
+        filesystem::path pathsmsgDB = GetDataDir(true) / "smsgDB";
+        filesystem::path pathTxleveldb = GetDataDir(true) / "txleveldb";
+        filesystem::path pathMncache = GetDataDir(true) / "mncache.dat";
+
+        if (filesystem::exists(pathBlockchain))
+        {
+            filesystem::rename(pathBlockchain, pathBootstrap);
+            filesystem::remove_all(pathDatabase);
+            filesystem::remove_all(pathsmsgDB);
+            filesystem::remove_all(pathTxleveldb);
+            filesystem::remove_all(pathMncache);
+        }
+
+        MilliSleep(1000);
+
+        uiInterface.InitMessage(("Downloading Bootstrap...\n"));
+        fprintf(stdout, "Downloading Bootstrap...\n");
+
+        download_bootstrap(pathBootstrap.string());
+
+        return InitError(strprintf("%s : Bootstrap downloaded, please restart wallet (phc-qt or phcd) to begin importing blockchain data.", __FUNCTION__));
+    }
+
+    // Loads Blockchain database normally if -rebuild is not present in params
+    DbsLoaded = LoadBlockIndex();
+    
+    MilliSleep(1000);
+
+    if (DbsLoaded == false)
+    {
+        // try again (low memory machines will display "error", during BlockIndex loading process)
+        DbsLoaded = LoadBlockIndex();
+    }
+
+    // Rollbackchain local database X amount of blocks (default: 100")
+    int nBlockCount = GetArg( "-rollbackchain", 0);
+
+    if (nBlockCount > 0)
+    {
+        nBestHeight = CChain::RollbackChain(nBlockCount);
+
+        return InitError(strprintf("%s : Rollback completed: %d blocks total removed from local height.", __FUNCTION__, nBlockCount));
+    }
+
+    // Rollbacktoblock local database to block height (default: 100000)
+    if (mapArgs.count("-backtoblock"))
+    {
+        int nNewHeight = CChain::Backtoblock(GetArg("-backtoblock", 100000));
+
+        return InitError(strprintf("%s : Backtoblock completed: %d is the new local block height.", __FUNCTION__, nNewHeight));
+    }
+
     if (GetBoolArg("-loadblockindextest", false))
     {
         CTxDB txdb("r");
@@ -1119,20 +1308,6 @@ bool AppInit2(boost::thread_group& threadGroup)
         PrintBlockTree();
 
         return false;
-    }
-
-    uiInterface.InitMessage(_("Loading block index..."));
-
-    nStart = GetTimeMillis();
-
-    bool DbsLoaded = LoadBlockIndex();
-    
-    MilliSleep(1000);
-
-    if (DbsLoaded == false)
-    {
-        // try again (low memory machines will display "error", during BlockIndex loading process)
-        DbsLoaded = LoadBlockIndex();
     }
 
     if (DbsLoaded == false)
@@ -1159,7 +1334,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     }
 
     uiInterface.InitMessage(_("Prune Orphans in block index..."));
-    PruneOrphanBlocks();
+    CChain::PruneOrphanBlocks();
 
     //uiInterface.InitMessage(_("Rolling back block index..."));
     //RollbackChain(101);
@@ -1614,8 +1789,8 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     RandAddSeedPerfmon();
 
-    // reindex addresses found in blockchain
-    if(GetBoolArg("-reindexaddr", false))
+    // reindex addresses found in blockchain database
+    if(GetBoolArg("-reindex", false))
     {
         uiInterface.InitMessage(_("Rebuilding address index..."));
 

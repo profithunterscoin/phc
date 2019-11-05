@@ -1,7 +1,8 @@
-// Copyright (c) 2014 The ShadowCoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2014-2015 The ShadowCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #include "main.h"
@@ -1040,7 +1041,7 @@ Value smsgbuckets(const Array& params, bool fHelp)
                 objM.push_back(Pair("hash",                 sHash));
                 objM.push_back(Pair("last changed",         getTimeString(it->second.timeChanged, cbuf, sizeof(cbuf))));
                 
-                boost::filesystem::path fullPath = GetDataDir() / "smsgStore" / sFile;
+                boost::filesystem::path fullPath = GetDataDir(true) / "smsgStore" / sFile;
 
 
                 if (!boost::filesystem::exists(fullPath))
@@ -1107,7 +1108,7 @@ Value smsgbuckets(const Array& params, bool fHelp)
                 
                 try
                 {
-                    boost::filesystem::path fullPath = GetDataDir() / "smsgStore" / sFile;
+                    boost::filesystem::path fullPath = GetDataDir(true) / "smsgStore" / sFile;
                     
                     boost::filesystem::remove(fullPath);
                 }

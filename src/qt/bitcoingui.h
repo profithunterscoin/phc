@@ -1,15 +1,19 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
 // Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2012 W.J. van der Laan
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
 // Copyright (c) 2014-2015 The Dash developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 /*
-* Qt4 bitcoin GUI.
-*
-* W.J. van der Laan 2011-2012
+* Qt4 + Qt5 bitcoin GUI.
 */
 
 
@@ -123,14 +127,34 @@ class BitcoinGUI : public QMainWindow
         QAction *exportAction;
         QAction *encryptWalletAction;
         QAction *backupWalletAction;
+        QAction *importPrivateKeyAction;
         QAction *changePassphraseAction;
         QAction *unlockWalletAction;
         QAction *lockWalletAction;
         QAction *aboutQtAction;
         QAction *openRPCConsoleAction;
+        QAction *openInformationAction;
+        QAction *openNetTrafficAction;
+        QAction *openPeersAction;
+        QAction *openConfigFileAction;
+        QAction *openMasternodeConfigFileAction;
+        QAction *openDebugFileAction;
+        QAction *setgenerateTRUEAction;
+        QAction *setgenerateFALSEAction;
         QAction *masternodeManagerAction;
         QAction *messageAction;
         QAction *blockAction;
+
+        QAction *linkWebsiteAction;
+        QAction *linkBitcointalkAction;
+        QAction *linkTwitterAction;
+        QAction *linkFacebookAction;
+        QAction *linkDiscordAction;
+        QAction *linkTelegramAction;
+        QAction *linkSlackAction;
+        QAction *linkExplorer1Action;
+        QAction *linkExplorer2Action;
+
         //QAction *TradingAction;
         QAction *showBackupsAction;
 
@@ -233,6 +257,33 @@ class BitcoinGUI : public QMainWindow
         
         /** Show about dialog */
         void aboutClicked();
+        
+        /** Open Website Link in Default Web-Browser (New tab in current session) **/
+        void linkWebsiteClicked();
+
+         /** Open Bitcointalk Link in Default Web-Browser */	
+        void linkBitcointalkClicked();
+
+        /** Open Bitcointalk Link in Default Web-Browser */	
+        void linkTwitterClicked();
+
+        /** Open Bitcointalk Link in Default Web-Browser */	
+        void linkFacebookClicked();
+
+        /** Open Bitcointalk Link in Default Web-Browser */	
+        void linkDiscordClicked();
+
+        /** Open Bitcointalk Link in Default Web-Browser */	
+        void linkTelegramClicked();
+
+        /** Open Bitcointalk Link in Default Web-Browser */	
+        void linkSlackClicked();
+
+        /** Open Bitcointalk Link in Default Web-Browser */	
+        void linkExplorer1Clicked();
+
+        /** Open Bitcointalk Link in Default Web-Browser */	
+        void linkExplorer2Clicked();
 
     #ifndef Q_OS_MAC
         /** Handle tray icon clicked */
@@ -251,6 +302,9 @@ class BitcoinGUI : public QMainWindow
         
         /** Backup the wallet */
         void backupWallet();
+
+        /** Import a private key */
+        void importPrivateKey();
         
         /** Change encrypted wallet passphrase */
         void changePassphrase();
@@ -274,6 +328,9 @@ class BitcoinGUI : public QMainWindow
 
         /** Show progress dialog e.g. for verifychain */
         void showProgress(const QString &title, int nProgress);
+
+
+
 };
 
 #endif // BITCOINGUI_H

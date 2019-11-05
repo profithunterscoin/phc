@@ -1,12 +1,27 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
+
 
 #include "pubkey.h"
+#include "util.h"
 
 #include <secp256k1.h>
 #include <secp256k1_recovery.h>
+
+/* ONLY NEEDED FOR UNIT TESTING */
+#include <iostream>
+using namespace std;
+
 
 // Global Namespace Start
 namespace
@@ -339,9 +354,41 @@ bool CPubKey::Decompress()
 
 bool CPubKey::Derive(CPubKey& pubkeyChild, unsigned char ccChild[32], unsigned int nChild, const unsigned char cc[32]) const
 {
-    assert(IsValid());
-    assert((nChild >> 31) == 0);
-    assert(begin() + 33 == end());
+    if (IsValid() == false)
+    {
+        if (fDebug)
+        {
+            LogPrint("pubkey", "%s : IsValid() == false (assert-1)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-1)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return false;
+    }
+
+    if ((nChild >> 31) != 0)
+    {
+        if (fDebug)
+        {
+            LogPrint("pubkey", "%s : (nChild >> 31) != 0 (assert-2)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-2)" << endl;  // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return false;
+    }
+
+    if (begin() + 33 != end())
+    {
+        if (fDebug)
+        {
+            LogPrint("pubkey", "%s : begin() + 33 != end() (assert-3)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-3)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return false;
+    }
 
     unsigned char out[64];
 
@@ -384,7 +431,17 @@ void CExtPubKey::Encode(unsigned char code[74]) const
     
     memcpy(code+9, vchChainCode, 32);
     
-    assert(pubkey.size() == 33);
+    if (pubkey.size() != 33)
+    {
+        if (fDebug)
+        {
+            LogPrint("pubkey", "%s : pubkey.size() != 33 (assert-4)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " (assert-4)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return;
+    }
     
     memcpy(code+41, pubkey.begin(), 33);
 }
@@ -438,11 +495,31 @@ ECCVerifyHandle::ECCVerifyHandle()
 {
     if (refcount == 0)
     {
-        assert(secp256k1_context_verify == NULL);
+        if (secp256k1_context_verify != NULL)
+        {
+            if (fDebug)
+            {
+                LogPrint("pubkey", "%s : secp256k1_context_verify != NULL (assert-5)\n", __FUNCTION__);
+            }
+
+            cout << __FUNCTION__ << " (assert-5)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+            return;
+        }
     
         secp256k1_context_verify = secp256k1_context_create(SECP256K1_CONTEXT_VERIFY);
     
-        assert(secp256k1_context_verify != NULL);
+        if (secp256k1_context_verify == NULL)
+        {
+            if (fDebug)
+            {
+                LogPrint("pubkey", "%s : secp256k1_context_verify == NULL (assert-6)\n", __FUNCTION__);
+            }
+
+            cout << __FUNCTION__ << " (assert-6)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+            return;
+        }
     }
     
     refcount++;
@@ -454,7 +531,17 @@ ECCVerifyHandle::~ECCVerifyHandle()
     refcount--;
     if (refcount == 0)
     {
-        assert(secp256k1_context_verify != NULL);
+        if (secp256k1_context_verify == NULL)
+        {
+            if (fDebug)
+            {
+                LogPrint("pubkey", "%s : secp256k1_context_verify == NULL (assert-7)\n", __FUNCTION__);
+            }
+
+            cout << __FUNCTION__ << " (assert-7)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+            return;
+        }
     
         secp256k1_context_destroy(secp256k1_context_verify);
         secp256k1_context_verify = NULL;

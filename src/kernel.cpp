@@ -1,14 +1,26 @@
-// Copyright (c) 2012-2013 The PPCoin developers
-// Copyright (c) 2014 The Crave developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #include <boost/assign/list_of.hpp>
 
 #include "kernel.h"
 #include "txdb.h"
+#include "main.h"
+#include "util.h"
+
+/* ONLY NEEDED FOR UNIT TESTING */
+#include <iostream>
 
 using namespace std;
 
@@ -54,7 +66,17 @@ static bool GetLastStakeModifier(const CBlockIndex* pindex, uint64_t& nStakeModi
 // Get selection interval section (in seconds)
 static int64_t GetStakeModifierSelectionIntervalSection(int nSection)
 {
-    assert (nSection >= 0 && nSection < 64);
+    if (nSection < 0 && nSection >= 64) 
+    {
+        if (fDebug)
+        {
+            LogPrint("kernel", "%s : nSection < 0 && nSection >= 64 (assert-1)\n", __FUNCTION__);
+        }
+        
+        cout << __FUNCTION__ << " (assert-1)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return 0;
+    }
 
     return (nModifierInterval * 63 / (63 + ((63 - nSection) * (MODIFIER_INTERVAL_RATIO - 1))));
 }
@@ -315,7 +337,6 @@ bool CheckStakeKernelHash(CBlockIndex* pindexPrev, unsigned int nBits, unsigned 
 
     // Calculate hash
     CDataStream ss(SER_GETHASH, 0);
-
     ss << nStakeModifier << nTimeBlockFrom << txPrev.nTime << prevout.hash << prevout.n << nTimeTx;
     hashProofOfStake = Hash(ss.begin(), ss.end());
 
@@ -324,10 +345,18 @@ bool CheckStakeKernelHash(CBlockIndex* pindexPrev, unsigned int nBits, unsigned 
         if (fDebug)
         {
             LogPrint("kernel", "%s : using modifier 0x%016x at height=%d timestamp=%s for block from timestamp=%s\n", __FUNCTION__,
-                nStakeModifier, nStakeModifierHeight, DateTimeStrFormat(nStakeModifierTime), DateTimeStrFormat(nTimeBlockFrom));
+                nStakeModifier,
+                nStakeModifierHeight,
+                DateTimeStrFormat(nStakeModifierTime),
+                DateTimeStrFormat(nTimeBlockFrom));
 
-            LogPrint("kernel", "%s : check modifier=0x%016x nTimeBlockFrom=%u nTimeTxPrev=%u nPrevout=%u nTimeTx=%u hashProof=%s\n", __FUNCTION__, 
-                nStakeModifier, nTimeBlockFrom, txPrev.nTime, prevout.n, nTimeTx, hashProofOfStake.ToString());
+            LogPrint("kernel", "%s : check modifier=0x%016x nTimeBlockFrom=%u nTimeTxPrev=%u nPrevout=%u nTimeTx=%u hashProofOfStake=%s\n", __FUNCTION__, 
+                nStakeModifier,
+                nTimeBlockFrom,
+                txPrev.nTime,
+                prevout.n,
+                nTimeTx,
+                hashProofOfStake.ToString());
         }
     }
 
@@ -340,10 +369,18 @@ bool CheckStakeKernelHash(CBlockIndex* pindexPrev, unsigned int nBits, unsigned 
     if (fDebug && !fPrintProofOfStake)
     {
         LogPrint("kernel", "%s : using modifier 0x%016x at height=%d timestamp=%s for block from timestamp=%s\n", __FUNCTION__,
-            nStakeModifier, nStakeModifierHeight, DateTimeStrFormat(nStakeModifierTime), DateTimeStrFormat(nTimeBlockFrom));
+            nStakeModifier,
+            nStakeModifierHeight,
+            DateTimeStrFormat(nStakeModifierTime),
+            DateTimeStrFormat(nTimeBlockFrom));
 
-        LogPrint("kernel", "%s : pass modifier=0x%016x nTimeBlockFrom=%u nTimeTxPrev=%u nPrevout=%u nTimeTx=%u hashProof=%s\n", __FUNCTION__,
-            nStakeModifier, nTimeBlockFrom, txPrev.nTime, prevout.n, nTimeTx, hashProofOfStake.ToString());
+        LogPrint("kernel", "%s : pass modifier=0x%016x nTimeBlockFrom=%u nTimeTxPrev=%u nPrevout=%u nTimeTx=%u hashProofOfStake=%s\n", __FUNCTION__,
+            nStakeModifier,
+            nTimeBlockFrom,
+            txPrev.nTime,
+            prevout.n,
+            nTimeTx,
+            hashProofOfStake.ToString());
     }
 
     return true;
@@ -368,8 +405,8 @@ bool CheckProofOfStake(CBlockIndex* pindexPrev, const CTransaction& tx, unsigned
 
     if (!txPrev.ReadFromDisk(txdb, txin.prevout, txindex))
     {
-        return tx.DoS(1, error("%s : INFO: read txPrev failed", __FUNCTION__)); 
         // previous transaction not in main chain, may occur during initial download
+        return tx.DoS(1, error("%s : INFO: read txPrev failed", __FUNCTION__)); 
     }
 
     // Verify signature
@@ -378,18 +415,20 @@ bool CheckProofOfStake(CBlockIndex* pindexPrev, const CTransaction& tx, unsigned
         return tx.DoS(100, error("%s : VerifySignature failed on coinstake %s", __FUNCTION__, tx.GetHash().ToString()));
     }
 
+    txdb.Close();
+
     // Read block header
     CBlock block;
     if (!block.ReadFromDisk(txindex.pos.nFile, txindex.pos.nBlockPos, false))
     {
-        return fDebug? error("%s : read block failed") : false;
         // unable to read block of previous transaction
+        return fDebug? error("%s : read block failed") : false;
     }
 
     if (!CheckStakeKernelHash(pindexPrev, nBits, block.GetBlockTime(), txPrev, txin.prevout, tx.nTime, hashProofOfStake, targetProofOfStake, fDebug))
     {
-        return tx.DoS(1, error("%s : INFO: check kernel failed on coinstake %s, hashProof=%s", __FUNCTION__, tx.GetHash().ToString(), hashProofOfStake.ToString()));
         // may occur during initial download or if behind on block chain sync
+        return tx.DoS(1, error("%s : INFO: check kernel failed on coinstake %s, hashProofOfStake=%s", __FUNCTION__, tx.GetHash().ToString(), hashProofOfStake.ToString()));
     }
 
     return true;
@@ -426,8 +465,8 @@ bool CheckKernel(CBlockIndex* pindexPrev, unsigned int nBits, int64_t nTime, con
 
     if (block.GetBlockTime() + nStakeMinAge > nTime)
     {
-        return false;
         // only count coins meeting min age requirement
+        return false;
     }
 
     if (pBlockTime)

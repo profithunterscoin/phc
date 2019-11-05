@@ -1,14 +1,20 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2012 The Bitcoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #include "util.h"
-
-#include "chainparams.h"
 #include "sync.h"
+#include "chainparams.h"
 #include "ui_interface.h"
 #include "uint256.h"
 #include "version.h"
@@ -42,6 +48,12 @@ namespace boost
 #include <boost/filesystem/fstream.hpp>
 #include <boost/foreach.hpp>
 #include <boost/thread.hpp>
+
+#include <boost/asio.hpp>
+#include <iostream>
+#include <string>
+#include <fstream>
+
 #include <openssl/crypto.h>
 #include <openssl/rand.h>
 #include <openssl/err.h>
@@ -122,6 +134,8 @@ bool fPrintToDebugLog = true;
 bool fNoListen = false;
 bool fLogTimestamps = false;
 volatile bool fReopenDebugLog = false;
+
+vector<string> DebugCategories;
 
 // Init OpenSSL library multithreading support
 static CCriticalSection** ppmutexOpenSSL;
@@ -314,10 +328,27 @@ static boost::mutex* mutexDebugLog = NULL;
 
 static void DebugPrintInit()
 {
-    assert(fileout == NULL);
-    assert(mutexDebugLog == NULL);
+    if (fileout != NULL)
+    {
+        if (fDebug)
+        {
+            LogPrint("util", "%s : Fileout is NOT null\n", __FUNCTION__);
+        }
 
-    boost::filesystem::path pathDebug = GetDataDir() / "debug.log";
+        return;
+    }
+
+    if (mutexDebugLog != NULL)
+    {
+        if (fDebug)
+        {
+            LogPrint("util", "%s : mutexDebugLog != NULL\n", __FUNCTION__);
+        }
+
+        return;
+    }
+
+    boost::filesystem::path pathDebug = GetDataDir(true) / "debug.log";
     fileout = fopen(pathDebug.string().c_str(), "a");
 
     if (fileout)
@@ -343,25 +374,78 @@ bool LogAcceptCategory(const char* category)
         // where mapMultiArgs might be deleted before another
         // global destructor calls LogPrint()
         static boost::thread_specific_ptr<set<string> > ptrCategory;
+
         if (ptrCategory.get() == NULL)
         {
-            const vector<string>& categories = mapMultiArgs["-debug"];
-
-            ptrCategory.reset(new set<string>(categories.begin(), categories.end()));
+            ptrCategory.reset(new set<string>(DebugCategories.begin(), DebugCategories.end()));
             // thread_specific_ptr automatically deletes the set when the thread ends.
+
+            if (ptrCategory.get() == NULL)
+            {
+                ptrCategory->insert(string("*"));
+            }
+
+            // "*" is a wildcard composite category enabling all PHC-related debug output
+            if(ptrCategory->count(string("*")))
+            {
+                ptrCategory->insert(string("addrman"));
+                ptrCategory->insert(string("alert"));
+                ptrCategory->insert(string("core"));
+                ptrCategory->insert(string("db"));
+                ptrCategory->insert(string("leveldb"));
+                ptrCategory->insert(string("rand"));
+                ptrCategory->insert(string("rpc"));
+                ptrCategory->insert(string("coincontrol"));
+                ptrCategory->insert(string("mempool"));
+                ptrCategory->insert(string("net"));
+                ptrCategory->insert(string("socks"));
+                ptrCategory->insert(string("darksend"));
+                ptrCategory->insert(string("instantsend"));
+                ptrCategory->insert(string("wallet"));
+                ptrCategory->insert(string("masternode"));
+                ptrCategory->insert(string("firewall"));
+                ptrCategory->insert(string("stealth"));
+                ptrCategory->insert(string("protocol"));
+                ptrCategory->insert(string("init"));
+                ptrCategory->insert(string("stakemodifier"));
+                ptrCategory->insert(string("kernel"));
+                ptrCategory->insert(string("util"));
+                ptrCategory->insert(string("daemon"));
+                ptrCategory->insert(string("proxy"));
+                ptrCategory->insert(string("spork"));
+                ptrCategory->insert(string("blockshield"));
+                ptrCategory->insert(string("blocktree"));
+                ptrCategory->insert(string("asicchoker"));
+                ptrCategory->insert(string("noui"));
+                ptrCategory->insert(string("gui"));
+                ptrCategory->insert(string("mining"));
+                ptrCategory->insert(string("key"));
+                ptrCategory->insert(string("uint"));
+                ptrCategory->insert(string("socks"));
+                ptrCategory->insert(string("chainbuddy"));
+                ptrCategory->insert(string("chainshield"));
+                ptrCategory->insert(string("coinage"));
+                ptrCategory->insert(string("smgessage"));
+                ptrCategory->insert(string("base58"));
+                ptrCategory->insert(string("script"));
+                ptrCategory->insert(string("wallet"));
+            }
         }
 
         const set<string>& setCategories = *ptrCategory.get();
 
         // if not debugging everything and not debugging specific category, LogPrint does nothing.
-        if (setCategories.count(string("")) == 0 && setCategories.count(string(category)) == 0)
+        if (setCategories.count(string("")) == 0 && setCategories.count(string("*")) == 0 && setCategories.count(string(category)) == 0)
         {
             return false;
         }
 
     }
 
+
     return true;
+
+
 }
 
 
@@ -403,7 +487,7 @@ int LogPrintStr(const std::string &str)
         {
             fReopenDebugLog = false;
 
-            boost::filesystem::path pathDebug = GetDataDir() / "debug.log";
+            boost::filesystem::path pathDebug = GetDataDir(true) / "debug.log";
             
             if (freopen(pathDebug.string().c_str(),"a",fileout) != NULL)
             {
@@ -1581,8 +1665,20 @@ const boost::filesystem::path &GetDataDir(bool fNetSpecific)
 
         if (!fs::is_directory(path))
         {
-            path = "";
+            if (fNetSpecific)
+            {
+                path /= Params().DataDir();
+            }
+            else
+            {
+                path = "";
+            }
         
+            return path;
+        }
+        else
+        {
+            fs::create_directory(path);
             return path;
         }
     }
@@ -1591,12 +1687,10 @@ const boost::filesystem::path &GetDataDir(bool fNetSpecific)
         path = GetDefaultDataDir();
     }
 
-    if (fNetSpecific)
+    if (fNetSpecific || GetArg("-testnet", false))
     {
         path /= Params().DataDir();
     }
-
-    fs::create_directory(path);
 
     return path;
 }
@@ -1614,7 +1708,7 @@ boost::filesystem::path GetConfigFile()
 
     if (!pathConfigFile.is_complete())
     {
-        pathConfigFile = GetDataDir(false) / pathConfigFile;
+        pathConfigFile = GetDataDir(true) / pathConfigFile;
     }
     
     return pathConfigFile;
@@ -1627,7 +1721,7 @@ boost::filesystem::path GetMasternodeConfigFile()
     
     if (!pathConfigFile.is_complete())
     {
-        pathConfigFile = GetDataDir() / pathConfigFile;
+        pathConfigFile = GetDataDir(true) / pathConfigFile;
     }
     
     return pathConfigFile;
@@ -1672,8 +1766,15 @@ void ReadConfigFile(map<string, string>& mapSettingsRet, map<string, vector<stri
 
     // If datadir is changed in .conf file:
     ClearDatadirCache();
+
+    if (!boost::filesystem::is_directory(GetDataDir(true)))
+    {
+        throw std::runtime_error(strprintf("specified data directory \"%s\" does not exist.", GetArg("-datadir", "").c_str()));
+    }
 }
 
+
+#ifndef WIN32
 
 boost::filesystem::path GetPidFile()
 {
@@ -1681,14 +1782,12 @@ boost::filesystem::path GetPidFile()
 
     if (!pathPidFile.is_complete())
     {
-        pathPidFile = GetDataDir() / pathPidFile;
+        pathPidFile = GetDataDir(true) / pathPidFile;
     }
     
     return pathPidFile;
 }
 
-
-#ifndef WIN32
 void CreatePidFile(const boost::filesystem::path &path, pid_t pid)
 {
     FILE* file = fopen(path.string().c_str(), "w");
@@ -1770,7 +1869,7 @@ std::string bytesReadable(uint64_t nBytes)
 void ShrinkDebugFile()
 {
     // Scroll debug.log if it's getting too big
-    boost::filesystem::path pathLog = GetDataDir() / "debug.log";
+    boost::filesystem::path pathLog = GetDataDir(true) / "debug.log";
     FILE* file = fopen(pathLog.string().c_str(), "r");
     
     if (file && boost::filesystem::file_size(pathLog) > 10 * 1000000)
@@ -1853,7 +1952,9 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime)
     static set<CNetAddr> setKnown;
     
     if (!setKnown.insert(ip).second)
+    {
         return;
+    }
 
     // Add data
     static CMedianFilter<int64_t> vTimeOffsets(200,0);
@@ -2068,4 +2169,68 @@ std::string DateTimeStrFormat(const char* pszFormat, int64_t nTime)
     ss << boost::posix_time::from_time_t(nTime);
     
     return ss.str();
+}
+
+
+std::string get_http_data(const std::string& server, const std::string& file)
+{
+    // Source: http://www.boost.org/doc/libs/1_54_0/doc/html/boost_asio/example/cpp03/iostreams/http_client.cpp
+
+	try
+	{
+		boost::asio::ip::tcp::iostream s(server, "http");
+#ifndef __ANDROID__
+		s.expires_from_now(boost::posix_time::seconds(60));
+#else
+    // TO FIX for Android
+    // https://www.boost.org/doc/libs/1_71_0/doc/html/boost_asio/overview/cpp2011/chrono.html
+    // http://detercode121.blogspot.com/2011/05/c11-who-is-failing-boost-clang-or-gcc.html
+    // http://www.howtobuildsoftware.com/index.php/how-do/b6fO/c-11-boost-clang-boost-asio-who-is-failing-boost-clang-or-gcc-issue-with-stdchrono-used-with-boostasio
+    // https://www.boost.org/doc/libs/1_45_0/doc/html/boost_asio/example/timers/time_t_timer.cpp
+#endif
+
+		if (!s){ throw "Unable to connect: " + s.error().message(); }
+
+		// ask for the file
+		s << "GET " << file << " HTTP/1.0\r\n";
+		s << "Host: " << server << "\r\n";
+		s << "Accept: */*\r\n";
+		s << "Connection: close\r\n\r\n";
+
+		// Check that response is OK.
+		std::string http_version;
+		s >> http_version;
+		unsigned int status_code;
+		s >> status_code;
+		std::string status_message;
+		std::getline(s, status_message);
+		if (!s && http_version.substr(0, 5) != "HTTP/"){ throw "Invalid response\n"; }
+		if (status_code != 200){ throw "Response returned with status code " + std::to_string(status_code); }
+
+		// Process the response headers, which are terminated by a blank line.
+		std::string header;
+		while (std::getline(s, header) && header != "\r"){}
+
+		// Write the remaining data to output.
+		std::stringstream ss;
+		ss << s.rdbuf();
+		return ss.str();
+	}
+	catch(std::exception& e)
+	{
+		return e.what();
+	}
+}
+
+
+bool download_bootstrap(std::string pathBootstrap) 
+{
+    std::string result = get_http_data("www.profithunterscoin.com", "/bootstraps/bootstrap.dat");
+
+    std::ofstream outFile;
+    outFile.open (pathBootstrap, std::ios::binary);
+    outFile << result;
+    outFile.close();
+
+    return true;
 }

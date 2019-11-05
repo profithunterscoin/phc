@@ -1,8 +1,15 @@
-// Copyright (c) 2010 Satoshi Nakamoto
-// Copyright (c) 2009-2013 The Bitcoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #include <set>
@@ -46,7 +53,13 @@ Object CallRPC(const string& strMethod, const Array& params)
     bool fUseSSL = GetBoolArg("-rpcssl", false);
     
     asio::io_service io_service;
+
+#if BOOST_VERSION >= 107000
+    boost::asio::ssl::context context(boost::asio::ssl::context::sslv23);
+#else
     ssl::context context(io_service, ssl::context::sslv23);
+#endif
+
     context.set_options(ssl::context::no_sslv2);
     
     asio::ssl::stream<asio::ip::tcp::socket> sslStream(io_service, context);
@@ -147,7 +160,13 @@ static const CRPCConvertParam vRPCConvertParams[] =
     // Command                                   Param Count
     { "stop",                                       0 },
     { "prune",                                      0 },
-    { "rollback",                                   1 },
+    { "rollbackchain",                              1 },
+    { "backtoblock",                                1 },
+    { "getpeerinfo",                                0 },
+    { "getmininginfo",                              0 },
+    { "getnetworkhashps",                           0 },
+    { "getpeeraverageheight",                       0 },
+    { "forcesync",                                  0 },
     { "getaddednodeinfo",                           0 },
     { "sendtoaddress",                              1 },
     { "settxfee",                                   0 },
@@ -223,39 +242,63 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "firewalldebugblacklist",                     1 },
     { "firewalldebugdisconnect",                    1 },
     { "firewalldebugbandwidthabuse",                1 },
-    { "firewalldebugnofalsepositivebandwidthabuse", 1 },
+    { "firewalldebugdoublespend",                   1 },
     { "firewalldebuginvalidwallet",                 1 },
     { "firewalldebugfloodingwallet",                1 },
+    { "firewalldebugddoswallet",                    1 },
     { "firewalldetectbandwidthabuse",               1 },
     { "firewallblacklistbandwidthabuse",            1 },
     { "firewallbanbandwidthabuse",                  1 },
-    { "firewallnofalsepositivebandwidthabuse",      1 },
     { "firewallbantimebandwidthabuse",              1 },
-    { "firewallbandwidthabusemaxcheck",             1 },
-    { "firewallbandwidthabuseminattack",            1 },
-    { "firewallbandwidthabusemaxattack",            1 },
+    { "firewalldisconnectbandwidthabuse",           1 },
+    { "firewallbandwidthabusemincheck",             1 },
+    { "firewalldetectdoublespend",                  1 },
+    { "firewallblacklistdoublespend",               1 },
+    { "firewallbandoublespend",                     1 },
+    { "firewallbantimedoublespend",                 1 },
+    { "firewalldisconnectdoublespend",              1 },
+    { "firewalldoublespendmincheck",                1 },
+    { "firewalldoublespendminattack",               1 },
+    { "firewalldoublespendmaxattack",               1 },
     { "firewalldetectinvalidwallet",                1 },
     { "firewallblacklistinvalidwallet",             1 },
     { "firewallbaninvalidwallet",                   1 },
     { "firewallbantimeinvalidwallet",               1 },
+    { "firewalldisconnectinvalidwallet",            1 },
     { "firewallinvalidwalletminprotocol",           1 },
-    { "firewallinvalidwalletmaxcheck",              1 },
+    { "firewallinvalidwalletmincheck",              1 },
     { "firewalldetectforkedwallet",                 1 },
     { "firewallblacklistforkedwallet",              1 },
     { "firewallbanforkedwallet",                    1 },
     { "firewallbantimeforkedwallet",                1 },
+    { "firewalldisconnectforkedwallet",             1 },
     { "firewalldetectfloodingwallet",               1 },
     { "firewallblacklistfloodingwallet",            1 },
     { "firewallbanfloodingwallet",                  1 },
     { "firewallbantimefloodingwallet",              1 },
+    { "firewalldisconnectfloodingwallet",           1 },
     { "firewallfloodingwalletminbytes",             1 },
     { "firewallfloodingwalletmaxbytes",             1 },
     { "firewallfloodingwalletattackpatternadd",     1 },
     { "firewallfloodingwalletattackpatternremove",  1 },
+    { "firewallfloodingwalletattackignoredadd",     1 },
+    { "firewallfloodingwalletattackignoredremove",  1 },
     { "firewallfloodingwalletmintrafficavg",        1 },
     { "firewallfloodingwalletmaxtrafficavg",        1 },
     { "firewallfloodingwalletmincheck",             1 },
     { "firewallfloodingwalletmaxcheck",             1 },
+    { "firewalldetectddoswallet",                   1 },
+    { "firewallblacklistddoswallet",                1 },
+    { "firewallbanddosallet",                       1 },
+    { "firewalldisconnectddosallet",                1 },
+    { "firewallbantimeddoswallet",                  1 },
+    { "firewallddoswalletmincheck",                 1 },
+    { "getchainbuddyinfo",                          0 },
+    { "chainbuddyenabled",                          1 },
+    { "getshainchieldinfo",                         0 },
+    { "chainshieldenabled",                         1 },
+    { "chainshieldrollbackrunaway",                 1 },
+
 };
 
 

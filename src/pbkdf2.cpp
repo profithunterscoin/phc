@@ -1,18 +1,23 @@
-// Copyright (c) 2013 NovaCoin Developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #include <string.h>
 #include "pbkdf2.h"
 
-
+/*
 static inline uint32_t be32dec(const void *pp)
 {
     const uint8_t *p = (uint8_t const *)pp;
 
     return ((uint32_t)(p[3]) + ((uint32_t)(p[2]) << 8) + ((uint32_t)(p[1]) << 16) + ((uint32_t)(p[0]) << 24));
 }
-
+*/
 
 static inline void be32enc(void *pp, uint32_t x)
 {

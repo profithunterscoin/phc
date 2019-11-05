@@ -302,6 +302,10 @@ typedef enum { full = 0, partial = 1 } earlyEnd_directive;
 ****************************/
 #if LZ4_ARCH64
 
+#if __cplusplus > 199711L
+#define register      // Deprecated in C++11.
+#endif  // #if __cplusplus > 199711L
+
 FORCE_INLINE int LZ4_NbCommonBytes (register U64 val)
 {
 # if defined(LZ4_BIG_ENDIAN)

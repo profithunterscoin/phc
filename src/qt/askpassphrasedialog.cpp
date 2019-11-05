@@ -1,8 +1,15 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #include "askpassphrasedialog.h"
@@ -31,7 +38,7 @@ AskPassphraseDialog::AskPassphraseDialog(Mode mode, QWidget *parent) : QDialog(p
     ui->passEdit2->installEventFilter(this);
     ui->passEdit3->installEventFilter(this);
 
-    ui->stakingCheckBox->setChecked(fWalletUnlockStakingOnly);
+    ui->stakingCheckBox->setChecked(false); // false by default to fully unlock if checkbox is hidden
 
     switch(mode)
     {
@@ -186,8 +193,9 @@ void AskPassphraseDialog::accept()
         
         case UnlockStaking: case Unlock:
         {
-        
-            if(!model->setWalletLocked(false, oldpass))
+            bool stakingOnly = ui->stakingCheckBox->isChecked();
+
+            if(!model->setWalletLocked(false, oldpass, false, stakingOnly))
             {
                 QMessageBox::critical(this, tr("Wallet unlock failed"),
                                     tr("The passphrase entered for the wallet decryption was incorrect."));

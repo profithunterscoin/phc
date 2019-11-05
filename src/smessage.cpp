@@ -1,7 +1,9 @@
 // Copyright (c) 2014-2015 The ShadowCoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
+
 
 /*
 Notes:
@@ -124,10 +126,28 @@ bool SecMsgCrypter::Encrypt(uint8_t* chPlaintext, uint32_t nPlain, std::vector<u
     int nCLen = nLen + AES_BLOCK_SIZE, nFLen = 0;
     vchCiphertext = std::vector<uint8_t> (nCLen);
 
-    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-
     bool fOk = true;
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L  // OPENSSL 1.0
+    EVP_CIPHER_CTX ctx;
+    EVP_CIPHER_CTX_init(&ctx);
+
+    if (fOk)
+    {
+        fOk = EVP_EncryptInit_ex(&ctx, EVP_aes_256_cbc(), NULL, &chKey[0], &chIV[0]);
+    }
+
+    if (fOk)
+    {
+        fOk = EVP_EncryptUpdate(&ctx, &vchCiphertext[0], &nCLen, chPlaintext, nLen);
+    }
+
+    if(fOk)
+    {
+        fOk = EVP_EncryptFinal_ex(&ctx, (&vchCiphertext[0])+nCLen, &nFLen);
+    }
+#else  // OPENSSL 1.1+
+    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
     EVP_CIPHER_CTX_init(ctx);
 
     if (fOk)
@@ -144,9 +164,15 @@ bool SecMsgCrypter::Encrypt(uint8_t* chPlaintext, uint32_t nPlain, std::vector<u
     {
         fOk = EVP_EncryptFinal_ex(ctx, (&vchCiphertext[0])+nCLen, &nFLen);
     }
-    
+#endif
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L  // OPENSSL 1.0
+    EVP_CIPHER_CTX_cleanup(&ctx);
+#else  // OPENSSL 1.1+
     EVP_CIPHER_CTX_cleanup(ctx);
     EVP_CIPHER_CTX_free(ctx);
+#endif
+
 
     if (!fOk)
     {
@@ -223,6 +249,7 @@ bool SecMsgCrypter::Decrypt(uint8_t* chCiphertext, uint32_t nCipher, std::vector
     EVP_CIPHER_CTX_free(ctx);
 
 #endif
+
     if (!fOk)
     {
         return false;
@@ -278,7 +305,7 @@ bool SecMsgDB::Open(const char* pszMode)
 
     bool fCreate = strchr(pszMode, 'c');
 
-    fs::path fullpath = GetDataDir() / "smsgDB";
+    fs::path fullpath = GetDataDir(true) / "smsgDB";
 
     if (!fCreate && (!fs::exists(fullpath) || !fs::is_directory(fullpath)))
     {
@@ -866,7 +893,7 @@ void ThreadSecureMsg()
 
                     std::string fileName = boost::lexical_cast<std::string>(it->first);
 
-                    fs::path fullPath = GetDataDir() / "smsgStore" / (fileName + "_01.dat");
+                    fs::path fullPath = GetDataDir(true) / "smsgStore" / (fileName + "_01.dat");
 
                     if (fs::exists(fullPath))
                     {
@@ -891,7 +918,7 @@ void ThreadSecureMsg()
                     }
                     
                     // -- look for a wl file, it stores incoming messages when wallet is locked
-                    fullPath = GetDataDir() / "smsgStore" / (fileName + "_01_wl.dat");
+                    fullPath = GetDataDir(true) / "smsgStore" / (fileName + "_01_wl.dat");
                     
                     if (fs::exists(fullPath))
                     {
@@ -1029,7 +1056,7 @@ void ThreadSecureMsgPow()
                     LogPrint("smessage", "%s : *** RGP >>> ThreadSecureMsgPow dbOutbox.Open Debug 003\n", __FUNCTION__);
                 }
 
-                MilliSleep(50); // Thanks to Jimmy (Robert)
+                MilliSleep(5); // Thanks to Jimmy (Robert)
                 
                 continue;
             }
@@ -1132,6 +1159,7 @@ void ThreadSecureMsgPow()
             }
 
             /* RGP, Added as smsg-po was using 100% cpu time? */
+            MilliSleep(5); // Thanks to Jimmy (Robert)
 
         }
 
@@ -1163,7 +1191,7 @@ int SecureMsgBuildBucketSet()
     uint32_t nFiles         = 0;
     uint32_t nMessages      = 0;
 
-    fs::path pathSmsgDir = GetDataDir() / "smsgStore";
+    fs::path pathSmsgDir = GetDataDir(true) / "smsgStore";
     fs::directory_iterator itend;
 
     if (!fs::exists(pathSmsgDir) || !fs::is_directory(pathSmsgDir))
@@ -1281,8 +1309,13 @@ int SecureMsgBuildBucketSet()
                 token.offset = ofs;
                 
                 errno = 0;
-                
+
+#if __ANDROID__                
+                if (fread(&smsg.hash[0], sizeof(uint8_t), 4, fp) != (size_t)SMSG_HDR_LEN)
+#else
+
                 if (fread(&smsg.hash[0], sizeof(uint8_t), SMSG_HDR_LEN, fp) != (size_t)SMSG_HDR_LEN)
+#endif
                 {
                     if (errno != 0)
                     {
@@ -1330,6 +1363,8 @@ int SecureMsgBuildBucketSet()
                 }
 
                 tokenSet.insert(token);
+
+                MilliSleep(5); // Thanks to Jimmy (Robert)
             }
 
             fclose(fp);
@@ -1453,7 +1488,7 @@ int SecureMsgReadIni()
         }
     }
 
-    fs::path fullpath = GetDataDir() / "smsg.ini";
+    fs::path fullpath = GetDataDir(true) / "smsg.ini";
 
 
     FILE *fp;
@@ -1558,7 +1593,7 @@ int SecureMsgWriteIni()
         }
     }
 
-    fs::path fullpath = GetDataDir() / "smsg.ini~";
+    fs::path fullpath = GetDataDir(true) / "smsg.ini~";
 
     FILE *fp;
     errno = 0;
@@ -1630,7 +1665,7 @@ int SecureMsgWriteIni()
 
     try
     {
-        fs::path finalpath = GetDataDir() / "smsg.ini";
+        fs::path finalpath = GetDataDir(true) / "smsg.ini";
         
         fs::rename(fullpath, finalpath);
     }
@@ -3043,13 +3078,13 @@ bool SecureMsgScanBlock(CBlock& block)
     {
         if (fDebug)
         {
-            LogPrint("smessage", "%s : Found %u transactions, %u elements, %u new public keys, %u duplicates.\n", __FUNCTION__, nTransactions, nElements, nPubkeys, nDuplicates);
+            LogPrint("smessage", "%s : Found %u transactions, %u elements, %u new public keys, %u duplicates. \n", __FUNCTION__, nTransactions, nElements, nPubkeys, nDuplicates);
         }
     }
 
     if (nDuplicates > 0)
     {
-        PruneOrphanBlocks();
+        CChain::PruneOrphanBlocks();
     }
 
     return true;
@@ -3197,7 +3232,7 @@ bool SecureMsgScanBuckets()
     uint32_t nMessages      = 0;
     uint32_t nFoundMessages = 0;
 
-    fs::path pathSmsgDir = GetDataDir() / "smsgStore";
+    fs::path pathSmsgDir = GetDataDir(true) / "smsgStore";
     fs::directory_iterator itend;
 
     if (!fs::exists(pathSmsgDir) || !fs::is_directory(pathSmsgDir))
@@ -3308,8 +3343,11 @@ bool SecureMsgScanBuckets()
             for (;;)
             {
                 errno = 0;
-
+#if __ANDROID__ 
+                if (fread(&smsg.hash[0], sizeof(uint8_t), 4, fp) != (size_t)SMSG_HDR_LEN)
+#else
                 if (fread(&smsg.hash[0], sizeof(uint8_t), SMSG_HDR_LEN, fp) != (size_t)SMSG_HDR_LEN)
+#endif
                 {
                     if (errno != 0)
                     {
@@ -3428,7 +3466,7 @@ int SecureMsgWalletUnlocked()
     uint32_t nMessages      = 0;
     uint32_t nFoundMessages = 0;
 
-    fs::path pathSmsgDir = GetDataDir() / "smsgStore";
+    fs::path pathSmsgDir = GetDataDir(true) / "smsgStore";
     fs::directory_iterator itend;
 
     if (!fs::exists(pathSmsgDir) || !fs::is_directory(pathSmsgDir))
@@ -3527,7 +3565,11 @@ int SecureMsgWalletUnlocked()
             {
                 errno = 0;
 
+#if __ANDROID__ 
+                if (fread(&smsg.hash[0], sizeof(uint8_t), 4, fp) != (size_t)SMSG_HDR_LEN)
+#else
                 if (fread(&smsg.hash[0], sizeof(uint8_t), SMSG_HDR_LEN, fp) != (size_t)SMSG_HDR_LEN)
+#endif
                 {
                     if (errno != 0)
                     {
@@ -3605,6 +3647,8 @@ int SecureMsgWalletUnlocked()
 
                 return 1;
             }
+
+            MilliSleep(5); // Thanks to Jimmy (Robert)
         }
         // Global Namespace End
         // cs_smsg
@@ -4064,7 +4108,7 @@ int SecureMsgRetrieve(SecMsgToken &token, std::vector<uint8_t>& vchData)
 
     // -- has cs_smsg lock from SecureMsgReceiveData
 
-    fs::path pathSmsgDir = GetDataDir() / "smsgStore";
+    fs::path pathSmsgDir = GetDataDir(true) / "smsgStore";
 
     if (fDebug)
     {
@@ -4113,8 +4157,12 @@ int SecureMsgRetrieve(SecMsgToken &token, std::vector<uint8_t>& vchData)
 
     SecureMessage smsg;
     errno = 0;
-    
+
+#if __ANDROID__ 
+    if (fread(&smsg.hash[0], sizeof(uint8_t), 4, fp) != (size_t)SMSG_HDR_LEN)
+#else
     if (fread(&smsg.hash[0], sizeof(uint8_t), SMSG_HDR_LEN, fp) != (size_t)SMSG_HDR_LEN)
+#endif
     {
         if (fDebug)
         {
@@ -4359,7 +4407,7 @@ int SecureMsgStoreUnscanned(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPaylo
     
     try
     {
-        pathSmsgDir = GetDataDir() / "smsgStore";
+        pathSmsgDir = GetDataDir(true) / "smsgStore";
         
         fs::create_directory(pathSmsgDir);
     }
@@ -4455,7 +4503,7 @@ int SecureMsgStore(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload, bool 
 
     try
     {
-        pathSmsgDir = GetDataDir() / "smsgStore";
+        pathSmsgDir = GetDataDir(true) / "smsgStore";
         fs::create_directory(pathSmsgDir);
     }
     catch (const boost::filesystem::filesystem_error& ex)
@@ -4673,9 +4721,7 @@ int SecureMsgValidate(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
     }
     else
     {
-        if (sha256Hash[31] == 0
-            && sha256Hash[30] == 0
-            && (~(sha256Hash[29]) & ((1<<0) || (1<<1) || (1<<2)) ))
+        if (sha256Hash[31] == 0 && sha256Hash[30] == 0 && (~(sha256Hash[29]) & ((1<0) || (1<1) || (1<2)) ))
         {
             if (fDebugSmsg)
             {
@@ -4798,10 +4844,7 @@ int SecureMsgSetHash(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
         };
         */
 
-        if (sha256Hash[31] == 0
-            && sha256Hash[30] == 0
-            && (~(sha256Hash[29]) & ((1<<0) || (1<<1) || (1<<2)) ))
-        //    && sha256Hash[29] == 0)
+        if (sha256Hash[31] == 0 && sha256Hash[30] == 0 && (~(sha256Hash[29]) & ((1<0) || (1<1) || (1<2)) ))         //    && sha256Hash[29] == 0)
         {
             found = true;
             
@@ -4832,6 +4875,8 @@ int SecureMsgSetHash(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
         }
 
         nonse++;
+
+        MilliSleep(5); // Thanks to Jimmy (Robert)
     }
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L    // OPENSSL 1.0

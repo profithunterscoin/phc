@@ -1,0 +1,255 @@
+Copyright (c) 2009-2012 Bitcoin Developers
+Copyright (c) 2019 Profit Hunters Coin
+Distributed under the MIT/X11 software license, see the accompanying
+file license.txt or http://www.opensource.org/licenses/mit-license.php.
+This product includes software developed by the OpenSSL Project for use in
+the OpenSSL Toolkit (http://www.openssl.org/).  This product includes
+cryptographic software written by Eric Young (eay@cryptsoft.com) and UPnP
+software written by Thomas Bernard.
+
+
+TERMUX BUILD NOTES (ANDROID)
+================================================
+
+Requirements
+----------------------------------------------
+https://termux.com  (Available through Google Play Store)
+
+
+Dependencies (Install with package manager)
+----------------------------------------------
+pkg install root-repo
+pkg install x11-repo
+pkg update
+pkg upgrade
+apt install make
+pkg install clang
+apt install boost
+apt install git
+apt install g++
+apt install openssl
+apt install libdb
+apt install automake
+apt install build-essential
+apt inatall libllvm
+apt install libcurl
+apt install attr
+apt install libcrypt
+apt install libcln
+apt install libprotobuf
+apt install leveldb
+apt install libleveldb
+apt install libandroid-shmem
+apt install libc*
+apt install proot
+apt install stdatomic
+pkg install libgmp
+
+
+Prepare to compile: Grab the source
+----------------------------------------------
+
+git clone http://github.com/profithunterscoin/phc
+cd phc/src && git checkout 1.0.0.7-dev
+cd
+
+
+
+Dependency: Berkely DB (Manual compile)
+----------------------------------------------
+
+wget https://fossies.org/linux/misc/db-18.1.32.tar.gz
+
+NOTE: If the link above is broken use mirror: wget https://profithunterscoin.com/db-18.1.32.tar.gz
+
+tar -xzvf db-18.1.32.tar.gz
+cd db-18.1.32
+cd build_android
+../dist/configure --enable-cxx --with-static
+make
+termux-chroot make install
+cd
+
+
+
+Prepare to compile: Termux Mods
+----------------------------------------------
+git clone https://github.com/profithunterscoin/android-ifaddrs
+mv /data/data/com.termux/files/usr/include/ifaddrs.h ifaddrs-old.h
+cd android-ifaddrs 
+cp * /data/data/com.termux/files/usr/include/
+cd
+
+
+
+Static Build (phcd) Headless daemon (Release binaries - verified working)
+----------------------------------------------
+
+Dependency: GMP (Manual compile)
+~~~~~~~~~
+
+git clone https://github.com/profithunterscoin/GMP
+
+cd GMP
+./configure
+make check
+make
+termux-chroot make install
+termux-chroot cp gmp.h ../../usr/include
+termux-chroot mkdir ../../usr/lib/.libs/
+termux-chroot cp ../../usr/local/lib/libgmp.a ../../usr/lib/.libs/libgmp.a
+cd
+
+
+Dependency: Openssl (Manual compile)
+~~~~~~~~~
+
+git clone https://github.com/profithunterscoin/openssl
+cd openssl
+./config
+make
+termux-chroot make install
+termux-chroot cp libssl.a ../../usr/libssl
+termux-chroot cp libcrypto.a ../../usr/lib
+cd
+
+
+Dependency: Miniupnp (Manual compile)
+~~~~~~~~~
+
+git clone https://github.com/profithunterscoin/miniupnp
+cd miniupnp/miniupnpc
+make
+termux-chroot make install
+cd
+
+
+Dependency: Boost 1.70 (Manual compile)
+~~~~~~~~~
+wget https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.bz2
+
+NOTE: If the link above is broken use mirror: wget https://profithunterscoin.com/boost_1_70_0.tar.bz2
+
+tar xvjf boost_1_70_0.tar.bz2
+
+Fix depends issue:
+mv /data/data/com.termux/files/usr/include/python3.7m /data/data/com.termux/files/usr/include/python3.7
+mv /data/data/com.termux.files/usr/lib/libpython3.7m.so /data/data/com.termux/files/usr/lib/libpython37.so
+
+cd boost_1_70_0
+
+Install Boost by running the following commands:
+
+termux-chroot ./bootstrap.sh --prefix=/data/data/com.termux/files/usr && ./b2 stage threading=multi link=shared
+
+Install Boost Libs by running the following commands:
+
+termux-chroot ./bootstrap.sh --prefix=/data/data/com.termux/files/usr && ./b2 stage threading=multi link=static
+
+cd
+
+
+Build Static Executable
+~~~~~~~~~
+cd phc
+git checkout 1.0.0.7-dev
+cd src/
+make -f makefile.android STATIC=1
+
+Or you can also try:
+make STATIC=1 LDFLAGS="-static-libstdc++" -f makefile.unix phcd USE_UPNP=
+
+
+
+
+Security
+----------------------------------------------
+To help make your PHC installation more secure by making certain attacks impossible to
+exploit even if a vulnerability is found, you can take the following measures:
+
+* Position Independent Executable
+    Build position independent code to take advantage of Address Space Layout Randomization
+    offered by some kernels. An attacker who is able to cause execution of code at an arbitrary
+    memory location is thwarted if he doesn't know where anything useful is located.
+    The stack and heap are randomly located by default but this allows the code section to be
+    randomly located as well.
+
+    On an Amd64 processor where a library was not compiled with -fPIC, this will cause an error
+    such as: "relocation R_X86_64_32 against `......' can not be used when making a shared object;"
+
+    To build with PIE, use:
+    make -f makefile.unix ... -e PIE=1
+
+    To test that you have built PIE executable, install scanelf, part of paxutils, and use:
+    scanelf -e ./phc
+
+    The output should contain:
+     TYPE
+    ET_DYN
+
+* Non-executable Stack
+    If the stack is executable then trivial stack based buffer overflow exploits are possible if
+    vulnerable buffers are found. By default, PHC should be built with a non-executable stack
+    but if one of the libraries it uses asks for an executable stack or someone makes a mistake
+    and uses a compiler extension which requires an executable stack, it will silently build an
+    executable without the non-executable stack protection.
+
+    To verify that the stack is non-executable after compiling use:
+    scanelf -e ./phc
+
+    the output should contain:
+    STK/REL/PTL
+    RW- R-- RW-
+
+    The STK RW- means that the stack is readable and writeable but not executable.
+
+
+
+Troubleshooting
+-------------------------------
+
+********
+secp256k1.o no such file or directory
+
+chmod +x secp256k1
+cd secp256k1
+./autogen.sh
+./configure
+make
+termux-chroot make install
+cd ..
+make -f makefile.android STATIC=1
+********
+
+********
+cannot find -lgmp
+
+cd
+cd GMP
+wget http://profithunterscoin.com/libgmp.a
+cd
+cd phc/src
+make -f makefile.android STATIC=1
+********
+
+********
+secp256k1_ecdsa_recover linker command failed
+
+cd secp256k1
+./autogen.sh
+./configure --enable-module-recovery
+make
+cd ..
+make -f makefile.android STATIC=1
+********
+
+
+
+
+
+To Build (phcd) Headless daemon  (Not working 100%)
+----------------------------------------------
+
+git checkout 1.0.0.7-dev
+cd src
+make -f makefile.android

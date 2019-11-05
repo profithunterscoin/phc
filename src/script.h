@@ -1,8 +1,15 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2012 The Bitcoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #ifndef H_BITCOIN_SCRIPT
@@ -542,7 +549,17 @@ class CScriptNum
 
         inline CScriptNum operator-() const
         {
-            assert(m_value != std::numeric_limits<int64_t>::min());
+            if (m_value == std::numeric_limits<int64_t>::min())
+            {
+                if (fDebug)
+                {
+                    LogPrint("key", "%s : m_value == std::numeric_limits<int64_t>::min() (assert-1)\n", __FUNCTION__);
+                }
+                
+                cout << __FUNCTION__ << " (assert-1)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+                return *this;
+            }
 
             return CScriptNum(-m_value);
         }
@@ -556,7 +573,9 @@ class CScriptNum
 
         inline CScriptNum& operator+=(const int64_t& rhs)
         {
-            assert(rhs == 0 || (rhs > 0 && m_value <= std::numeric_limits<int64_t>::max() - rhs) || (rhs < 0 && m_value >= std::numeric_limits<int64_t>::min() - rhs));
+            assert(rhs == 0
+                    || (rhs > 0 && m_value <= std::numeric_limits<int64_t>::max() - rhs)
+                    || (rhs < 0 && m_value >= std::numeric_limits<int64_t>::min() - rhs));
             
             m_value += rhs;
 
@@ -830,7 +849,12 @@ class CScript : public std::vector<unsigned char>
         {
             // I'm not sure if this should push the script or concatenate scripts.
             // If there's ever a use for pushing a script onto a script, delete this member fn
-            assert(!"Warning: Pushing a CScript onto a CScript with << is probably not intended, use + to concatenate!");
+            if (fDebug)
+            {
+                LogPrint("script", "%s : Warning: Pushing a CScript onto a CScript with << is probably not intended, use + to concatenate! (assert-2)\n", __FUNCTION__);
+            }
+
+            cout << __FUNCTION__ << " (assert-2)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
             return *this;
         }

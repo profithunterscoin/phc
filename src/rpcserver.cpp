@@ -1,8 +1,15 @@
-// Copyright (c) 2010 Satoshi Nakamoto
-// Copyright (c) 2009-2012 The Bitcoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #include "rpcserver.h"
@@ -299,9 +306,10 @@ Value debug(const Array& params, bool fHelp)
                             "debug 0|1\n"
                             "Current Debug State: " + debugstatus + " Categories: " + boost::join(mapMultiArgs["-debug"], ",") + "\n"
                             "|addrman|alert|core|db|rand|rpc|coincontrol|mempool"
-                            "|net|socks|darksend|wallet|masternode|firewall|stealth"
-                            "|protocol|uint|stakemodifier|kernel|util|daemon|socks"
-                            "|smessage|gui|qt|mining|coinage|spork|blockshield|blocktree|"
+                            "|net|socks|darksend|instantsend|wallet|masternode|firewall|stealth"
+                            "|protocol|uint|stakemodifier|kernel|util|daemon|proxy"
+                            "|smessage|gui|qt|mining|coinage|spork|blockshield|blocktree"
+                            "|asicchoker|phc|noui|chainbuddy|chainshield|key|uint|leveldb|base58|script|wallet|"
                             "Change debug category on the fly."
                             "Specify single category or use comma to specify many.\n"
                             "Special note: phcd must be run with -debug option and"
@@ -350,11 +358,14 @@ static const CRPCCommand vRPCCommands[] =
     { "stop",                                           &stop,                                          true,      true,      false },
     { "debug",                                          &debug,                                         true,      true,      false },
     { "prune",                                          &prune,                                         true,      true,      false },
-    { "rollback",                                       &rollback,                                      true,      true,      false },
+    { "rollbackchain",                                  &rollbackchain,                                 true,      true,      false },
+    { "backtoblock",                                    &backtoblock,                                   true,      true,      false },
+    { "forcesync",                                      &forcesync,                                     true,      true,      false },
     { "getbestblockhash",                               &getbestblockhash,                              true,      false,     false },
     { "getblockcount",                                  &getblockcount,                                 true,      false,     false },
     { "getconnectioncount",                             &getconnectioncount,                            true,      false,     false },
     { "getpeerinfo",                                    &getpeerinfo,                                   true,      false,     false },
+    { "getpeeraverageheight",                           &getpeeraverageheight,                          true,      false,     false },
     { "addnode",                                        &addnode,                                       true,      true,      false },
     { "getaddednodeinfo",                               &getaddednodeinfo,                              true,      true,      false },
     { "ping",                                           &ping,                                          true,      false,     false },
@@ -365,7 +376,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getdifficulty",                                  &getdifficulty,                                 true,      false,     false },
     { "getgenerate",                                    &getgenerate,                                   true,      false,     false },
     { "setgenerate",                                    &setgenerate,                                   true,      false,     true  },
-    //{ "gethashespersec",                              &gethashespersec,                               true,      false,     false },
+    { "gethashespersec",                                &gethashespersec,                               true,      false,     false },
     { "getinfo",                                        &getinfo,                                       true,      false,     false },
     { "getrawmempool",                                  &getrawmempool,                                 true,      false,     false },
     { "getblock",                                       &getblock,                                      false,     false,     false },
@@ -401,34 +412,45 @@ static const CRPCCommand vRPCCommands[] =
     { "firewalldebugblacklist",                         &firewalldebugblacklist,                        false,      false,    false },
     { "firewalldebugdisconnect",                        &firewalldebugdisconnect,                       false,      false,    false },
     { "firewalldebugbandwidthabuse",                    &firewalldebugbandwidthabuse,                   false,      false,    false },
-    { "firewalldebugnofalsepositivebandwidthabuse",     &firewalldebugnofalsepositivebandwidthabuse,    false,      false,    false },
+    { "firewalldebugdoublespend",                       &firewalldebugdoublespend,                      false,      false,    false },
     { "firewalldebuginvalidwallet",                     &firewalldebuginvalidwallet,                    false,      false,    false },
     { "firewalldebugforkedwallet",                      &firewalldebugforkedwallet,                     false,      false,    false },
     { "firewalldebugfloodingwallet",                    &firewalldebugfloodingwallet,                   false,      false,    false },
+    { "firewalldebugddoswallet",                        &firewalldebugddoswallet,                       false,      false,    false },
 
     /* Firewall BandwidthAbuse Session Settings */
     { "firewalldetectbandwidthabuse",                   &firewalldetectbandwidthabuse,                  false,      false,    false },
     { "firewallblacklistbandwidthabuse",                &firewallblacklistbandwidthabuse,               false,      false,    false },
     { "firewallbanbandwidthabuse",                      &firewallbanbandwidthabuse,                     false,      false,    false },
-    { "firewallnofalsepositivebandwidthabuse",          &firewallnofalsepositivebandwidthabuse,         false,      false,    false },
     { "firewallbantimebandwidthabuse",                  &firewallbantimebandwidthabuse,                 false,      false,    false },
-    { "firewallbandwidthabusemaxcheck",                 &firewallbandwidthabusemaxcheck,                false,      false,    false },
-    { "firewallbandwidthabuseminattack",                &firewallbandwidthabuseminattack,               false,      false,    false },
-    { "firewallbandwidthabuseminattack",                &firewallbandwidthabuseminattack,               false,      false,    false },
+    { "firewalldisconnectbandwidthabuse",               &firewalldisconnectbandwidthabuse,              false,      false,    false },
+    { "firewallbandwidthabusemincheck",                 &firewallbandwidthabusemincheck,                false,      false,    false },
+
+    /* Firewall Double-Spend Session Settings */
+    { "firewalldetectdoublespend",                      &firewalldetectdoublespend,                     false,      false,    false },
+    { "firewallblacklistdoublespend",                   &firewallblacklistdoublespend,                  false,      false,    false },
+    { "firewallbandoublespend",                         &firewallbandoublespend,                        false,      false,    false },
+    { "firewallbantimedoublespend",                     &firewallbantimedoublespend,                    false,      false,    false },
+    { "firewalldisconnectdoublespend",                  &firewalldisconnectdoublespend,                 false,      false,    false },
+    { "firewalldoublespendmincheck",                    &firewalldoublespendmincheck,                   false,      false,    false },
+    { "firewalldoublespendminattack",                   &firewalldoublespendminattack,                  false,      false,    false },
+    { "firewalldoublespendminattack",                   &firewalldoublespendminattack,                  false,      false,    false },
 
     /* Firewall Invalid Wallet Session Settings */
     { "firewalldetectinvalidwallet",                    &firewalldetectinvalidwallet,                   false,      false,    false },
     { "firewallblacklistinvalidwallet",                 &firewallblacklistinvalidwallet,                false,      false,    false },
     { "firewallbaninvalidwallet",                       &firewallbaninvalidwallet,                      false,      false,    false },
     { "firewallbantimeinvalidwallet",                   &firewallbantimeinvalidwallet,                  false,      false,    false },
+    { "firewalldisconnectinvalidwallet",                &firewalldisconnectinvalidwallet,               false,      false,    false },
     { "firewallinvalidwalletminprotocol",               &firewallinvalidwalletminprotocol,              false,      false,    false },
-    { "firewallinvalidwalletmaxcheck",                  &firewallinvalidwalletmaxcheck,                 false,      false,    false },
+    { "firewallinvalidwalletmincheck",                  &firewallinvalidwalletmincheck,                 false,      false,    false },
 
     /* Firewall Forked Wallet Session Settings */
     { "firewalldetectforkedwallet",                     &firewalldetectforkedwallet,                    false,      false,    false },
     { "firewallblacklistforkedwallet",                  &firewallblacklistforkedwallet,                 false,      false,    false },
     { "firewallbanforkedwallet",                        &firewallbanforkedwallet,                       false,      false,    false },
     { "firewallbantimeforkedwallet",                    &firewallbantimeforkedwallet,                   false,      false,    false },
+    { "firewalldisconnectforkedwallet",                 &firewalldisconnectforkedwallet,                false,      false,    false },
     { "firewallforkedwalletnodeheight",                 &firewallforkedwalletnodeheight,                false,      false,    false },
 
     /* Firewall Flooding Wallet Session Settings */
@@ -436,14 +458,25 @@ static const CRPCCommand vRPCCommands[] =
     { "firewallblacklistfloodingwallet",                &firewallblacklistfloodingwallet,               false,      false,    false },
     { "firewallbanfloodingwallet",                      &firewallbanfloodingwallet,                     false,      false,    false },
     { "firewallbantimefloodingwallet",                  &firewallbantimefloodingwallet,                 false,      false,    false },
+    { "firewalldisconnectfloodingwallet",               &firewalldisconnectfloodingwallet,              false,      false,    false },
     { "firewallfloodingwalletminbytes",                 &firewallfloodingwalletminbytes,                false,      false,    false },
     { "firewallfloodingwalletmaxbytes",                 &firewallfloodingwalletmaxbytes,                false,      false,    false },
     { "firewallfloodingwalletattackpatternadd",         &firewallfloodingwalletattackpatternadd,        false,      false,    false },
     { "firewallfloodingwalletattackpatternremove",      &firewallfloodingwalletattackpatternremove,     false,      false,    false },
+    { "firewallfloodingwalletattackignoredadd",         &firewallfloodingwalletattackignoredadd,        false,      false,    false },
+    { "firewallfloodingwalletattackignoredremove",      &firewallfloodingwalletattackignoredremove,     false,      false,    false },
     { "firewallfloodingwalletmintrafficavg",            &firewallfloodingwalletmintrafficavg,           false,      false,    false },
     { "firewallfloodingwalletmaxtrafficavg",            &firewallfloodingwalletmaxtrafficavg,           false,      false,    false },
     { "firewallfloodingwalletmincheck",                 &firewallfloodingwalletmincheck,                false,      false,    false },
     { "firewallfloodingwalletmaxcheck",                 &firewallfloodingwalletmaxcheck,                false,      false,    false },
+
+    /* Firewall DDoS Wallet Session Settings */
+    { "firewalldetectddoswallet",                       &firewalldetectddoswallet,                      false,      false,    false },
+    { "firewallblacklistddoswallet",                    &firewallblacklistddoswallet,                   false,      false,    false },
+    { "firewallbanddoswallet",                          &firewallbanddoswallet,                         false,      false,    false },
+    { "firewallbantimeddoswallet",                      &firewallbantimeddoswallet,                     false,      false,    false },
+    { "firewalldisconnectddoswallet",                   &firewalldisconnectddoswallet,                  false,      false,    false },
+    { "firewallddoswalletmincheck",                     &firewallddoswalletmincheck,                    false,      false,    false },
 
 /* Dark features */
     { "spork",                                          &spork,                                         true,      false,      false },
@@ -453,6 +486,7 @@ static const CRPCCommand vRPCCommands[] =
 #ifdef ENABLE_WALLET
     { "darksend",                                       &darksend,                                      false,     false,      true },
     { "getmininginfo",                                  &getmininginfo,                                 true,      false,     false },
+    { "getnetworkhashps",                                  &getnetworkhashps,                                 true,      false,     false },
     { "getstakinginfo",                                 &getstakinginfo,                                true,      false,     false },
     { "getnewaddress",                                  &getnewaddress,                                 true,      false,     true },
     { "getnewpubkey",                                   &getnewpubkey,                                  true,      false,     true },
@@ -523,6 +557,21 @@ static const CRPCCommand vRPCCommands[] =
     { "smsgoutbox",                                     &smsgoutbox,                                    false,     false,     false },
     { "smsgbuckets",                                    &smsgbuckets,                                   false,     false,     false },
 #endif
+
+/* Chain Buddy */
+    { "getchainbuddyinfo",                              &getchainbuddyinfo,                              false,     false,     false },
+    { "chainbuddyenabled",                              &chainbuddyenabled,                              false,     false,     false },
+
+/* Chain Shield */
+    { "getchainshieldinfo",                             &getchainshieldinfo,                             false,     false,     false },
+    { "chainshieldenabled",                             &chainshieldenabled,                             false,     false,     false },
+    { "chainshieldrollbackrunaway",                     &chainshieldrollbackrunaway,                     false,     false,     false },
+
+/* TurboSync */
+/* Dynamic Checkpoints */
+/* Block Shield */
+/* ASIC Choker */
+
 };
 
 
@@ -634,7 +683,11 @@ template <typename Protocol> class AcceptedConnectionImpl : public AcceptedConne
 {
     public:
 
+#if BOOST_VERSION >= 107000
+        AcceptedConnectionImpl(asio::executor io_service, ssl::context &context, bool fUseSSL) : sslStream(io_service, context), _d(sslStream, fUseSSL), _stream(_d)
+#else
         AcceptedConnectionImpl(asio::io_service& io_service, ssl::context &context, bool fUseSSL) : sslStream(io_service, context), _d(sslStream, fUseSSL), _stream(_d)
+#endif  
         {
         }
 
@@ -678,7 +731,11 @@ template <typename Protocol, typename SocketAcceptorService> static void RPCAcce
 template <typename Protocol, typename SocketAcceptorService> static void RPCListen(boost::shared_ptr< basic_socket_acceptor<Protocol, SocketAcceptorService> > acceptor, ssl::context& context, const bool fUseSSL)
 {
     // Accept connection
+#if BOOST_VERSION >= 107000
+    AcceptedConnectionImpl<Protocol>* conn = new AcceptedConnectionImpl<Protocol>(acceptor->get_executor(), context, fUseSSL);
+#else
     AcceptedConnectionImpl<Protocol>* conn = new AcceptedConnectionImpl<Protocol>(acceptor->get_io_service(), context, fUseSSL);
+#endif
 
     acceptor->async_accept(conn->sslStream.lowest_layer(), conn->peer, boost::bind(&RPCAcceptHandler<Protocol, SocketAcceptorService>, acceptor, boost::ref(context), fUseSSL, conn, boost::asio::placeholders::error));
 }
@@ -763,10 +820,23 @@ void StartRPCThreads()
         }
     }
 
-    assert(rpc_io_service == NULL);
+    if (rpc_io_service != NULL)
+    {
+        if (fDebug)
+        {
+            LogPrint("rpc", "%s : rpc_io_service != NULL\n", __FUNCTION__);
+        }
+
+        return;
+    }
     
     rpc_io_service = new asio::io_service();
+
+#if BOOST_VERSION >= 107000
+    rpc_ssl_context = new boost::asio::ssl::context(boost::asio::ssl::context::sslv23);
+#else
     rpc_ssl_context = new ssl::context(*rpc_io_service, ssl::context::sslv23);
+#endif
 
     const bool fUseSSL = GetBoolArg("-rpcssl", false);
 
@@ -776,7 +846,7 @@ void StartRPCThreads()
 
         filesystem::path pathCertFile(GetArg("-rpcsslcertificatechainfile", "server.cert"));
         
-        if (!pathCertFile.is_complete()) pathCertFile = filesystem::path(GetDataDir()) / pathCertFile;
+        if (!pathCertFile.is_complete()) pathCertFile = filesystem::path(GetDataDir(true)) / pathCertFile;
         
         if (filesystem::exists(pathCertFile))
         {
@@ -794,7 +864,7 @@ void StartRPCThreads()
         
         if (!pathPKFile.is_complete())
         {
-            pathPKFile = filesystem::path(GetDataDir()) / pathPKFile;
+            pathPKFile = filesystem::path(GetDataDir(true)) / pathPKFile;
         }
         
         if (filesystem::exists(pathPKFile))
@@ -810,8 +880,13 @@ void StartRPCThreads()
         } 
 
         string strCiphers = GetArg("-rpcsslciphers", "TLSv1.2+HIGH:TLSv1+HIGH:!SSLv3:!SSLv2:!aNULL:!eNULL:!3DES:@STRENGTH");
-        
+
+#if BOOST_VERSION >= 107000        
+        SSL_CTX_set_cipher_list(rpc_ssl_context->native_handle(), strCiphers.c_str());
+#else
         SSL_CTX_set_cipher_list(rpc_ssl_context->impl(), strCiphers.c_str());
+#endif
+
     }
 
     // Try a dual IPv6/IPv4 socket, falling back to separate IPv4 and IPv6 sockets
@@ -921,7 +996,15 @@ void RPCRunHandler(const boost::system::error_code& err, boost::function<void(vo
 
 void RPCRunLater(const std::string& name, boost::function<void(void)> func, int64_t nSeconds)
 {
-    assert(rpc_io_service != NULL);
+    if (rpc_io_service == NULL)
+    {
+        if (fDebug)
+        {
+            LogPrint("rpc", "%s : rpc_io_service == NULL\n", __FUNCTION__);
+        }
+
+        return;
+    }
 
     if (deadlineTimers.count(name) == 0)
     {
@@ -1216,6 +1299,17 @@ json_spirit::Value CRPCTable::execute(const std::string &strMethod, const json_s
     {
         throw JSONRPCError(RPC_MISC_ERROR, e.what());
     }
+}
+
+
+std::vector<std::string> CRPCTable::listCommands() const
+{
+    std::vector<std::string> commandList;
+    typedef std::map<std::string, const CRPCCommand*> commandMap;
+
+    std::transform(mapCommands.begin(), mapCommands.end(), std::back_inserter(commandList), boost::bind(&commandMap::value_type::first, _1));
+    
+    return commandList;
 }
 
 

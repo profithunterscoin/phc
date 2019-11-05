@@ -1,7 +1,15 @@
-// Copyright (c) 2009-2012 Bitcoin Developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #include <iostream>
@@ -178,41 +186,10 @@ Value importprivkey(const Array& params, bool fHelp)
         throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "Wallet is unlocked for staking only.");
     }
 
-    CKey key = vchSecret.GetKey();
-    CPubKey pubkey = key.GetPubKey();
-    assert(key.VerifyPubKey(pubkey));
-    CKeyID vchAddress = pubkey.GetID();
-    
-    // Global Namespace Start
+    if (!pwalletMain->ImportPrivateKey(vchSecret, strLabel, fRescan))
     {
-        LOCK2(cs_main, pwalletMain->cs_wallet);
-
-        pwalletMain->MarkDirty();
-        pwalletMain->SetAddressBookName(vchAddress, strLabel);
-
-        // Don't throw error in case a key is already there
-        if (pwalletMain->HaveKey(vchAddress))
-        {
-            return Value::null;
-        }
-
-        pwalletMain->mapKeyMetadata[vchAddress].nCreateTime = 1;
-
-        if (!pwalletMain->AddKeyPubKey(key, pubkey))
-        {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Error adding key to wallet");
-        }
-
-        // whenever a key is imported, we need to scan the whole chain
-        pwalletMain->nTimeFirstKey = 1; // 0 would be considered 'no value'
-
-        if (fRescan)
-        {
-            pwalletMain->ScanForWalletTransactions(pindexGenesisBlock, true);
-            pwalletMain->ReacceptWalletTransactions();
-        }
+        throw JSONRPCError(RPC_WALLET_ERROR, "Error adding key to wallet");
     }
-    // Global Namespace End 
 
     return Value::null;
 }
@@ -367,7 +344,18 @@ Value importwallet(const Array& params, bool fHelp)
         CKey key = vchSecret.GetKey();
         
         CPubKey pubkey = key.GetPubKey();
-        assert(key.VerifyPubKey(pubkey));
+
+        if (key.VerifyPubKey(pubkey) == false)
+        {
+            if (fDebug)
+            {
+                LogPrint("rpc", "%s : key.VerifyPubKey(pubkey) == false (assert-1)\n", __FUNCTION__);
+            }
+
+            cout << __FUNCTION__ << " (assert-1)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+            return Value::null;
+        }
 
         CKeyID keyid = pubkey.GetID();
         

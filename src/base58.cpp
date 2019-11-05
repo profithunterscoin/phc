@@ -1,7 +1,16 @@
-// Copyright (c) 2014 The Bitcoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (C) 2017-2018 Crypostle Core developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #include "base58.h"
@@ -10,7 +19,6 @@
 #include "uint256.h"
 #include "chainparams.h"
 
-#include <assert.h>
 #include <stdint.h>
 #include <string.h>
 #include <vector>
@@ -18,9 +26,12 @@
 #include <boost/variant/apply_visitor.hpp>
 #include <boost/variant/static_visitor.hpp>
 
+/* ONLY NEEDED FOR UNIT TESTING */
+#include <iostream>
+using namespace std;
+
 /* All alphanumeric characters except for "0", "I", "O", and "l" */
 static const char* pszBase58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-
 
 bool DecodeBase58(const char* psz, std::vector<unsigned char>& vchRet)
 {
@@ -125,7 +136,18 @@ bool DecodeBase58(const char* psz, std::vector<unsigned char>& vchRet)
             carry /= 256;
         }
 
-        assert(carry == 0);
+        if (carry != 0)
+        {
+            if (fDebug)
+            {
+                LogPrint("base58", "%s : carry != 0 (assert-1)\n", __FUNCTION__);
+            }
+
+            cout << __FUNCTION__ << " (assert-1)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+            return false;
+        }
+
         psz++;
     }
 
@@ -186,7 +208,18 @@ std::string EncodeBase58(const unsigned char* pbegin, const unsigned char* pend)
             carry /= 58;
         }
 
-        assert(carry == 0);
+        if (carry != 0)
+        {
+            if (fDebug)
+            {
+                LogPrint("base58", "%s : carry != 0 (assert-2)\n", __FUNCTION__);
+            }
+
+            cout << __FUNCTION__ << " (assert-2)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+            return "error";
+        }
+
         pbegin++;
     }
 
@@ -505,7 +538,18 @@ bool CPHCcoinAddress::IsScript() const
 
 void CPHCcoinSecret::SetKey(const CKey& vchSecret)
 {
-    assert(vchSecret.IsValid());
+    if (vchSecret.IsValid() == false)
+    {
+        if (fDebug)
+        {
+            LogPrint("base58", "%s : vchSecret.IsValid() == false (assert-3)\n", __FUNCTION__);
+        }
+
+        cout << __FUNCTION__ << " assert-3" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+        return;
+    }
+
     SetData(Params().Base58Prefix(CChainParams::SECRET_KEY), vchSecret.begin(), vchSecret.size());
 
     if (vchSecret.IsCompressed())

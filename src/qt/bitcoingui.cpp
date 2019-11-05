@@ -1,15 +1,21 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
 // Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2012 W.J. van der Laan
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
 // Copyright (c) 2014-2015 The Dash developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
+
 /*
-* Qt4 bitcoin GUI.
-*
-* W.J. van der Laan 2011-2012
+* Qt4 & Qt 5 bitcoin GUI.
 */
+
 
 #include <QApplication>
 
@@ -43,6 +49,7 @@
 #include "messagemodel.h"
 #include "messagepage.h"
 #include "blockbrowser.h"
+#include "importprivatekeydialog.h"
 //#include "tradingdialog.h"
 
 #ifdef Q_OS_MAC
@@ -74,12 +81,16 @@
 #include <QScrollArea>
 #include <QScroller>
 #include <QTextDocument>
+#include <QInputDialog>
 
 #include <iostream>
 
 extern bool fOnlyTor;
+
 extern CWallet* pwalletMain;
+
 extern int64_t nLastCoinStakeSearchInterval;
+
 double GetPoSKernelPS();
 
 
@@ -111,15 +122,43 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 	{
 		// NORMAL THEME
 
-
-
-
 		qApp->setStyleSheet("QMainWindow"
 							"{"
 							"	background-image:url(:images/bkg);"
 							"	border:none;"
 							"	font-family:'Open Sans,sans-serif';"
 							"}"
+
+							"QMenuBar"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"}"
+
+							"QMenuBar::item"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QMenuBar::item::selected"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"}"
+
+							"QMenu"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"}"
+
+							"QMenu::item:selected"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
 							"QPushButton"
 							"{"
 							"	color:#ecf0f1;"
@@ -128,15 +167,18 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 							"	background:#757575;"
 							"	padding:3px 30px;"
 							"}"
+
 							"QPushButton:hover"
 							"{"
 							"	background-color: rgb(102, 102, 102);"
 							"}"
+
 							"QPushButton:focus"
 							"{"
 							"	border:none;"
 							"	outline:none;"
 							"}"
+
 							"QPushButton:pressed"
 							"{"
 							"	background-color: rgb(80, 80, 80);"
@@ -166,6 +208,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 										"	padding: 1px;"
 										"	text-align: center;"
 										"}"
+
 										"QProgressBar::chunk"
 										"{"
 										"	background: QLinearGradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 #FF8000, stop: 1 yellow);"
@@ -194,6 +237,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 							"	font-family:'Open Sans,sans-serif';"
 							"	color: #E5D738;"
 							"}"
+
 							"QPushButton"
 							"{"
 							"	color:#000000;"
@@ -202,85 +246,139 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 							"	background:#E5D738;"
 							"	padding:3px 30px;"
 							"}"
+
 							"QPushButton:hover"
 							"{"
 							"	background-color: #E5D738;"
 							"	color: #000000;"
 							"}"
+
 							"QPushButton:focus"
 							"{"
 							"	border:none;"
 							"	outline:none;"
 							"}"
+
 							"QPushButton:pressed"
 							"{"
 							"	background-color: #E5D738;"
 							"	color: #000000;"
 							"}"
+
+							"QMenuBar"
+							"{"
+							"	color: #000000;"
+							"	border: 2px solid;"
+							"	border-color: #A4D300;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QMenuBar::item"
+							"{"
+							"	border: 2px solid;"
+							"	padding: 2px;"
+							"	border-color: #A4D300;"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QMenuBar::item::selected"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"}"
+
+							"QMenu"
+							"{"
+							"	border: 2px solid;"
+							"	border-color: #A4D300;"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"}"
+
+							"QMenu::item:selected"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
 							"QFrame"
 							"{"
 							"	color: #A4D300;"
 							"	background-color: #000000;"
 							"}"
+
 							"QDialog"
 							"{"
 							"	color: #A4D300;"
 							"	background-color: #000000;"
 							"}"
+
 							"QGridLayout"
 							"{"
 							"	color: #A4D300;"
 							"	background-color: #000000;"
 							"}"
+
 							"QTableWidget"
 							"{"
 							"	color: #A4D300;"
 							"	background-color: #000000;"
 							"	alternate-background-color: #000000;"
 							"}"
+
 							"QTableWidget:section"
 							"{"
 							"	color: #A4D300;"
 							"	background-color: #000000;"
 							"}"
+
 							"QTabWidget"
 							"{"
 							"	color: #A4D300;"
 							"	background-color: #000000;"
 							"}"
+
 							"QList"
 							"{"
 							"	color: #A4D300;"
 							"	background-color: #000000;"
 							"	alternate-background-color: #000000;"
 							"}"
+
 							"QLabel"
 							"{"
 							"	color: #A4D300;"
 							"}"
+
 							"QCheckBox"
 							"{"
 							"	border: none;"
 							"	color: #A4D300;"
 							"}"
+
 							"QCheckBox:unchecked"
 							"{"
 							"	border: none;"
 							"	color: #A4D300;"
 							"}"
+
 							"QCheckBox:checked"
 							"{"
 							"	border: none;"
 							"	color: #A4D300;"
 							"}"
+
 							"QHeaderView::section"
 							"{"
 							"	color: #000000;"
 							"}"
+
 							"QWidget"
 							"{"
 							"	alternate-background-color: #000000;"
 							"}"
+
 							"QRadioButton"
 							"{"
 							"	border: none;"
@@ -330,12 +428,12 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 
 
 #ifndef Q_OS_MAC
-	qApp->setWindowIcon(QIcon(":icons/bitcoin"));
-	setWindowIcon(QIcon(":icons/bitcoin"));
+			qApp->setWindowIcon(QIcon(":icons/bitcoin"));
+			setWindowIcon(QIcon(":icons/bitcoin"));
 #else
-	//setUnifiedTitleAndToolBarOnMac(true);
-	QApplication::setAttribute(Qt::AA_DontShowIconsInMenus);
+			MacDockIconHandler::instance()->setIcon(QIcon(":icons/bitcoin"));
 #endif
+
 	setObjectName("PHC");
 
 	setStyleSheet("#PHC"
@@ -488,7 +586,15 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 	connect(transactionView, SIGNAL(doubleClicked(QModelIndex)), transactionView, SLOT(showDetails()));
 
 	rpcConsole = new RPCConsole(0);
-	connect(openRPCConsoleAction, SIGNAL(triggered()), rpcConsole, SLOT(show()));
+	connect(openRPCConsoleAction, SIGNAL(triggered()), rpcConsole, SLOT(showConsole()));
+	connect(openInformationAction, SIGNAL(triggered()), rpcConsole, SLOT(showInfo()));
+	connect(openNetTrafficAction, SIGNAL(triggered()), rpcConsole, SLOT(showNetTraffic()));
+	connect(openPeersAction, SIGNAL(triggered()), rpcConsole, SLOT(showPeers()));
+	connect(openConfigFileAction, SIGNAL(triggered()), rpcConsole, SLOT(on_openPHCConfigfileButton_clicked()));
+	connect(openMasternodeConfigFileAction, SIGNAL(triggered()), rpcConsole, SLOT(on_openMNConfigfileButton_clicked()));
+	connect(openDebugFileAction, SIGNAL(triggered()), rpcConsole, SLOT(on_openDebugLogfileButton_clicked()));
+	connect(setgenerateTRUEAction, SIGNAL(triggered()), rpcConsole, SLOT(setgenerateTRUE()));
+	connect(setgenerateFALSEAction, SIGNAL(triggered()), rpcConsole, SLOT(setgenerateFALSE()));
 
 	// clicking on automatic backups shows details
 	connect(showBackupsAction, SIGNAL(triggered()), rpcConsole, SLOT(showBackups()));
@@ -602,7 +708,7 @@ void BitcoinGUI::createActions()
 	quitAction->setToolTip(tr("Quit application"));
 	quitAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
 	quitAction->setMenuRole(QAction::QuitRole);
-	
+
 	aboutAction = new QAction(QIcon(":/icons/bitcoin1"), tr("&About PHC"), this);
 	aboutAction->setToolTip(tr("Show information about PHC"));
 	aboutAction->setMenuRole(QAction::AboutRole);
@@ -610,6 +716,33 @@ void BitcoinGUI::createActions()
 	aboutQtAction = new QAction(QIcon(":/qt-project.org/qmessagebox/images/qtlogo-64.png"), tr("About &Qt"), this);
 	aboutQtAction->setToolTip(tr("Show information about Qt"));
 	aboutQtAction->setMenuRole(QAction::AboutQtRole);
+
+	linkWebsiteAction = new QAction(QIcon(":/icons/website"), tr("&PHC Website"), this);
+	linkWebsiteAction->setToolTip(tr("Visit the Official PHC website"));
+
+    linkBitcointalkAction = new QAction(QIcon(":/icons/bitcointalk"), tr("&Bitcointalk Discussion"), this);
+	linkBitcointalkAction->setToolTip(tr("Visit our Bitcointalk discussion thread"));
+
+	linkTwitterAction = new QAction(QIcon(":/icons/twitter"), tr("&PHC Twitter"), this);
+    linkTwitterAction->setToolTip(tr("Join PHC Twitter"));
+
+	linkFacebookAction = new QAction(QIcon(":/icons/facebook"), tr("&PHC Facebook"), this);
+    linkFacebookAction->setToolTip(tr("Join PHC Facebook"));
+
+    linkDiscordAction = new QAction(QIcon(":/icons/discord"), tr("&PHC Discord"), this);
+    linkDiscordAction->setToolTip(tr("Join PHC Discord"));
+
+	linkTelegramAction = new QAction(QIcon(":/icons/telegram"), tr("&PHC Telegram"), this);
+    linkTelegramAction->setToolTip(tr("Join PHC Telegram"));
+
+	linkSlackAction = new QAction(QIcon(":/icons/slack"), tr("&PHC Slack"), this);
+    linkSlackAction->setToolTip(tr("Join PHC Slack Group"));
+
+    linkExplorer1Action = new QAction(QIcon(":/icons/explorer"), tr("&PHC Explorer #1"), this);
+	linkExplorer1Action->setToolTip(tr("PHC Explorer #1"));	
+	
+	linkExplorer2Action = new QAction(QIcon(":/icons/explorer"), tr("&PHC Explorer #2"), this);
+	linkExplorer2Action->setToolTip(tr("PHC Explorer #2"));	
 	
 	optionsAction = new QAction(QIcon(":/icons/options"), tr("&Options..."), this);
 	optionsAction->setToolTip(tr("Modify configuration options for PHC"));
@@ -623,6 +756,9 @@ void BitcoinGUI::createActions()
 	backupWalletAction = new QAction(QIcon(":/icons/filesave"), tr("&Backup Wallet..."), this);
 	backupWalletAction->setToolTip(tr("Backup wallet to another location"));
 	
+	importPrivateKeyAction = new QAction(QIcon(":/icons/key"), tr("&Import private key..."), this);
+    importPrivateKeyAction->setToolTip(tr("Import a private key"));	
+
 	changePassphraseAction = new QAction(QIcon(":/icons/key"), tr("&Change Passphrase..."), this);
 	changePassphraseAction->setToolTip(tr("Change the passphrase used for wallet encryption"));
 	
@@ -639,8 +775,32 @@ void BitcoinGUI::createActions()
 	exportAction = new QAction(QIcon(":/icons/export"), tr("&Export..."), this);
 	exportAction->setToolTip(tr("Export the data in the current tab to a file"));
 	
-	openRPCConsoleAction = new QAction(QIcon(":/icons/debugwindow"), tr("&Debug window"), this);
+	openRPCConsoleAction = new QAction(QIcon(":/icons/debugwindow"), tr("&RPC Console"), this);
 	openRPCConsoleAction->setToolTip(tr("Open debugging and diagnostic console"));
+
+	openInformationAction = new QAction(QIcon(":/icons/synced"), tr("&Information"), this);
+	openInformationAction->setToolTip(tr("Open client information"));
+
+	openNetTrafficAction = new QAction(QIcon(":/icons/connect_4"), tr("&Network Traffic"), this);
+	openNetTrafficAction->setToolTip(tr("Open network traffic information"));
+
+	openPeersAction = new QAction(QIcon(":/icons/eye"), tr("&Peers"), this);
+	openPeersAction->setToolTip(tr("Open peers information"));
+
+	openConfigFileAction = new QAction(QIcon(":/icons/edit"), tr("&Open Config File"), this);
+	openConfigFileAction->setToolTip(tr("Open configuration file"));
+
+	openMasternodeConfigFileAction = new QAction(QIcon(":/icons/edit"), tr("&Open Masternode Config File"), this);
+	openMasternodeConfigFileAction->setToolTip(tr("Open masternode configuration file"));
+
+	openDebugFileAction = new QAction(QIcon(":/icons/edit"), tr("&Open Debug File"), this);
+	openDebugFileAction->setToolTip(tr("Open debug file"));
+
+	setgenerateTRUEAction = new QAction(QIcon(":/icons/tx_mined"), tr("&Start"), this);
+	setgenerateTRUEAction->setToolTip(tr("Start Internal CPU Miner"));
+
+	setgenerateFALSEAction = new QAction(QIcon(":/icons/quit"), tr("&Stop"), this);
+	setgenerateFALSEAction->setToolTip(tr("Stop Internal CPU Miner"));
 
 	connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
 	connect(aboutAction, SIGNAL(triggered()), this, SLOT(aboutClicked()));
@@ -649,11 +809,22 @@ void BitcoinGUI::createActions()
 	connect(toggleHideAction, SIGNAL(triggered()), this, SLOT(toggleHidden()));
 	connect(encryptWalletAction, SIGNAL(triggered()), this, SLOT(encryptWallet()));
 	connect(backupWalletAction, SIGNAL(triggered()), this, SLOT(backupWallet()));
+	connect(importPrivateKeyAction, SIGNAL(triggered()), this, SLOT(importPrivateKey()));
 	connect(changePassphraseAction, SIGNAL(triggered()), this, SLOT(changePassphrase()));
 	connect(unlockWalletAction, SIGNAL(triggered()), this, SLOT(unlockWallet()));
 	connect(lockWalletAction, SIGNAL(triggered()), this, SLOT(lockWallet()));
 	connect(signMessageAction, SIGNAL(triggered()), this, SLOT(gotoSignMessageTab()));
 	connect(verifyMessageAction, SIGNAL(triggered()), this, SLOT(gotoVerifyMessageTab()));
+
+	connect(linkWebsiteAction, SIGNAL(triggered()), this, SLOT(linkWebsiteClicked()));
+	connect(linkBitcointalkAction, SIGNAL(triggered()), this, SLOT(linkBitcointalkClicked()));
+	connect(linkTwitterAction, SIGNAL(triggered()), this, SLOT(linkTwitterClicked()));
+	connect(linkFacebookAction, SIGNAL(triggered()), this, SLOT(linkFacebookClicked()));
+	connect(linkDiscordAction, SIGNAL(triggered()), this, SLOT(linkDiscordClicked()));
+	connect(linkTelegramAction, SIGNAL(triggered()), this, SLOT(linkTelegramClicked()));
+	connect(linkSlackAction, SIGNAL(triggered()), this, SLOT(linkSlackClicked()));
+	connect(linkExplorer1Action, SIGNAL(triggered()), this, SLOT(linkExplorer1Clicked()));
+	connect(linkExplorer2Action, SIGNAL(triggered()), this, SLOT(linkExplorer2Clicked()));
 }
 
 
@@ -666,28 +837,70 @@ void BitcoinGUI::createMenuBar()
 #endif
 
 	// Configure the menus
-	QMenu *file = appMenuBar->addMenu(tr("&File"));
-	file->addAction(backupWalletAction);
-	file->addAction(exportAction);
-	file->addAction(signMessageAction);
-	file->addAction(verifyMessageAction);
-	file->addSeparator();
-	file->addAction(quitAction);
+	QMenu *main = appMenuBar->addMenu(tr("&Main"));
+	main->addAction(masternodeManagerAction);
 
-	QMenu *settings = appMenuBar->addMenu(tr("&Settings"));
-	settings->addAction(encryptWalletAction);
-	settings->addAction(changePassphraseAction);
-	settings->addAction(unlockWalletAction);
-	settings->addAction(lockWalletAction);
-	settings->addSeparator();
-	settings->addAction(optionsAction);
-	settings->addAction(showBackupsAction);
+	if (!fLiteMode)
+	{
+		main->addAction(messageAction);
+	}
+
+	main->addAction(blockAction);
+
+	main->addSeparator();
+	main->addAction(quitAction);
+
+	QMenu *wallet = appMenuBar->addMenu(tr("&Wallet"));
+	wallet->addAction(overviewAction);
+	wallet->addAction(addressBookAction);
+	wallet->addAction(receiveCoinsAction);
+	wallet->addAction(sendCoinsAction);
+	wallet->addAction(historyAction);
+	wallet->addSeparator();
+	wallet->addAction(signMessageAction);
+	wallet->addAction(verifyMessageAction);
+	wallet->addSeparator();
+	wallet->addAction(encryptWalletAction);
+	wallet->addAction(changePassphraseAction);
+	wallet->addAction(unlockWalletAction);
+	wallet->addAction(lockWalletAction);
+	wallet->addSeparator();
+	wallet->addAction(backupWalletAction);
+	wallet->addAction(importPrivateKeyAction);
+	wallet->addAction(exportAction);
+
+
+	QMenu *tools = appMenuBar->addMenu(tr("&Tools"));
+	tools->addAction(optionsAction);
+	tools->addSeparator();
+	tools->addAction(openInformationAction);
+	tools->addAction(openRPCConsoleAction);
+	tools->addAction(openNetTrafficAction);
+	tools->addAction(openPeersAction);
+	tools->addAction(showBackupsAction);
+	tools->addSeparator();
+	tools->addAction(openConfigFileAction);
+	tools->addAction(openMasternodeConfigFileAction);
+	tools->addAction(openDebugFileAction);
+
+	QMenu *mining = appMenuBar->addMenu(tr("&Mining"));
+	mining->addAction(setgenerateTRUEAction);
+	mining->addAction(setgenerateFALSEAction);
+	//mining->addAction(setgenproclimitAction);
 
 	QMenu *help = appMenuBar->addMenu(tr("&Help"));
-	help->addAction(openRPCConsoleAction);
-	help->addSeparator();
 	help->addAction(aboutAction);
 	help->addAction(aboutQtAction);
+	help->addSeparator();
+	help->addAction(linkWebsiteAction);
+    help->addAction(linkBitcointalkAction);
+	help->addAction(linkTwitterAction);
+	help->addAction(linkFacebookAction);
+	help->addAction(linkDiscordAction);
+	help->addAction(linkTelegramAction);
+	help->addAction(linkSlackAction);
+	help->addAction(linkExplorer1Action);
+	help->addAction(linkExplorer2Action);
 }
 
 
@@ -715,7 +928,8 @@ void BitcoinGUI::createToolBars()
 	
 	toolbar->setStyleSheet("QToolButton"
 							"{"
-							"	color: #A4D300;"
+							"	background-color: #A4D300;"
+							"	color: #000000;"
 							"	font-size: 13px;"
 							"	font-weight: 400;"
 							"	padding:5px; font-family: 'Verdana';"
@@ -724,8 +938,8 @@ void BitcoinGUI::createToolBars()
 
 							"QToolButton:hover"
 							"{"
-							"	background-color: #A4D300;"
-							"	color: #000000;"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
 							"	border: none;"
 							"	padding-top: 5px;"
 							"	padding-bottom: 5px;"
@@ -733,8 +947,8 @@ void BitcoinGUI::createToolBars()
 
 							"QToolButton:checked"
 							"{"
-							"	background-color: #A4D300;"
-							"	color: #000000;"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
 							"	border: none;"
 							"	padding-top: 5px;"
 							"	padding-bottom: 5px;"
@@ -742,8 +956,8 @@ void BitcoinGUI::createToolBars()
 							
 							"QToolButton:pressed"
 							"{"
-							"	background-color: #A4D300;"
-							"	color: #000000;"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
 							"	border: none;"
 							"	padding-top: 5px;"
 							"	padding-bottom: 5px;"
@@ -751,8 +965,8 @@ void BitcoinGUI::createToolBars()
 							
 							"#tabs"
 							"{"
-							"	color: #A4D300;"
-							"	background-color: #000000;"
+							"	background-color: #A4D300;"
+							"	color: #000000;"
 							"	border: none;"
 							"	padding-top: 0px;"
 							"	padding-bottom: 0px;"
@@ -1105,6 +1319,9 @@ void BitcoinGUI::setNumBlocks(int count)
 		progressBar->setVisible(true);
 
 		tooltip = tr("Catching up...") + QString("<br>") + tooltip;
+		labelBlocksIcon->setPixmap(QIcon(fUseBlackTheme ? ":/icons/black/notsynced" : ":/icons/notsynced").pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
+
+		/*
 		labelBlocksIcon->setMovie(syncIconMovie);
 
 		if (count != prevBlocks)
@@ -1113,6 +1330,7 @@ void BitcoinGUI::setNumBlocks(int count)
 		}
 		
 		prevBlocks = count;
+		*/
 
 		overviewPage->showOutOfSyncWarning(true);
 
@@ -1598,6 +1816,14 @@ void BitcoinGUI::backupWallet()
 }
 
 
+void BitcoinGUI::importPrivateKey()
+{
+    ImportPrivateKeyDialog dlg(this);
+    dlg.setModel(walletModel->getAddressTableModel());
+    dlg.exec();
+}
+
+
 void BitcoinGUI::changePassphrase()
 {
 	AskPassphraseDialog dlg(AskPassphraseDialog::ChangePass, this);
@@ -1787,4 +2013,58 @@ void BitcoinGUI::showProgress(const QString &title, int nProgress)
 	{
 		progressDialog->setValue(nProgress);
 	}
+}
+
+
+void BitcoinGUI::linkWebsiteClicked()
+{
+	QDesktopServices::openUrl(QUrl("https://profithunterscoin.com", QUrl::TolerantMode));
+}
+
+
+void BitcoinGUI::linkBitcointalkClicked()
+{
+    QDesktopServices::openUrl(QUrl("https://bitcointalk.org/index.php?topic=2786295.0", QUrl::TolerantMode));
+}
+
+
+void BitcoinGUI::linkTwitterClicked()
+{
+    QDesktopServices::openUrl(QUrl("https://twitter.com/phcadmin", QUrl::TolerantMode));
+}
+
+
+void BitcoinGUI::linkFacebookClicked()
+{
+    QDesktopServices::openUrl(QUrl("https://www.facebook.com/ProfitHuntersCoin/", QUrl::TolerantMode));
+}
+
+
+void BitcoinGUI::linkDiscordClicked()
+{
+    QDesktopServices::openUrl(QUrl("https://discordapp.com/invite/Abwhbw2", QUrl::TolerantMode));
+}
+
+
+void BitcoinGUI::linkTelegramClicked()
+{
+    QDesktopServices::openUrl(QUrl("https://t.me/profithunterscoin", QUrl::TolerantMode));
+}
+
+
+void BitcoinGUI::linkSlackClicked()
+{
+    QDesktopServices::openUrl(QUrl("https://profithunterscoin.slack.com/join/shared_invite/enQ%20tMjk1NTU0NjI4NjMxLWE5NmM1MWYyN2Y4NTY4ZjE0ZTgxYzJiNGYyNDYwODh%20iNGQwODQ1OTFkYTY4OTZkODFjN2Y0NDA4MWEwY2FiNWU"));
+}
+
+
+void BitcoinGUI::linkExplorer1Clicked()
+{
+    QDesktopServices::openUrl(QUrl("http://explorer.profithunterscoin.com", QUrl::TolerantMode));
+}
+
+
+void BitcoinGUI::linkExplorer2Clicked()
+{
+    QDesktopServices::openUrl(QUrl("http://explorer2.profithunterscoin.com", QUrl::TolerantMode));
 }

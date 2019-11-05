@@ -1,10 +1,15 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
 // Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
 // Copyright (c) 2014-2015 The Dash developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #include "blockbrowser.h"
@@ -490,36 +495,51 @@ void BlockBrowser::updateExplorer(bool block)
     
     if(block == false)
     {
-        ui->txID->show();
-        ui->txLabel->show();
-        ui->valueLabel->show();
-        ui->valueBox->show();
-        ui->inputLabel->show();
-        ui->inputBox->show();
-        ui->outputLabel->show();
-        ui->outputBox->show();
-        ui->feesLabel->show();
-        ui->feesBox->show();
+        // Check if the transaction exists 
         
         std::string txid = ui->txBox->text().toUtf8().constData();
         
-        double value = getTxTotalValue(txid);
-        double fees = getTxFees(txid);
+        uint256 hash; 
+        hash.SetHex(txid); 
+
+        CTransaction tx; 
+        uint256 hashBlock = 0; 
         
-        std::string outputs = getOutputs(txid);
-        std::string inputs = getInputs(txid);
-        
-        QString QValue = QString::number(value, 'f', 6);
-        QString QID = QString::fromUtf8(txid.c_str());
-        QString QOutputs = QString::fromUtf8(outputs.c_str());
-        QString QInputs = QString::fromUtf8(inputs.c_str());
-        QString QFees = QString::number(fees, 'f', 6);
-        
-        ui->valueBox->setText(QValue + " PHC");
-        ui->txID->setText(QID);
-        ui->outputBox->setText(QOutputs);
-        ui->inputBox->setText(QInputs);
-        ui->feesBox->setText(QFees + " PHC");
+        if (GetTransaction(hash, tx, hashBlock)) 
+        { 
+            ui->txID->show();
+            ui->txLabel->show();
+            ui->valueLabel->show();
+            ui->valueBox->show();
+            ui->inputLabel->show();
+            ui->inputBox->show();
+            ui->outputLabel->show();
+            ui->outputBox->show();
+            ui->feesLabel->show();
+            ui->feesBox->show();
+
+            double value = getTxTotalValue(txid);
+            double fees = getTxFees(txid);
+            
+            std::string outputs = getOutputs(txid);
+            std::string inputs = getInputs(txid);
+            
+            QString QValue = QString::number(value, 'f', 6);
+            QString QID = QString::fromUtf8(txid.c_str());
+            QString QOutputs = QString::fromUtf8(outputs.c_str());
+            QString QInputs = QString::fromUtf8(inputs.c_str());
+            QString QFees = QString::number(fees, 'f', 6);
+            
+            ui->valueBox->setText(QValue + " PHC");
+            ui->txID->setText(QID);
+            ui->outputBox->setText(QOutputs);
+            ui->inputBox->setText(QInputs);
+            ui->feesBox->setText(QFees + " PHC");
+        }
+        else
+        {
+            QMessageBox::warning(this, tr("Transaction not found"), tr("The transaction has not been found."), QMessageBox::Ok);
+        }
     }
 }
 

@@ -1,8 +1,8 @@
 /****************************************************************************
 **
 ** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
-** Edited by: Profit Hunters Coin
 ** Contact: http://www.qt-project.org/legal
+** Edited by: Profit Hunters Coin
 **
 ** This file is part of the examples of the Qt Toolkit.
 **

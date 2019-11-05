@@ -1,10 +1,15 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
 // Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
 // Copyright (c) 2014-2015 The Dash developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
 #include "rpcconsole.h"
@@ -18,6 +23,7 @@
 #include "main.h"
 #include "chainparams.h"
 #include "util.h"
+#include "init.h"
 
 #include "rpcserver.h"
 #include "rpcclient.h"
@@ -37,18 +43,18 @@
 // TODO: make it possible to filter out categories (esp debug messages when implemented)
 // TODO: receive errors and debug messages through ClientModel
 
+using namespace CBan;
+
 const int CONSOLE_HISTORY = 50;
 const QSize ICON_SIZE(24, 24);
 
 const int INITIAL_TRAFFIC_GRAPH_MINS = 30;
-
 
 const struct
 {
     const char *url;
     const char *source;
 }
-
 
 ICON_MAPPING[] =
 {
@@ -396,6 +402,17 @@ bool RPCConsole::eventFilter(QObject* obj, QEvent *event)
                 }
             }
             break;
+
+            case Qt::Key_Enter:
+            {
+                if (obj == autoCompleter->popup())
+                {
+                    QApplication::postEvent(ui->lineEdit, new QKeyEvent(*keyevt));
+
+                    return true;
+                }
+            }
+            break;
             
             default:
             {
@@ -525,6 +542,19 @@ void RPCConsole::setClientModel(ClientModel *model)
 
         setNumConnections(model->getNumConnections());
         ui->isTestNet->setChecked(model->isTestNet());
+
+        // Set up autocomplete and attach
+        QStringList wordList;
+        std::vector<std::string> commandList = tableRPC.listCommands();
+
+        for (size_t i = 0; i < commandList.size(); ++i)
+        {
+            wordList << commandList[i].c_str();
+        }
+
+        autoCompleter = new QCompleter(wordList, this);
+        ui->lineEdit->setCompleter(autoCompleter);
+        autoCompleter->popup()->installEventFilter(this);
     }
 }
 
@@ -763,6 +793,36 @@ void RPCConsole::on_showCLOptionsButton_clicked()
     help.exec();
 }
 
+void RPCConsole::setgenerateTRUE()
+{
+    GeneratePoWcoins(true, pwalletMain, false);
+
+    int nThreads = GetArg("-genproclimit", -2);
+
+    if (nThreads == 0)
+    {
+        nThreads = boost::thread::hardware_concurrency();
+    }
+
+    if (nThreads == -2)
+    {
+        nThreads = 1;
+    }
+
+    std::string sThreads = "Started mining! Threads: " + std::to_string(nThreads);
+
+    char const *pchar = sThreads.c_str();
+	
+    QMessageBox::warning(this, tr("Internal PoW Miner"), tr(pchar));
+}
+
+void RPCConsole::setgenerateFALSE()
+{
+    GeneratePoWcoins(false, pwalletMain, false);
+
+	QMessageBox::warning(this, tr("Internal PoW Miner"), tr("Stopped!"));
+}
+
 void RPCConsole::on_sldGraphRange_valueChanged(int value)
 {
     const int multiplier = 5; // each position on the slider represents 5 min
@@ -818,6 +878,30 @@ void RPCConsole::updateTrafficStats(quint64 totalBytesIn, quint64 totalBytesOut)
 void RPCConsole::on_btnClearTrafficGraph_clicked()
 {
     ui->trafficGraph->clear();
+}
+
+void RPCConsole::showInfo()
+{
+    ui->tabWidget->setCurrentIndex(0);
+    show();
+}
+
+void RPCConsole::showConsole()
+{
+    ui->tabWidget->setCurrentIndex(1);
+    show();
+}
+
+void RPCConsole::showNetTraffic()
+{
+    ui->tabWidget->setCurrentIndex(2);
+    show();
+}
+
+void RPCConsole::showPeers()
+{
+    ui->tabWidget->setCurrentIndex(3);
+    show();
 }
 
 void RPCConsole::showBackups()

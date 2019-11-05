@@ -1,8 +1,16 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2012 The Bitcoin developers
-// Copyright (c) 2018 Profit Hunters Coin developers
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2012 The Darkcoin developers
+// Copyright (c) 2011-2013 The PPCoin developers
+// Copyright (c) 2013 Novacoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015 The Crave developers
+// Copyright (c) 2017 XUVCoin developers
+// Copyright (c) 2018-2019 Profit Hunters Coin developers
+
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php
+
 
 #ifndef BITCOIN_NET_H
 #define BITCOIN_NET_H
@@ -13,6 +21,7 @@
 #include "limitedmap.h"
 #include "mruset.h"
 #include "netbase.h"
+#include "checkpoints.h"
 #include "protocol.h"
 #include "sync.h"
 #include "uint256.h"
@@ -41,78 +50,7 @@ namespace boost
     class thread_group;
 }
 
-// *** Firewall Controls (General) ***
-extern bool FIREWALL_ENABLED;
-extern bool FIREWALL_LIVE_DEBUG;
-extern bool FIREWALL_CLEAR_BLACKLIST;
-extern bool FIREWALL_CLEAR_BANS;
-
-// *** Firewall Controls (General) ***
-extern bool FIREWALL_LIVEDEBUG_EXAM;
-extern bool FIREWALL_LIVEDEBUG_BANS;
-extern bool FIREWALL_LIVEDEBUG_BLACKLIST;
-extern bool FIREWALL_LIVEDEBUG_DISCONNECT;
-extern bool FIREWALL_LIVEDEBUG_BANDWIDTHABUSE;
-extern bool FIREWALL_LIVEDEBUG_NOFALSEPOSITIVE;
-extern bool FIREWALL_LIVEDEBUG_INVALIDWALLET;
-extern bool FIREWALL_LIVEDEBUG_FORKEDWALLET;
-extern bool FIREWALL_LIVEDEBUG_FLOODINGWALLET;
-
-// *** Firewall Controls (Bandwidth Abuse) ***
-extern bool FIREWALL_DETECT_BANDWIDTHABUSE;
-extern bool FIREWALL_BLACKLIST_BANDWIDTHABUSE;
-extern bool FIREWALL_BAN_BANDWIDTHABUSE;
-extern bool FIREWALL_NOFALSEPOSITIVE_BANDWIDTHABUSE;
-
-// *** Firewall Controls (Invalid Peer Wallets) ***
-extern bool FIREWALL_DETECT_INVALIDWALLET;
-extern bool FIREWALL_BLACKLIST_INVALIDWALLET;
-extern bool FIREWALL_BAN_INVALIDWALLET;
-
-// *** Firewall Controls (Forked Peer Wallets) ***
-extern bool FIREWALL_DETECT_FORKEDWALLET;
-extern bool FIREWALL_BLACKLIST_FORKEDWALLET;
-extern bool FIREWALL_BAN_FORKEDWALLET;
-
-// *** Firewall Controls (Flooding Peer Wallets) ***
-extern bool FIREWALL_DETECT_FLOODINGWALLET;
-extern bool FIREWALL_BLACKLIST_FLOODINGWALLET;
-extern bool FIREWALL_BAN_FLOODINGWALLET;
-
-// * Firewall Settings (Exam) *
-extern int FIREWALL_AVERAGE_TOLERANCE;
-extern int FIREWALL_AVERAGE_RANGE;
-extern double FIREWALL_TRAFFIC_TOLERANCE;
-extern double FIREWALL_TRAFFIC_ZONE;
-extern string FIREWALL_WHITELIST[];
-extern string FIREWALL_BLACKLIST[];
-
-// * Firewall Settings (Bandwidth Abuse) *
-extern int FIREWALL_BANTIME_BANDWIDTHABUSE;
-extern int FIREWALL_BANDWIDTHABUSE_MAXCHECK;
-extern double FIREWALL_BANDWIDTHABUSE_MINATTACK;
-extern double FIREWALL_BANDWIDTHABUSE_MAXATTACK;
-extern int FIREWALL_BANTIME_BANDWIDTHABUSE;
-
-// * Firewall Settings (Invalid Wallet)
-extern int FIREWALL_MINIMUM_PROTOCOL;
-extern int FIREWALL_BANTIME_INVALIDWALLET;
-extern int FIREWALL_INVALIDWALLET_MAXCHECK;
-extern int FIREWALL_BANTIME_INVALIDWALLET;
-
-// * Firewall Settings (Forked Wallet)
-extern int FIREWALL_BANTIME_FORKEDWALLET;
-extern int FIREWALL_FORKED_NODEHEIGHT[];
-
-// * Firewall Settings (Flooding Wallet)
-extern int FIREWALL_BANTIME_FLOODINGWALLET;
-extern int FIREWALL_FLOODINGWALLET_MINBYTES;
-extern int FIREWALL_FLOODINGWALLET_MAXBYTES;
-extern string FIREWALL_FLOODPATTERNS[];
-extern double FIREWALL_FLOODINGWALLET_MINTRAFFICAVERAGE;
-extern double FIREWALL_FLOODINGWALLET_MAXTRAFFICAVERAGE;
-extern int FIREWALL_FLOODINGWALLET_MINCHECK;
-extern int FIREWALL_FLOODINGWALLET_MAXCHECK;
+extern int64_t TURBOSYNC_MAX;
 
 /** Time between pings automatically sent out for latency probing and keepalive (in seconds). */
 static const int PING_INTERVAL = 1 * 60;
@@ -129,26 +67,14 @@ static const int DATA_TIMEOUT = 3 * 60;
 /** Maximum length of strSubVer in `version` message */
 static const unsigned int MAX_SUBVERSION_LENGTH = 256;
 
-/** The maximum number of entries in an 'inv' protocol message */
-static const unsigned int MAX_INV_SZ = 50000;
-
-/** The maximum number of entries in mapAskFor */
-static const size_t MAPASKFOR_MAX_SZ = MAX_INV_SZ;
-
-/** The maximum number of entries in setAskFor (larger due to getdata latency)*/
-static const size_t SETASKFOR_MAX_SZ = 2 * MAX_INV_SZ;
-
-/** The maximum number of new addresses to accumulate before announcing. */
-static const unsigned int MAX_ADDR_TO_SEND = 1000;
-
 inline unsigned int ReceiveFloodSize()
 {
-    return 1000*GetArg("-maxreceivebuffer", 5*1000);
+    return 1000 * GetArg("-maxreceivebuffer", 5*1000);
 }
 
 inline unsigned int SendBufferSize()
 {
-    return 1000*GetArg("-maxsendbuffer", 1*1000);
+    return 1000 * GetArg("-maxsendbuffer", 1*1000);
 }
 
 void AddOneShot(std::string strDest);
@@ -170,6 +96,134 @@ bool StopNode();
 void SocketSendData(CNode *pnode);
 
 typedef int NodeId;
+
+
+
+inline int GetMaxInvBandwidth(int64_t TurboSyncMax)
+{
+    switch (TurboSyncMax)
+    {
+        case 1:
+        {
+            return 100000; // Level 1 (up to 100% faster)
+        }
+        break;
+            
+        case 2:
+        {
+            return 200000; // Level 2 (up to 200% faster)
+        }
+        break;
+
+        case 3:
+        {
+            return 300000; // Level 3 (up to 300% faster)
+        }
+        break;
+
+        case 4:
+        {
+            return 400000; // Level 4 (up to 400% faster)
+        }
+        break;
+
+        case 5:
+        {
+            return 500000; // Level 5 (up to 500% faster)
+        }
+        break;
+    }
+
+    return 50000; // Default
+}
+
+inline int GetMaxAddrBandwidth(int64_t TurboSyncMax)
+{
+    switch (TurboSyncMax)
+    {
+        case 1:
+        {
+            return 2000; // Level 1  (up to 100% faster)
+        }
+        break;
+
+        case 2:
+        {
+            return 4000; // Level 2  (up to 200% faster)
+        }
+        break;
+
+        case 3:
+        {
+            return 8000; // Level 3  (up to 300% faster)
+        }
+        break;
+
+        case 4:
+        {
+            return 16000; // Level 4  (up to 400% faster)
+        }
+        break;
+
+        case 5:
+        {
+            return 32000; // Level 5  (up to 500% faster)
+        }
+        break;
+    }
+
+    return 1000; // Default
+}
+
+inline int GetMaxBlocksBandwidth(int64_t TurboSyncMax)
+{
+    switch (TurboSyncMax)
+    {
+        case 1:
+        {
+            return 1000; // Level 1  (100% faster)
+        }
+        break;
+
+        case 2:
+        {
+            return 2000; // Level 2  (200% faster)
+        }
+        break;
+
+        case 3:
+        {
+            return 4000; // Level 3  (300% faster)
+        }
+        break;
+
+        case 4:
+        {
+            return 8000; // Level 4  (400% faster)
+        }
+        break;
+
+        case 5:
+        {
+            return 16000; // Level 5  (500% faster)
+        }
+        break;
+    }
+
+    return 500; // Default
+}
+
+/** The maximum number of entries in an 'inv' protocol message */
+static const unsigned int MAX_INV_SZ = GetMaxInvBandwidth(TURBOSYNC_MAX);
+
+/** The maximum number of entries in mapAskFor */
+static const size_t MAPASKFOR_MAX_SZ = MAX_INV_SZ;
+
+/** The maximum number of entries in setAskFor (larger due to getdata latency)*/
+//static const size_t SETASKFOR_MAX_SZ = 2 * MAX_INV_SZ;
+
+/** The maximum number of new addresses to accumulate before announcing. */
+static const unsigned int MAX_ADDR_TO_SEND = GetMaxAddrBandwidth(TURBOSYNC_MAX);
 
 // Signals for message handling
 struct CNodeSignals
@@ -258,32 +312,170 @@ extern map<CNetAddr, LocalServiceInfo> mapLocalHost;
 /** Subversion as sent to the P2P network in `version` messages */
 extern std::string strSubVersion;
 
+
+namespace CBan
+{
+    typedef enum BanReason
+    {
+        BanReasonUnknown                    = 0,
+        BanReasonNodeMisbehaving            = 1,
+        BanReasonManuallyAdded              = 2,
+        BanReasonBandwidthAbuse             = 3,
+        BanReasonInvalidWallet              = 4,
+        BanReasonForkedWallet               = 5,
+        BanReasonFloodingWallet             = 6,
+        BanReasonDDoSWallet                 = 7,
+        BanReasonDoubleSpendWallet          = 8
+
+    } BanReason;
+
+
+    class CBanEntry
+    {
+
+        public:
+
+            static const int CURRENT_VERSION=2;
+            int nVersion;
+
+            int64_t nCreateTime;
+            int64_t nBanUntil;
+            uint8_t banReason;
+
+            CBanEntry()
+            {
+                SetNull();
+            }
+
+            CBanEntry(int64_t nCreateTimeIn)
+            {
+                SetNull();
+                nCreateTime = nCreateTimeIn;
+            }
+        
+            IMPLEMENT_SERIALIZE
+            (
+                READWRITE(this->nVersion);
+                nVersion = this->nVersion;
+                READWRITE(nCreateTime);
+                READWRITE(nBanUntil);
+                READWRITE(banReason);
+            )
+
+            void SetNull()
+            {
+                nVersion = CBanEntry::CURRENT_VERSION;
+                nCreateTime = 0;
+                nBanUntil = 0;
+                banReason = CBan::BanReasonUnknown;
+            }
+
+            std::string banReasonToString()
+            {
+                switch (banReason)
+                {
+                    case BanReasonNodeMisbehaving:
+                    {
+                        return "Misbehaving";
+                    }
+                    break;
+
+                    case BanReasonManuallyAdded:
+                    {
+                        return "Nanually added";
+                    }
+
+                    case BanReasonBandwidthAbuse:
+                    {
+                        return "Bandwidth abuse";
+                    }
+
+                    case BanReasonInvalidWallet:
+                    {
+                        return "Invalid wallet";
+                    }
+
+                    case BanReasonForkedWallet:
+                    {
+                        return "Forked wallet";
+                    }
+
+                    case BanReasonFloodingWallet:
+                    {
+                        return "Flooding wallet";
+                    }
+
+                    case BanReasonDDoSWallet:
+                    {
+                        return "DDoS wallet";
+                    }
+
+                    case BanReasonDoubleSpendWallet:
+                    {
+                        return "Double-spend wallet";
+                    }
+
+                    default:
+                    {
+                        return "unknown";
+                    }
+                }
+            }
+    };
+    
+    typedef std::map<CSubNet, CBanEntry> banmap_t;
+}
+
+
 class CNodeStats
 {
     public:
 
         NodeId nodeid;
+        int nVersion;
+        std::string cleanSubVer;
+        std::string strSubVer;
+        std::string addrLocal;
+        std::string addrName;
+
+        int nStartingHeight;
+
         uint64_t nServices;
         int64_t nLastSend;
         int64_t nLastRecv;
         int64_t nTimeConnected;
         int64_t nTimeOffset;
-
-        std::string addrName;
-        int nVersion;
-        std::string cleanSubVer;
-        std::string strSubVer;
-        bool fInbound;
-        int nStartingHeight;
-        
         uint64_t nSendBytes;
         uint64_t nRecvBytes;
         
+        bool fInbound;
         bool fSyncNode;
         double dPingTime;
         double dPingWait;
-        
-        std::string addrLocal;
+
+        // Turbosync (C) 2019 - Profit Hunters Coin
+        int64_t nTurboSync;
+        bool fTurboSyncSent;
+        bool fTurboSyncRecv;
+
+        // Firewall (C) 2017 - Biznatch Enterprises & BATA.io & Profit Hunters Coin
+        double nTrafficAverage;
+        double nTrafficRatio;
+        int nTrafficTimestamp;
+        int nInvalidRecvPackets;
+
+        // Dynamic Checkpoints (C) 2019 - Profit Hunters Coin
+        // Received
+        bool Checkpoint_Recv;
+        int64_t CheckpointHeight_Recv;
+        int64_t CheckpointTimestamp_Recv;
+        uint256 CheckpointBlock_Recv;
+        // Sent
+        bool Checkpoint_Sent;
+        int64_t CheckpointHeight_Sent;
+        int64_t CheckpointTimestamp_Sent;
+        uint256 CheckpointBlock_Sent;
+
 };
 
 class CNetMessage
@@ -327,102 +519,7 @@ class CNetMessage
         int readData(const char *pch, unsigned int nBytes);
 };
 
-typedef enum BanReason
-{
-    BanReasonUnknown          = 0,
-    BanReasonNodeMisbehaving  = 1,
-    BanReasonManuallyAdded    = 2,
-    BanReasonBandwidthAbuse   = 3,
-    BanReasonInvalidWallet    = 4,
-    BanReasonForkedWallet     = 5,
-    BanReasonFloodingWallet   = 6
 
-} BanReason;
-
-class CBanEntry
-{
-
-    public:
-
-        static const int CURRENT_VERSION=1;
-        int nVersion;
-
-        int64_t nCreateTime;
-        int64_t nBanUntil;
-        uint8_t banReason;
-
-        CBanEntry()
-        {
-            SetNull();
-        }
-
-        CBanEntry(int64_t nCreateTimeIn)
-        {
-            SetNull();
-            nCreateTime = nCreateTimeIn;
-        }
-    
-        IMPLEMENT_SERIALIZE
-        (
-            READWRITE(this->nVersion);
-            nVersion = this->nVersion;
-            READWRITE(nCreateTime);
-            READWRITE(nBanUntil);
-            READWRITE(banReason);
-        )
-
-        void SetNull()
-        {
-            nVersion = CBanEntry::CURRENT_VERSION;
-            nCreateTime = 0;
-            nBanUntil = 0;
-            banReason = BanReasonUnknown;
-        }
-
-        std::string banReasonToString()
-        {
-            switch (banReason)
-            {
-                case BanReasonNodeMisbehaving:
-                {
-                    return "node misbehaving";
-                }
-                break;
-
-                case BanReasonManuallyAdded:
-                {
-                    return "manually added";
-                }
-
-                case BanReasonBandwidthAbuse:
-                {
-                    return "bandwidth abuse";
-                }
-
-                case BanReasonInvalidWallet:
-                {
-                    return "invalid wallet";
-                }
-
-                case BanReasonForkedWallet:
-                {
-                    return "forked wallet";
-                }
-
-                case BanReasonFloodingWallet:
-                {
-                    return "flooding wallet";
-                }
-
-                default:
-                {
-                    return "unknown";
-                }
-            }
-        }
-};
-  
-typedef std::map<CSubNet, CBanEntry> banmap_t;
 
 class SecMsgNode
 {
@@ -454,6 +551,17 @@ class SecMsgNode
 /** Information about a peer */
 class CNode
 {
+
+    protected:
+
+        // Denial-of-service detection/prevention
+        // Key is IP address, value is banned-until-time
+        static CBan::banmap_t setBanned;
+        static CCriticalSection cs_setBanned;
+        static bool setBannedIsDirty;
+
+        std::vector<std::string> vecRequestsFulfilled; //keep track of what client has asked for
+        
     public:
 
         // socket
@@ -473,32 +581,47 @@ class CNode
         std::deque<CNetMessage> vRecvMsg;
         CCriticalSection cs_vRecvMsg;
 
-        uint64_t nRecvBytes;
+        CAddress addr;
+        std::string addrName;
+        CService addrLocal;
+        int nVersion;
         int nRecvVersion;
-
-        // Firewall Data
-        double nTrafficAverage;
-        double nTrafficRatio;
-        int nTrafficTimestamp;
-        int nSyncHeight;
-        int nSyncHeightOld;
-
+        int nStartingHeight;
         int64_t nLastSend;
         int64_t nLastRecv;
         int64_t nLastSendEmpty;
         int64_t nTimeConnected;
         int64_t nTimeOffset;
+        uint64_t nRecvBytes;
 
-        CAddress addr;
-        std::string addrName;
-        CService addrLocal;
-        int nVersion;
+        CSemaphoreGrant grantOutbound;
+        int nRefCount;
+        NodeId id;
+
+        bool fStartSync;
+
+        // Turbosync (C) 2019 - Profit Hunters Coin
+        int64_t nTurboSync;
+        bool fTurboSyncSent;
+        bool fTurboSyncRecv;
+
+        // Firewall (C) 2017 - Biznatch Enterprises & BATA.io & Profit Hunters Coin
+        double nTrafficAverage;
+        double nTrafficRatio;
+        int nTrafficTimestamp;
+        int nInvalidRecvPackets;
+
+        // Dynamic Checkpoints (C) 2019 - Profit Hunters Coin
+        DynamicCheckpoints::Checkpoint dCheckpointSent;
+        DynamicCheckpoints::Checkpoint dCheckpointRecv;
+        DynamicCheckpoints::Checkpoint dOrphanRecv;
 
         // strSubVer is whatever byte array we read from the wire. However, this field is intended
         // to be printed out, displayed to humans in various forms and so on. So we sanitize it and
         // store the sanitized version in cleanSubVer. The original should be used when dealing with
         // the network or wire types and the cleaned string used when displayed or logged.
         std::string strSubVer, cleanSubVer;
+
         bool fOneShot;
         bool fClient;
         bool fInbound;
@@ -513,28 +636,14 @@ class CNode
         bool fRelayTxes;
         bool fDarkSendMaster;
 
-        CSemaphoreGrant grantOutbound;
-        int nRefCount;
-        NodeId id;
-
-    protected:
-
-        // Denial-of-service detection/prevention
-        // Key is IP address, value is banned-until-time
-        static banmap_t setBanned;
-        static CCriticalSection cs_setBanned;
-        static bool setBannedIsDirty;
-
-        std::vector<std::string> vecRequestsFulfilled; //keep track of what client has asked for
-
-    public:
-
         uint256 hashContinue;
         CBlockIndex* pindexLastGetBlocksBegin;
         uint256 hashLastGetBlocksEnd;
 
-        int nStartingHeight;
-        bool fStartSync;
+        // BGP Hijack protection
+        uint256 hashAskedFor;
+        uint256 hashReceived;
+        // int BGPWarnings;
 
         // flood relay
         std::vector<CAddress> vAddrToSend;
@@ -608,15 +717,40 @@ class CNode
             nPingNonceSent = 0;
             nPingUsecStart = 0;
             nPingUsecTime = 0;
-            
+
+            // BGP protection
+            uint256 hashAskedFor;
+            uint256 hashReceived;
+            // int BGPWarnings;
+
             fPingQueued = false;
 
-            // Firewall CNode Data
+            // Turbosync (C) 2019 - Profit Hunters Coin
+            nTurboSync = 0;
+            fTurboSyncSent = false;
+            fTurboSyncRecv = false;
+
+            // Firewall (C) 2017 - Biznatch Enterprises & BATA.io & Profit Hunters Coin
             nTrafficAverage = 0;
             nTrafficRatio = 0;
             nTrafficTimestamp = 0;
-            nSyncHeight = 0;
-            nSyncHeightOld = 0;
+            nInvalidRecvPackets = 0;
+
+            // Dynamic Checkpoints 1.0.0
+            dCheckpointSent.height = 0;
+            dCheckpointSent.hash = 0;
+            dCheckpointSent.timestamp = 0;
+            dCheckpointSent.synced = false;
+
+            dCheckpointRecv.height = 0;
+            dCheckpointRecv.hash = 0;
+            dCheckpointRecv.timestamp = 0;
+            dCheckpointRecv.synced = false;
+
+            dOrphanRecv.height = 0;
+            dOrphanRecv.hash = 0;
+            dOrphanRecv.timestamp = 0;
+            dOrphanRecv.synced = false;
 
             // Global Namespace Start
             {
@@ -666,7 +800,17 @@ class CNode
 
         int GetRefCount()
         {
-            assert(nRefCount >= 0);
+            if (nRefCount < 0)
+            {
+                if (fDebug)
+                {
+                    LogPrint("net", "%s : nRefCount < 0 (assert-1\n", __FUNCTION__);
+                }
+
+                cout << __FUNCTION__ << " (assert-1)" << endl;
+
+                return 0;
+            }
 
             return nRefCount;
         }
@@ -829,7 +973,19 @@ class CNode
         void BeginMessage(const char* pszCommand) EXCLUSIVE_LOCK_FUNCTION(cs_vSend)
         {
             ENTER_CRITICAL_SECTION(cs_vSend);
-            assert(ssSend.size() == 0);
+
+            if (ssSend.size() != 0)
+            {
+                if (fDebug)
+                {
+                    LogPrint("net", "%s : ssSend.size() != 0 (assert-2)\n", __FUNCTION__);
+                }
+
+                cout << __FUNCTION__ << " (assert-2)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+                return;
+            }
+
             ssSend << CMessageHeader(pszCommand, 0);
  
             if (fDebug)
@@ -881,8 +1037,21 @@ class CNode
             // Set the checksum
             uint256 hash = Hash(ssSend.begin() + CMessageHeader::HEADER_SIZE, ssSend.end());
             unsigned int nChecksum = 0;
+
             memcpy(&nChecksum, &hash, sizeof(nChecksum));
-            assert(ssSend.size () >= CMessageHeader::CHECKSUM_OFFSET + sizeof(nChecksum));
+
+            if(ssSend.size () < CMessageHeader::CHECKSUM_OFFSET + sizeof(nChecksum))
+            {
+                if (fDebug)
+                {
+                    LogPrint("net", "%s : ssSend.size() != 0 (assert-3)\n", __FUNCTION__);
+                }
+
+                cout << __FUNCTION__ << " (assert-3)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+                return;
+            }
+
             memcpy((char*)&ssSend[CMessageHeader::CHECKSUM_OFFSET], &nChecksum, sizeof(nChecksum));
 
             if (fDebug)
@@ -1147,6 +1316,7 @@ class CNode
             vecRequestsFulfilled.push_back(strRequest);
         }
 
+        void PushGetBlocks(CBlockIndex* pindexBegin, uint256 hashEnd);
         bool IsSubscribed(unsigned int nChannel);
         void Subscribe(unsigned int nChannel, unsigned int nHops=0);
         void CancelSubscribe(unsigned int nChannel);
@@ -1169,12 +1339,12 @@ class CNode
         static void ClearBanned(); // needed for unit testing
         static bool IsBanned(CNetAddr ip);
         static bool IsBanned(CSubNet subnet);
-        static void Ban(const CNetAddr &ip, const BanReason &banReason, int64_t bantimeoffset = 0, bool sinceUnixEpoch = false);
-        static void Ban(const CSubNet &subNet, const BanReason &banReason, int64_t bantimeoffset = 0, bool sinceUnixEpoch = false);
+        static void Ban(const CNetAddr &ip, const CBan::BanReason &banReason, int64_t bantimeoffset = 0, bool sinceUnixEpoch = false);
+        static void Ban(const CSubNet &subNet, const CBan::BanReason &banReason, int64_t bantimeoffset = 0, bool sinceUnixEpoch = false);
         static bool Unban(const CNetAddr &ip);
         static bool Unban(const CSubNet &ip);
-        static void GetBanned(banmap_t &banmap);
-        static void SetBanned(const banmap_t &banmap);
+        static void GetBanned(CBan::banmap_t &banmap);
+        static void SetBanned(const CBan::banmap_t &banmap);
 
         //!check is the banlist has unwritten changes
         static bool BannedSetIsDirty();
@@ -1238,8 +1408,8 @@ class CBanDB
     public:
     
         CBanDB();
-        bool Write(const banmap_t& banSet);
-        bool Read(banmap_t& banSet);
+        bool Write(const CBan::banmap_t& banSet);
+        bool Read(CBan::banmap_t& banSet);
 };
 
 void DumpBanlist();
