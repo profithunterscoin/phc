@@ -7170,8 +7170,8 @@ namespace CChain
             LogPrint("core", "%s : REORGANIZE\n", __FUNCTION__);
         }
 
-        // Find the fork (Step back 5 parent blocks to reduce resource use & increase security)
-        CBlockIndex* pfork = pindexBest->pprev->pprev->pprev->pprev->pprev;
+        // Find the fork (Step back 1 parent blocks to reduce resource use & increase security)
+        CBlockIndex* pfork = pindexBest->pprev;
         CBlockIndex* plonger = pindexNew;
 
         while (pfork != plonger)
