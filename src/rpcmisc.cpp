@@ -62,21 +62,29 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("protocol_turbosyncmax",                     TURBOSYNC_MAX));
     obj.push_back(Pair("errors",                                    GetWarnings("statusbar")));
     obj.push_back(Pair("timeoffset",                                (int64_t)GetTimeOffset()));
-    obj.push_back(Pair("blocks",                                    (int)nBestHeight));
-    obj.push_back(Pair("bestblockhash",                             pindexBest->GetBlockHash().GetHex()));
-    obj.push_back(Pair("blockvalue",                                (int64_t)GetProofOfWorkReward(pindexBest->nHeight, false)));
-    obj.push_back(Pair("currentblocksize",                          (uint64_t)nLastBlockSize));
-    obj.push_back(Pair("currentblocktx",                            (uint64_t)nLastBlockTx));
+    if (nBestHeight)
+    {
+        obj.push_back(Pair("blocks",                                (int)nBestHeight));
+    }
+    if (pindexBest)
+    {
+        obj.push_back(Pair("bestblockhash",                         pindexBest->GetBlockHash().GetHex()));
+        obj.push_back(Pair("blockvalue",                            (int64_t)GetProofOfWorkReward(pindexBest->nHeight, false)));
+        obj.push_back(Pair("currentblocksize",                      (uint64_t)nLastBlockSize));
+        obj.push_back(Pair("currentblocktx",                        (uint64_t)nLastBlockTx));
+#ifndef LOWMEM
+        obj.push_back(Pair("moneysupply",                           ValueFromAmount(pindexBest->nMoneySupply)));
+        obj.push_back(Pair("pow_lastreward",                        ValueFromAmount(pindexBest->nPOWMint)));
+        obj.push_back(Pair("pos_lastreward",                        ValueFromAmount(pindexBest->nPOSMint)));
+#endif
+    }
+    
     obj.push_back(Pair("pooledtx",                                  (uint64_t)mempool.size()));
 
     obj.push_back(Pair("pow_difficulty",                            GetDifficulty(GetLastBlockIndex(pindexBest, false))));
     obj.push_back(Pair("pos_difficulty",                            GetDifficulty(GetLastBlockIndex(pindexBest, true))));
 
-#ifndef LOWMEM
-    obj.push_back(Pair("moneysupply",                               ValueFromAmount(pindexBest->nMoneySupply)));
-    obj.push_back(Pair("pow_lastreward",                            ValueFromAmount(pindexBest->nPOWMint)));
-    obj.push_back(Pair("pos_lastreward",                            ValueFromAmount(pindexBest->nPOSMint)));
-#endif
+
 
 #ifdef ENABLE_WALLET
     if (pwalletMain)

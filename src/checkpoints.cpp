@@ -106,15 +106,20 @@ namespace Checkpoints
     // Automatically select a suitable sync-checkpoint 
     const CBlockIndex* AutoSelectSyncCheckpoint()
     {
-        const CBlockIndex *pindex = pindexBest;
-
-        // Search backward for a block within max span and maturity window
-        while (pindex->pprev && pindex->nHeight + nCheckpointSpan > pindexBest->nHeight)
+        if (pindexBest)
         {
-            pindex = pindex->pprev;
+            const CBlockIndex *pindex = pindexBest;
+
+            // Search backward for a block within max span and maturity window
+            while (pindex->pprev && pindex->nHeight + nCheckpointSpan > pindexBest->nHeight)
+            {
+                pindex = pindex->pprev;
+            }
+            
+            return pindex;
         }
-        
-        return pindex;
+
+        return NULL;
     }
 
     // Check against synchronized checkpoint

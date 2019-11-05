@@ -3957,10 +3957,6 @@ bool CBlock::AcceptBlock()
         {
             hashProof = GetPoWHash();
         }
-        else
-        {
-            hashProof = GetHash();
-        }
     }
 
     // BlockShield
@@ -4203,7 +4199,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     {
         uint256 proofHash = 0, hashTarget = 0;
 
-        if (!CheckProofOfStake(pindexBest->pprev, pblock->vtx[1], pblock->nBits, proofHash, hashTarget))
+        if (!CheckProofOfStake(pindexBest, pblock->vtx[1], pblock->nBits, proofHash, hashTarget))
         {
             LogPrint("core", "%s : WARNING: check proof-of-stake failed for block %s\n", __FUNCTION__, hash.ToString().c_str());
 
@@ -4211,7 +4207,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             // Modified by Profit Hunters Coin
             if (pfrom)
             {
-                pfrom->PushGetBlocks(pindexBest->pprev, hash);
+                pfrom->PushGetBlocks(pindexBest, hash);
             }
 
             // do not error here as we expect this during initial block download
@@ -4225,6 +4221,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
         }
     }
 
+    /* TO-DO: FIX
     if (pblock->hashPrevBlock != hashBestChain)
     {
         // Extra checks to prevent "fill up memory by spamming with bogus blocks"
@@ -4247,6 +4244,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             return error("%s : block with timestamp before last checkpoint\n", __FUNCTION__);
         }
     }
+    */
 
     // Block signature can be malleated in such a way that it increases block size up to maximum allowed by protocol
     // For now we just strip garbage from newly received blocks
@@ -4350,11 +4348,14 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 
             // Keep track of last received orphans from nodes to prevent flooding attacks
             if (pfrom->dOrphanRecv.hash != hash)
-            {
-                pfrom->dOrphanRecv.height = pindexBest->nHeight;
-                pfrom->dOrphanRecv.hash = hash;
-                pfrom->dOrphanRecv.timestamp = GetTime();
-                pfrom->dOrphanRecv.synced = true;
+            {   
+                if (pindexBest)
+                {
+                    pfrom->dOrphanRecv.height = pindexBest->nHeight;
+                    pfrom->dOrphanRecv.hash = hash;
+                    pfrom->dOrphanRecv.timestamp = GetTime();
+                    pfrom->dOrphanRecv.synced = true;
+                }
             }
         }
 
@@ -6946,16 +6947,19 @@ namespace CChain
 
                 if (SyncNode == true)
                 {
-                    // Start a new fresh sync
-                    pnode->fStartSync = false;
-
-                    pnode->PushGetBlocks(pindexBest->pprev, uint256(0));
-
-                    NodeCount++;
-
-                    if(fDebug)
+                    if (pindexBest)
                     {
-                        LogPrint("core", "%s : Asking other peer %s for valid chain @ %s\n", __FUNCTION__, pnode->addrName, pindexBest->pprev->GetBlockHash().ToString());
+                        // Start a new fresh sync
+                        pnode->fStartSync = false;
+
+                        pnode->PushGetBlocks(pindexBest->pprev, uint256(0));
+
+                        NodeCount++;
+
+                        if(fDebug)
+                        {
+                            LogPrint("core", "%s : Asking other peer %s for valid chain @ %s\n", __FUNCTION__, pnode->addrName, pindexBest->pprev->GetBlockHash().ToString());
+                        }
                     }
                 }
 
