@@ -4193,6 +4193,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
         return error("%s : CheckBlock FAILED\n", __FUNCTION__);
     }
 
+    /* TO-DO: FIX
     // peercoin: verify hash target and signature of coinstake tx
     // PHC: modified to avoid getting stuck on a fork or invalid stake block (Prev not found)
     if (pblock->IsProofOfStake())
@@ -4220,6 +4221,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             mapProofOfStake.insert(make_pair(hash, pblock->hashPrevBlock));
         }
     }
+    */
 
     /* TO-DO: FIX
     if (pblock->hashPrevBlock != hashBestChain)
@@ -7170,7 +7172,7 @@ namespace CChain
             LogPrint("core", "%s : REORGANIZE\n", __FUNCTION__);
         }
 
-        // Find the fork (Step back 5 parent blocks to reduce resource use & increase security)
+        // Find the fork (Step back 1 parent blocks to reduce resource use & increase security)
         CBlockIndex* pfork = pindexBest->pprev->pprev->pprev->pprev->pprev;
         CBlockIndex* plonger = pindexNew;
 
