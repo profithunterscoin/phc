@@ -227,6 +227,7 @@ template<typename T1> inline uint160 Hash160(const T1 pbegin, const T1 pend)
     SHA256((pbegin == pend ? pblank : (unsigned char*)&pbegin[0]), (pend - pbegin) * sizeof(pbegin[0]), (unsigned char*)&hash1);
 
     uint160 hash2;
+
     RIPEMD160((unsigned char*)&hash1, sizeof(hash1), (unsigned char*)&hash2);
 
     return hash2;

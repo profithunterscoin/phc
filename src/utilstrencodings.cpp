@@ -150,6 +150,7 @@ vector<unsigned char> DecodeBase64(const char* p, bool* pfInvalid)
             {
                 // we have 6 bits and keep 4
                 vchRet.push_back((left<<2) | (dec>>4));
+
                 left = dec & 15;
                 mode = 2;
             }
@@ -159,6 +160,7 @@ vector<unsigned char> DecodeBase64(const char* p, bool* pfInvalid)
             {
                 // we have 4 bits and get 6, we keep 2
                 vchRet.push_back((left<<4) | (dec>>2));
+
                 left = dec & 3;
                 mode = 3;
             }
@@ -231,12 +233,15 @@ SecureString EncodeBase64Secure(const SecureString& input)
     // Init openssl BIO with base64 filter and memory output
     BIO *b64, *mem;
     b64 = BIO_new(BIO_f_base64());
+
     BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL); // No newlines in output
+
     mem = BIO_new(BIO_s_mem());
     BIO_push(b64, mem);
 
     // Decode the string
     BIO_write(b64, &input[0], input.size());
+
     (void) BIO_flush(b64);
 
     // Create output variable from buffer mem ptr
@@ -249,6 +254,7 @@ SecureString EncodeBase64Secure(const SecureString& input)
 
     // Free memory
     BIO_free_all(b64);
+
     return output;
 }
 
@@ -261,12 +267,15 @@ SecureString DecodeBase64Secure(const SecureString& input)
     // Init openssl BIO with base64 filter and memory input
     BIO *b64, *mem;
     b64 = BIO_new(BIO_f_base64());
+
     BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL); //Do not use newlines to flush buffer
     mem = BIO_new_mem_buf((void *) &input[0], input.size());
+
     BIO_push(b64, mem);
 
     // Prepare buffer to receive decoded data
-    if(input.size() % 4 != 0) {
+    if(input.size() % 4 != 0)
+    {
         throw runtime_error("Input length should be a multiple of 4");
     }
     size_t nMaxLen = input.size() / 4 * 3; // upper bound, guaranteed divisible by 4
@@ -279,6 +288,7 @@ SecureString DecodeBase64Secure(const SecureString& input)
 
     // Free memory
     BIO_free_all(b64);
+
     return output;
 }
 
@@ -296,6 +306,7 @@ string EncodeBase32(const unsigned char* pch, size_t len)
     while (pch<pchEnd)
     {
         int enc = *(pch++);
+
         switch (mode)
         {
             case 0:
@@ -425,6 +436,7 @@ vector<unsigned char> DecodeBase32(const char* p, bool* pfInvalid)
             {
                 // we have 5 bits and keep 2
                 vchRet.push_back((left<<3) | (dec>>2));
+                
                 left = dec & 3;
                 mode = 2;
             }
@@ -442,6 +454,7 @@ vector<unsigned char> DecodeBase32(const char* p, bool* pfInvalid)
             { 
                 // we have 7 bits and keep 4
                 vchRet.push_back((left<<1) | (dec>>4));
+                
                 left = dec & 15;
                 mode = 4;
             }
@@ -451,6 +464,7 @@ vector<unsigned char> DecodeBase32(const char* p, bool* pfInvalid)
             {
                 // we have 4 bits, and keep 1
                 vchRet.push_back((left<<4) | (dec>>1));
+                
                 left = dec & 1;
                 mode = 5;
             }
@@ -468,6 +482,7 @@ vector<unsigned char> DecodeBase32(const char* p, bool* pfInvalid)
             {
                 // we have 6 bits, and keep 3
                 vchRet.push_back((left<<2) | (dec>>3));
+                
                 left = dec & 7;
                 mode = 7;
             }
@@ -477,6 +492,7 @@ vector<unsigned char> DecodeBase32(const char* p, bool* pfInvalid)
             {
                 // we have 3 bits, and keep 0
                 vchRet.push_back((left<<5) | dec);
+                
                 mode = 0;
             }
             break;

@@ -70,9 +70,9 @@ class CKeyMetadata
         }
 
         IMPLEMENT_SERIALIZE
-        (
+        (   nVersion = this->nVersion;
+
             READWRITE(this->nVersion);
-            nVersion = this->nVersion;
             READWRITE(nCreateTime);
         )
 

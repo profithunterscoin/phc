@@ -32,6 +32,7 @@
 #include <QDateTime>
 #include <QDebug>
 
+
 // Amount column is right-aligned it contains numbers
 static int column_alignments[] =
 {
@@ -155,6 +156,7 @@ class TransactionTablePriv
 
                         // Find transaction in wallet
                         std::map<uint256, CWalletTx>::iterator mi = wallet->mapWallet.find(hash);
+                        
                         if(mi == wallet->mapWallet.end())
                         {
                             qWarning() << "TransactionTablePriv::updateWallet : Warning: Got CT_NEW, but transaction is not in wallet";
@@ -292,13 +294,15 @@ TransactionTableModel::~TransactionTableModel()
 void TransactionTableModel::updateAmountColumnTitle()
 {
 	columns[Amount] = BitcoinUnits::getAmountColumnTitle(walletModel->getOptionsModel()->getDisplayUnit());
-	emit headerDataChanged(Qt::Horizontal,Amount,Amount);
+	
+    emit headerDataChanged(Qt::Horizontal,Amount,Amount);
 }
 
 
 void TransactionTableModel::updateTransaction(const QString &hash, int status, bool showTransaction)
 {
     uint256 updated;
+    
     updated.SetHex(hash.toStdString());
 
     priv->updateWallet(updated, status, showTransaction);
@@ -1060,6 +1064,7 @@ QModelIndex TransactionTableModel::index(int row, int column, const QModelIndex 
     Q_UNUSED(parent);
     
     TransactionRecord *data = priv->index(row);
+    
     if(data)
     {
         return createIndex(row, column, priv->index(row));

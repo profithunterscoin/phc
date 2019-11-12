@@ -308,28 +308,34 @@ void scrypt_detect_sse2()
 {
 #if defined(USE_SSE2_ALWAYS)
     printf("scrypt: using scrypt-sse2 as built.\n");
+
 #else // USE_SSE2_ALWAYS
     // 32bit x86 Linux or Windows, detect cpuid features
     unsigned int cpuid_edx=0;
+
 #if defined(_MSC_VER)
     // MSVC
     int x86cpuid[4];
     __cpuid(x86cpuid, 1);
     cpuid_edx = (unsigned int)buffer[3];
+
 #else // _MSC_VER
     // Linux or i686-w64-mingw32 (gcc-4.6.3)
     unsigned int eax, ebx, ecx;
     __get_cpuid(1, &eax, &ebx, &ecx, &cpuid_edx);
+
 #endif // _MSC_VER
 
     if (cpuid_edx & 1<<26)
     {
         scrypt_1024_1_1_256_sp_detected = &scrypt_1024_1_1_256_sp_sse2;
+
         printf("scrypt: using scrypt-sse2 as detected.\n");
     }
     else
     {
         scrypt_1024_1_1_256_sp_detected = &scrypt_1024_1_1_256_sp_generic;
+
         printf("scrypt: using scrypt-generic, SSE2 unavailable.\n");
     }
 #endif // USE_SSE2_ALWAYS
@@ -339,6 +345,7 @@ void scrypt_detect_sse2()
 void scrypt_1024_1_1_256(const char *input, char *output)
 {
 	char scratchpad[SCRYPT_SCRATCHPAD_SIZE];
+    
     scrypt_1024_1_1_256_sp(input, output, scratchpad);
 }
 

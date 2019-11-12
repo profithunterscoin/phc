@@ -48,6 +48,8 @@
 #include <boost/function.hpp>
 #include <boost/interprocess/sync/file_lock.hpp>
 #include <boost/thread.hpp>
+#include <boost/range/adaptor/reversed.hpp>
+
 #include <openssl/crypto.h>
 
 #ifndef WIN32
@@ -190,10 +192,12 @@ void Shutdown()
 #endif
 
     boost::filesystem::remove(GetPidFile());
+
     UnregisterAllWallets();
 
 #ifdef ENABLE_WALLET
     delete pwalletMain;
+
     pwalletMain = NULL;
 #endif
 
@@ -393,7 +397,7 @@ std::string HelpMessage()
     strUsage += "\n" + _("Darksend options:") + "\n";
     strUsage += "  -enabledarksend=<n>          " + _("Enable use of automated darksend for funds stored in this wallet (0-1, default: 0)") + "\n";
     strUsage += "  -darksendrounds=<n>          " + _("Use N separate masternodes to anonymize funds  (2-8, default: 2)") + "\n";
-    strUsage += "  -anonymizePHCamount=<n> " + _("Keep N PHC anonymized (default: 0)") + "\n";
+    strUsage += "  -AnonymizeAmount=<n> " + _("Keep N PHC anonymized (default: 0)") + "\n";
     strUsage += "  -liquidityprovider=<n>       " + _("Provide liquidity to Darksend by infrequently mixing coins on a continual basis (0-100, default: 0, 1=very frequent, high fees, 100=very infrequent, low fees)") + "\n";
 
     strUsage += "\n" + _("InstantX options:") + "\n";
@@ -471,6 +475,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 #endif
     typedef BOOL (WINAPI *PSETPROCDEPPOL)(DWORD);
     PSETPROCDEPPOL setProcDEPPol = (PSETPROCDEPPOL)GetProcAddress(GetModuleHandleA("Kernel32.dll"), "SetProcessDEPPolicy");
+    
     if (setProcDEPPol != NULL)
     {
         setProcDEPPol(PROCESS_DEP_ENABLE);
@@ -482,15 +487,21 @@ bool AppInit2(boost::thread_group& threadGroup)
     // Clean shutdown on SIGTERM
     struct sigaction sa;
     sa.sa_handler = HandleSIGTERM;
+
     sigemptyset(&sa.sa_mask);
+
     sa.sa_flags = 0;
+
     sigaction(SIGTERM, &sa, NULL);
     sigaction(SIGINT, &sa, NULL);
 
     // Reopen debug.log on SIGHUP
     struct sigaction sa_hup;
+
     sa_hup.sa_handler = HandleSIGHUP;
+
     sigemptyset(&sa_hup.sa_mask);
+
     sa_hup.sa_flags = 0;
     sigaction(SIGHUP, &sa_hup, NULL);
 #endif
@@ -835,6 +846,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     {
 
         filesystem::path backupDir = GetDataDir(true) / "backups";
+        
         if (!filesystem::exists(backupDir))
         {
             // Always create backup folder to not confuse the operating system's file browser
@@ -897,7 +909,7 @@ bool AppInit2(boost::thread_group& threadGroup)
                 // Loop backward through backup files and keep the N newest ones (1 <= N <= 10)
                 int counter = 0;
 
-                BOOST_REVERSE_FOREACH(PAIRTYPE(const std::time_t, boost::filesystem::path) file, folder_set)
+                for(PAIRTYPE(const std::time_t, boost::filesystem::path) file: boost::adaptors::reverse(folder_set))
                 {
                     counter++;
 
@@ -1002,7 +1014,8 @@ bool AppInit2(boost::thread_group& threadGroup)
     if (mapArgs.count("-onlynet"))
     {
         std::set<enum Network> nets;
-        BOOST_FOREACH(std::string snet, mapMultiArgs["-onlynet"])
+
+        for(std::string snet: mapMultiArgs["-onlynet"])
         {
             enum Network net = ParseNetwork(snet);
 
@@ -1035,11 +1048,13 @@ bool AppInit2(boost::thread_group& threadGroup)
     }
 
     CService addrProxy;
+    
     bool fProxy = false;
 
     if (mapArgs.count("-proxy"))
     {
         addrProxy = CService(mapArgs["-proxy"], 9050);
+        
         if (!addrProxy.IsValid())
         {
             return InitError(strprintf(_("Invalid -proxy address: '%s'"), mapArgs["-proxy"]));
@@ -1097,7 +1112,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
         if (mapArgs.count("-bind"))
         {
-            BOOST_FOREACH(std::string strBind, mapMultiArgs["-bind"])
+            for(std::string strBind: mapMultiArgs["-bind"])
             {
                 CService addrBind;
 
@@ -1134,7 +1149,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     if (mapArgs.count("-externalip"))
     {
-        BOOST_FOREACH(string strAddr, mapMultiArgs["-externalip"])
+        for(string strAddr: mapMultiArgs["-externalip"])
         {
             CService addrLocal(strAddr, GetListenPort(), fNameLookup);
 
@@ -1159,7 +1174,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     }
 #endif
 
-    BOOST_FOREACH(string strDest, mapMultiArgs["-seednode"])
+    for(string strDest: mapMultiArgs["-seednode"])
     {
         AddOneShot(strDest);
     }
@@ -1242,6 +1257,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     if(GetBoolArg("-bootstrap", false))
     {
         uiInterface.InitMessage(("Clearing local blockchain files...\n"));
+        
         fprintf(stdout, "Clearing local blockchain files...\n");
 
         filesystem::path pathBlockchain = GetDataDir(true) / "blk0001.dat";
@@ -1550,9 +1566,10 @@ bool AppInit2(boost::thread_group& threadGroup)
     // ********************************************************* Step 9: import blocks
 
     std::vector<boost::filesystem::path> vImportFiles;
+    
     if (mapArgs.count("-loadblock"))
     {
-        BOOST_FOREACH(string strFile, mapMultiArgs["-loadblock"])
+        for(string strFile: mapMultiArgs["-loadblock"])
         {
             vImportFiles.push_back(strFile);
         }
@@ -1696,7 +1713,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
         uint256 mnTxHash;
 
-        BOOST_FOREACH(CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries())
+        for(CMasternodeConfig::CMasternodeEntry mne: masternodeConfig.getEntries())
         {
             if (fDebug)
             {
@@ -1733,16 +1750,16 @@ bool AppInit2(boost::thread_group& threadGroup)
         nDarksendRounds = 99999;
     }
 
-    nAnonymizePHCAmount = GetArg("-anonymizePHCamount", 0);
+    nAnonymizeAmount = GetArg("-AnonymizeAmount", 0);
 
-    if(nAnonymizePHCAmount > 999999)
+    if(nAnonymizeAmount > 999999)
     {
-        nAnonymizePHCAmount = 999999;
+        nAnonymizeAmount = 999999;
     }
 
-    if(nAnonymizePHCAmount < 2)
+    if(nAnonymizeAmount < 2)
     {
-        nAnonymizePHCAmount = 2;
+        nAnonymizeAmount = 2;
     }
 
     fEnableInstantX = GetBoolArg("-enableinstantx", fEnableInstantX);
@@ -1763,7 +1780,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         LogPrint("init", "%s : fLiteMode %d\n", __FUNCTION__, fLiteMode);
         LogPrint("init", "%s : nInstantXDepth %d\n", __FUNCTION__, nInstantXDepth);
         LogPrint("init", "%s : Darksend rounds %d\n", __FUNCTION__, nDarksendRounds);
-        LogPrint("init", "%s : Anonymize PHC Amount %d\n", __FUNCTION__, nAnonymizePHCAmount);
+        LogPrint("init", "%s : Anonymize PHC Amount %d\n", __FUNCTION__, nAnonymizeAmount);
     }
 
     /* Denominations

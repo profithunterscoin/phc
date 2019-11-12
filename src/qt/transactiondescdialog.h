@@ -17,14 +17,17 @@
 
 #include <QDialog>
 
+
 namespace Ui
 {
     class TransactionDescDialog;
 }
 
+
 QT_BEGIN_NAMESPACE
 class QModelIndex;
 QT_END_NAMESPACE
+
 
 /** Dialog showing transaction details. */
 class TransactionDescDialog : public QDialog
@@ -34,6 +37,7 @@ class TransactionDescDialog : public QDialog
     public:
 
         explicit TransactionDescDialog(const QModelIndex &idx, QWidget *parent = 0);
+        
         ~TransactionDescDialog();
 
     private:

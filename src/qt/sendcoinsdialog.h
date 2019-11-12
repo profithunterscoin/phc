@@ -11,6 +11,7 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
 
+
 #ifndef SENDCOINSDIALOG_H
 #define SENDCOINSDIALOG_H
 
@@ -19,6 +20,7 @@
 
 #include "walletmodel.h"
 
+
 static const int MAX_SEND_POPUP_ENTRIES = 10;
 
 class ClientModel;
@@ -26,14 +28,17 @@ class OptionsModel;
 class SendCoinsEntry;
 class SendCoinsRecipient;
 
+
 namespace Ui
 {
     class SendCoinsDialog;
 }
 
+
 QT_BEGIN_NAMESPACE
 class QUrl;
 QT_END_NAMESPACE
+
 
 /** Dialog for sending bitcoins */
 class SendCoinsDialog : public QDialog
@@ -43,6 +48,7 @@ class SendCoinsDialog : public QDialog
     public:
 
         explicit SendCoinsDialog(QWidget *parent = 0);
+        
         ~SendCoinsDialog();
 
         void setClientModel(ClientModel *clientModel);

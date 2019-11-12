@@ -21,11 +21,13 @@ using namespace std;
 
 BOOST_AUTO_TEST_SUITE(hmac_tests)
 
-typedef struct {
+typedef struct
+{
     const char *pszKey;
     const char *pszData;
     const char *pszMAC;
-} testvec_t;
+}
+testvec_t;
 
 // test cases 1, 2, 3, 4, 6 and 7 of RFC 4231
 static const testvec_t vtest[] = {
@@ -124,9 +126,11 @@ BOOST_AUTO_TEST_CASE(hmacsha512_testvectors)
         vector<unsigned char> vchKey  = ParseHex(vtest[n].pszKey);
         vector<unsigned char> vchData = ParseHex(vtest[n].pszData);
         vector<unsigned char> vchMAC  = ParseHex(vtest[n].pszMAC);
+
         unsigned char vchTemp[64];
 
         HMAC_SHA512_CTX ctx;
+        
         HMAC_SHA512_Init(&ctx, &vchKey[0], vchKey.size());
         HMAC_SHA512_Update(&ctx, &vchData[0], vchData.size());
         HMAC_SHA512_Final(&vchTemp[0], &ctx);

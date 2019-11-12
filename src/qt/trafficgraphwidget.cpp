@@ -30,6 +30,7 @@
 TrafficGraphWidget::TrafficGraphWidget(QWidget *parent) : QWidget(parent), timer(0), fMax(0.0f), nMins(0), vSamplesIn(), vSamplesOut(), nLastBytesIn(0), nLastBytesOut(0), clientModel(0)
 {
     timer = new QTimer(this);
+
     connect(timer, SIGNAL(timeout()), SLOT(updateRates()));
 }
 
@@ -65,6 +66,7 @@ void TrafficGraphWidget::paintPath(QPainterPath &path, QQueue<float> &samples)
         {
             x = XMARGIN + w - w * i / DESIRED_SAMPLES;
             y = YMARGIN + h - (int)(h * samples.at(i) / fMax);
+
             path.lineTo(x, y);
         }
 
@@ -76,6 +78,7 @@ void TrafficGraphWidget::paintPath(QPainterPath &path, QQueue<float> &samples)
 void TrafficGraphWidget::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
+
     painter.fillRect(rect(), Qt::black);
 
     if(fMax <= 0.0f)
@@ -137,6 +140,7 @@ void TrafficGraphWidget::paintEvent(QPaintEvent *)
         QPainterPath p;
         
         paintPath(p, vSamplesIn);
+
         painter.fillPath(p, QColor(0, 255, 0, 128));
         painter.setPen(Qt::green);
         painter.drawPath(p);
@@ -147,6 +151,7 @@ void TrafficGraphWidget::paintEvent(QPaintEvent *)
         QPainterPath p;
         
         paintPath(p, vSamplesOut);
+        
         painter.fillPath(p, QColor(255, 0, 0, 128));
         painter.setPen(Qt::red);
         painter.drawPath(p);

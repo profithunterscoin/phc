@@ -95,7 +95,9 @@ Object CallRPC(const string& strMethod, const Array& params)
 
     // HTTP basic authentication
     string strUserPass64 = EncodeBase64(mapArgs["-rpcuser"] + ":" + mapArgs["-rpcpassword"]);
+
     map<string, string> mapRequestHeaders;
+    
     mapRequestHeaders["Authorization"] = string("Basic ") + strUserPass64;
 
     // Send request

@@ -334,7 +334,7 @@ void CMasternodeMan::Check()
 {
     LOCK(cs);
 
-    BOOST_FOREACH(CMasternode& mn, vMasternodes)
+    for(CMasternode& mn: vMasternodes)
     {
         mn.Check();
     }
@@ -349,6 +349,7 @@ void CMasternodeMan::CheckAndRemove()
 
     //remove inactive
     vector<CMasternode>::iterator it = vMasternodes.begin();
+
     while(it != vMasternodes.end())
     {
         if((*it).activeState == CMasternode::MASTERNODE_REMOVE || (*it).activeState == CMasternode::MASTERNODE_VIN_SPENT || (*it).protocolVersion < nMasternodeMinProtocol)
@@ -432,7 +433,7 @@ int CMasternodeMan::CountEnabled(int protocolVersion)
 
     protocolVersion = protocolVersion == -1 ? masternodePayments.GetMinMasternodePaymentsProto() : protocolVersion;
 
-    BOOST_FOREACH(CMasternode& mn, vMasternodes)
+    for(CMasternode& mn: vMasternodes)
     {
         mn.Check();
 
@@ -452,7 +453,7 @@ int CMasternodeMan::CountMasternodesAboveProtocol(int protocolVersion)
 {
     int i = 0;
 
-    BOOST_FOREACH(CMasternode& mn, vMasternodes)
+    for(CMasternode& mn: vMasternodes)
     {
         mn.Check();
 
@@ -499,7 +500,7 @@ CMasternode *CMasternodeMan::Find(const CTxIn &vin)
 {
     LOCK(cs);
 
-    BOOST_FOREACH(CMasternode& mn, vMasternodes)
+    for(CMasternode& mn: vMasternodes)
     {
         if(mn.vin.prevout == vin.prevout)
         {
@@ -517,7 +518,7 @@ CMasternode* CMasternodeMan::FindOldestNotInVec(const std::vector<CTxIn> &vVins,
 
     CMasternode *pOldestMasternode = NULL;
 
-    BOOST_FOREACH(CMasternode &mn, vMasternodes)
+    for(CMasternode &mn: vMasternodes)
     {   
         mn.Check();
 
@@ -533,13 +534,15 @@ CMasternode* CMasternodeMan::FindOldestNotInVec(const std::vector<CTxIn> &vVins,
 
         bool found = false;
 
-        BOOST_FOREACH(const CTxIn& vin, vVins)
-
+        for(const CTxIn& vin: vVins)
+        {
             if(mn.vin.prevout == vin.prevout)
             {   
                 found = true;
+
                 break;
-            }
+            } 
+        }
 
         if(found)
         {
@@ -573,7 +576,7 @@ CMasternode *CMasternodeMan::Find(const CPubKey &pubKeyMasternode)
 {
     LOCK(cs);
 
-    BOOST_FOREACH(CMasternode& mn, vMasternodes)
+    for(CMasternode& mn: vMasternodes)
     {
         if(mn.pubkey2 == pubKeyMasternode)
         {
@@ -612,7 +615,7 @@ CMasternode *CMasternodeMan::FindRandomNotInVec(std::vector<CTxIn> &vecToExclude
 
     bool found;
 
-    BOOST_FOREACH(CMasternode &mn, vMasternodes) 
+    for(CMasternode &mn: vMasternodes) 
     {
         if(mn.protocolVersion < protocolVersion || !mn.IsEnabled())
         {
@@ -621,7 +624,7 @@ CMasternode *CMasternodeMan::FindRandomNotInVec(std::vector<CTxIn> &vecToExclude
 
         found = false;
 
-        BOOST_FOREACH(CTxIn &usedVin, vecToExclude)
+        for(CTxIn &usedVin: vecToExclude)
         {
             if(mn.vin.prevout == usedVin.prevout)
             {
@@ -653,7 +656,7 @@ CMasternode* CMasternodeMan::GetCurrentMasterNode(int mod, int64_t nBlockHeight,
     CMasternode* winner = NULL;
 
     // scan for winner
-    BOOST_FOREACH(CMasternode& mn, vMasternodes)
+    for(CMasternode& mn: vMasternodes)
     {
         mn.Check();
 
@@ -694,7 +697,7 @@ int CMasternodeMan::GetMasternodeRank(const CTxIn& vin, int64_t nBlockHeight, in
     }
 
     // scan for winner
-    BOOST_FOREACH(CMasternode& mn, vMasternodes)
+    for(CMasternode& mn: vMasternodes)
     {
 
         if(mn.protocolVersion < minProtocol)
@@ -722,7 +725,7 @@ int CMasternodeMan::GetMasternodeRank(const CTxIn& vin, int64_t nBlockHeight, in
 
     int rank = 0;
 
-    BOOST_FOREACH (PAIRTYPE(unsigned int, CTxIn)& s, vecMasternodeScores)
+    for(PAIRTYPE(unsigned int, CTxIn)& s: vecMasternodeScores)
     {
         rank++;
 
@@ -750,7 +753,7 @@ std::vector<pair<int, CMasternode> > CMasternodeMan::GetMasternodeRanks(int64_t 
     }
 
     // scan for winner
-    BOOST_FOREACH(CMasternode& mn, vMasternodes)
+    for(CMasternode& mn: vMasternodes)
     {
 
         mn.Check();
@@ -778,7 +781,7 @@ std::vector<pair<int, CMasternode> > CMasternodeMan::GetMasternodeRanks(int64_t 
 
     int rank = 0;
 
-    BOOST_FOREACH (PAIRTYPE(unsigned int, CMasternode)& s, vecMasternodeScores)
+    for(PAIRTYPE(unsigned int, CMasternode)& s: vecMasternodeScores)
     {
         rank++;
     
@@ -794,7 +797,7 @@ CMasternode* CMasternodeMan::GetMasternodeByRank(int nRank, int64_t nBlockHeight
     std::vector<pair<unsigned int, CTxIn> > vecMasternodeScores;
 
     // scan for winner
-    BOOST_FOREACH(CMasternode& mn, vMasternodes)
+    for(CMasternode& mn: vMasternodes)
     {
 
         if(mn.protocolVersion < minProtocol) 
@@ -823,7 +826,7 @@ CMasternode* CMasternodeMan::GetMasternodeByRank(int nRank, int64_t nBlockHeight
 
     int rank = 0;
 
-    BOOST_FOREACH (PAIRTYPE(unsigned int, CTxIn)& s, vecMasternodeScores)
+    for(PAIRTYPE(unsigned int, CTxIn)& s: vecMasternodeScores)
     {
         rank++;
 
@@ -846,7 +849,7 @@ void CMasternodeMan::ProcessMasternodeConnections()
         return;
     }
     
-    BOOST_FOREACH(CNode* pnode, vNodes)
+    for(CNode* pnode: vNodes)
     {
         if(darkSendPool.pSubmittedToMasternode->addr == pnode->addr) continue;
 
@@ -1715,7 +1718,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
                 //send to all peers
                 LOCK(cs_vNodes);
 
-                BOOST_FOREACH(CNode* pnode, vNodes)
+                for(CNode* pnode: vNodes)
                 {
                     pnode->PushMessage("mvote", vin, vchSig, nVote);
                 }
@@ -1766,7 +1769,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         int count = this->size();
         int i = 0;
 
-        BOOST_FOREACH(CMasternode& mn, vMasternodes)
+        for(CMasternode& mn: vMasternodes)
         {
 
             if(mn.addr.IsRFC1918())
@@ -1828,7 +1831,7 @@ void CMasternodeMan::RelayOldMasternodeEntry(const CTxIn vin, const CService add
 {
     LOCK(cs_vNodes);
 
-    BOOST_FOREACH(CNode* pnode, vNodes)
+    for(CNode* pnode: vNodes)
     {
         pnode->PushMessage("dsee", vin, addr, vchSig, nNow, pubkey, pubkey2, count, current, lastUpdated, protocolVersion);
     }
@@ -1839,7 +1842,7 @@ void CMasternodeMan::RelayMasternodeEntry(const CTxIn vin, const CService addr, 
 {
     LOCK(cs_vNodes);
 
-    BOOST_FOREACH(CNode* pnode, vNodes)
+    for(CNode* pnode: vNodes)
     {
         pnode->PushMessage("dsee+", vin, addr, vchSig, nNow, pubkey, pubkey2, count, current, lastUpdated, protocolVersion, rewardAddress, rewardPercentage);
     }
@@ -1850,7 +1853,7 @@ void CMasternodeMan::RelayMasternodeEntryPing(const CTxIn vin, const std::vector
 {
     LOCK(cs_vNodes);
 
-    BOOST_FOREACH(CNode* pnode, vNodes)
+    for(CNode* pnode: vNodes)
     {
         pnode->PushMessage("dseep", vin, vchSig, nNow, stop);
     }

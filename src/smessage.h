@@ -79,6 +79,7 @@ class SecureMessage
             {
                 delete[] pPayload;
             }
+
             pPayload = NULL;
         };
 
@@ -126,6 +127,7 @@ class SecMsgToken
             {
                 memcpy(sample, p, 8);
             }
+
             offset = o;
         };
 
@@ -147,7 +149,6 @@ class SecMsgToken
         int64_t               timestamp;    // doesn't need to be full 64 bytes?
         uint8_t               sample[8];    // first 8 bytes of payload - a hash
         int64_t               offset;       // offset
-
 };
 
 
@@ -174,12 +175,11 @@ class SecMsgBucket
         NodeId                      nLockPeerId;    // id of peer that bucket is locked for
         
         std::set<SecMsgToken>       setTokens;
-
 };
 
 
 // -- get at the data
-class CPHCcoinAddress_B : public CPHCcoinAddress
+class CCoinAddress_B : public CCoinAddress
 {
     public:
 
@@ -276,6 +276,7 @@ class SecMsgCrypter
             // clean key
             memset(&chKey, 0, sizeof chKey);
             memset(&chIV, 0, sizeof chIV);
+
             fKeySet = false;
 
             LockedPageManager::Instance().LockRange(&chKey[0], sizeof chKey);
@@ -284,6 +285,7 @@ class SecMsgCrypter
 
         bool SetKey(const std::vector<uint8_t>& vchNewKey, uint8_t* chNewIV);
         bool SetKey(const uint8_t* chNewKey, uint8_t* chNewIV);
+        
         bool Encrypt(uint8_t* chPlaintext, uint32_t nPlain, std::vector<uint8_t> &vchCiphertext);
         bool Decrypt(uint8_t* chCiphertext, uint32_t nCipher, std::vector<uint8_t>& vchPlaintext);
 };

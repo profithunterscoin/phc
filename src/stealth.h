@@ -41,6 +41,7 @@ typedef uint32_t stealth_bitfield;
 struct stealth_prefix
 {
     uint8_t number_bits;
+
     stealth_bitfield bitfield;
 };
 
@@ -48,6 +49,7 @@ template <typename T, typename Iterator> T from_big_endian(Iterator in)
 {
     //VERIFY_UNSIGNED(T);
     T out = 0;
+
     size_t i = sizeof(T);
 
     while (0 < i)
@@ -58,11 +60,11 @@ template <typename T, typename Iterator> T from_big_endian(Iterator in)
     return out;
 }
 
-template <typename T, typename Iterator>
-T from_little_endian(Iterator in)
+template <typename T, typename Iterator>T from_little_endian(Iterator in)
 {
     //VERIFY_UNSIGNED(T);
     T out = 0;
+
     size_t i = 0;
 
     while (i < sizeof(T))

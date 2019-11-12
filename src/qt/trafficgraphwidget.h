@@ -18,12 +18,15 @@
 #include <QWidget>
 #include <QQueue>
 
+
 class ClientModel;
+
 
 QT_BEGIN_NAMESPACE
 class QPaintEvent;
 class QTimer;
 QT_END_NAMESPACE
+
 
 class TrafficGraphWidget : public QWidget
 {

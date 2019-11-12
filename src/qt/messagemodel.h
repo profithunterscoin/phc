@@ -55,6 +55,7 @@ struct MessageTableEntry
     };
     
     std::vector<unsigned char> chKey;
+    
     Type type;
     
     QString label;
@@ -70,7 +71,9 @@ struct MessageTableEntry
     {}
 
     MessageTableEntry(std::vector<unsigned char> &chKey, Type type, const QString &label, const QString &to_address, const QString &from_address,
+    
     const QDateTime &sent_datetime, const QDateTime &received_datetime, const QString &message): chKey(chKey), type(type), label(label),
+    
     to_address(to_address), from_address(from_address), sent_datetime(sent_datetime), received_datetime(received_datetime), message(message)
     {
     }

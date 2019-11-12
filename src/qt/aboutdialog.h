@@ -20,6 +20,7 @@ namespace Ui
 {
     class AboutDialog;
 }
+
 class ClientModel;
 
 /** "About" dialog box */
@@ -30,6 +31,7 @@ class AboutDialog : public QDialog
     public:
 
         explicit AboutDialog(QWidget *parent = 0);
+        
         ~AboutDialog();
 
         void setModel(ClientModel *model);

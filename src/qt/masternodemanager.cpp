@@ -206,7 +206,7 @@ void MasternodeManager::updateNodeList()
     ui->tableWidgetMasternodes->setRowCount(0);
     std::vector<CMasternode> vMasternodes = mnodeman.GetFullMasternodeVector();
     
-    BOOST_FOREACH(CMasternode& mn, vMasternodes)
+    for(CMasternode& mn: vMasternodes)
     {
 
         // populate list
@@ -218,10 +218,15 @@ void MasternodeManager::updateNodeList()
         QTableWidgetItem* lastSeenItem = new QTableWidgetItem(QString::fromStdString(DateTimeStrFormat(mn.lastTimeSeen)));
 
         CScript pubkey;
+
         pubkey =GetScriptForDestination(mn.pubkey.GetID());
+
         CTxDestination address1;
+
         ExtractDestination(pubkey, address1);
-        CPHCcoinAddress address2(address1);
+
+        CCoinAddress address2(address1);
+
         QTableWidgetItem *pubkeyItem = new QTableWidgetItem(QString::fromStdString(address2.ToString()));
 
         ui->tableWidgetMasternodes->insertRow(0);
@@ -250,6 +255,7 @@ void MasternodeManager::setClientModel(ClientModel *model)
 void MasternodeManager::setWalletModel(WalletModel *model)
 {
     this->walletModel = model;
+
     if(model && model->getOptionsModel())
     {
     }
@@ -259,7 +265,9 @@ void MasternodeManager::setWalletModel(WalletModel *model)
 void MasternodeManager::on_createButton_clicked()
 {
     AddEditAdrenalineNode* aenode = new AddEditAdrenalineNode();
+
     aenode->exec();
+
     MasternodeManager::on_UpdateButton_clicked();
 }
 
@@ -278,6 +286,7 @@ void MasternodeManager::on_startButton_clicked()
         statusObj += "<br>Select a Masternode alias to start" ;
 
         QMessageBox msg;
+
         msg.setText(QString::fromStdString(statusObj));
         msg.exec();
         
@@ -285,14 +294,18 @@ void MasternodeManager::on_startButton_clicked()
     }
 
     QModelIndex index = selected.at(0);
+
     int r = index.row();
+
     std::string sAlias = ui->tableWidget_2->item(r, 0)->text().toStdString();
 
     if(pwalletMain->IsLocked())
     {
 
         statusObj += "<br>Please unlock your wallet to start Masternode" ;
+        
         QMessageBox msg;
+        
         msg.setText(QString::fromStdString(statusObj));
         msg.exec();
         
@@ -302,7 +315,7 @@ void MasternodeManager::on_startButton_clicked()
     
     statusObj += "<center>Alias: " + sAlias;
 
-    BOOST_FOREACH(CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries())
+    for(CMasternodeConfig::CMasternodeEntry mne: masternodeConfig.getEntries())
     {
         if(mne.getAlias() == sAlias)
         {
@@ -327,8 +340,10 @@ void MasternodeManager::on_startButton_clicked()
     }
 
     pwalletMain->Lock();
+    
     statusObj += "</center>";
     QMessageBox msg;
+    
     msg.setText(QString::fromStdString(statusObj));
     msg.exec();
 
@@ -351,7 +366,7 @@ void MasternodeManager::on_startAllButton_clicked()
     
     std::string statusObj;
 
-    BOOST_FOREACH(CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries())
+    for(CMasternodeConfig::CMasternodeEntry mne: masternodeConfig.getEntries())
     {
         total++;
 
@@ -401,7 +416,7 @@ void MasternodeManager::on_UpdateButton_clicked()
 
     int64_t nSecondsSinceUpdate = nTimeListUpdated - GetTime();
 
-    BOOST_FOREACH(CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries())
+    for(CMasternodeConfig::CMasternodeEntry mne: masternodeConfig.getEntries())
     {
         std::string strRewardAddress = mne.getRewardAddress();
         std::string strRewardPercentage = mne.getRewardPercentage();
@@ -427,7 +442,7 @@ void MasternodeManager::on_UpdateButton_clicked()
                 QString::fromStdString(mne.getOutputIndex()), QString::fromStdString(strRewardAddress), QString::fromStdString(strRewardPercentage), QString::fromStdString(errorMessage));
         }
 
-        BOOST_FOREACH(CMasternode& mn, vMasternodes)
+        for(CMasternode& mn: vMasternodes)
         {
             if (mn.addr.ToString().c_str() == mne.getIp())
             {

@@ -288,29 +288,37 @@ class CMasternode
         {
             std::string strStatus = "ACTIVE";
 
-            if(activeState == CMasternode::MASTERNODE_ENABLED)
+            switch (activeState)
             {
-                strStatus   = "ENABLED";
-            }
+                case CMasternode::MASTERNODE_ENABLED:
+                {
+                    strStatus   = "ENABLED";
+                }
+                break;
 
-            if(activeState == CMasternode::MASTERNODE_EXPIRED)
-            {
-                strStatus   = "EXPIRED";
-            }
+                case CMasternode::MASTERNODE_EXPIRED:
+                {
+                    strStatus   = "EXPIRED";
+                }
+                break;
 
-            if(activeState == CMasternode::MASTERNODE_VIN_SPENT)
-            {
-                strStatus = "VIN_SPENT";
-            }
-            
-            if(activeState == CMasternode::MASTERNODE_REMOVE)
-            {
-                strStatus    = "REMOVE";
-            }
-            
-            if(activeState == CMasternode::MASTERNODE_POS_ERROR)
-            {
-                strStatus = "POS_ERROR";
+                case CMasternode::MASTERNODE_VIN_SPENT:
+                {
+                    strStatus   = "VIN_SPENT";
+                }
+                break;
+
+                case CMasternode::MASTERNODE_REMOVE:
+                {
+                    strStatus   = "REMOVE";
+                }
+                break;
+
+                case CMasternode::MASTERNODE_POS_ERROR:
+                {
+                    strStatus = "POS_ERROR";
+                }
+                break;
             }
 
             return strStatus;

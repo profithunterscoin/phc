@@ -20,10 +20,12 @@
 #include <QTimer>
 #include <QWidget>
 
+
 class ClientModel;
 class WalletModel;
 class TxViewDelegate;
 class TransactionFilterProxy;
+
 
 namespace Ui
 {
@@ -34,6 +36,7 @@ QT_BEGIN_NAMESPACE
 class QModelIndex;
 QT_END_NAMESPACE
 
+
 /** Overview ("home") page widget */
 class OverviewPage : public QWidget
 {
@@ -42,6 +45,7 @@ class OverviewPage : public QWidget
     public:
     
         explicit OverviewPage(QWidget *parent = 0);
+        
         ~OverviewPage();
 
         void setClientModel(ClientModel *clientModel);

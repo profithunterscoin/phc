@@ -19,7 +19,7 @@
 
 #include <string>
 #include <vector>
-#include <boost/foreach.hpp>
+
 #include <openssl/crypto.h>
 #include <openssl/ec.h>
 #include <openssl/ecdh.h>
@@ -27,6 +27,7 @@
 #include <openssl/aes.h>
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
+
 #ifdef WIN32
 #include <windows.h>
 #endif
@@ -383,6 +384,7 @@ bool CCryptoKeyStore::Unlock(const CKeyingMaterial& vMasterKeyIn)
         }
 
         CryptedKeyMap::const_iterator mi = mapCryptedKeys.begin();
+
         for (; mi != mapCryptedKeys.end(); ++mi)
         {
             const CPubKey &vchPubKey = (*mi).second.first;
@@ -410,6 +412,7 @@ bool CCryptoKeyStore::Unlock(const CKeyingMaterial& vMasterKeyIn)
 
             return false;
         }
+        
         vMasterKey = vMasterKeyIn;
     }
     // Global Namespace End
@@ -486,12 +489,14 @@ bool CCryptoKeyStore::GetKey(const CKeyID &address, CKey& keyOut) const
         }
 
         CryptedKeyMap::const_iterator mi = mapCryptedKeys.find(address);
+
         if (mi != mapCryptedKeys.end())
         {
             const CPubKey &vchPubKey = (*mi).second.first;
             const std::vector<unsigned char> &vchCryptedSecret = (*mi).second.second;
 
             CKeyingMaterial vchSecret;
+
             if (!DecryptSecret(vMasterKey, vchCryptedSecret, vchPubKey.GetHash(), vchSecret))
             {
                 return false;
@@ -520,12 +525,16 @@ bool CCryptoKeyStore::GetPubKey(const CKeyID &address, CPubKey& vchPubKeyOut) co
         LOCK(cs_KeyStore);
 
         if (!IsCrypted())
+        {
             return CKeyStore::GetPubKey(address, vchPubKeyOut);
+        }
 
         CryptedKeyMap::const_iterator mi = mapCryptedKeys.find(address);
+
         if (mi != mapCryptedKeys.end())
         {
             vchPubKeyOut = (*mi).second.first;
+
             return true;
         }
     }
@@ -548,7 +557,7 @@ bool CCryptoKeyStore::EncryptKeys(CKeyingMaterial& vMasterKeyIn)
 
         fUseCrypto = true;
 
-        BOOST_FOREACH(KeyMap::value_type& mKey, mapKeys)
+        for(KeyMap::value_type& mKey: mapKeys)
         {
             const CKey &key = mKey.second;
 

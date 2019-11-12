@@ -23,6 +23,7 @@
 
 /* ONLY NEEDED FOR UNIT TESTING */
 #include <iostream>
+
 using namespace std;
 
 
@@ -127,6 +128,7 @@ namespace
         if ((ctx = BN_CTX_new()) == NULL)
         {
             ret = -1;
+
             goto err;
         }
         
@@ -137,6 +139,7 @@ namespace
         if (!EC_GROUP_get_order(group, order, ctx))
         {
             ret = -2;
+
             goto err;
         }
         
@@ -144,19 +147,21 @@ namespace
         
         if (!BN_copy(x, order))
         {
-            ret=-1;
+            ret = -1;
             goto err;
         }
         
         if (!BN_mul_word(x, i))
         {
-            ret=-1;
+            ret = -1;
+
             goto err;
         }
         
         if (!BN_add(x, x, ecsig_r))
         {
-            ret=-1;
+            ret = -1;
+
             goto err;
         }
         
@@ -164,25 +169,29 @@ namespace
         
         if (!EC_GROUP_get_curve_GFp(group, field, NULL, NULL, ctx))
         {
-            ret=-2;
+            ret = -2;
+
             goto err;
         }
         
         if (BN_cmp(x, field) >= 0)
         {
-            ret=0;
+            ret = 0;
+
             goto err;
         }
         
         if ((R = EC_POINT_new(group)) == NULL)
         {
             ret = -2;
+
             goto err;
         }
         
         if (!EC_POINT_set_compressed_coordinates_GFp(group, R, x, recid % 2, ctx))
         {
-            ret=0;
+            ret = 0;
+
             goto err;
         }
 
@@ -191,18 +200,21 @@ namespace
             if ((O = EC_POINT_new(group)) == NULL)
             {
                 ret = -2;
+
                 goto err;
             }
             
             if (!EC_POINT_mul(group, O, NULL, R, order, ctx))
             {
-                ret=-2;
+                ret = -2;
+
                 goto err;
             }
             
             if (!EC_POINT_is_at_infinity(group, O))
             {
                 ret = 0;
+
                 goto err;
             }
         }
@@ -210,6 +222,7 @@ namespace
         if ((Q = EC_POINT_new(group)) == NULL)
         {
             ret = -2;
+
             goto err;
         }
         
@@ -219,7 +232,8 @@ namespace
         
         if (!BN_bin2bn(msg, msglen, e))
         {
-            ret=-1;
+            ret = -1;
+
             goto err;
         }
         
@@ -229,13 +243,15 @@ namespace
         
         if (!BN_zero(zero))
         {
-            ret=-1;
+            ret = -1;
+
             goto err;
         }
         
         if (!BN_mod_sub(e, zero, e, order, ctx))
         {
-            ret=-1;
+            ret = -1;
+
             goto err;
         }
         
@@ -243,7 +259,8 @@ namespace
         
         if (!BN_mod_inverse(rr, ecsig_r, order, ctx))
         {
-            ret=-1;
+            ret = -1;
+
             goto err;
         }
         
@@ -251,7 +268,8 @@ namespace
         
         if (!BN_mod_mul(sor, ecsig_s, rr, order, ctx))
         {
-            ret=-1;
+            ret = -1;
+
             goto err;
         }
         
@@ -259,19 +277,22 @@ namespace
         
         if (!BN_mod_mul(eor, e, rr, order, ctx))
         {
-            ret=-1;
+            ret = -1;
+
             goto err;
         }
         
         if (!EC_POINT_mul(group, Q, eor, R, sor, ctx))
         {
-            ret=-2;
+            ret = -2;
+
             goto err;
         }
         
         if (!EC_KEY_set_public_key(eckey, Q))
         {
-            ret=-2;
+            ret = -2;
+
             goto err;
         }
 
@@ -441,6 +462,7 @@ void CECKey::SetSecretBytes(const unsigned char vch[32])
     BIGNUM* bn(BN_new());
     
     ret = BN_bin2bn(vch, 32, bn) != NULL;
+
     if (ret == 0)
     {
         if (fDebug)
@@ -597,6 +619,7 @@ bool CECKey::Sign(const uint256 &hash, std::vector<unsigned char>& vchSig)
     BIGNUM *halforder = BN_CTX_get(ctx);
     
     EC_GROUP_get_order(group, order, ctx);
+
     BN_rshift1(halforder, order);
     
     if (BN_cmp(sig_s, halforder) > 0)
@@ -604,13 +627,16 @@ bool CECKey::Sign(const uint256 &hash, std::vector<unsigned char>& vchSig)
         // enforce low S values, by negating the value (modulo the order) if above order/2.
         BIGNUM *sig_s_new = BN_dup(sig_s);
         BIGNUM *sig_r_new = BN_dup(sig_r);
+
         BN_sub(sig_s_new, order, sig_s);
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L  // OPENSSL 1.0
         BN_clear_free(sig->r);
         BN_clear_free(sig->s);
+
         sig->r = sig_r_new;
         sig->s = sig_s_new;
+
 #else  // OPENSSL 1.1+
         ECDSA_SIG_set0(sig, sig_r_new, sig_s_new);
 #endif
@@ -620,12 +646,15 @@ bool CECKey::Sign(const uint256 &hash, std::vector<unsigned char>& vchSig)
     BN_CTX_free(ctx);
     
     unsigned int nSize = ECDSA_size(pkey);
+
     vchSig.resize(nSize); // Make sure it is big enough
+
     unsigned char *pos = &vchSig[0];
     
     nSize = i2d_ECDSA_SIG(sig, &pos);
     
     ECDSA_SIG_free(sig);
+
     vchSig.resize(nSize); // Shrink to fit actual size
 
     return true;
@@ -729,6 +758,7 @@ bool CECKey::Recover(const uint256 &hash, const unsigned char *p64, int rec)
 #if OPENSSL_VERSION_NUMBER < 0x10100000L  // OPENSSL 1.0
     BN_bin2bn(&p64[0],  32, sig->r);
     BN_bin2bn(&p64[32], 32, sig->s);
+
 #else  // OPENSSL 1.1+
     BIGNUM *sig_r(BN_new());
     BIGNUM *sig_s(BN_new());
@@ -749,6 +779,7 @@ bool CECKey::TweakSecret(unsigned char vchSecretOut[32], const unsigned char vch
     bool ret = true;
     
     BN_CTX *ctx = BN_CTX_new();
+
     BN_CTX_start(ctx);
     
     BIGNUM *bnSecret = BN_CTX_get(ctx);
@@ -756,6 +787,7 @@ bool CECKey::TweakSecret(unsigned char vchSecretOut[32], const unsigned char vch
     BIGNUM *bnOrder = BN_CTX_get(ctx);
     
     EC_GROUP *group = EC_GROUP_new_by_curve_name(NID_secp256k1);
+
     EC_GROUP_get_order(group, bnOrder, ctx); // what a grossly inefficient way to get the (constant) group order...
     
     BN_bin2bn(vchTweak, 32, bnTweak);
@@ -794,6 +826,7 @@ bool CECKey::TweakPublic(const unsigned char vchTweak[32])
     bool ret = true;
     
     BN_CTX *ctx = BN_CTX_new();
+    
     BN_CTX_start(ctx);
     
     BIGNUM *bnTweak = BN_CTX_get(ctx);

@@ -84,9 +84,9 @@ class AddressTablePriv
             {
                 LOCK(wallet->cs_wallet);
 
-                BOOST_FOREACH(const PAIRTYPE(CTxDestination, std::string)& item, wallet->mapAddressBook)
+                for(const PAIRTYPE(CTxDestination, std::string)& item: wallet->mapAddressBook)
                 {
-                    const CPHCcoinAddress& address = item.first;
+                    const CCoinAddress& address = item.first;
                     const std::string& strName = item.second;
                     bool fMine = IsMine(*wallet, address.Get());
 
@@ -334,7 +334,7 @@ bool AddressTableModel::setData(const QModelIndex &index, const QVariant &value,
                 }
                 else
                 {
-                    wallet->SetAddressBookName(CPHCcoinAddress(strTemp).Get(), value.toString().toStdString());
+                    wallet->SetAddressBookName(CCoinAddress(strTemp).Get(), value.toString().toStdString());
                 }
             }
             break;
@@ -353,7 +353,7 @@ bool AddressTableModel::setData(const QModelIndex &index, const QVariant &value,
                 }
 
                 // Do nothing, if old address == new address
-                if(CPHCcoinAddress(rec->address.toStdString()) == CPHCcoinAddress(value.toString().toStdString()))
+                if(CCoinAddress(rec->address.toStdString()) == CCoinAddress(value.toString().toStdString()))
                 {
                     editStatus = NO_CHANGES;
 
@@ -366,7 +366,7 @@ bool AddressTableModel::setData(const QModelIndex &index, const QVariant &value,
 
                     return false;
                 }
-                else if(wallet->mapAddressBook.count(CPHCcoinAddress(value.toString().toStdString()).Get()))
+                else if(wallet->mapAddressBook.count(CCoinAddress(value.toString().toStdString()).Get()))
                 {
                     // Check for duplicate addresses to prevent accidental deletion of addresses, if you try
                     // to paste an existing address over another address (with a different label)
@@ -381,9 +381,9 @@ bool AddressTableModel::setData(const QModelIndex &index, const QVariant &value,
                     {
                         LOCK(wallet->cs_wallet);
                         // Remove old entry
-                        wallet->DelAddressBookName(CPHCcoinAddress(rec->address.toStdString()).Get());
+                        wallet->DelAddressBookName(CCoinAddress(rec->address.toStdString()).Get());
                         // Add new entry with new address
-                        wallet->SetAddressBookName(CPHCcoinAddress(value.toString().toStdString()).Get(), rec->label.toStdString());
+                        wallet->SetAddressBookName(CCoinAddress(value.toString().toStdString()).Get(), rec->label.toStdString());
                     }
                     // Global Namespace End
                 }
@@ -501,14 +501,14 @@ QString AddressTableModel::addRow(const QString &type, const QString &label, con
             {
                 LOCK(wallet->cs_wallet);
                 
-                if (wallet->mapAddressBook.count(CPHCcoinAddress(strAddress).Get()))
+                if (wallet->mapAddressBook.count(CCoinAddress(strAddress).Get()))
                 {
                     editStatus = DUPLICATE_ADDRESS;
 
                     return QString();
                 };
                 
-                wallet->SetAddressBookName(CPHCcoinAddress(strAddress).Get(), strLabel);
+                wallet->SetAddressBookName(CCoinAddress(strAddress).Get(), strLabel);
             }
         }
     }
@@ -550,13 +550,13 @@ QString AddressTableModel::addRow(const QString &type, const QString &label, con
                 return QString();
             }
 
-            strAddress = CPHCcoinAddress(newKey.GetID()).ToString();
+            strAddress = CCoinAddress(newKey.GetID()).ToString();
             
             // Global Namespace Start
             {
                 LOCK(wallet->cs_wallet);
 
-                wallet->SetAddressBookName(CPHCcoinAddress(strAddress).Get(), strLabel);
+                wallet->SetAddressBookName(CCoinAddress(strAddress).Get(), strLabel);
             }
             // Global Namespace End
         }
@@ -587,7 +587,7 @@ bool AddressTableModel::removeRows(int row, int count, const QModelIndex &parent
     {
         LOCK(wallet->cs_wallet);
 
-        wallet->DelAddressBookName(CPHCcoinAddress(rec->address.toStdString()).Get());
+        wallet->DelAddressBookName(CCoinAddress(rec->address.toStdString()).Get());
     }
     // Global Namespace End
 
@@ -623,7 +623,7 @@ QString AddressTableModel::labelForAddress(const QString &address) const
         }
         else
         {
-            CPHCcoinAddress address_parsed(sAddr);
+            CCoinAddress address_parsed(sAddr);
             std::map<CTxDestination, std::string>::iterator mi = wallet->mapAddressBook.find(address_parsed.Get());
             
             if (mi != wallet->mapAddressBook.end())

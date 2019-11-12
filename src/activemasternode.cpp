@@ -336,6 +336,7 @@ bool CActiveMasternode::Dseep(CTxIn vin, CService service, CKey keyMasternode, C
 
     // Update Last Seen timestamp in masternode list
     CMasternode* pmn = mnodeman.Find(vin);
+
     if(pmn != NULL)
     {
         if(stop)
@@ -409,7 +410,7 @@ bool CActiveMasternode::Register(std::string strService, std::string strKeyMaste
         return false;
     }
 
-    CPHCcoinAddress address;
+    CCoinAddress address;
 
     if (strRewardAddress != "")
     {
@@ -492,6 +493,7 @@ bool CActiveMasternode::Register(CTxIn vin, CService service, CKey keyCollateral
 	}
 
     CMasternode* pmn = mnodeman.Find(vin);
+
     if(pmn == NULL)
     {
         if (fDebug)
@@ -503,6 +505,7 @@ bool CActiveMasternode::Register(CTxIn vin, CService service, CKey keyCollateral
         
         mn.ChangeNodeStatus(false);
         mn.UpdateLastSeen(masterNodeSignatureTime);
+        
         mnodeman.Add(mn);
     }
 
@@ -541,7 +544,7 @@ bool CActiveMasternode::GetMasterNodeVin(CTxIn& vin, CPubKey& pubkey, CKey& secr
         int outputIndex = boost::lexical_cast<int>(strOutputIndex);
 		bool found = false;
 
-		BOOST_FOREACH(COutput& out, possibleCoins)
+		for(COutput& out: possibleCoins)
         {
 			if(out.tx->GetHash() == txHash && out.i == outputIndex)
 			{
@@ -608,7 +611,7 @@ bool CActiveMasternode::GetMasterNodeVinForPubKey(std::string collateralAddress,
         int outputIndex = boost::lexical_cast<int>(strOutputIndex);
 		bool found = false;
 
-		BOOST_FOREACH(COutput& out, possibleCoins)
+		for(COutput& out: possibleCoins)
         {
 			if(out.tx->GetHash() == txHash && out.i == outputIndex)
 			{
@@ -655,15 +658,16 @@ bool CActiveMasternode::GetMasterNodeVinForPubKey(std::string collateralAddress,
 // Extract masternode vin information from output
 bool CActiveMasternode::GetVinFromOutput(COutput out, CTxIn& vin, CPubKey& pubkey, CKey& secretKey)
 {
-
     CScript pubScript;
 
 	vin = CTxIn(out.tx->GetHash(),out.i);
     pubScript = out.tx->vout[out.i].scriptPubKey; // the inputs PubKey
 
 	CTxDestination address1;
+
     ExtractDestination(pubScript, address1);
-    CPHCcoinAddress address2(address1);
+
+    CCoinAddress address2(address1);
 
     CKeyID keyID;
 
@@ -703,7 +707,7 @@ vector<COutput> CActiveMasternode::SelectCoinsMasternode()
     pwalletMain->AvailableCoinsMN(vCoins);
 
     // Filter
-    BOOST_FOREACH(const COutput& out, vCoins)
+    for(const COutput& out: vCoins)
     {
         if(out.tx->vout[out.i].nValue == GetMNCollateral(pindexBest->nHeight)*COIN)
         {
@@ -719,9 +723,11 @@ vector<COutput> CActiveMasternode::SelectCoinsMasternode()
 // get all possible outputs for running masternode for a specific pubkey
 vector<COutput> CActiveMasternode::SelectCoinsMasternodeForPubKey(std::string collateralAddress)
 {
-    CPHCcoinAddress address(collateralAddress);
+    CCoinAddress address(collateralAddress);
     CScript scriptPubKey;
+
     scriptPubKey.SetDestination(address.Get());
+
     vector<COutput> vCoins;
     vector<COutput> filteredCoins;
 
@@ -729,7 +735,7 @@ vector<COutput> CActiveMasternode::SelectCoinsMasternodeForPubKey(std::string co
     pwalletMain->AvailableCoins(vCoins);
 
     // Filter
-    BOOST_FOREACH(const COutput& out, vCoins)
+    for(const COutput& out: vCoins)
     {
         if(out.tx->vout[out.i].scriptPubKey == scriptPubKey && out.tx->vout[out.i].nValue == GetMNCollateral(pindexBest->nHeight)*COIN)
         {

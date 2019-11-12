@@ -21,11 +21,13 @@
 
 #include <cstdlib>
 
+
 // Earliest date that can be represented (far in the past)
 const QDateTime TransactionFilterProxy::MIN_DATE = QDateTime::fromTime_t(0);
 
 // Last date that can be represented (far in the future)
 const QDateTime TransactionFilterProxy::MAX_DATE = QDateTime::fromTime_t(0xFFFFFFFF);
+
 
 TransactionFilterProxy::TransactionFilterProxy(QObject *parent) : QSortFilterProxyModel(parent), dateFrom(MIN_DATE), dateTo(MAX_DATE), addrPrefix(), typeFilter(COMMON_TYPES), watchOnlyFilter(WatchOnlyFilter_All), minAmount(0), limitRows(-1), showInactive(true)
 {

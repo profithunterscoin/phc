@@ -45,10 +45,12 @@ class CMasterKey
 
         std::vector<unsigned char> vchCryptedKey;
         std::vector<unsigned char> vchSalt;
+
         // 0 = EVP_sha512()
         // 1 = scrypt()
         unsigned int nDerivationMethod;
         unsigned int nDeriveIterations;
+
         // Use this for more parameters to key derivation,
         // such as the various parameters to scrypt
         std::vector<unsigned char> vchOtherDerivationParameters;
@@ -119,6 +121,7 @@ class CCrypter
         {
             memory_cleanse(chKey, sizeof(chKey));
             memory_cleanse(chIV, sizeof(chIV));
+
             fKeySet = false;
         }
 
@@ -237,6 +240,7 @@ class CCryptoKeyStore : public CBasicKeyStore
             }
 
             setAddress.clear();
+            
             CryptedKeyMap::const_iterator mi = mapCryptedKeys.begin();
             
             while (mi != mapCryptedKeys.end())

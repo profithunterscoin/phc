@@ -18,10 +18,12 @@
 #include <QDialog>
 #include <QString>
 
+
 namespace Ui
 {
     class SendMessagesDialog;
 }
+
 
 class MessageModel;
 class SendMessagesEntry;
@@ -30,6 +32,7 @@ class SendMessagesRecipient;
 //QT_BEGIN_NAMESPACE
 //class QUrl;
 //QT_END_NAMESPACE
+
 
 /** Dialog for sending messages */
 class SendMessagesDialog : public QDialog
@@ -51,11 +54,15 @@ class SendMessagesDialog : public QDialog
         };
 
         explicit SendMessagesDialog(Mode mode, Type type, QWidget *parent = 0);
+
         ~SendMessagesDialog();
 
         void setModel (MessageModel *model);
+
         void loadRow(int row);
+
         bool checkMode(Mode mode);
+
         bool validate ();
 
         /** Set up the tab chain manually, as Qt messes up the tab chain by default in some cases (issue https://bugreports.qt-project.org/browse/QTBUG-10907).
@@ -67,8 +74,11 @@ class SendMessagesDialog : public QDialog
     public slots:
 
         void done(int retval);
+
         void clear();
+
         void reject();
+
         void accept();
 
         SendMessagesEntry *addEntry();
@@ -89,8 +99,11 @@ class SendMessagesDialog : public QDialog
     private slots:
 
         void on_sendButton_clicked();
+
         void removeEntry(SendMessagesEntry* entry);
+
         void on_addressBookButton_clicked();
+        
         void on_pasteButton_clicked();
 };
 

@@ -86,6 +86,7 @@ EditAddressDialog::~EditAddressDialog()
 void EditAddressDialog::setModel(AddressTableModel *model)
 {
     this->model = model;
+    
     if(!model)
     {
         return;

@@ -49,6 +49,7 @@ Notificator::Notificator(const QString &programName, QSystemTrayIcon *trayicon, 
     {
         mode = QSystemTray;
     }
+
 #ifdef USE_DBUS
     interface = new QDBusInterface("org.freedesktop.Notifications", "/org/freedesktop/Notifications", "org.freedesktop.Notifications");
     if(interface->isValid())
@@ -56,6 +57,7 @@ Notificator::Notificator(const QString &programName, QSystemTrayIcon *trayicon, 
         mode = Freedesktop;
     }
 #endif
+
 #ifdef Q_OS_MAC
     // check if users OS has support for NSUserNotification
     if( MacNotificationHandler::instance()->hasUserNotificationCenterSupport())
@@ -172,6 +174,7 @@ QVariant FreedesktopImage::toVariant(const QImage &img)
 void Notificator::notifyDBus(Class cls, const QString &title, const QString &text, const QIcon &icon, int millisTimeout)
 {
     Q_UNUSED(cls);
+
     // Arguments for DBus call:
     QList<QVariant> args;
 
@@ -301,6 +304,7 @@ void Notificator::notify(Class cls, const QString &title, const QString &text, c
         }
         break;
 #endif
+
         case QSystemTray:
         {
             notifySystray(cls, title, text, icon, millisTimeout);

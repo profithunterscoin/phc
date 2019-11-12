@@ -83,7 +83,8 @@ class CPubKey
         }
 
         // Set this key data to be invalid
-        void Invalidate() {
+        void Invalidate()
+        {
             vch[0] = 0xFF;
         }
 

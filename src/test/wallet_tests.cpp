@@ -36,12 +36,17 @@ static vector<COutput> vCoins;
 static void add_coin(int64 nValue, int nAge = 6*24, bool fIsFromMe = false, int nInput=0)
 {
     static int i;
+
     CTransaction* tx = new CTransaction;
+
     tx->nLockTime = i++;        // so all transactions get different hashes
     tx->vout.resize(nInput+1);
     tx->vout[nInput].nValue = nValue;
+
     CWalletTx* wtx = new CWalletTx(&wallet, *tx);
+
     delete tx;
+
     if (fIsFromMe)
     {
         // IsFromMe() returns (GetDebit() > 0), and GetDebit() is 0 if vin.empty(),
@@ -50,20 +55,26 @@ static void add_coin(int64 nValue, int nAge = 6*24, bool fIsFromMe = false, int 
         wtx->fDebitCached = true;
         wtx->nDebitCached = 1;
     }
+
     COutput output(wtx, nInput, nAge);
+
     vCoins.push_back(output);
 }
 
 static void empty_wallet(void)
 {
-    BOOST_FOREACH(COutput output, vCoins)
+    for(COutput output: vCoins)
+    {
         delete output.tx;
+    }
+
     vCoins.clear();
 }
 
 static bool equal_sets(CoinSet a, CoinSet b)
 {
     pair<CoinSet::iterator, CoinSet::iterator> ret = mismatch(a.begin(), a.end(), b.begin());
+
     return ret.first == a.end() && ret.second == b.end();
 }
 
@@ -216,8 +227,11 @@ BOOST_AUTO_TEST_CASE(coin_selection_tests)
         // run the 'mtgox' test (see http://blockexplorer.com/tx/29a3efd3ef04f9153d47a990bd7b048a4b2d213daaa5fb8ed670fb85f13bdbcf)
         // they tried to consolidate 10 50k coins into one 500k coin, and ended up with 50k in change
         empty_wallet();
+        
         for (int i = 0; i < 20; i++)
-            add_coin(50000 * COIN);
+        {
+            add_coin(50000 * COIN);            
+        }
 
         BOOST_CHECK( wallet.SelectCoinsMinConf(500000 * COIN, 1, 1, vCoins, setCoinsRet, nValueRet));
         BOOST_CHECK_EQUAL(nValueRet, 500000 * COIN); // we should get the exact amount
@@ -266,7 +280,9 @@ BOOST_AUTO_TEST_CASE(coin_selection_tests)
         {
             empty_wallet();
             for (int i2 = 0; i2 < 100; i2++)
-                add_coin(COIN);
+            {
+                add_coin(COIN);                
+            }
 
             // picking 50 from 100 coins doesn't depend on the shuffle,
             // but does depend on randomness in the stochastic approximation code
@@ -275,15 +291,20 @@ BOOST_AUTO_TEST_CASE(coin_selection_tests)
             BOOST_CHECK(!equal_sets(setCoinsRet, setCoinsRet2));
 
             int fails = 0;
+
             for (int i = 0; i < RANDOM_REPEATS; i++)
             {
                 // selecting 1 from 100 identical coins depends on the shuffle; this test will fail 1% of the time
                 // run the test RANDOM_REPEATS times and only complain if all of them fail
                 BOOST_CHECK(wallet.SelectCoinsMinConf(COIN, 1, 6, vCoins, setCoinsRet , nValueRet));
                 BOOST_CHECK(wallet.SelectCoinsMinConf(COIN, 1, 6, vCoins, setCoinsRet2, nValueRet));
+
                 if (equal_sets(setCoinsRet, setCoinsRet2))
+                {
                     fails++;
+                }
             }
+
             BOOST_CHECK_NE(fails, RANDOM_REPEATS);
 
             // add 75 cents in small change.  not enough to make 90 cents,
@@ -292,15 +313,20 @@ BOOST_AUTO_TEST_CASE(coin_selection_tests)
             add_coin( 5*CENT); add_coin(10*CENT); add_coin(15*CENT); add_coin(20*CENT); add_coin(25*CENT);
 
             fails = 0;
+
             for (int i = 0; i < RANDOM_REPEATS; i++)
             {
                 // selecting 1 from 100 identical coins depends on the shuffle; this test will fail 1% of the time
                 // run the test RANDOM_REPEATS times and only complain if all of them fail
                 BOOST_CHECK(wallet.SelectCoinsMinConf(90*CENT, 1, 6, vCoins, setCoinsRet , nValueRet));
                 BOOST_CHECK(wallet.SelectCoinsMinConf(90*CENT, 1, 6, vCoins, setCoinsRet2, nValueRet));
+
                 if (equal_sets(setCoinsRet, setCoinsRet2))
+                {
                     fails++;
+                }
             }
+
             BOOST_CHECK_NE(fails, RANDOM_REPEATS);
         }
     }

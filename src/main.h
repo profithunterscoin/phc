@@ -457,9 +457,11 @@ class CTransaction
         int64_t GetValueOut() const
         {
             int64_t nValueOut = 0;
-            BOOST_FOREACH(const CTxOut& txout, vout)
+
+            for(const CTxOut& txout: vout)
             {
                 nValueOut += txout.nValue;
+
                 if (!MoneyRange(txout.nValue) || !MoneyRange(nValueOut))
                 {
                     throw std::runtime_error(strprintf("%s : value out of range", __FUNCTION__));
@@ -945,7 +947,8 @@ class CBlock
         int64_t GetMaxTransactionTime() const
         {
             int64_t maxTransactionTime = 0;
-            BOOST_FOREACH(const CTransaction& tx, vtx)
+
+            for(const CTransaction& tx: vtx)
             {
                 maxTransactionTime = std::max(maxTransactionTime, (int64_t)tx.nTime);
             }
@@ -956,7 +959,8 @@ class CBlock
         uint256 BuildMerkleTree() const
         {
             vMerkleTree.clear();
-            BOOST_FOREACH(const CTransaction& tx, vtx)
+
+            for(const CTransaction& tx: vtx)
             {
                 vMerkleTree.push_back(tx.GetHash());
             }
@@ -1004,7 +1008,7 @@ class CBlock
                 return 0;
             }
 
-            BOOST_FOREACH(const uint256& otherside, vMerkleBranch)
+            for(const uint256& otherside: vMerkleBranch)
             {
                 if (nIndex & 1)
                 {
@@ -1577,7 +1581,8 @@ class CBlockLocator
             // Retrace how far back it was in the sender's branch
             int nDistance = 0;
             int nStep = 1;
-            BOOST_FOREACH(const uint256& hash, vHave)
+
+            for(const uint256& hash: vHave)
             {
                 std::map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hash);
                 if (mi != mapBlockIndex.end())
@@ -1604,7 +1609,7 @@ class CBlockLocator
         CBlockIndex* GetBlockIndex()
         {
             // Find the first block the caller has in the main chain
-            BOOST_FOREACH(const uint256& hash, vHave)
+            for(const uint256& hash: vHave)
             {
                 std::map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hash);
                 if (mi != mapBlockIndex.end())
@@ -1623,7 +1628,7 @@ class CBlockLocator
         uint256 GetBlockHash()
         {
             // Find the first block the caller has in the main chain
-            BOOST_FOREACH(const uint256& hash, vHave)
+            for(const uint256& hash: vHave)
             {
                 std::map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hash);
                 if (mi != mapBlockIndex.end())

@@ -32,6 +32,7 @@ class AddressTableModel : public QAbstractTableModel
     public:
     
         explicit AddressTableModel(CWallet *wallet, WalletModel *parent = 0);
+
         ~AddressTableModel();
 
         enum AddressType
@@ -69,6 +70,7 @@ class AddressTableModel : public QAbstractTableModel
 
         /** @name Methods overridden from QAbstractTableModel
             @{*/
+
         int rowCount(const QModelIndex &parent) const;
         int columnCount(const QModelIndex &parent) const;
         
@@ -82,6 +84,7 @@ class AddressTableModel : public QAbstractTableModel
         bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex());
         
         Qt::ItemFlags flags(const QModelIndex &index) const;
+
         /*@}*/
 
         /* Refreshes the data

@@ -23,11 +23,12 @@
 #include <boost/asio/ssl.hpp>
 #include <boost/bind.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/foreach.hpp>
 #include <boost/iostreams/concepts.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/range/adaptor/reversed.hpp>
+
 #include "json/json_spirit_writer_template.h"
 
 using namespace std;
@@ -58,7 +59,7 @@ string HTTPPost(const string& strMsg, const map<string,string>& mapRequestHeader
       << "Connection: close\r\n"
       << "Accept: application/json\r\n";
 
-    BOOST_FOREACH(const PAIRTYPE(string, string)& item, mapRequestHeaders)
+    for(const PAIRTYPE(string, string)& item: mapRequestHeaders)
     {
         s << item.first << ": " << item.second << "\r\n";
     }

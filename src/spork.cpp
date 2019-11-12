@@ -100,6 +100,7 @@ void ProcessSpork(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
 
         mapSporks[hash] = spork;
         mapSporksActive[spork.nSporkID] = spork;
+
         sporkManager.Relay(spork);
 
         //does a task if needed
@@ -131,64 +132,79 @@ bool IsSporkActive(int nSporkID)
     }
     else
     {
-        if(nSporkID == SPORK_1_MASTERNODE_PAYMENTS_ENFORCEMENT)
+        switch (nSporkID)
         {
-            r = SPORK_1_MASTERNODE_PAYMENTS_ENFORCEMENT_DEFAULT;
-        }
+            case SPORK_1_MASTERNODE_PAYMENTS_ENFORCEMENT:
+            {
+                r = SPORK_1_MASTERNODE_PAYMENTS_ENFORCEMENT_DEFAULT;
+            }
+            break;
 
-        if(nSporkID == SPORK_2_INSTANTX)
-        {
-            r = SPORK_2_INSTANTX_DEFAULT;
-        }
+            case SPORK_2_INSTANTX:
+            {
+                r = SPORK_2_INSTANTX_DEFAULT;
+            }
+            break;
 
-        if(nSporkID == SPORK_3_INSTANTX_BLOCK_FILTERING)
-        {
-            r = SPORK_3_INSTANTX_BLOCK_FILTERING_DEFAULT;
-        }
+            case SPORK_3_INSTANTX_BLOCK_FILTERING:
+            {
+                r = SPORK_3_INSTANTX_BLOCK_FILTERING_DEFAULT;
+            }
+            break;
 
-        if(nSporkID == SPORK_5_MAX_VALUE)
-        {
-            r = SPORK_5_MAX_VALUE_DEFAULT;
-        }
+            case SPORK_5_MAX_VALUE:
+            {
+                r = SPORK_5_MAX_VALUE_DEFAULT;
+            }
+            break;
 
-        if(nSporkID == SPORK_6_REPLAY_BLOCKS)
-        {
-            r = SPORK_6_REPLAY_BLOCKS_DEFAULT;
-        }
+            case SPORK_6_REPLAY_BLOCKS:
+            {
+                r = SPORK_6_REPLAY_BLOCKS_DEFAULT;
+            }
+            break;
 
-        if(nSporkID == SPORK_7_MASTERNODE_SCANNING)
-        {
-            r = SPORK_7_MASTERNODE_SCANNING;
-        }
+            case SPORK_7_MASTERNODE_SCANNING:
+            {
+                r = SPORK_7_MASTERNODE_SCANNING;
+            }
+            break;
 
-        if(nSporkID == SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT)
-        {
-            r = SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT_DEFAULT;
-        }
+            case SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT:
+            {
+                r = SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT_DEFAULT;
+            }
+            break;
 
-        if(nSporkID == SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT)
-        {
-            r = SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT_DEFAULT;
-        }
+            case SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT:
+            {
+                r = SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT_DEFAULT;
+            }
+            break;
 
-        if(nSporkID == SPORK_10_MASTERNODE_PAY_UPDATED_NODES)
-        {
-            r = SPORK_10_MASTERNODE_PAY_UPDATED_NODES_DEFAULT;
-        }
+            case SPORK_10_MASTERNODE_PAY_UPDATED_NODES:
+            {
+                r = SPORK_10_MASTERNODE_PAY_UPDATED_NODES_DEFAULT;
+            }
+            break;
 
-        if(nSporkID == SPORK_11_RESET_BUDGET)
-        {
-            r = SPORK_11_RESET_BUDGET_DEFAULT;
-        }
+            case SPORK_11_RESET_BUDGET:
+            {
+                r = SPORK_11_RESET_BUDGET_DEFAULT;
+            }
+            break;
 
-        if(nSporkID == SPORK_12_RECONSIDER_BLOCKS)
-        {
-            r = SPORK_12_RECONSIDER_BLOCKS_DEFAULT;
-        }
+            case SPORK_12_RECONSIDER_BLOCKS:
+            {
+                r = SPORK_12_RECONSIDER_BLOCKS_DEFAULT;
+            }
+            break;
 
-        if(nSporkID == SPORK_13_ENABLE_SUPERBLOCKS)
-        {
-            r = SPORK_13_ENABLE_SUPERBLOCKS_DEFAULT;
+            case SPORK_13_ENABLE_SUPERBLOCKS:
+            {
+                r = SPORK_13_ENABLE_SUPERBLOCKS_DEFAULT;
+            }
+            break;
         }
 
         if(r == -1)
@@ -220,64 +236,85 @@ int64_t GetSporkValue(int nSporkID)
     }
     else
     {
-        if(nSporkID == SPORK_1_MASTERNODE_PAYMENTS_ENFORCEMENT)
+        switch (nSporkID)
         {
-            r = SPORK_1_MASTERNODE_PAYMENTS_ENFORCEMENT_DEFAULT;
-        }
+            case SPORK_1_MASTERNODE_PAYMENTS_ENFORCEMENT:
+            {
+                r = SPORK_1_MASTERNODE_PAYMENTS_ENFORCEMENT_DEFAULT;
+            }
+            break;
 
-        if(nSporkID == SPORK_2_INSTANTX)
-        {
-            r = SPORK_2_INSTANTX_DEFAULT;
-        }
+            case SPORK_2_INSTANTX:
+            {
+                r = SPORK_2_INSTANTX_DEFAULT;
+            }
+            break;
 
-        if(nSporkID == SPORK_3_INSTANTX_BLOCK_FILTERING)
-        {
-            r = SPORK_3_INSTANTX_BLOCK_FILTERING_DEFAULT;
-        }
+            case SPORK_3_INSTANTX_BLOCK_FILTERING:
+            {
+                r = SPORK_3_INSTANTX_BLOCK_FILTERING_DEFAULT;
+            }
+            break;
 
-        if(nSporkID == SPORK_5_MAX_VALUE)
-        {
-            r = SPORK_5_MAX_VALUE_DEFAULT;
-        }
+            case SPORK_4_NOTUSED:
+            {
+                // NOT USED
+            }
+            break;
 
-        if(nSporkID == SPORK_6_REPLAY_BLOCKS)
-        {
-            r = SPORK_6_REPLAY_BLOCKS_DEFAULT;
-        }
+            case SPORK_5_MAX_VALUE:
+            {
+                r = SPORK_5_MAX_VALUE_DEFAULT;
+            }
+            break;
 
-        if(nSporkID == SPORK_7_MASTERNODE_SCANNING)
-        {
-            r = SPORK_7_MASTERNODE_SCANNING;
-        }
+            case SPORK_6_REPLAY_BLOCKS:
+            {
+                r = SPORK_6_REPLAY_BLOCKS_DEFAULT;
+            }
+            break;
 
-        if(nSporkID == SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT)
-        {
-            r = SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT_DEFAULT;
-        }
+            case SPORK_7_MASTERNODE_SCANNING:
+            {
+                r = SPORK_7_MASTERNODE_SCANNING;
+            }
+            break;
 
-        if(nSporkID == SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT)
-        {
-            r = SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT_DEFAULT;
-        }
+            case SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT:
+            {
+                r = SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT_DEFAULT;
+            }
+            break;
 
-        if(nSporkID == SPORK_10_MASTERNODE_PAY_UPDATED_NODES)
-        {
-            r = SPORK_10_MASTERNODE_PAY_UPDATED_NODES_DEFAULT;
-        }
+            case SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT:
+            {
+                r = SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT_DEFAULT;
+            }
+            break;
 
-        if(nSporkID == SPORK_11_RESET_BUDGET)
-        {
-            r = SPORK_11_RESET_BUDGET_DEFAULT;
-        }
+            case SPORK_10_MASTERNODE_PAY_UPDATED_NODES:
+            {
+                r = SPORK_10_MASTERNODE_PAY_UPDATED_NODES_DEFAULT;
+            }
+            break;
 
-        if(nSporkID == SPORK_12_RECONSIDER_BLOCKS)
-        {
-            r = SPORK_12_RECONSIDER_BLOCKS_DEFAULT;
-        }
+            case SPORK_11_RESET_BUDGET:
+            {
+                r = SPORK_11_RESET_BUDGET_DEFAULT;
+            }
+            break;
 
-        if(nSporkID == SPORK_13_ENABLE_SUPERBLOCKS)
-        {
-            r = SPORK_13_ENABLE_SUPERBLOCKS_DEFAULT;
+            case SPORK_12_RECONSIDER_BLOCKS:
+            {
+                r = SPORK_12_RECONSIDER_BLOCKS_DEFAULT;
+            }
+            break;
+
+            case SPORK_13_ENABLE_SUPERBLOCKS:
+            {
+                r = SPORK_13_ENABLE_SUPERBLOCKS_DEFAULT;
+            }
+            break;
         }
 
         if(r == -1)

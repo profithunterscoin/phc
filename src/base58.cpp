@@ -36,7 +36,9 @@ static const char* pszBase58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnop
 bool DecodeBase58(const char* psz, std::vector<unsigned char>& vchRet)
 {
     CAutoBN_CTX pctx;
+
     vchRet.clear();
+
     CBigNum bn58 = 58;
     CBigNum bn = 0;
     CBigNum bnChar;
@@ -60,6 +62,7 @@ bool DecodeBase58(const char* psz, std::vector<unsigned char>& vchRet)
     for (const char* p = psz; *p; p++)
     {
         const char* p1 = strchr(pszBase58, *p);
+
         if (p1 == NULL)
         {
             while (isspace(*p))
@@ -110,6 +113,7 @@ bool DecodeBase58(const char* psz, std::vector<unsigned char>& vchRet)
 
     // Convert little endian data to big endian
     reverse_copy(vchTmp.begin(), vchTmp.end(), vchRet.end() - vchTmp.size());
+
     return true;
     
     // Allocate enough space in big-endian base256 representation.
@@ -164,6 +168,7 @@ bool DecodeBase58(const char* psz, std::vector<unsigned char>& vchRet)
     
     // Skip leading zeroes in b256.
     std::vector<unsigned char>::iterator it = b256.begin();
+
     while (it != b256.end() && *it == 0)
     {
         it++;
@@ -186,6 +191,7 @@ std::string EncodeBase58(const unsigned char* pbegin, const unsigned char* pend)
 {
     // Skip & count leading zeroes.
     int zeroes = 0;
+
     while (pbegin != pend && *pbegin == 0)
     {
         pbegin++;
@@ -225,6 +231,7 @@ std::string EncodeBase58(const unsigned char* pbegin, const unsigned char* pend)
 
     // Skip leading zeroes in base58 result.
     std::vector<unsigned char>::iterator it = b58.begin();
+
     while (it != b58.end() && *it == 0)
     {
         it++;
@@ -260,7 +267,9 @@ std::string EncodeBase58Check(const std::vector<unsigned char>& vchIn)
 {
     // add 4-byte hash check to the end
     std::vector<unsigned char> vch(vchIn);
+
     uint256 hash = Hash(vch.begin(), vch.end());
+
     vch.insert(vch.end(), (unsigned char*)&hash, (unsigned char*)&hash + 4);
 
     return EncodeBase58(vch);
@@ -278,6 +287,7 @@ bool DecodeBase58Check(const char* psz, std::vector<unsigned char>& vchRet)
     
     // re-calculate the checksum, insure it matches the included 4-byte checksum
     uint256 hash = Hash(vchRet.begin(), vchRet.end()-4);
+
     if (memcmp(&hash, &vchRet.end()[-4], 4) != 0)
     {
         vchRet.clear();
@@ -393,15 +403,15 @@ int CBase58Data::CompareTo(const CBase58Data& b58) const
 
 namespace
 {
-    class CPHCcoinAddressVisitor : public boost::static_visitor<bool>
+    class CCoinAddressVisitor : public boost::static_visitor<bool>
     {
         private:
 
-            CPHCcoinAddress *addr;
+            CCoinAddress *addr;
 
         public:
 
-            CPHCcoinAddressVisitor(CPHCcoinAddress *addrIn) : addr(addrIn)
+            CCoinAddressVisitor(CCoinAddress *addrIn) : addr(addrIn)
             {}
 
             bool operator()(const CKeyID &id) const
@@ -458,7 +468,7 @@ namespace
 };
 
 
-bool CPHCcoinAddress::Set(const CKeyID &id)
+bool CCoinAddress::Set(const CKeyID &id)
 {
     SetData(Params().Base58Prefix(CChainParams::PUBKEY_ADDRESS), &id, 20);
 
@@ -466,7 +476,7 @@ bool CPHCcoinAddress::Set(const CKeyID &id)
 }
 
 
-bool CPHCcoinAddress::Set(const CScriptID &id)
+bool CCoinAddress::Set(const CScriptID &id)
 {
     SetData(Params().Base58Prefix(CChainParams::SCRIPT_ADDRESS), &id, 20);
 
@@ -474,13 +484,13 @@ bool CPHCcoinAddress::Set(const CScriptID &id)
 }
 
 
-bool CPHCcoinAddress::Set(const CTxDestination &dest)
+bool CCoinAddress::Set(const CTxDestination &dest)
 {
-    return boost::apply_visitor(CPHCcoinAddressVisitor(this), dest);
+    return boost::apply_visitor(CCoinAddressVisitor(this), dest);
 }
 
 
-bool CPHCcoinAddress::IsValid() const
+bool CCoinAddress::IsValid() const
 {
     bool fCorrectSize = vchData.size() == 20;
     bool fKnownVersion = vchVersion == Params().Base58Prefix(CChainParams::PUBKEY_ADDRESS) || vchVersion == Params().Base58Prefix(CChainParams::SCRIPT_ADDRESS);
@@ -489,7 +499,7 @@ bool CPHCcoinAddress::IsValid() const
 }
 
 
-CTxDestination CPHCcoinAddress::Get() const
+CTxDestination CCoinAddress::Get() const
 {
     if (!IsValid())
     {
@@ -515,7 +525,7 @@ CTxDestination CPHCcoinAddress::Get() const
 }
 
 
-bool CPHCcoinAddress::GetKeyID(CKeyID &keyID) const
+bool CCoinAddress::GetKeyID(CKeyID &keyID) const
 {
     if (!IsValid() || vchVersion != Params().Base58Prefix(CChainParams::PUBKEY_ADDRESS))
     {
@@ -523,14 +533,16 @@ bool CPHCcoinAddress::GetKeyID(CKeyID &keyID) const
     }
     
     uint160 id;
+
     memcpy(&id, &vchData[0], 20);
+
     keyID = CKeyID(id);
     
     return true;
 }
 
 
-bool CPHCcoinAddress::IsScript() const
+bool CCoinAddress::IsScript() const
 {
     return IsValid() && vchVersion == Params().Base58Prefix(CChainParams::SCRIPT_ADDRESS);
 }
@@ -636,6 +648,7 @@ CTxDestination CBitcoinAddress::Get() const
     }
 
     uint160 id;
+
     memcpy(&id, &vchData[0], 20);
     
     if (vchVersion == Params().Base58Prefix(pubkey_address))
@@ -661,7 +674,9 @@ bool CBitcoinAddress::GetKeyID(CKeyID &keyID) const
     }
 
     uint160 id;
+
     memcpy(&id, &vchData[0], 20);
+    
     keyID = CKeyID(id);
 
     return true;

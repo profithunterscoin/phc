@@ -42,22 +42,35 @@ void dumpKeyInfo(uint256 privkey)
 {
     CKey key;
     key.resize(32);
+
     memcpy(&secret[0], &privkey, 32);
+
     vector<unsigned char> sec;
+
     sec.resize(32);
+
     memcpy(&sec[0], &secret[0], 32);
+
     printf("  * secret (hex): %s\n", HexStr(sec).c_str());
 
     for (int nCompressed=0; nCompressed<2; nCompressed++)
     {
         bool fCompressed = nCompressed == 1;
+
         printf("  * %s:\n", fCompressed ? "compressed" : "uncompressed");
+
         CBitcoinSecret bsecret;
+
         bsecret.SetSecret(secret, fCompressed);
+
         printf("    * secret (base58): %s\n", bsecret.ToString().c_str());
+        
         CKey key;
+        
         key.SetSecret(secret, fCompressed);
+        
         vector<unsigned char> vchPubKey = key.GetPubKey();
+        
         printf("    * pubkey (hex): %s\n", HexStr(vchPubKey).c_str());
         printf("    * address (base58): %s\n", CBitcoinAddress(vchPubKey).ToString().c_str());
     }
@@ -70,6 +83,7 @@ BOOST_AUTO_TEST_SUITE(key_tests)
 BOOST_AUTO_TEST_CASE(key_test1)
 {
     CBitcoinSecret bsecret1, bsecret2, bsecret1C, bsecret2C, baddress1;
+
     BOOST_CHECK( bsecret1.SetString (strSecret1));
     BOOST_CHECK( bsecret2.SetString (strSecret2));
     BOOST_CHECK( bsecret1C.SetString(strSecret1C));
@@ -78,10 +92,13 @@ BOOST_AUTO_TEST_CASE(key_test1)
 
     CKey key1  = bsecret1.GetKey();
     BOOST_CHECK(key1.IsCompressed() == false);
+
     CKey key2  = bsecret2.GetKey();
     BOOST_CHECK(key2.IsCompressed() == false);
+
     CKey key1C = bsecret1C.GetKey();
     BOOST_CHECK(key1C.IsCompressed() == true);
+    
     CKey key2C = bsecret2C.GetKey();
     BOOST_CHECK(key1C.IsCompressed() == true);
 

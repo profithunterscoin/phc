@@ -17,6 +17,8 @@
 #include "guiconstants.h"
 
 #include <QMessageBox>
+
+
 QValidatedTextEdit::QValidatedTextEdit(QWidget *parent) : QPlainTextEdit(parent), valid(true)
 {}
 
@@ -50,6 +52,7 @@ void QValidatedTextEdit::focusInEvent(QFocusEvent *evt)
 {
     // Clear invalid flag on focus
     setValid(true);
+    
     QPlainTextEdit::focusInEvent(evt);
 }
 
@@ -63,5 +66,6 @@ void QValidatedTextEdit::markValid()
 void QValidatedTextEdit::clear()
 {
     setValid(true);
+
     QPlainTextEdit::clear();
 }

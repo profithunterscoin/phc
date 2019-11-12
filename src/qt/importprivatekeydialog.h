@@ -36,6 +36,7 @@ class ImportPrivateKeyDialog : public QDialog
     public:
 
         explicit ImportPrivateKeyDialog(QWidget *parent = 0);
+        
         ~ImportPrivateKeyDialog();
 
         void setModel(AddressTableModel *model);

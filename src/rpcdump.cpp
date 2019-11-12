@@ -86,7 +86,7 @@ std::string static EncodeDumpString(const std::string &str)
 {
     std::stringstream ret;
 
-    BOOST_FOREACH(unsigned char c, str)
+    for(unsigned char c: str)
     {
         if (c <= 32 || c >= 128 || c == '%')
         {
@@ -142,6 +142,7 @@ class CTxDump
             pindex = NULL;
             nValue = 0;
             fSpent = false;
+
             this->ptx = ptx;
             this->nOut = nOut;
         }
@@ -219,7 +220,7 @@ Value importaddress(const Array& params, bool fHelp)
 
     CScript script;
 
-    CPHCcoinAddress address(params[0].get_str());
+    CCoinAddress address(params[0].get_str());
     
     if (address.IsValid())
     {
@@ -307,9 +308,7 @@ Value importwallet(const Array& params, bool fHelp)
     }
 
     int64_t nTimeBegin = pindexBest->nTime;
-
     int64_t nFilesize = std::max((int64_t)1, (int64_t)file.tellg());
-    
     bool fGood = true;
 
     pwalletMain->ShowProgress(_("Importing..."), 0); // show progress dialog in GUI
@@ -327,7 +326,6 @@ Value importwallet(const Array& params, bool fHelp)
         }
 
         std::vector<std::string> vstr;
-        
         boost::split(vstr, line, boost::is_any_of(" "));
         
         if (vstr.size() < 2)
@@ -336,6 +334,7 @@ Value importwallet(const Array& params, bool fHelp)
         }
         
         CPHCcoinSecret vchSecret;
+
         if (!vchSecret.SetString(vstr[0]))
         {
             continue;
@@ -363,16 +362,14 @@ Value importwallet(const Array& params, bool fHelp)
         {
             if (fDebug)
             {
-                LogPrint("rpc", "%s : Skipping import of %s (key already present)\n", __FUNCTION__, CPHCcoinAddress(keyid).ToString());
+                LogPrint("rpc", "%s : Skipping import of %s (key already present)\n", __FUNCTION__, CCoinAddress(keyid).ToString());
             }
 
             continue;
         }
         
         int64_t nTime = DecodeDumpTime(vstr[1]);
-        
         std::string strLabel;
-        
         bool fLabel = true;
         
         for (unsigned int nStr = 2; nStr < vstr.size(); nStr++)
@@ -402,7 +399,7 @@ Value importwallet(const Array& params, bool fHelp)
         
         if (fDebug)
         {
-            LogPrint("rpc", "%s : Importing %s...\n", __FUNCTION__, CPHCcoinAddress(keyid).ToString());
+            LogPrint("rpc", "%s : Importing %s...\n", __FUNCTION__, CCoinAddress(keyid).ToString());
         }
 
         if (!pwalletMain->AddKey(key))
@@ -467,7 +464,7 @@ Value dumpprivkey(const Array& params, bool fHelp)
     EnsureWalletIsUnlocked();
 
     string strAddress = params[0].get_str();
-    CPHCcoinAddress address;
+    CCoinAddress address;
     
     if (!address.SetString(strAddress))
     {
@@ -487,6 +484,7 @@ Value dumpprivkey(const Array& params, bool fHelp)
     }
     
     CKey vchSecret;
+
     if (!pwalletMain->GetKey(keyID, vchSecret))
     {
         throw JSONRPCError(RPC_WALLET_ERROR, "Private key for address " + strAddress + " is not known");
@@ -544,7 +542,7 @@ Value dumpwallet(const Array& params, bool fHelp)
     {
         const CKeyID &keyid = it->second;
         std::string strTime = EncodeDumpTime(it->first);
-        std::string strAddr = CPHCcoinAddress(keyid).ToString();
+        std::string strAddr = CCoinAddress(keyid).ToString();
 
         CKey key;
         if (pwalletMain->GetKey(keyid, key))

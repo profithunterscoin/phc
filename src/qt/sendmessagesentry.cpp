@@ -33,6 +33,7 @@ SendMessagesEntry::SendMessagesEntry(QWidget *parent) : QFrame(parent), ui(new U
 #ifdef Q_OS_MAC
     ui->sendToLayout->setSpacing(4);
 #endif
+
 #if QT_VERSION >= 0x040700
     /* Do not move this to the XML file, Qt before 4.7 will choke on it */
     ui->addAsLabel->setPlaceholderText(tr("Enter a label for this address to add it to your address book"));

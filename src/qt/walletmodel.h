@@ -26,6 +26,7 @@
 
 #include <QObject>
 
+
 class AddressTableModel;
 class OptionsModel;
 class TransactionTableModel;
@@ -39,9 +40,11 @@ class COutPoint;
 class uint256;
 class CCoinControl;
 
+
 QT_BEGIN_NAMESPACE
 class QTimer;
 QT_END_NAMESPACE
+
 
 class SendCoinsRecipient
 {
@@ -59,6 +62,7 @@ class SendCoinsRecipient
         QString address;
         QString label;
         QString narration;
+
         AvailableCoinsType inputType;
 
         bool useInstantX;
@@ -113,6 +117,7 @@ class WalletModel : public QObject
     public:
 
         explicit WalletModel(CWallet *wallet, OptionsModel *optionsModel, QObject *parent = 0);
+
         ~WalletModel();
 
         enum StatusCode // Returned by sendCoins
@@ -142,7 +147,9 @@ class WalletModel : public QObject
         };
 
         OptionsModel *getOptionsModel();
+
         AddressTableModel *getAddressTableModel();
+
         TransactionTableModel *getTransactionTableModel();
 
         CAmount getBalance(const CCoinControl *coinControl=NULL) const;
@@ -259,6 +266,7 @@ class WalletModel : public QObject
         OptionsModel *optionsModel;
 
         AddressTableModel *addressTableModel;
+        
         TransactionTableModel *transactionTableModel;
 
         // Cache some values to be able to detect changes

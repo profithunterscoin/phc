@@ -45,7 +45,9 @@ using namespace std;
 tradingDialog::tradingDialog(QWidget *parent) : QDialog(parent), ui(new Ui::tradingDialog), model(0)
 {
     ui->setupUi(this);
+
     timerid = 0;
+    
     qDebug() <<  "Expected this";
     
     ui->BtcAvailableLabel->setTextFormat(Qt::RichText);

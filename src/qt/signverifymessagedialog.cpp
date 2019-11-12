@@ -29,6 +29,7 @@
 #include <string>
 #include <vector>
 
+
 SignVerifyMessageDialog::SignVerifyMessageDialog(QWidget *parent) : QDialog(parent), ui(new Ui::SignVerifyMessageDialog), model(0)
 {
     ui->setupUi(this);
@@ -111,6 +112,7 @@ void SignVerifyMessageDialog::on_addressBookButton_SM_clicked()
     if (model && model->getAddressTableModel())
     {
         AddressBookPage dlg(AddressBookPage::ForSending, AddressBookPage::ReceivingTab, this);
+
         dlg.setModel(model->getAddressTableModel());
         
         if (dlg.exec())
@@ -137,7 +139,8 @@ void SignVerifyMessageDialog::on_signMessageButton_SM_clicked()
     /* Clear old signature to ensure users don't get confused on error with an old signature displayed */
     ui->signatureOut_SM->clear();
 
-    CPHCcoinAddress addr(ui->addressIn_SM->text().toStdString());
+    CCoinAddress addr(ui->addressIn_SM->text().toStdString());
+
     if (!addr.IsValid())
     {
         ui->addressIn_SM->setValid(false);
@@ -148,6 +151,7 @@ void SignVerifyMessageDialog::on_signMessageButton_SM_clicked()
     }
 
     CKeyID keyID;
+
     if (!addr.GetKeyID(keyID))
     {
         ui->addressIn_SM->setValid(false);
@@ -158,6 +162,7 @@ void SignVerifyMessageDialog::on_signMessageButton_SM_clicked()
     }
 
     WalletModel::UnlockContext ctx(model->requestUnlock());
+
     if (!ctx.isValid())
     {
         ui->statusLabel_SM->setStyleSheet("QLabel { color: red; }");
@@ -167,6 +172,7 @@ void SignVerifyMessageDialog::on_signMessageButton_SM_clicked()
     }
 
     CKey key;
+
     if (!pwalletMain->GetKey(keyID, key))
     {
         ui->statusLabel_SM->setStyleSheet("QLabel { color: red; }");
@@ -180,6 +186,7 @@ void SignVerifyMessageDialog::on_signMessageButton_SM_clicked()
     ss << ui->messageIn_SM->document()->toPlainText().toStdString();
 
     std::vector<unsigned char> vchSig;
+
     if (!key.SignCompact(Hash(ss.begin(), ss.end()), vchSig))
     {
         ui->statusLabel_SM->setStyleSheet("QLabel { color: red; }");
@@ -217,7 +224,9 @@ void SignVerifyMessageDialog::on_addressBookButton_VM_clicked()
     if (model && model->getAddressTableModel())
     {
         AddressBookPage dlg(AddressBookPage::ForSending, AddressBookPage::SendingTab, this);
+
         dlg.setModel(model->getAddressTableModel());
+
         if (dlg.exec())
         {
             setAddress_VM(dlg.getReturnValue());
@@ -228,7 +237,8 @@ void SignVerifyMessageDialog::on_addressBookButton_VM_clicked()
 
 void SignVerifyMessageDialog::on_verifyMessageButton_VM_clicked()
 {
-    CPHCcoinAddress addr(ui->addressIn_VM->text().toStdString());
+    CCoinAddress addr(ui->addressIn_VM->text().toStdString());
+
     if (!addr.IsValid())
     {
         ui->addressIn_VM->setValid(false);
@@ -239,6 +249,7 @@ void SignVerifyMessageDialog::on_verifyMessageButton_VM_clicked()
     }
 
     CKeyID keyID;
+
     if (!addr.GetKeyID(keyID))
     {
         ui->addressIn_VM->setValid(false);
@@ -265,6 +276,7 @@ void SignVerifyMessageDialog::on_verifyMessageButton_VM_clicked()
     ss << ui->messageIn_VM->document()->toPlainText().toStdString();
 
     CPubKey pubkey;
+    
     if (!pubkey.RecoverCompact(Hash(ss.begin(), ss.end()), vchSig))
     {
         ui->signatureIn_VM->setValid(false);
@@ -274,7 +286,7 @@ void SignVerifyMessageDialog::on_verifyMessageButton_VM_clicked()
         return;
     }
 
-    if (!(CPHCcoinAddress(pubkey.GetID()) == addr))
+    if (!(CCoinAddress(pubkey.GetID()) == addr))
     {
         ui->statusLabel_VM->setStyleSheet("QLabel { color: red; }");
         ui->statusLabel_VM->setText(QString("<nobr>") + tr("Message verification failed.") + QString("</nobr>"));
@@ -293,7 +305,6 @@ void SignVerifyMessageDialog::on_clearButton_VM_clicked()
     ui->signatureIn_VM->clear();
     ui->messageIn_VM->clear();
     ui->statusLabel_VM->clear();
-
     ui->addressIn_VM->setFocus();
 }
 

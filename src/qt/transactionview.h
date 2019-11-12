@@ -20,6 +20,7 @@
 #include <QWidget>
 #include <QKeyEvent>
 
+
 class TransactionFilterProxy;
 class WalletModel;
 
@@ -34,6 +35,7 @@ class QModelIndex;
 class QSignalMapper;
 class QTableView;
 QT_END_NAMESPACE
+
 
 /** Widget showing the transaction list for a wallet, including a filter row.
     Using the filter row, the user can view or export a subset of the transactions.
@@ -73,18 +75,22 @@ class TransactionView : public QWidget
     private:
 
         WalletModel *model;
+
         TransactionFilterProxy *transactionProxyModel;
+
         QTableView *transactionView;
 
         QComboBox *dateWidget;
         QComboBox *typeWidget;
         QComboBox *watchOnlyWidget;
+
         QLineEdit *addressWidget;
         QLineEdit *amountWidget;
 
         QMenu *contextMenu;
 
         QFrame *dateRangeWidget;
+
         QDateTimeEdit *dateFrom;
         QDateTimeEdit *dateTo;
 
@@ -99,13 +105,18 @@ class TransactionView : public QWidget
     private slots:
 
         void contextualMenu(const QPoint &);
+
         void dateRangeChanged();
+
         void showDetails();
-        void copyAddress();
+
         void editLabel();
+        
+        void copyAddress();
         void copyLabel();
         void copyAmount();
         void copyTxID();
+
         //void openThirdPartyTxUrl(QString url);
         void updateWatchOnlyColumn(bool fHaveWatchOnly);
 
@@ -123,11 +134,16 @@ class TransactionView : public QWidget
 
         void chooseDate(int idx);
         void chooseType(int idx);
+
         void chooseWatchonly(int idx);
+
         void changedPrefix(const QString &prefix);
         void changedAmount(const QString &amount);
+
         void exportClicked();
+
         void focusTransaction(const QModelIndex&);
+        
         void computeSum();
 };
 

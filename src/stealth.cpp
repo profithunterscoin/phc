@@ -66,12 +66,16 @@ bool CStealthAddress::SetEncoded(const std::string& encodedAddress)
     options = *p++;
     
     scan_pubkey.resize(33);
+
     memcpy(&scan_pubkey[0], p, 33);
+
     p += 33;
+
     //uint8_t spend_pubkeys = *p++;
     p++;
     
     spend_pubkey.resize(33);
+
     memcpy(&spend_pubkey[0], p, 33);
     
     return true;
@@ -84,10 +88,9 @@ std::string CStealthAddress::Encoded() const
     // [version] [options] [scan_key] [N] ... [Nsigs] [prefix_length] ...
     
     data_chunk raw;
+
     raw.push_back(stealth_version_byte);
-    
     raw.push_back(options);
-    
     raw.insert(raw.end(), scan_pubkey.begin(), scan_pubkey.end());
     raw.push_back(1); // number of spend pubkeys
     raw.insert(raw.end(), spend_pubkey.begin(), spend_pubkey.end());
@@ -103,6 +106,7 @@ std::string CStealthAddress::Encoded() const
 int CStealthAddress::SetScanPubKey(CPubKey pk)
 {
     scan_pubkey.resize(pk.size());
+
     memcpy(&scan_pubkey[0], pk.begin(), pk.size());
 
     return 0;
@@ -117,9 +121,11 @@ uint32_t BitcoinChecksum(uint8_t* p, uint32_t nBytes)
     }
     
     uint8_t hash1[32];
+
     SHA256(p, nBytes, (uint8_t*)hash1);
 
     uint8_t hash2[32];
+
     SHA256((uint8_t*)hash1, sizeof(hash1), (uint8_t*)hash2);
     
     // -- checksum is the 1st 4 bytes of the hash
@@ -134,12 +140,14 @@ void AppendChecksum(data_chunk& data)
     uint32_t checksum = BitcoinChecksum(&data[0], data.size());
     
     std::vector<uint8_t> tmp(4);
+
     //memcpy(&tmp[0], &checksum, 4);
     
     // -- to_little_endian
     for (int i = 0; i < 4; ++i)
     {
         tmp[i] = checksum & 0xFF;
+
         checksum >>= 8;
     };
     
@@ -174,6 +182,7 @@ int GenerateRandomSecret(ec_secret& out)
     for (i = 0; i < 32; ++i)
     {
         RAND_bytes((unsigned char*) test.begin(), 32);
+
         if (test > min && test < max)
         {
             memcpy(&out.e[0], test.begin(), 32);
@@ -214,6 +223,7 @@ int SecretToPublicKey(const ec_secret& secret, ec_point& out)
     };
 
     BIGNUM* bnIn = BN_bin2bn(&secret.e[0], ec_secret_size, BN_new());
+
     if (!bnIn)
     {
         EC_GROUP_free(ecgrp);
@@ -231,6 +241,7 @@ int SecretToPublicKey(const ec_secret& secret, ec_point& out)
     EC_POINT_mul(ecgrp, pub, bnIn, NULL, NULL, NULL);
     
     BIGNUM* bnOut = EC_POINT_point2bn(ecgrp, pub, POINT_CONVERSION_COMPRESSED, BN_new(), NULL);
+
     if (!bnOut)
     {
         if (fDebug)
@@ -243,6 +254,7 @@ int SecretToPublicKey(const ec_secret& secret, ec_point& out)
     else
     {
         out.resize(ec_compressed_size);
+
         if (BN_num_bytes(bnOut) != (int) ec_compressed_size || BN_bn2bin(bnOut, &out[0]) != (int) ec_compressed_size)
         {
                 if (fDebug)
@@ -332,6 +344,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
         }
 
         rv = 1;
+
         goto End;
     };
     
@@ -343,6 +356,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
         }
 
         rv = 1;
+
         goto End;
     };
     
@@ -354,6 +368,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
         }
 
         rv = 1;
+
         goto End;
     };
     
@@ -365,6 +380,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
         }
 
         rv = 1;
+
         goto End;
     };
     
@@ -379,6 +395,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
         }
 
         rv = 1;
+
         goto End;
     };
     
@@ -390,11 +407,13 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
         }
 
         rv = 1;
+
         goto End;
     };
     
     
     vchOutQ.resize(ec_compressed_size);
+
     if (BN_num_bytes(bnOutQ) != (int) ec_compressed_size || BN_bn2bin(bnOutQ, &vchOutQ[0]) != (int) ec_compressed_size)
     {
         if (fDebug)
@@ -403,6 +422,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
         }
 
         rv = 1;
+
         goto End;
     };
     
@@ -416,6 +436,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
         }
 
         rv = 1;
+
         goto End;
     };
     
@@ -428,6 +449,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
         }
 
         rv = 1;
+
         goto End;
     };
     
@@ -439,6 +461,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
         }
 
         rv = 1;
+
         goto End;
     };
     
@@ -450,6 +473,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
         }
 
         rv = 1;
+
         goto End;
     };
     
@@ -462,6 +486,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
         }
 
         rv = 1;
+
         goto End;
     };
     
@@ -473,6 +498,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
         }
 
         rv = 1;
+
         goto End;
     };
     
@@ -484,6 +510,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
         }
 
         rv = 1;
+
         goto End;
     };
     
@@ -495,6 +522,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
         }
 
         rv = 1;
+
         goto End;
     };
     
@@ -506,11 +534,12 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
         }
 
         rv = 1;
+
         goto End;
     };
     
-    
     pkOut.resize(ec_compressed_size);
+
     if (BN_num_bytes(bnOutR) != (int) ec_compressed_size || BN_bn2bin(bnOutR, &pkOut[0]) != (int) ec_compressed_size)
     {
         if (fDebug)
@@ -519,6 +548,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
         }
 
         rv = 1;
+
         goto End;
     };
     
@@ -628,6 +658,7 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
         }
         
         rv = 1;
+
         goto End;
     };
     
@@ -639,6 +670,7 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
         }
 
         rv = 1;
+
         goto End;
     };
     
@@ -650,6 +682,7 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
         }
 
         rv = 1;
+
         goto End;
     };
     
@@ -661,6 +694,7 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
         }
 
         rv = 1;
+
         goto End;
     };
     
@@ -673,6 +707,7 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
         }
 
         rv = 1;
+
         goto End;
     };
     
@@ -684,11 +719,13 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
         }
 
         rv = 1;
+
         goto End;
     };
     
     
     vchOutP.resize(ec_compressed_size);
+
     if (BN_num_bytes(bnOutP) != (int) ec_compressed_size || BN_bn2bin(bnOutP, &vchOutP[0]) != (int) ec_compressed_size)
     {
         if (fDebug)
@@ -697,10 +734,12 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
         }
 
         rv = 1;
+
         goto End;
     };
     
     uint8_t hash1[32];
+
     SHA256(&vchOutP[0], vchOutP.size(), (uint8_t*)hash1);
     
     
@@ -712,6 +751,7 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
         }
 
         rv = 1;
+
         goto End;
     };
     
@@ -723,6 +763,7 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
         }
 
         rv = 1;
+
         goto End;
     };
     
@@ -734,6 +775,7 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
         }
 
         rv = 1;
+
         goto End;
     };
     
@@ -747,6 +789,7 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
         }
 
         rv = 1;
+
         goto End;
     };
     
@@ -758,12 +801,14 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
         }
 
         rv = 1;
+
         goto End;
     };
     
     int nBytes;
 
     memset(&secretOut.e[0], 0, ec_secret_size);
+
     if ((nBytes = BN_num_bytes(bnSpend)) > (int)ec_secret_size || BN_bn2bin(bnSpend, &secretOut.e[ec_secret_size-nBytes]) != nBytes)
     {
         if (fDebug)
@@ -772,6 +817,7 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
         }
 
         rv = 1;
+
         goto End;
     };
     
@@ -854,6 +900,7 @@ int StealthSharedToSecretSpend(ec_secret& sharedS, ec_secret& spendSecret, ec_se
         }
 
         rv = 1;
+
         goto End;
     };
     
@@ -865,6 +912,7 @@ int StealthSharedToSecretSpend(ec_secret& sharedS, ec_secret& spendSecret, ec_se
         }
 
         rv = 1;
+
         goto End;
     };
     
@@ -876,6 +924,7 @@ int StealthSharedToSecretSpend(ec_secret& sharedS, ec_secret& spendSecret, ec_se
         }
         
         rv = 1;
+
         goto End;
     };
     
@@ -887,6 +936,7 @@ int StealthSharedToSecretSpend(ec_secret& sharedS, ec_secret& spendSecret, ec_se
         }
 
         rv = 1;
+
         goto End;
     };
     
@@ -900,6 +950,7 @@ int StealthSharedToSecretSpend(ec_secret& sharedS, ec_secret& spendSecret, ec_se
         }
 
         rv = 1;
+
         goto End;
     };
     
@@ -911,12 +962,14 @@ int StealthSharedToSecretSpend(ec_secret& sharedS, ec_secret& spendSecret, ec_se
         }
 
         rv = 1;
+
         goto End;
     };
     
     int nBytes;
 
     memset(&secretOut.e[0], 0, ec_secret_size);
+    
     if ((nBytes = BN_num_bytes(bnSpend)) > (int)ec_secret_size || BN_bn2bin(bnSpend, &secretOut.e[ec_secret_size-nBytes]) != nBytes)
     {
         if (fDebug)
@@ -925,6 +978,7 @@ int StealthSharedToSecretSpend(ec_secret& sharedS, ec_secret& spendSecret, ec_se
         }
 
         rv = 1;
+
         goto End;
     };
     

@@ -106,7 +106,7 @@ namespace GUIUtil
     void openDebugLogfile();
 
     // Open phc.conf
-    void openPHCConfigfile();
+    void openConfigfile();
 
     // Open masternode.conf
     void openMNConfigfile();
@@ -155,6 +155,7 @@ namespace GUIUtil
         public:
 
             TableViewLastColumnResizingFixer(QTableView* table, int lastColMinimumWidth, int allColsMinimumWidth);
+            
             void stretchColumnWidth(int column);
 
         private:

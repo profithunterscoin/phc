@@ -82,6 +82,7 @@ inline int myclosesocket(SOCKET& hSocket)
     int ret = close(hSocket);
 #endif
     hSocket = INVALID_SOCKET;
+    
     return ret;
 }
 #define closesocket(s)      myclosesocket(s)

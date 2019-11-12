@@ -1562,6 +1562,7 @@ void BitcoinGUI::gotoMasternodeManagerPage()
 	centralStackedWidget->setCurrentWidget(masternodeManagerPage);
 
 	exportAction->setEnabled(false);
+	
 	disconnect(exportAction, SIGNAL(triggered()), 0, 0);
 }
 
@@ -1572,6 +1573,7 @@ void BitcoinGUI::gotoBlockBrowser()
 	centralStackedWidget->setCurrentWidget(blockBrowser);
 
 	exportAction->setEnabled(false);
+
 	disconnect(exportAction, SIGNAL(triggered()), 0, 0);
 }
 
@@ -1582,6 +1584,7 @@ void BitcoinGUI::gotoOverviewPage()
 	centralStackedWidget->setCurrentWidget(overviewPage);
 
 	exportAction->setEnabled(false);
+
 	disconnect(exportAction, SIGNAL(triggered()), 0, 0);
 }
 
@@ -1592,6 +1595,7 @@ void BitcoinGUI::gotoHistoryPage()
 	centralStackedWidget->setCurrentWidget(transactionsPage);
 
 	exportAction->setEnabled(true);
+
 	disconnect(exportAction, SIGNAL(triggered()), 0, 0);
 	connect(exportAction, SIGNAL(triggered()), transactionView, SLOT(exportClicked()));
 }
@@ -1625,7 +1629,9 @@ void BitcoinGUI::gotoReceiveCoinsPage()
 	centralStackedWidget->setCurrentWidget(receiveCoinsPage);
 
 	exportAction->setEnabled(true);
+
 	disconnect(exportAction, SIGNAL(triggered()), 0, 0);
+
 	connect(exportAction, SIGNAL(triggered()), receiveCoinsPage, SLOT(exportClicked()));
 }
 
@@ -1670,6 +1676,7 @@ void BitcoinGUI::gotoMessagePage()
 	centralStackedWidget->setCurrentWidget(messagePage);
 
 	exportAction->setEnabled(true);
+
 	disconnect(exportAction, SIGNAL(triggered()), 0, 0);
 	connect(exportAction, SIGNAL(triggered()), messagePage, SLOT(exportClicked()));
 }
@@ -1722,6 +1729,7 @@ void BitcoinGUI::handleURI(QString strURI)
 	if (sendCoinsPage->handleURI(strURI))
 	{
 		showNormalIfMinimized();
+
 		gotoSendCoinsPage();
 	}
 	else
@@ -1844,6 +1852,7 @@ void BitcoinGUI::unlockWallet()
 	{
 		AskPassphraseDialog::Mode mode = sender() == unlockWalletAction ? AskPassphraseDialog::UnlockStaking : AskPassphraseDialog::Unlock;
 		AskPassphraseDialog dlg(mode, this);
+		
 		dlg.setModel(walletModel);
 		dlg.exec();
 	}
@@ -1867,16 +1876,19 @@ void BitcoinGUI::showNormalIfMinimized(bool fToggleHidden)
 	if (isHidden())
 	{
 		show();
+
 		activateWindow();
 	}
 	else if (isMinimized())
 	{
 		showNormal();
+
 		activateWindow();
 	}
 	else if (GUIUtil::isObscured(this))
 	{
 		raise();
+
 		activateWindow();
 	}
 	else if (fToggleHidden)
@@ -1900,12 +1912,14 @@ void BitcoinGUI::updateWeight()
 	}
 
 	TRY_LOCK(cs_main, lockMain);
+
 	if (!lockMain)
 	{
 		return;
 	}
 
 	TRY_LOCK(pwalletMain->cs_wallet, lockWallet);
+
 	if (!lockWallet)
 	{
 		return;
@@ -1922,6 +1936,7 @@ void BitcoinGUI::updateStakingIcon()
 	if (nLastCoinStakeSearchInterval && nWeight)
 	{
 		uint64_t nWeight = this->nWeight;
+
 		uint64_t nNetworkWeight = GetPoSKernelPS();
 		
 		unsigned nEstimateTime = 0;

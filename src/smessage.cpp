@@ -98,7 +98,7 @@ bool SecMsgCrypter::SetKey(const std::vector<uint8_t>& vchNewKey, uint8_t* chNew
     }
 
     return SetKey(&vchNewKey[0], chNewIV);
-};
+}
 
 
 bool SecMsgCrypter::SetKey(const uint8_t* chNewKey, uint8_t* chNewIV)
@@ -110,7 +110,7 @@ bool SecMsgCrypter::SetKey(const uint8_t* chNewKey, uint8_t* chNewIV)
     fKeySet = true;
     
     return true;
-};
+}
 
 
 bool SecMsgCrypter::Encrypt(uint8_t* chPlaintext, uint32_t nPlain, std::vector<uint8_t> &vchCiphertext)
@@ -122,10 +122,8 @@ bool SecMsgCrypter::Encrypt(uint8_t* chPlaintext, uint32_t nPlain, std::vector<u
 
     // -- max ciphertext len for a n bytes of plaintext is n + AES_BLOCK_SIZE - 1 bytes
     int nLen = nPlain;
-
     int nCLen = nLen + AES_BLOCK_SIZE, nFLen = 0;
     vchCiphertext = std::vector<uint8_t> (nCLen);
-
     bool fOk = true;
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L  // OPENSSL 1.0
@@ -182,7 +180,7 @@ bool SecMsgCrypter::Encrypt(uint8_t* chPlaintext, uint32_t nPlain, std::vector<u
     vchCiphertext.resize(nCLen + nFLen);
 
     return true;
-};
+}
 
 
 bool SecMsgCrypter::Decrypt(uint8_t* chCiphertext, uint32_t nCipher, std::vector<uint8_t>& vchPlaintext)
@@ -258,7 +256,7 @@ bool SecMsgCrypter::Decrypt(uint8_t* chCiphertext, uint32_t nCipher, std::vector
     vchPlaintext.resize(nPLen + nFLen);
 
     return true;
-};
+}
 
 
 void SecMsgBucket::hashBucket()
@@ -291,7 +289,7 @@ void SecMsgBucket::hashBucket()
             LogPrint("smessage", "%s : Hashed %u messages, hash %u\n", __FUNCTION__, setTokens.size(), hash);
         }
     }
-};
+}
 
 
 bool SecMsgDB::Open(const char* pszMode)
@@ -318,7 +316,9 @@ bool SecMsgDB::Open(const char* pszMode)
     }
 
     leveldb::Options options;
+
     options.create_if_missing = fCreate;
+
     leveldb::Status s = leveldb::DB::Open(options, fullpath.string(), &smsgDB);
 
     if (!s.ok())
@@ -334,7 +334,7 @@ bool SecMsgDB::Open(const char* pszMode)
     pdb = smsgDB;
 
     return true;
-};
+}
 
 
 class SecMsgBatchScanner : public leveldb::WriteBatch::Handler
@@ -359,7 +359,7 @@ class SecMsgBatchScanner : public leveldb::WriteBatch::Handler
                 *deleted = false;
                 *foundValue = value.ToString();
             }
-        };
+        }
 
         virtual void Delete(const leveldb::Slice& key)
         {
@@ -368,7 +368,7 @@ class SecMsgBatchScanner : public leveldb::WriteBatch::Handler
                 foundEntry = true;
                 *deleted = true;
             }
-        };
+        }
 };
 
 
@@ -418,7 +418,7 @@ bool SecMsgDB::TxnBegin()
     activeBatch = new leveldb::WriteBatch();
     
     return true;
-};
+}
 
 
 bool SecMsgDB::TxnCommit()
@@ -449,7 +449,7 @@ bool SecMsgDB::TxnCommit()
     }
 
     return true;
-};
+}
 
 
 bool SecMsgDB::TxnAbort()
@@ -459,7 +459,7 @@ bool SecMsgDB::TxnAbort()
     activeBatch = NULL;
    
     return true;
-};
+}
 
 
 bool SecMsgDB::ReadPK(CKeyID& addr, CPubKey& pubkey)
@@ -475,6 +475,7 @@ bool SecMsgDB::ReadPK(CKeyID& addr, CPubKey& pubkey)
     ssKey << 'p';
     ssKey << 'k';
     ssKey << addr;
+
     std::string strValue;
 
     bool readFromDb = true;
@@ -528,7 +529,7 @@ bool SecMsgDB::ReadPK(CKeyID& addr, CPubKey& pubkey)
     }
 
     return true;
-};
+}
 
 
 bool SecMsgDB::WritePK(CKeyID& addr, CPubKey& pubkey)
@@ -574,7 +575,7 @@ bool SecMsgDB::WritePK(CKeyID& addr, CPubKey& pubkey)
     }
 
     return true;
-};
+}
 
 
 bool SecMsgDB::ExistsPK(CKeyID& addr)
@@ -606,7 +607,7 @@ bool SecMsgDB::ExistsPK(CKeyID& addr)
     leveldb::Status s = pdb->Get(leveldb::ReadOptions(), ssKey.str(), &unused);
     
     return s.IsNotFound() == false;
-};
+}
 
 
 bool SecMsgDB::NextSmesg(leveldb::Iterator* it, std::string& prefix, uint8_t* chKey, SecMsgStored& smsgStored)
@@ -650,7 +651,7 @@ bool SecMsgDB::NextSmesg(leveldb::Iterator* it, std::string& prefix, uint8_t* ch
     }
 
     return true;
-};
+}
 
 
 bool SecMsgDB::NextSmesgKey(leveldb::Iterator* it, std::string& prefix, uint8_t* chKey)
@@ -678,7 +679,7 @@ bool SecMsgDB::NextSmesgKey(leveldb::Iterator* it, std::string& prefix, uint8_t*
     memcpy(chKey, it->key().data(), 18);
 
     return true;
-};
+}
 
 
 bool SecMsgDB::ReadSmesg(uint8_t* chKey, SecMsgStored& smsgStored)
@@ -689,7 +690,9 @@ bool SecMsgDB::ReadSmesg(uint8_t* chKey, SecMsgStored& smsgStored)
     }
 
     CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+
     ssKey.write((const char*)chKey, 18);
+
     std::string strValue;
 
     bool readFromDb = true;
@@ -744,7 +747,7 @@ bool SecMsgDB::ReadSmesg(uint8_t* chKey, SecMsgStored& smsgStored)
     }
 
     return true;
-};
+}
 
 
 bool SecMsgDB::WriteSmesg(uint8_t* chKey, SecMsgStored& smsgStored)
@@ -755,7 +758,9 @@ bool SecMsgDB::WriteSmesg(uint8_t* chKey, SecMsgStored& smsgStored)
     }
 
     CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+
     ssKey.write((const char*)chKey, 18);
+
     CDataStream ssValue(SER_DISK, CLIENT_VERSION);
     ssValue << smsgStored;
 
@@ -782,7 +787,7 @@ bool SecMsgDB::WriteSmesg(uint8_t* chKey, SecMsgStored& smsgStored)
     }
 
     return true;
-};
+}
 
 
 bool SecMsgDB::ExistsSmesg(uint8_t* chKey)
@@ -810,8 +815,9 @@ bool SecMsgDB::ExistsSmesg(uint8_t* chKey)
     leveldb::Status s = pdb->Get(leveldb::ReadOptions(), ssKey.str(), &unused);
     
     return s.IsNotFound() == false;
+
     return true;
-};
+}
 
 
 bool SecMsgDB::EraseSmesg(uint8_t* chKey)
@@ -844,7 +850,7 @@ bool SecMsgDB::EraseSmesg(uint8_t* chKey)
     }
 
     return false;
-};
+}
 
 
 void ThreadSecureMsg()
@@ -948,11 +954,11 @@ void ThreadSecureMsg()
                             vTimedOutLocks.push_back(std::make_pair(it->first, it->second.nLockPeerId)); // cs_vNodes 
                             
                             it->second.nLockPeerId = 0;
-                        }; // if (it->second.nLockCount == 0)
+                        } // if (it->second.nLockCount == 0)
                         
-                    }; // ! if (it->first < cutoffTime)
+                    } // ! if (it->first < cutoffTime)
                 }
-            };
+            }
         } // cs_smsg
         
         for (std::vector<std::pair<int64_t, NodeId> >::iterator it(vTimedOutLocks.begin()); it != vTimedOutLocks.end(); it++)
@@ -975,7 +981,7 @@ void ThreadSecureMsg()
             {
                 LOCK(cs_vNodes);
 
-                BOOST_FOREACH(CNode* pnode, vNodes)
+                for(CNode* pnode: vNodes)
                 {
                     if (pnode->id != nPeerId)
                     {
@@ -1011,13 +1017,12 @@ void ThreadSecureMsg()
         
         MilliSleep(SMSG_THREAD_DELAY * 1000); //  // check every SMSG_THREAD_DELAY seconds
     }
-};
+}
 
 
 void ThreadSecureMsgPow()
 {
     // -- proof of work thread
-
     int rv;
     
     std::vector<uint8_t> vchKey;
@@ -1097,6 +1102,7 @@ void ThreadSecureMsgPow()
 
             // -- do proof of work
             rv = SecureMsgSetHash(pHeader, pPayload, psmsg->nPayload);
+
             if (rv == 2)
             {
                 break; // leave message in db, if terminated due to shutdow
@@ -1168,7 +1174,7 @@ void ThreadSecureMsgPow()
         // -- shutdown thread waits 5 seconds, this should be less
         MilliSleep(2000); // seconds
     }
-};
+}
 
 
 int SecureMsgBuildBucketSet()
@@ -1393,7 +1399,7 @@ int SecureMsgBuildBucketSet()
     }
 
     return 0;
-};
+}
 
 
 int SecureMsgAddWalletAddresses()
@@ -1410,7 +1416,7 @@ int SecureMsgAddWalletAddresses()
 
     uint32_t nAdded = 0;
 
-    BOOST_FOREACH(const PAIRTYPE(CTxDestination, std::string)& entry, pwalletMain->mapAddressBook)
+    for(const PAIRTYPE(CTxDestination, std::string)& entry: pwalletMain->mapAddressBook)
     {
         if (!IsMine(*pwalletMain, entry.first))
         {
@@ -1425,7 +1431,8 @@ int SecureMsgAddWalletAddresses()
 
         // TODO: skip addresses for stealth transactions
 
-        CPHCcoinAddress coinAddress(entry.first);
+        CCoinAddress coinAddress(entry.first);
+
         if (!coinAddress.IsValid())
         {
             continue;
@@ -1433,6 +1440,7 @@ int SecureMsgAddWalletAddresses()
 
         std::string address;
         std::string strPublicKey;
+
         address = coinAddress.ToString();
 
         bool fExists        = 0;
@@ -1470,7 +1478,7 @@ int SecureMsgAddWalletAddresses()
     }
 
     return 0;
-};
+}
 
 
 int SecureMsgReadIni()
@@ -1561,11 +1569,11 @@ int SecureMsgReadIni()
                     else
                     {
                         LogPrint("smessage", "Unknown setting name: '%s'.", pName);
-                    };
+                    }
                 }
             }
         }
-    };
+    }
 
     if (fDebug)
     {
@@ -1575,7 +1583,7 @@ int SecureMsgReadIni()
     fclose(fp);
 
     return 0;
-};
+}
 
 
 int SecureMsgWriteIni()
@@ -1678,7 +1686,7 @@ int SecureMsgWriteIni()
     }
 
     return 0;
-};
+}
 
 
 /** called from AppInit2() in init.cpp */
@@ -1746,7 +1754,7 @@ bool SecureMsgStart(bool fDontStart, bool fScanChain)
     threadGroupSmsg.create_thread(boost::bind(&TraceThread<void (*)()>, "smsg-pow", &ThreadSecureMsgPow));
     
     return true;
-};
+}
 
 
 bool SecureMsgShutdown()
@@ -1784,7 +1792,7 @@ bool SecureMsgShutdown()
     }
 
     return true;
-};
+}
 
 
 bool SecureMsgEnable()
@@ -1861,14 +1869,14 @@ bool SecureMsgEnable()
         LogPrint("smessage", "%s : SecureMsgEnable could not start threads, secure messaging disabled.\n", __FUNCTION__);
         fSecMsgEnabled = false;
         return false;
-    };
+    }
     */
     // -- ping each peer, don't know which have messaging enabled
     // Global Namespace Start
     {
         LOCK(cs_vNodes);
 
-        BOOST_FOREACH(CNode* pnode, vNodes)
+        for(CNode* pnode: vNodes)
         {
             pnode->PushMessage("smsgPing");
         
@@ -1883,7 +1891,7 @@ bool SecureMsgEnable()
     }
 
     return true;
-};
+}
 
 
 bool SecureMsgDisable()
@@ -1928,7 +1936,7 @@ bool SecureMsgDisable()
     {
         LOCK(cs_vNodes);
         
-        BOOST_FOREACH(CNode* pnode, vNodes)
+        for(CNode* pnode: vNodes)
         {
             if (!pnode->smsgData.fEnabled)
             {
@@ -1972,7 +1980,7 @@ bool SecureMsgDisable()
     }
 
     return true;
-};
+}
 
 
 bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRecv)
@@ -2198,14 +2206,16 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
                 // -- peer has no buckets we want, don't send them again until something changes
                 //    peer will still request buckets from this node if needed (< ncontent)
                 vchDataOut.resize(8);
+
                 memcpy(&vchDataOut[0], &now, 8);
+
                 pfrom->PushMessage("smsgMatch", vchDataOut);
 
                 if (fDebugSmsg)
                 {
                     LogPrint("smessage", "Sending smsgMatch, %d.\n", now);
                 }
-            };
+            }
         }
     }
     else
@@ -2221,6 +2231,7 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
             }
 
             uint32_t nBuckets;
+
             memcpy(&nBuckets, &vchData[0], 4);
 
             if (vchData.size() < 4 + nBuckets * 8)
@@ -2235,8 +2246,8 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
             
             std::map<int64_t, SecMsgBucket>::iterator itb;
             std::set<SecMsgToken>::iterator it;
-
             std::vector<uint8_t> vchDataOut;
+
             int64_t time;
             uint8_t* pIn = &vchData[4];
 
@@ -2258,7 +2269,7 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
                         }
                         
                         continue;
-                    };
+                    }
 
                     std::set<SecMsgToken>& tokenSet = (*itb).second.setTokens;
 
@@ -2271,7 +2282,7 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
                         LogPrint("smessage", "vchDataOut.resize %u threw: %s.\n", 8 + 16 * tokenSet.size(), e.what());
                         
                         continue;
-                    };
+                    }
 
                     memcpy(&vchDataOut[0], &time, 8);
 
@@ -2283,12 +2294,12 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
                         memcpy(p+8, &it->sample, 8);
 
                         p += 16;
-                    };
+                    }
                 }
                 // Global Namespace End
 
                 pfrom->PushMessage("smsgHave", vchDataOut);
-            };
+            }
 
 
         }
@@ -2322,7 +2333,7 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
                     }
 
                     return false;
-                };
+                }
 
                 if (time > now + SMSG_TIME_LEEWAY)
                 {
@@ -2334,7 +2345,7 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
                     Misbehaving(pfrom->GetId(), 1);
                     
                     return false;
-                };
+                }
                 
                 std::vector<uint8_t> vchDataOut;
                 
@@ -2350,7 +2361,7 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
                         }
 
                         return false;
-                    };
+                    }
 
                     if (fDebugSmsg)
                     {
@@ -2358,11 +2369,14 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
                     }
                     
                     vchDataOut.resize(8);
+
                     memcpy(&vchDataOut[0], &vchData[0], 8);
 
                     std::set<SecMsgToken>& tokenSet = smsgBuckets[time].setTokens;
                     std::set<SecMsgToken>::iterator it;
+
                     SecMsgToken token;
+
                     uint8_t* p = &vchData[8];
 
                     for (int i = 0; i < n; ++i)
@@ -2385,13 +2399,13 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
                                 LogPrint("smessage", "vchDataOut.resize %d threw: %s.\n", nd + 16, e.what());
                             
                                 continue;
-                            };
+                            }
 
                             memcpy(&vchDataOut[nd], p, 16);
-                        };
+                        }
 
                         p += 16;
-                    };
+                    }
                 }
                 // // Global Namespace End
                 
@@ -2401,7 +2415,7 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
                     {
                         LogPrint("smessage", "Asking peer for %u messages.\n", (vchDataOut.size() - 8) / 16);
                         LogPrint("smessage", "Locking bucket %u for peer %d.\n", time, pfrom->id);
-                    };
+                    }
 
                     // Global Namespace Start
                     {
@@ -2413,7 +2427,7 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
                     // // Global Namespace End
 
                     pfrom->PushMessage("smsgWant", vchDataOut);
-                };
+                }
             }
             else
             {
@@ -2436,6 +2450,7 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
 
                     int64_t time;
                     uint32_t nBunch = 0;
+
                     memcpy(&time, &vchData[0], 8);
                     
                     std::map<int64_t, SecMsgBucket>::iterator itb;
@@ -2453,11 +2468,13 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
                             }
 
                             return false;
-                        };
+                        }
 
                         std::set<SecMsgToken>& tokenSet = itb->second.setTokens;
                         std::set<SecMsgToken>::iterator it;
+
                         SecMsgToken token;
+
                         uint8_t* p = &vchData[8];
 
                         for (int i = 0; i < n; ++i)
@@ -2466,6 +2483,7 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
                             memcpy(&token.sample, p+8, 8);
 
                             it = tokenSet.find(token);
+
                             if (it == tokenSet.end())
                             {
                                 if (fDebugSmsg)
@@ -2483,12 +2501,13 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
                                 if (SecureMsgRetrieve(token, vchOne) == 0)
                                 {
                                     nBunch++;
+
                                     vchBunch.insert(vchBunch.end(), vchOne.begin(), vchOne.end()); // append
                                 }
                                 else
                                 {
                                     LogPrint("smessage", "SecureMsgRetrieve failed %d.\n", token.timestamp);
-                                };
+                                }
 
                                 if (nBunch >= 500 || vchBunch.size() >= 96000)
                                 {
@@ -2498,11 +2517,11 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
                                     }
 
                                     break; // end here, peer will send more want messages if needed.
-                                };
-                            };
+                                }
+                            }
 
                             p += 16;
-                        };
+                        }
                     } // LOCK(cs_smsg);
                     // // Global Namespace End
                     
@@ -2517,7 +2536,7 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
                         memcpy(&vchBunch[4], &time, 8);
                         
                         pfrom->PushMessage("smsgMsg", vchBunch);
-                    };
+                    }
                 }
                 else
                 {
@@ -2547,9 +2566,10 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
                                 Misbehaving(pfrom->GetId(), 1);
                                 
                                 return false;
-                            };
+                            }
 
                             int64_t time;
+
                             memcpy(&time, &vchData[0], 8);
 
                             int64_t now = GetTime();
@@ -2564,11 +2584,12 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
                                 }
                                 
                                 time = now;
-                            };
+                            }
                             
                             // Global Namespace Start
                             {
                                 LOCK(pfrom->smsgData.cs_smsg_net);
+
                                 pfrom->smsgData.lastMatched = time;
                             }
                             // Global Namespace End
@@ -2597,6 +2618,7 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
                                     // Global Namespace Start
                                     {
                                         LOCK(pfrom->smsgData.cs_smsg_net);
+
                                         pfrom->smsgData.fEnabled = true;
                                     }
                                     // // Global Namespace End                                    
@@ -2610,6 +2632,7 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
                                         // // Global Namespace Start
                                         {
                                             LOCK(pfrom->smsgData.cs_smsg_net);
+
                                             pfrom->smsgData.fEnabled = false;
                                         }
                                         // // Global Namespace End
@@ -2635,14 +2658,16 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
                                                 Misbehaving(pfrom->GetId(), 1);
                                                 
                                                 return false;
-                                            };
+                                            }
 
                                             int64_t time;
+
                                             memcpy(&time, &vchData[0], 8);
                                             
                                             // Global Namespace Start
                                             {
                                                 LOCK(pfrom->smsgData.cs_smsg_net);
+
                                                 pfrom->smsgData.ignoreUntil = time;
                                             }
                                             // Global Namespace End                                            
@@ -2655,7 +2680,7 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
                                         else
                                         {
                                             // Unknown message
-                                        };  
+                                        }
                                     }
                                 }
                             }
@@ -2667,7 +2692,7 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
     }
 
     return true;
-};
+}
 
 
 bool SecureMsgSendData(CNode* pto, bool fSendTrickle)
@@ -2701,6 +2726,7 @@ bool SecureMsgSendData(CNode* pto, bool fSendTrickle)
 
         // -- Send smsgPing once, do nothing until receive 1st smsgPong (then set fEnabled)
         pto->PushMessage("smsgPing");
+
         pto->smsgData.lastSeen = GetTime();
         
         return true;
@@ -2710,7 +2736,7 @@ bool SecureMsgSendData(CNode* pto, bool fSendTrickle)
         if (!pto->smsgData.fEnabled || now - pto->smsgData.lastSeen < SMSG_SEND_DELAY || now < pto->smsgData.ignoreUntil)
         {
             return true;
-        };
+        }
     }
 
     // -- When nWakeCounter == 0, resend bucket inventory.
@@ -2734,6 +2760,7 @@ bool SecureMsgSendData(CNode* pto, bool fSendTrickle)
     // Global Namespace Start
     {
         LOCK(cs_smsg);
+
         std::map<int64_t, SecMsgBucket>::iterator it;
 
         uint32_t nBuckets = smsgBuckets.size();
@@ -2741,10 +2768,12 @@ bool SecureMsgSendData(CNode* pto, bool fSendTrickle)
         if (nBuckets > 0) // no need to send keep alive pkts, coin messages already do that
         {
             std::vector<uint8_t> vchData;
+
             // should reserve?
             vchData.reserve(4 + nBuckets*16); // timestamp + size + hash
 
             uint32_t nBucketsShown = 0;
+
             vchData.resize(4);
 
             uint8_t* p = &vchData[4];
@@ -2816,7 +2845,7 @@ bool SecureMsgSendData(CNode* pto, bool fSendTrickle)
     pto->smsgData.lastSeen = GetTime();
 
     return true;
-};
+}
 
 
 static int SecureMsgInsertAddress(CKeyID& hashKey, CPubKey& pubKey, SecMsgDB& addrpkdb)
@@ -2873,7 +2902,7 @@ static int SecureMsgInsertAddress(CKeyID& hashKey, CPubKey& pubKey, SecMsgDB& ad
     }
 
     return 0;
-};
+}
 
 
 int SecureMsgInsertAddress(CKeyID& hashKey, CPubKey& pubKey)
@@ -2896,7 +2925,7 @@ int SecureMsgInsertAddress(CKeyID& hashKey, CPubKey& pubKey)
     // Global Namespace End
 
     return rv;
-};
+}
 
 
 static bool ScanBlock(CBlock& block, CTxDB& txdb, SecMsgDB& addrpkdb, uint32_t& nTransactions, uint32_t& nElements, uint32_t& nPubkeys, uint32_t& nDuplicates)
@@ -2908,7 +2937,7 @@ static bool ScanBlock(CBlock& block, CTxDB& txdb, SecMsgDB& addrpkdb, uint32_t& 
     
     // -- only scan inputs of standard txns and coinstakes
     
-    BOOST_FOREACH(CTransaction& tx, block.vtx)
+    for(CTransaction& tx: block.vtx)
     {
         std::string sReason;
 
@@ -3037,7 +3066,7 @@ static bool ScanBlock(CBlock& block, CTxDB& txdb, SecMsgDB& addrpkdb, uint32_t& 
     }
 
     return true;
-};
+}
 
 
 bool SecureMsgScanBlock(CBlock& block)
@@ -3088,7 +3117,7 @@ bool SecureMsgScanBlock(CBlock& block)
     }
 
     return true;
-};
+}
 
 
 bool ScanChainForPublicKeys(CBlockIndex* pindexStart)
@@ -3143,7 +3172,7 @@ bool ScanChainForPublicKeys(CBlockIndex* pindexStart)
             ScanBlock(block, txdb, addrpkdb, nTransactions, nInputs, nPubkeys, nDuplicates);
 
             pindex = pindex->pnext;
-        };
+        }
 
         addrpkdb.TxnCommit();
     }
@@ -3158,7 +3187,7 @@ bool ScanChainForPublicKeys(CBlockIndex* pindexStart)
     }
 
     return true;
-};
+}
 
 
 bool SecureMsgScanBlockChain()
@@ -3208,7 +3237,7 @@ bool SecureMsgScanBlockChain()
     }
 
     return true;
-};
+}
 
 
 bool SecureMsgScanBuckets()
@@ -3629,7 +3658,7 @@ int SecureMsgWalletUnlocked()
                 }
 
                 nMessages ++;
-            };
+            }
 
             fclose(fp);
 
@@ -3663,7 +3692,7 @@ int SecureMsgWalletUnlocked()
     NotifySecMsgWalletUnlocked();
     
     return 0;
-};
+}
 
 
 int SecureMsgWalletKeyChanged(std::string sAddress, std::string sLabel, ChangeType mode)
@@ -3722,7 +3751,7 @@ int SecureMsgWalletKeyChanged(std::string sAddress, std::string sLabel, ChangeTy
 
 
     return 0;
-};
+}
 
 
 int SecureMsgScanMessage(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload, bool reportToGui)
@@ -3782,7 +3811,7 @@ int SecureMsgScanMessage(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload,
             continue;
         }
 
-        CPHCcoinAddress coinAddress(it->sAddress);
+        CCoinAddress coinAddress(it->sAddress);
         addressTo = coinAddress.ToString();
 
         if (!it->fReceiveAnon)
@@ -3901,7 +3930,7 @@ int SecureMsgScanMessage(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload,
     }
 
     return 0;
-};
+}
 
 
 int SecureMsgGetLocalKey(CKeyID& ckid, CPubKey& cpkOut)
@@ -3930,7 +3959,7 @@ int SecureMsgGetLocalKey(CKeyID& ckid, CPubKey& cpkOut)
     }
     
     return 0;
-};
+}
 
 
 int SecureMsgGetLocalPublicKey(std::string& strAddress, std::string& strPublicKey)
@@ -3950,13 +3979,15 @@ int SecureMsgGetLocalPublicKey(std::string& strAddress, std::string& strPublicKe
         }
     }
 
-    CPHCcoinAddress address;
+    CCoinAddress address;
+
     if (!address.SetString(strAddress))
     {
         return 2; // Invalid coin address
     }
 
     CKeyID keyID;
+
     if (!address.GetKeyID(keyID))
     {
         return 3;
@@ -3974,7 +4005,7 @@ int SecureMsgGetLocalPublicKey(std::string& strAddress, std::string& strPublicKe
     strPublicKey = EncodeBase58(pubKey.begin(), pubKey.end());
 
     return 0;
-};
+}
 
 
 int SecureMsgGetStoredKey(CKeyID& ckid, CPubKey& cpkOut)
@@ -4019,7 +4050,7 @@ int SecureMsgGetStoredKey(CKeyID& ckid, CPubKey& cpkOut)
     // cs_smsgDB
 
     return 0;
-};
+}
 
 
 int SecureMsgAddAddress(std::string& address, std::string& publicKey)
@@ -4037,7 +4068,7 @@ int SecureMsgAddAddress(std::string& address, std::string& publicKey)
             5 address is invalid
     */
 
-    CPHCcoinAddress coinAddress(address);
+    CCoinAddress coinAddress(address);
 
     if (!coinAddress.IsValid())
     {
@@ -4069,6 +4100,7 @@ int SecureMsgAddAddress(std::string& address, std::string& publicKey)
 
     // -- check that public key matches address hash
     CPubKey pubKeyT(pubKey);
+
     if (!pubKeyT.IsValid())
     {
         if (fDebug)
@@ -4080,7 +4112,7 @@ int SecureMsgAddAddress(std::string& address, std::string& publicKey)
     }
     
     CKeyID keyIDT = pubKeyT.GetID();
-    CPHCcoinAddress addressT(keyIDT);
+    CCoinAddress addressT(keyIDT);
 
     if (addressT.ToString().compare(address) != 0)
     {
@@ -4093,7 +4125,7 @@ int SecureMsgAddAddress(std::string& address, std::string& publicKey)
     }
 
     return SecureMsgInsertAddress(hashKey, pubKey);
-};
+}
 
 
 int SecureMsgRetrieve(SecMsgToken &token, std::vector<uint8_t>& vchData)
@@ -4207,7 +4239,7 @@ int SecureMsgRetrieve(SecMsgToken &token, std::vector<uint8_t>& vchData)
     fclose(fp);
 
     return 0;
-};
+}
 
 
 int SecureMsgReceive(CNode* pfrom, std::vector<uint8_t>& vchData)
@@ -4374,7 +4406,7 @@ int SecureMsgReceive(CNode* pfrom, std::vector<uint8_t>& vchData)
     // cs_smsg
     
     return 0;
-};
+}
 
 
 int SecureMsgStoreUnscanned(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
@@ -4475,7 +4507,7 @@ int SecureMsgStoreUnscanned(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPaylo
     fclose(fp);
 
     return 0;
-};
+}
 
 
 int SecureMsgStore(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload, bool fUpdateBucket)
@@ -4504,6 +4536,7 @@ int SecureMsgStore(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload, bool 
     try
     {
         pathSmsgDir = GetDataDir(true) / "smsgStore";
+
         fs::create_directory(pathSmsgDir);
     }
     catch (const boost::filesystem::filesystem_error& ex)
@@ -4572,7 +4605,7 @@ int SecureMsgStore(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload, bool 
                         vchShow.resize(8);
                         memcpy(&vchShow[0], (*it).sample, 8);
                         LogPrint("smessage", "%s :  sample %s\n", __FUNCTION__, ValueString(vchShow).c_str());
-                    };
+                    }
                     */
                 }
             }
@@ -4594,6 +4627,7 @@ int SecureMsgStore(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload, bool 
 
     // -- on windows ftell will always return 0 after fopen(ab), call fseek to set.
     errno = 0;
+
     if (fseek(fp, 0, SEEK_END) != 0)
     {
         return errorN(1, "%s : fseek failed: %s.", __FUNCTION__, strerror(errno));
@@ -4633,12 +4667,12 @@ int SecureMsgStore(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload, bool 
     }
 
     return 0;
-};
+}
 
 int SecureMsgStore(SecureMessage& smsg, bool fUpdateBucket)
 {
     return SecureMsgStore(&smsg.hash[0], smsg.pPayload, smsg.nPayload, fUpdateBucket);
-};
+}
 
 int SecureMsgValidate(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
 {
@@ -4755,7 +4789,7 @@ int SecureMsgValidate(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
 #endif
 
     return rv;
-};
+}
 
 
 int SecureMsgSetHash(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
@@ -4841,7 +4875,7 @@ int SecureMsgSetHash(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
                LogPrint("smessage", "%s : Match %u\n", nonse);
             }
             break;
-        };
+        }
         */
 
         if (sha256Hash[31] == 0 && sha256Hash[30] == 0 && (~(sha256Hash[29]) & ((1<0) || (1<1) || (1<2)) ))         //    && sha256Hash[29] == 0)
@@ -4923,7 +4957,7 @@ int SecureMsgSetHash(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload)
     }
 
     return 0;
-};
+}
 
 
 int SecureMsgEncrypt(SecureMessage &smsg, const std::string &addressFrom, const std::string &addressTo, const std::string &message)
@@ -4970,7 +5004,7 @@ int SecureMsgEncrypt(SecureMessage &smsg, const std::string &addressFrom, const 
 
     bool fSendAnonymous;
 
-    CPHCcoinAddress coinAddrFrom;
+    CCoinAddress coinAddrFrom;
     CKeyID ckidFrom;
     CKey keyFrom;
 
@@ -4994,7 +5028,7 @@ int SecureMsgEncrypt(SecureMessage &smsg, const std::string &addressFrom, const 
         }
     }
 
-    CPHCcoinAddress coinAddrDest;
+    CCoinAddress coinAddrDest;
     CKeyID ckidDest;
 
     if (!coinAddrDest.SetString(addressTo))
@@ -5028,11 +5062,12 @@ int SecureMsgEncrypt(SecureMessage &smsg, const std::string &addressFrom, const 
     
     // -- Do an EC point multiply with public key K and private key r. This gives you public key P.
     CECKey ecKeyK;
+
     if (!ecKeyK.SetPubKey(cpkDestK.begin(), cpkDestK.size()))
     {
         // address to is invalid
         return errorN(4, "%s : Could not set pubkey for K: %s.", __FUNCTION__, HexStr(cpkDestK).c_str());
-    };
+    }
 
     std::vector<uint8_t> vchP;
     vchP.resize(32);
@@ -5132,11 +5167,12 @@ int SecureMsgEncrypt(SecureMessage &smsg, const std::string &addressFrom, const 
         catch (std::exception& e)
         {
             return errorN(8, "%s: vchPayload.resize %u threw: %s.", __func__, 9 + lenMsgData, e.what());
-        };
+        }
 
         memcpy(&vchPayload[9], pMsgData, lenMsgData);
 
         vchPayload[0] = 250; // id as anonymous message
+
         // -- next 4 bytes are unused - there to ensure encrypted payload always > 8 bytes
         memcpy(&vchPayload[5], &lenMsg, 4); // length of uncompressed plain text
     }
@@ -5149,7 +5185,7 @@ int SecureMsgEncrypt(SecureMessage &smsg, const std::string &addressFrom, const 
         catch (std::exception& e)
         {
             return errorN(8, "%s: vchPayload.resize %u threw: %s.", __func__, SMSG_PL_HDR_LEN + lenMsgData, e.what());
-        };
+        }
         
         memcpy(&vchPayload[SMSG_PL_HDR_LEN], pMsgData, lenMsgData);
         
@@ -5157,7 +5193,7 @@ int SecureMsgEncrypt(SecureMessage &smsg, const std::string &addressFrom, const 
         if (!pwalletMain->GetKey(ckidFrom, keyFrom))
         {
             return errorN(7, "%s: Could not get private key for addressFrom.", __func__);
-        };
+        }
 
         // -- sign the plaintext
         std::vector<uint8_t> vchSignature;
@@ -5165,15 +5201,17 @@ int SecureMsgEncrypt(SecureMessage &smsg, const std::string &addressFrom, const 
         keyFrom.SignCompact(Hash(message.begin(), message.end()), vchSignature);
 
         // -- Save some bytes by sending address raw
-        vchPayload[0] = (static_cast<CPHCcoinAddress_B*>(&coinAddrFrom))->getVersion(); // vchPayload[0] = coinAddrDest.nVersion;
+        vchPayload[0] = (static_cast<CCoinAddress_B*>(&coinAddrFrom))->getVersion(); // vchPayload[0] = coinAddrDest.nVersion;
+        
         memcpy(&vchPayload[1], (static_cast<CKeyID_B*>(&ckidFrom))->GetPPN(), 20); // memcpy(&vchPayload[1], ckidDest.pn, 20);
-
         memcpy(&vchPayload[1+20], &vchSignature[0], vchSignature.size());
         memcpy(&vchPayload[1+20+65], &lenMsg, 4); // length of uncompressed plain text
     }
 
     SecMsgCrypter crypter;
+
     crypter.SetKey(key_e, smsg.iv);
+
     std::vector<uint8_t> vchCiphertext;
 
     if (!crypter.Encrypt(&vchPayload[0], vchPayload.size(), vchCiphertext))
@@ -5191,6 +5229,7 @@ int SecureMsgEncrypt(SecureMessage &smsg, const std::string &addressFrom, const 
     }
 
     memcpy(smsg.pPayload, &vchCiphertext[0], vchCiphertext.size());
+
     smsg.nPayload = vchCiphertext.size();
 
     // -- Calculate a 32 byte MAC with HMACSHA256, using key_m as salt
@@ -5238,7 +5277,7 @@ int SecureMsgEncrypt(SecureMessage &smsg, const std::string &addressFrom, const 
     }
 
     return 0;
-};
+}
 
 
 int SecureMsgSend(std::string &addressFrom, std::string &addressTo, std::string &message, std::string &sError)
@@ -5410,7 +5449,7 @@ int SecureMsgSend(std::string &addressFrom, std::string &addressTo, std::string 
         {
             dbSendQueue.WriteSmesg(chKey, smsgSQ);
             //NotifySecMsgSendQueueChanged(smsgOutbox);
-        };
+        }
     }
     // Global Namespace End
     // cs_smsgDB
@@ -5429,9 +5468,10 @@ int SecureMsgSend(std::string &addressFrom, std::string &addressTo, std::string 
     }
 
     std::string addressOutbox = "None";
-    CPHCcoinAddress coinAddrOutbox;
 
-    BOOST_FOREACH(const PAIRTYPE(CTxDestination, std::string)& entry, pwalletMain->mapAddressBook)
+    CCoinAddress coinAddrOutbox;
+
+    for(const PAIRTYPE(CTxDestination, std::string)& entry: pwalletMain->mapAddressBook)
     {
         // -- get first owned address
         if (!IsMine(*pwalletMain, entry.first))
@@ -5439,7 +5479,7 @@ int SecureMsgSend(std::string &addressFrom, std::string &addressTo, std::string 
             continue;
         }
 
-        const CPHCcoinAddress& address = entry.first;
+        const CCoinAddress& address = entry.first;
 
         addressOutbox = address.ToString();
 
@@ -5523,6 +5563,7 @@ int SecureMsgSend(std::string &addressFrom, std::string &addressTo, std::string 
                 if (dbSent.Open("cw"))
                 {
                     dbSent.WriteSmesg(chKey, smsgOutbox);
+
                     NotifySecMsgOutboxChanged(smsgOutbox);
                 }
             }
@@ -5540,7 +5581,7 @@ int SecureMsgSend(std::string &addressFrom, std::string &addressTo, std::string 
     }
 
     return 0;
-};
+}
 
 
 int SecureMsgDecrypt(bool fTestOnly, std::string &address, uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload, MessageData &msg)
@@ -5579,8 +5620,7 @@ int SecureMsgDecrypt(bool fTestOnly, std::string &address, uint8_t *pHeader, uin
     }
 
     // -- Fetch private key k, used to decrypt
-    CPHCcoinAddress coinAddrDest;
-    
+    CCoinAddress coinAddrDest;
     CKeyID ckidDest;
     CKey keyDest;
     
@@ -5600,12 +5640,14 @@ int SecureMsgDecrypt(bool fTestOnly, std::string &address, uint8_t *pHeader, uin
     }
 
     CPubKey cpkR(psmsg->cpkR, psmsg->cpkR+33);
+
     if (!cpkR.IsValid())
     {
         return errorN(1, "%s : Could not get pubkey for key R.", __FUNCTION__);
     }
 
     CECKey ecKeyR;
+    
     if (!ecKeyR.SetPubKey(cpkR.begin(), cpkR.size()))
     {
         return errorN(1, "%s : Could not set pubkey for key R: %s.", __FUNCTION__, HexStr(cpkR).c_str());
@@ -5729,14 +5771,18 @@ int SecureMsgDecrypt(bool fTestOnly, std::string &address, uint8_t *pHeader, uin
     {
         fFromAnonymous = true;
         lenData = vchPayload.size() - (9);
+
         memcpy(&lenPlain, &vchPayload[5], 4);
+
         pMsgData = &vchPayload[9];
     }
     else
     {
         fFromAnonymous = false;
         lenData = vchPayload.size() - (SMSG_PL_HDR_LEN);
+
         memcpy(&lenPlain, &vchPayload[1+20+65], 4);
+
         pMsgData = &vchPayload[SMSG_PL_HDR_LEN];
     }
 
@@ -5779,8 +5825,7 @@ int SecureMsgDecrypt(bool fTestOnly, std::string &address, uint8_t *pHeader, uin
 
         uint160 ui160(vchUint160);
         CKeyID ckidFrom(ui160);
-
-        CPHCcoinAddress coinAddrFrom;
+        CCoinAddress coinAddrFrom;
         coinAddrFrom.Set(ckidFrom);
         
         if (!coinAddrFrom.IsValid())
@@ -5802,7 +5847,7 @@ int SecureMsgDecrypt(bool fTestOnly, std::string &address, uint8_t *pHeader, uin
         }
 
         // -- get address for the compressed public key
-        CPHCcoinAddress coinAddrFromSig;
+        CCoinAddress coinAddrFromSig;
         coinAddrFromSig.Set(cpkFromSig.GetID());
 
         if (!(coinAddrFrom == coinAddrFromSig))
@@ -5854,10 +5899,10 @@ int SecureMsgDecrypt(bool fTestOnly, std::string &address, uint8_t *pHeader, uin
                 }
             }
             break;
-        };
+        }
 
         msg.sFromAddress = coinAddrFrom.ToString();
-    };
+    }
 
     if (fDebugSmsg)
     {
@@ -5868,11 +5913,11 @@ int SecureMsgDecrypt(bool fTestOnly, std::string &address, uint8_t *pHeader, uin
     }
 
     return 0;
-};
+}
 
 
 int SecureMsgDecrypt(bool fTestOnly, std::string &address, SecureMessage &smsg, MessageData &msg)
 {
     return SecureMsgDecrypt(fTestOnly, address, &smsg.hash[0], smsg.pPayload, smsg.nPayload, msg);
-};
+}
 

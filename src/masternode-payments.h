@@ -61,7 +61,8 @@ class CMasternodePaymentWinner
             return n3;
         }
 
-        IMPLEMENT_SERIALIZE(
+        IMPLEMENT_SERIALIZE
+        (
             READWRITE(nBlockHeight);
             READWRITE(payee);
             READWRITE(vin);
