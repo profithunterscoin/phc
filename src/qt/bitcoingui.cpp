@@ -122,6 +122,13 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 	{
 		// NORMAL THEME
 
+		frameBlocks->setStyleSheet("QWidget"
+							"{"
+							"	background-color: rgb(196, 226, 91);"
+							"	margin-bottom: 5px;"
+							"}"
+							);
+
 		qApp->setStyleSheet("QMainWindow"
 							"{"
 							"	background-image:url(:images/bkg);"
@@ -183,14 +190,30 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 							"{"
 							"	background-color: rgb(80, 80, 80);"
 							"}"
-							);
 
-		frameBlocks->setStyleSheet("QWidget"
-									"{"
-									"	background: none;"
-									"	margin-bottom: 5px;"
-									"}"
-									);
+							"QFrame#frameCoinControl"
+							"{"
+							"	background-color: rgb(196, 226, 91);"
+							"}"
+
+							"QDialog"
+							"{"
+							"	background-color: rgb(196, 226, 91);"
+							"}"
+
+							"QGridLayout"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(196, 226, 91);"
+							"}"
+
+							"QHBoxLayout"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(196, 226, 91);"
+							"}"
+					
+							);
 
 		// Override style sheet for progress bar for styles that have a segmented progress bar,
 		// as they make the text unreadable (workaround for issue #1071)
@@ -229,6 +252,13 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 	else
 	{
 		// DARK THEME
+		frameBlocks->setStyleSheet("QWidget"
+									"{"
+									"	background: none;"
+									"	margin-bottom: 5px;"
+									"	color: #A4D300;"
+									"}"
+								);
 
 		qApp->setStyleSheet("QMainWindow"
 							"{"
@@ -374,25 +404,32 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 							"	color: #000000;"
 							"}"
 
-							"QWidget"
-							"{"
-							"	alternate-background-color: #000000;"
-							"}"
-
 							"QRadioButton"
 							"{"
 							"	border: none;"
 							"	color: #A4D300;"
 							"}"
+
+							"QFrame#frameCoinControl"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: rgb(0, 0, 0);"
+							"}"
+			
+							"QGridLayout"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: rgb(0, 0, 0);"
+							"}"
+
+							"QHBoxLayout"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: rgb(0, 0, 0);"
+							"}"
 						);
 
-		frameBlocks->setStyleSheet("QWidget"
-									"{"
-									"	background: none;"
-									"	margin-bottom: 5px;"
-									"	color: #A4D300;"
-									"}"
-								);
+
 
 		// Override style sheet for progress bar for styles that have a segmented progress bar,
 		// as they make the text unreadable (workaround for issue #1071)
@@ -1562,7 +1599,6 @@ void BitcoinGUI::gotoMasternodeManagerPage()
 	centralStackedWidget->setCurrentWidget(masternodeManagerPage);
 
 	exportAction->setEnabled(false);
-	
 	disconnect(exportAction, SIGNAL(triggered()), 0, 0);
 }
 
@@ -1573,7 +1609,6 @@ void BitcoinGUI::gotoBlockBrowser()
 	centralStackedWidget->setCurrentWidget(blockBrowser);
 
 	exportAction->setEnabled(false);
-
 	disconnect(exportAction, SIGNAL(triggered()), 0, 0);
 }
 
@@ -1584,7 +1619,6 @@ void BitcoinGUI::gotoOverviewPage()
 	centralStackedWidget->setCurrentWidget(overviewPage);
 
 	exportAction->setEnabled(false);
-
 	disconnect(exportAction, SIGNAL(triggered()), 0, 0);
 }
 
@@ -1595,7 +1629,6 @@ void BitcoinGUI::gotoHistoryPage()
 	centralStackedWidget->setCurrentWidget(transactionsPage);
 
 	exportAction->setEnabled(true);
-
 	disconnect(exportAction, SIGNAL(triggered()), 0, 0);
 	connect(exportAction, SIGNAL(triggered()), transactionView, SLOT(exportClicked()));
 }
@@ -1629,9 +1662,7 @@ void BitcoinGUI::gotoReceiveCoinsPage()
 	centralStackedWidget->setCurrentWidget(receiveCoinsPage);
 
 	exportAction->setEnabled(true);
-
 	disconnect(exportAction, SIGNAL(triggered()), 0, 0);
-
 	connect(exportAction, SIGNAL(triggered()), receiveCoinsPage, SLOT(exportClicked()));
 }
 
@@ -1676,7 +1707,6 @@ void BitcoinGUI::gotoMessagePage()
 	centralStackedWidget->setCurrentWidget(messagePage);
 
 	exportAction->setEnabled(true);
-
 	disconnect(exportAction, SIGNAL(triggered()), 0, 0);
 	connect(exportAction, SIGNAL(triggered()), messagePage, SLOT(exportClicked()));
 }
@@ -1729,7 +1759,6 @@ void BitcoinGUI::handleURI(QString strURI)
 	if (sendCoinsPage->handleURI(strURI))
 	{
 		showNormalIfMinimized();
-
 		gotoSendCoinsPage();
 	}
 	else
@@ -1852,7 +1881,6 @@ void BitcoinGUI::unlockWallet()
 	{
 		AskPassphraseDialog::Mode mode = sender() == unlockWalletAction ? AskPassphraseDialog::UnlockStaking : AskPassphraseDialog::Unlock;
 		AskPassphraseDialog dlg(mode, this);
-		
 		dlg.setModel(walletModel);
 		dlg.exec();
 	}
@@ -1876,19 +1904,16 @@ void BitcoinGUI::showNormalIfMinimized(bool fToggleHidden)
 	if (isHidden())
 	{
 		show();
-
 		activateWindow();
 	}
 	else if (isMinimized())
 	{
 		showNormal();
-
 		activateWindow();
 	}
 	else if (GUIUtil::isObscured(this))
 	{
 		raise();
-
 		activateWindow();
 	}
 	else if (fToggleHidden)
@@ -1912,7 +1937,7 @@ void BitcoinGUI::updateWeight()
 	}
 
 	TRY_LOCK(cs_main, lockMain);
-
+	
 	if (!lockMain)
 	{
 		return;
@@ -1933,10 +1958,10 @@ void BitcoinGUI::updateStakingIcon()
 {
 	updateWeight();
 
+	uint64_t nWeight = this->nWeight;
+
 	if (nLastCoinStakeSearchInterval && nWeight)
 	{
-		uint64_t nWeight = this->nWeight;
-
 		uint64_t nNetworkWeight = GetPoSKernelPS();
 		
 		unsigned nEstimateTime = 0;
