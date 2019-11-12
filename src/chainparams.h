@@ -54,7 +54,6 @@ class CChainParams
             MAIN,
             TESTNET,
             REGTEST,
-
             MAX_NETWORK_TYPES
         };
 
@@ -66,7 +65,6 @@ class CChainParams
             STEALTH_ADDRESS,
             EXT_PUBLIC_KEY,
             EXT_SECRET_KEY,
-
             MAX_BASE58_TYPES
         };
 

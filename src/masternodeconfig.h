@@ -122,7 +122,9 @@ class CMasternodeConfig
         }
 
         void clear();
+
         bool read(boost::filesystem::path path);
+        
         void add(std::string alias, std::string ip, std::string privKey, std::string txHash, std::string outputIndex, std::string rewardAddress, std::string rewardPercent);
 
         std::vector<CMasternodeEntry>& getEntries()

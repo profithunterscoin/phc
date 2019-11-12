@@ -46,6 +46,7 @@ class MessagePage : public QWidget
     public:
 
         explicit MessagePage(QWidget *parent = 0);
+        
         ~MessagePage();
 
         void setModel(MessageModel *model);

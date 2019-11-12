@@ -57,7 +57,9 @@ static void convertSeeds(std::vector<CAddress> &vSeedsOut, const unsigned int *d
         memcpy(&ip, &t, sizeof(ip));
         
         CAddress addr(CService(ip, port));
+
         addr.nTime = GetTime()-GetRand(nOneWeek)-nOneWeek;
+
         vSeedsOut.push_back(addr);
     }
 }
@@ -75,6 +77,7 @@ class CMainParams : public CChainParams
             pchMessageStart[1] = 0x33;
             pchMessageStart[2] = 0x25;
             pchMessageStart[3] = 0x88;
+            
             vAlertPubKey = ParseHex("045ae8e09a456a2ae88f9a2fdb99122612cd26f9da329731b1b8335f650978c9d21df0a0543ba1179d05a081c3c1ec389ce2bb55e36565b50ab40dde6b19d136e1");
             nDefaultPort = 20060;
             nRPCPort = 20061;
@@ -101,6 +104,7 @@ class CMainParams : public CChainParams
             */
 
             const char* pszTimestamp = "Bitcoin ... another big boost - CNBC";
+            
             CTransaction txNew;
             txNew.nTime = 1514844000; // GMT: Monday, January 1, 2018 10:00:00 PM
             txNew.vin.resize(1);
@@ -338,6 +342,7 @@ class CTestNetParams : public CMainParams
             pchMessageStart[1] = 0x33;
             pchMessageStart[2] = 0x25;
             pchMessageStart[3] = 0x75;
+            
             bnProofOfWorkLimit = CBigNum(~uint256(0) >> 16);
             vAlertPubKey = ParseHex("04344278bdac5f6e1e1711a3672a5002e54369b984c97df9d36e5aa2123dec228e85da0b88f3a38ba62746a1ca20726dd73a806767620c830ffb99ab1e6c45a778");
             nDefaultPort = 20062;
@@ -369,6 +374,7 @@ class CTestNetParams : public CMainParams
             genesis.nNonce = 319349;
 
             hashGenesisBlock = uint256("0x01");
+            
             if (true && (genesis.GetHash() != hashGenesisBlock))
             {
                 uint256 hashTarget = CBigNum().SetCompact(genesis.nBits).getuint256();

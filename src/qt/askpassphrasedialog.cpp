@@ -69,6 +69,7 @@ AskPassphraseDialog::AskPassphraseDialog(Mode mode, QWidget *parent) : QDialog(p
             ui->passEdit2->hide();
             ui->passLabel3->hide();
             ui->passEdit3->hide();
+
             setWindowTitle(tr("Unlock wallet"));
         }
         break;
@@ -81,6 +82,7 @@ AskPassphraseDialog::AskPassphraseDialog(Mode mode, QWidget *parent) : QDialog(p
             ui->passEdit2->hide();
             ui->passLabel3->hide();
             ui->passEdit3->hide();
+
             setWindowTitle(tr("Decrypt wallet"));
         }   
         break;
@@ -89,6 +91,7 @@ AskPassphraseDialog::AskPassphraseDialog(Mode mode, QWidget *parent) : QDialog(p
         {
             // Ask old passphrase + new passphrase x2
             setWindowTitle(tr("Change passphrase"));
+            
             ui->warningLabel->setText(tr("Enter the old and new passphrase to the wallet."));
         } 
         break;

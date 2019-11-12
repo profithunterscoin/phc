@@ -73,17 +73,18 @@ v1.0.0.7 (Pre-release - unfinished)
 * Installed ForceRandomSync of X amount of nodes
 * Sanitize command strings (Evil-Knievel) https://github.com/bitcoin/bitcoin/pull/5770/commits/28d4cff0ed2d4438da4bbf2d4ca0465715603af5
 * FIX: slow full-sync, bootstrapping issues
-* FIX: InitialBlockDownload from Peercoin https://github.com/sigmike/peercoin/commit/ad71a3b1890208c9ef8ea005c76ee18fbf0b6065
 * Optimized InternalMiner/Staking functions
+* Replace BOOST_FOR with c++11 FOR()
 
 TO FINISH:
+* FIX: InitialBlockDownload from Peercoin (modified) https://github.com/sigmike/peercoin/commit/ad71a3b1890208c9ef8ea005c76ee18fbf0b6065
 * Apostolaki Hijack (BGP) fix (Firewall)
 * Eclipse Attack fix (Firewall)
 * Erebus Attack fix (Firewall)
 * https://bitcointalk.org/index.php?topic=1039713.0
 * https://github.com/dashpay/dash/pull/178/commits/864338a2b2405f3f598961fcc20c0881ae06391e
 * https://github.com/bitcoin/bitcoin/commit/f676c80f437e15ab0ee190e93baea733a88db0f2#commitcomment-8996114
-* Replace BOOST_FOR with c++11 FOR()
+
 
 v1.0.0.7 (To Finish before release)
 --------

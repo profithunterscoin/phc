@@ -192,7 +192,6 @@ class MessageTablePriv
 
         void newOutboxMessage(const SecMsgStored& outboxHdr)
         {
-
             SecMsgStored smsgStored = outboxHdr;
             
             MessageData msg;
@@ -311,6 +310,7 @@ class MessageTablePriv
         void handleMessageEntry(const MessageTableEntry & message, const bool append)
         {
             addMessageEntry(message, append);
+
             json_spirit::mValue mVal;
             json_spirit::read(message.message.toStdString(), mVal);
 
@@ -377,7 +377,7 @@ MessageModel::~MessageModel()
 
 bool MessageModel::getAddressOrPubkey(QString &address, QString &pubkey) const
 {
-    CPHCcoinAddress addressParsed(address.toStdString());
+    CCoinAddress addressParsed(address.toStdString());
 
     if(addressParsed.IsValid())
     {
@@ -420,7 +420,9 @@ MessageModel::StatusCode MessageModel::sendMessages(const QList<SendMessagesReci
     QSet<QString> setAddress;
 
     if(recipients.empty())
+    {
         return OK;
+    }
 
     // Pre-check input data for validity
     foreach(const SendMessagesRecipient &rcp, recipients)
@@ -441,20 +443,23 @@ MessageModel::StatusCode MessageModel::sendMessages(const QList<SendMessagesReci
         std::string addFrom = addressFrom.toStdString();
 
         SecureMsgAddAddress(sendTo, pubkey);
+
         setAddress.insert(rcp.address);
         
         std::string sError;
+
         if (SecureMsgSend(addFrom, sendTo, message, sError) != 0)
         {
             QMessageBox::warning(NULL, tr("Send Secure Message"), tr("Send failed: %1.").arg(sError.c_str()), QMessageBox::Ok, QMessageBox::Ok);
             
             return FailedErrorShown;
-        };
+        }
 
         // Add addresses / update labels that we've sent to to the address book
         std::string strAddress = rcp.address.toStdString();
         std::string strLabel = rcp.label.toStdString();
-        CTxDestination dest = CPHCcoinAddress(strAddress).Get();
+
+        CTxDestination dest = CCoinAddress(strAddress).Get();
         
         // Global Namespace Start
         {
@@ -687,6 +692,7 @@ QVariant MessageModel::data(const QModelIndex &index, int role) const
             }
 
             QString address = (rec->type == MessageTableEntry::Sent ? rec->to_address + rec->from_address : rec->from_address + rec->to_address);
+            
             ambiguous.append(address);
 
             return "true";

@@ -27,9 +27,11 @@
 ImportPrivateKeyDialog::ImportPrivateKeyDialog(QWidget *parent) : QDialog(parent), ui(new Ui::ImportPrivateKeyDialog), mapper(0), model(0)
 {
     ui->setupUi(this);
+
     ui->rescanCB->setChecked(true);
 
     mapper = new QDataWidgetMapper(this);
+
     mapper->setSubmitPolicy(QDataWidgetMapper::ManualSubmit);
 }
 
@@ -50,6 +52,7 @@ void ImportPrivateKeyDialog::setModel(AddressTableModel *model)
     }
 
     mapper->setModel(model);
+    
     mapper->addMapping(ui->labelEdit, AddressTableModel::Label);
 }
 

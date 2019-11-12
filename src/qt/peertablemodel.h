@@ -21,10 +21,12 @@
 #include <QAbstractTableModel>
 #include <QStringList>
 
+
 class PeerTablePriv;
 class ClientModel;
 
 class QTimer;
+
 
 struct CNodeCombinedStats
 {
@@ -32,6 +34,7 @@ struct CNodeCombinedStats
     CNodeStateStats nodeStateStats;
     bool fNodeStateStatsAvailable;
 };
+
 
 class NodeLessThan
 {
@@ -48,6 +51,7 @@ class NodeLessThan
 
         Qt::SortOrder order;
 };
+
 
 /**
    Qt model providing information about connected peers, similar to the

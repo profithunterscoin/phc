@@ -25,7 +25,6 @@
 #include "ui_interface.h"
 #include "util.h"
 
-#include <boost/foreach.hpp>
 #include "json/json_spirit_value.h"
 
 using namespace json_spirit;
@@ -59,7 +58,7 @@ Value ping(const Array& params, bool fHelp)
     // Request that each node send a ping during next message processing pass
     LOCK(cs_vNodes);
 
-    BOOST_FOREACH(CNode* pNode, vNodes)
+    for(CNode* pNode: vNodes)
     {
         pNode->fPingQueued = true;
     }
@@ -76,7 +75,7 @@ static void CopyNodeStats(std::vector<CNodeStats>& vstats)
     
     vstats.reserve(vNodes.size());
     
-    BOOST_FOREACH(CNode* pnode, vNodes)
+    for(CNode* pnode: vNodes)
     {
         CNodeStats stats;
         
@@ -102,7 +101,7 @@ Value getpeerinfo(const Array& params, bool fHelp)
 
     Array ret;
 
-    BOOST_FOREACH(const CNodeStats& stats, vstats)
+    for(const CNodeStats& stats: vstats)
     {
         Object obj;
         
@@ -246,7 +245,7 @@ Value getaddednodeinfo(const Array& params, bool fHelp)
     {
         LOCK(cs_vAddedNodes);
 
-        BOOST_FOREACH(string& strAddNode, vAddedNodes)
+        for(string& strAddNode: vAddedNodes)
         {
             laddedNodes.push_back(strAddNode);
         }
@@ -257,7 +256,7 @@ Value getaddednodeinfo(const Array& params, bool fHelp)
         
         LOCK(cs_vAddedNodes);
         
-        BOOST_FOREACH(string& strAddNode, vAddedNodes)
+        for(string& strAddNode: vAddedNodes)
         {
             if (strAddNode == strNode)
             {
@@ -277,7 +276,7 @@ Value getaddednodeinfo(const Array& params, bool fHelp)
     {
         Object ret;
 
-        BOOST_FOREACH(string& strAddNode, laddedNodes)
+        for(string& strAddNode: laddedNodes)
         {
             ret.push_back(Pair("addednode",                 strAddNode));
         }
@@ -289,7 +288,7 @@ Value getaddednodeinfo(const Array& params, bool fHelp)
 
     list<pair<string, vector<CService> > > laddedAddreses(0);
     
-    BOOST_FOREACH(string& strAddNode, laddedNodes)
+    for(string& strAddNode: laddedNodes)
     {
         vector<CService> vservNode(0);
 
@@ -321,7 +320,7 @@ Value getaddednodeinfo(const Array& params, bool fHelp)
 
         bool fConnected = false;
         
-        BOOST_FOREACH(CService& addrNode, it->second)
+        for(CService& addrNode: it->second)
         {
             bool fFound = false;
 
@@ -329,7 +328,7 @@ Value getaddednodeinfo(const Array& params, bool fHelp)
             
             node.push_back(Pair("address",                  addrNode.ToString()));
             
-            BOOST_FOREACH(CNode* pnode, vNodes)
+            for(CNode* pnode: vNodes)
             {
                 if (pnode->addr == addrNode)
                 {
@@ -423,7 +422,7 @@ Value sendalert(const Array& params, bool fHelp)
     {
         LOCK(cs_vNodes);
 
-        BOOST_FOREACH(CNode* pnode, vNodes)
+        for(CNode* pnode: vNodes)
         {
             alert.RelayTo(pnode);
         }

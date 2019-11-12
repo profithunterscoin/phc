@@ -34,6 +34,7 @@ class OptionsDialog : public QDialog
     public:
 
         explicit OptionsDialog(QWidget *parent = 0);
+        
         ~OptionsDialog();
 
         void setModel(OptionsModel *model);

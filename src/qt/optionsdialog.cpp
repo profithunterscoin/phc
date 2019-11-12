@@ -160,7 +160,7 @@ void OptionsDialog::setMapper()
 
     /* Darksend Rounds */
     mapper->addMapping(ui->darksendRounds, OptionsModel::DarksendRounds);
-    mapper->addMapping(ui->anonymizePHC, OptionsModel::AnonymizePHCAmount);
+    mapper->addMapping(ui->anonymizePHC, OptionsModel::AnonymizeAmount);
 }
 
 

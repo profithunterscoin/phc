@@ -28,11 +28,14 @@
 #include <QJsonObject>
 #include <QJsonArray>
 
+
 namespace Ui
 {
     class tradingDialog;
 }
+
 class WalletModel;
+
 
 class tradingDialog : public QDialog
 {
@@ -41,6 +44,7 @@ class tradingDialog : public QDialog
     public:
     
         explicit tradingDialog(QWidget *parent = 0);
+
         ~tradingDialog();
 
         void setModel(WalletModel *model);
@@ -48,24 +52,33 @@ class tradingDialog : public QDialog
     private slots:
 
         void InitTrading();
+
         void on_TradingTabWidget_tabBarClicked(int index);
+
         void ParseAndPopulateOrderBookTables(QString Response);
         void ParseAndPopulateMarketHistoryTable(QString Response);
         void ParseAndPopulateAccountHistoryTable(QString Response);
         void ParseAndPopulateOpenOrdersTable(QString Response);
+
         void UpdaterFunction();
+
         void CreateOrderBookTables(QTableWidget& Table,QStringList TableHeader);
+
         void DisplayBalance(QLabel &BalanceLabel,QLabel &Available, QLabel &Pending, QString Currency,QString Response);
         void DisplayBalance(QLabel &BalanceLabel, QLabel &BalanceLabel2, QString Response, QString Response2);
         void DisplayBalance(QLabel &BalanceLabel, QString Response);
+        
         void ActionsOnSwitch(int index);
+        
         void CancelOrderSlot(int row, int col);
+        
         void on_UpdateKeys_clicked(bool Save=false, bool Load=false);
         void on_LoadKeys_clicked();
         void on_SaveKeys_clicked();
         void on_GenDepositBTN_clicked();
 
         void CalculateBuyCostLabel();
+        
         void on_Buy_Max_Amount_clicked();
         void on_BuyBidcomboBox_currentIndexChanged(const QString &arg1);
         void on_UnitsInput_textChanged(const QString &arg1);
@@ -73,6 +86,7 @@ class tradingDialog : public QDialog
         void on_BuyPHC_clicked();
 
         void CalculateSellCostLabel();
+        
         void on_Sell_Max_Amount_clicked();
         void on_SellBidcomboBox_currentIndexChanged(const QString &arg1);
         void on_UnitsInputPHC_textChanged(const QString &arg1);
@@ -80,6 +94,7 @@ class tradingDialog : public QDialog
         void on_SellPHCBTN_clicked();
 
         void CalculateCSReceiveLabel();
+        
         void on_CSUnitsInput_textChanged(const QString &arg1);
         void on_CSUnitsBtn_clicked();
         void on_CS_Max_Amount_clicked();

@@ -89,6 +89,7 @@ static int ec_privkey_import_der(const secp256k1_context* ctx, unsigned char *ou
     /* sequence length */
     len = privkey[lenb-1] | (lenb > 1 ? privkey[lenb-2] << 8 : 0);
     privkey += lenb;
+
     if (end < privkey+len)
     {
         return 0;
@@ -124,6 +125,7 @@ static int ec_privkey_import_der(const secp256k1_context* ctx, unsigned char *ou
 static int ec_privkey_export_der(const secp256k1_context *ctx, unsigned char *privkey, size_t *privkeylen, const unsigned char *key32, int compressed)
 {
     secp256k1_pubkey pubkey;
+
     size_t pubkeylen = 0;
 
     if (!secp256k1_ec_pubkey_create(ctx, &pubkey, key32))
@@ -388,6 +390,7 @@ bool CKey::Sign(const uint256 &hash, std::vector<unsigned char>& vchSig, uint32_
     }
 
     secp256k1_ecdsa_signature_serialize_der(secp256k1_context_sign, (unsigned char*)&vchSig[0], &nSigLen, &sig);
+
     vchSig.resize(nSigLen);
     
     return true;
@@ -524,6 +527,7 @@ bool CKey::Derive(CKey& keyChild, unsigned char ccChild[32], unsigned int nChild
     }
 
     unsigned char out[64];
+
     LockObject(out);
 
     if ((nChild >> 31) == 0)
@@ -565,6 +569,7 @@ bool CKey::Derive(CKey& keyChild, unsigned char ccChild[32], unsigned int nChild
     memcpy((unsigned char*)keyChild.begin(), begin(), 32);
 
     bool ret = secp256k1_ec_privkey_tweak_add(secp256k1_context_sign, (unsigned char*)keyChild.begin(), out);
+
     UnlockObject(out);
 
     keyChild.fCompressed = true;
@@ -577,9 +582,11 @@ bool CKey::Derive(CKey& keyChild, unsigned char ccChild[32], unsigned int nChild
 bool CExtKey::Derive(CExtKey &out, unsigned int nChild) const
 {
     out.nDepth = nDepth + 1;
+
     CKeyID id = key.GetPubKey().GetID();
 
     memcpy(&out.vchFingerprint[0], &id, 4);
+
     out.nChild = nChild;
 
     return key.Derive(out.key, out.vchChainCode, nChild, vchChainCode);
@@ -597,14 +604,18 @@ void CExtKey::SetMaster(const unsigned char *seed, unsigned int nSeedLen)
     unsigned char out[64];
 
     LockObject(out);
+
     HMAC_SHA512_Final(out, &ctx);
+
     key.Set(&out[0], &out[32], true);
+
     memcpy(vchChainCode, &out[32], 32);
 
     UnlockObject(out);
 
     nDepth = 0;
     nChild = 0;
+
     memset(vchFingerprint, 0, sizeof(vchFingerprint));
 }
 
@@ -613,9 +624,12 @@ CExtPubKey CExtKey::Neuter() const
 {
     CExtPubKey ret;
     ret.nDepth = nDepth;
+    
     memcpy(&ret.vchFingerprint[0], &vchFingerprint[0], 4);
+
     ret.nChild = nChild;
     ret.pubkey = key.GetPubKey();
+
     memcpy(&ret.vchChainCode[0], &vchChainCode[0], 32);
 
     return ret;
@@ -625,10 +639,14 @@ CExtPubKey CExtKey::Neuter() const
 void CExtKey::Encode(unsigned char code[74]) const
 {
     code[0] = nDepth;
+
     memcpy(code+1, vchFingerprint, 4);
+
     code[5] = (nChild >> 24) & 0xFF; code[6] = (nChild >> 16) & 0xFF;
     code[7] = (nChild >>  8) & 0xFF; code[8] = (nChild >>  0) & 0xFF;
+
     memcpy(code+9, vchChainCode, 32);
+
     code[41] = 0;
 
     if (key.size() != 32)
@@ -650,9 +668,11 @@ void CExtKey::Encode(unsigned char code[74]) const
 void CExtKey::Decode(const unsigned char code[74])
 {
     nDepth = code[0];
+
     memcpy(vchFingerprint, code+1, 4);
 
     nChild = (code[5] << 24) | (code[6] << 16) | (code[7] << 8) | code[8];
+
     memcpy(vchChainCode, code+9, 32);
 
     key.Set(code+42, code+74, true);
@@ -705,6 +725,7 @@ void ECC_Start()
         unsigned char seed[32];
 
         LockObject(seed);
+        
         GetRandBytes(seed, 32);
 
         bool ret = secp256k1_context_randomize(ctx, seed);

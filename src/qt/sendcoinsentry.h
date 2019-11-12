@@ -17,13 +17,16 @@
 
 #include <QFrame>
 
+
 namespace Ui
 {
     class SendCoinsEntry;
 }
 
+
 class WalletModel;
 class SendCoinsRecipient;
+
 
 /** A single entry in the dialog for sending bitcoins. */
 class SendCoinsEntry : public QFrame
@@ -33,6 +36,7 @@ class SendCoinsEntry : public QFrame
     public:
 
         explicit SendCoinsEntry(QWidget *parent = 0);
+
         ~SendCoinsEntry();
 
         void setModel(WalletModel *model);
@@ -71,6 +75,7 @@ class SendCoinsEntry : public QFrame
         void on_payTo_textChanged(const QString &address);
         void on_addressBookButton_clicked();
         void on_pasteButton_clicked();
+        
         void updateDisplayUnit();
 
     private:

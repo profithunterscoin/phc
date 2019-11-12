@@ -35,6 +35,7 @@
 #include <QSettings>
 #include <QTextDocument>
 
+
 SendCoinsDialog::SendCoinsDialog(QWidget *parent) : QDialog(parent), ui(new Ui::SendCoinsDialog), clientModel(0), model(0), fNewRecipientAllowed(true)
 {
     ui->setupUi(this);
@@ -189,8 +190,10 @@ void SendCoinsDialog::setModel(WalletModel *model)
         }
 
         setBalance(model->getBalance(), model->getStake(), model->getUnconfirmedBalance(), model->getImmatureBalance(), model->getAnonymizedBalance(), model->getWatchBalance(), model->getWatchStake(), model->getWatchUnconfirmedBalance(), model->getWatchImmatureBalance());
+        
         connect(model, SIGNAL(balanceChanged(CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount)), this, SLOT(setBalance(CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount, CAmount)));
         connect(model->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this, SLOT(updateDisplayUnit()));
+        
         updateDisplayUnit();
 
         // Coin Control
@@ -260,6 +263,7 @@ void SendCoinsDialog::on_sendButton_clicked()
     for(int i = 0; i < ui->entries->count(); ++i)
     {
         SendCoinsEntry *entry = qobject_cast<SendCoinsEntry*>(ui->entries->itemAt(i)->widget());
+        
         if(entry)
         {
             if(entry->validate())
@@ -362,6 +366,7 @@ void SendCoinsDialog::send(QList<SendCoinsRecipient> recipients, QString strFee,
 {
     // prepare transaction for getting txFee earlier
     WalletModelTransaction currentTransaction(recipients);
+
     WalletModel::SendCoinsReturn prepareStatus;
 
     if (model->getOptionsModel()->getCoinControlFeatures())
@@ -385,7 +390,9 @@ void SendCoinsDialog::send(QList<SendCoinsRecipient> recipients, QString strFee,
     }
 
     CAmount txFee = currentTransaction.getTransactionFee();
+    
     QString questionString = tr("Are you sure you want to send?");
+    
     questionString.append("<br /><br />%1");
 
     if(txFee > 0)
@@ -624,6 +631,7 @@ void SendCoinsDialog::pasteEntry(const SendCoinsRecipient &rv)
     }
 
     entry->setValue(rv);
+
     updateTabsAndLabels();
 }
 
@@ -635,7 +643,7 @@ bool SendCoinsDialog::handleURI(const QString &uri)
     // URI has to be valid
     if (GUIUtil::parseBitcoinURI(uri, &rv))
     {
-        CPHCcoinAddress address(rv.address.toStdString());
+        CCoinAddress address(rv.address.toStdString());
 
         if (!address.IsValid())
         {
@@ -1036,7 +1044,7 @@ void SendCoinsDialog::coinControlChangeEdited(const QString& text)
         
         ui->labelCoinControlChangeLabel->setStyleSheet("QLabel{color:red;}");
 
-        CPHCcoinAddress addr = CPHCcoinAddress(text.toStdString());
+        CCoinAddress addr = CCoinAddress(text.toStdString());
 
         if (text.isEmpty()) // Nothing entered
         {
@@ -1090,6 +1098,7 @@ void SendCoinsDialog::coinControlUpdateLabels()
 
     // set pay amounts
     CoinControlDialog::payAmounts.clear();
+    
     for(int i = 0; i < ui->entries->count(); ++i)
     {
         SendCoinsEntry *entry = qobject_cast<SendCoinsEntry*>(ui->entries->itemAt(i)->widget());

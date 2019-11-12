@@ -16,7 +16,6 @@
 
 #include "util.h"
 
-#include <boost/foreach.hpp>
 
 #ifdef DEBUG_LOCKCONTENTION
 void PrintLockContention(const char* pszName, const char* pszFile, int nLine)
@@ -84,7 +83,7 @@ static void potential_deadlock_detected(const std::pair<void*, void*>& mismatch,
         LogPrint("sync", "%s : Previous lock order was:\n", __FUNCTION__);
     }
 
-    BOOST_FOREACH(const PAIRTYPE(void*, CLockLocation)& i, s2)
+    for(const PAIRTYPE(void*, CLockLocation)& i: s2)
     {
         if (i.first == mismatch.first)
         {
@@ -113,7 +112,7 @@ static void potential_deadlock_detected(const std::pair<void*, void*>& mismatch,
         LogPrint("sync", "%s : Current lock order is:\n", __FUNCTION__);
     }
 
-    BOOST_FOREACH(const PAIRTYPE(void*, CLockLocation)& i, s1)
+    for(const PAIRTYPE(void*, CLockLocation)& i: s1)
     {
         if (i.first == mismatch.first)
         {
@@ -157,7 +156,7 @@ static void push_lock(void* c, const CLockLocation& locklocation, bool fTry)
 
     if (!fTry)
     {
-        BOOST_FOREACH(const PAIRTYPE(void*, CLockLocation)& i, (*lockstack))
+        for(const PAIRTYPE(void*, CLockLocation)& i: (*lockstack))
         {
             if (i.first == c)
             {
@@ -197,7 +196,9 @@ static void pop_lock()
     }
 
     dd_mutex.lock();
+
     (*lockstack).pop_back();
+    
     dd_mutex.unlock();
 }
 
@@ -218,7 +219,7 @@ std::string LocksHeld()
 {
     std::string result;
 
-    BOOST_FOREACH(const PAIRTYPE(void*, CLockLocation)&i, *lockstack)
+    for(const PAIRTYPE(void*, CLockLocation)&i: *lockstack)
     {
         result += i.second.ToString() + std::string("\n");
     }
@@ -229,7 +230,7 @@ std::string LocksHeld()
 
 void AssertLockHeldInternal(const char *pszName, const char* pszFile, int nLine, void *cs)
 {
-    BOOST_FOREACH(const PAIRTYPE(void*, CLockLocation)&i, *lockstack)
+    for(const PAIRTYPE(void*, CLockLocation)&i: *lockstack)
     {
         if (i.first == cs)
         {

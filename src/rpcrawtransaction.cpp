@@ -56,9 +56,10 @@ void ScriptPubKeyToJSON(const CScript& scriptPubKey, Object& out, bool fIncludeH
     out.push_back(Pair("type",                      GetTxnOutputType(type)));
 
     Array a;
-    BOOST_FOREACH(const CTxDestination& addr,       addresses)
+
+    for(const CTxDestination& addr:       addresses)
     {
-        a.push_back(CPHCcoinAddress(addr).ToString());
+        a.push_back(CCoinAddress(addr).ToString());
     }
 
     out.push_back(Pair("addresses",                 a));
@@ -73,7 +74,8 @@ void TxToJSON(const CTransaction& tx, const uint256 hashBlock, Object& entry)
     entry.push_back(Pair("locktime",                    (int64_t)tx.nLockTime));
     
     Array vin;
-    BOOST_FOREACH(const CTxIn& txin, tx.vin)
+
+    for(const CTxIn& txin: tx.vin)
     {
         Object in;
         if (tx.IsCoinBase())
@@ -98,6 +100,7 @@ void TxToJSON(const CTransaction& tx, const uint256 hashBlock, Object& entry)
     entry.push_back(Pair("vin",                         vin));
     
     Array vout;
+
     for (unsigned int i = 0; i < tx.vout.size(); i++)
     {
         const CTxOut& txout = tx.vout[i];
@@ -121,9 +124,11 @@ void TxToJSON(const CTransaction& tx, const uint256 hashBlock, Object& entry)
         entry.push_back(Pair("blockhash",               hashBlock.GetHex()));
 
         map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hashBlock);
+
         if (mi != mapBlockIndex.end() && (*mi).second)
         {
             CBlockIndex* pindex = (*mi).second;
+
             if (pindex->IsInMainChain())
             {
                 entry.push_back(Pair("confirmations",   1 + nBestHeight - pindex->nHeight));
@@ -215,14 +220,14 @@ Value listunspent(const Array& params, bool fHelp)
         nMaxDepth = params[1].get_int();
     }
 
-    set<CPHCcoinAddress> setAddress;
+    set<CCoinAddress> setAddress;
     if (params.size() > 2)
     {
         Array inputs = params[2].get_array();
 
-        BOOST_FOREACH(Value& input, inputs)
+        for(Value& input: inputs)
         {
-            CPHCcoinAddress address(input.get_str());
+            CCoinAddress address(input.get_str());
 
             if (!address.IsValid())
             {
@@ -253,7 +258,7 @@ Value listunspent(const Array& params, bool fHelp)
 
     pwalletMain->AvailableCoins(vecOutputs, false);
     
-    BOOST_FOREACH(const COutput& out, vecOutputs)
+    for(const COutput& out: vecOutputs)
     {
         if (out.nDepth < nMinDepth || out.nDepth > nMaxDepth)
         {
@@ -286,7 +291,7 @@ Value listunspent(const Array& params, bool fHelp)
         
         if (ExtractDestination(out.tx->vout[out.i].scriptPubKey, address))
         {
-            entry.push_back(Pair("address",                 CPHCcoinAddress(address).ToString()));
+            entry.push_back(Pair("address",                 CCoinAddress(address).ToString()));
 
             if (pwalletMain->mapAddressBook.count(address))
             {
@@ -342,7 +347,7 @@ Value createrawtransaction(const Array& params, bool fHelp)
 
     CTransaction rawTx;
 
-    BOOST_FOREACH(Value& input, inputs)
+    for(Value& input: inputs)
     {
         const Object& o = input.get_obj();
 
@@ -374,11 +379,11 @@ Value createrawtransaction(const Array& params, bool fHelp)
         rawTx.vin.push_back(in);
     }
 
-    set<CPHCcoinAddress> setAddress;
+    set<CCoinAddress> setAddress;
 
-    BOOST_FOREACH(const Pair& s, sendTo)
+    for(const Pair& s: sendTo)
     {
-        CPHCcoinAddress address(s.name_);
+        CCoinAddress address(s.name_);
 
         if (!address.IsValid())
         {
@@ -464,7 +469,7 @@ Value decodescript(const Array& params, bool fHelp)
     
     ScriptPubKeyToJSON(script, r, false);
 
-    r.push_back(Pair("p2sh", CPHCcoinAddress(script.GetID()).ToString()));
+    r.push_back(Pair("p2sh", CCoinAddress(script.GetID()).ToString()));
     
     return r;
 }
@@ -545,7 +550,7 @@ Value signrawtransaction(const Array& params, bool fHelp)
         tempTx.FetchInputs(txdb, unused, false, false, mapPrevTx, fInvalid);
 
         // Copy results into mapPrevOut:
-        BOOST_FOREACH(const CTxIn& txin, tempTx.vin)
+        for(const CTxIn& txin: tempTx.vin)
         {
             const uint256& prevHash = txin.prevout.hash;
 
@@ -566,7 +571,7 @@ Value signrawtransaction(const Array& params, bool fHelp)
         
         Array keys = params[2].get_array();
         
-        BOOST_FOREACH(Value k, keys)
+        for(Value k: keys)
         {
             CPHCcoinSecret vchSecret;
             
@@ -594,7 +599,7 @@ Value signrawtransaction(const Array& params, bool fHelp)
     {
         Array prevTxs = params[1].get_array();
 
-        BOOST_FOREACH(Value& p, prevTxs)
+        for(Value& p: prevTxs)
         {
             if (p.type() != obj_type)
             {
@@ -726,7 +731,7 @@ Value signrawtransaction(const Array& params, bool fHelp)
         }
 
         // ... and merge in other signatures:
-        BOOST_FOREACH(const CTransaction& txv, txVariants)
+        for(const CTransaction& txv: txVariants)
         {
             txin.scriptSig = CombineSignatures(prevPubKey, mergedTx, i, txin.scriptSig, txv.vin[i].scriptSig);
         }
@@ -815,7 +820,7 @@ Value searchrawtransactions(const Array &params, bool fHelp)
         throw runtime_error("searchrawtransactions <address> [verbose=1] [skip=0] [count=100]\n");
     }
 
-    CPHCcoinAddress address(params[0].get_str());
+    CCoinAddress address(params[0].get_str());
     if (!address.IsValid())
     {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Bitcoin address");

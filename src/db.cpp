@@ -105,6 +105,7 @@ bool CDBEnv::Open(boost::filesystem::path pathEnv_)
 
     pathEnv = pathEnv_;
     filesystem::path pathDataDir = pathEnv;
+
     strPath = pathDataDir.string();
     
     filesystem::path pathLogDir = pathDataDir / "database";
@@ -380,6 +381,7 @@ CDB::CDB(const std::string& strFilename, const char* pszMode) : pdb(NULL), activ
             pdb = new Db(&bitdb.dbenv, 0);
 
             bool fMockDb = bitdb.IsMock();
+
             if (fMockDb)
             {
                 DbMpoolFile*mpf = pdb->get_mpf();
@@ -520,6 +522,7 @@ bool CDB::Rewrite(const string& strFile, const char* pszSkip)
                 {
                     // surround usage of db with extra {}
                     CDB db(strFile.c_str(), "r");
+
                     Db* pdbCopy = new Db(&bitdb.dbenv, 0);
 
                     int ret = pdbCopy->open(NULL,                 // Txn pointer
@@ -539,6 +542,7 @@ bool CDB::Rewrite(const string& strFile, const char* pszSkip)
                     }
 
                     Dbc* pcursor = db.GetCursor();
+
                     if (pcursor)
                     {
                         while (fSuccess)
@@ -605,12 +609,14 @@ bool CDB::Rewrite(const string& strFile, const char* pszSkip)
                 if (fSuccess)
                 {
                     Db dbA(&bitdb.dbenv, 0);
+                    
                     if (dbA.remove(strFile.c_str(), NULL, 0))
                     {
                         fSuccess = false;
                     }
 
                     Db dbB(&bitdb.dbenv, 0);
+
                     if (dbB.rename(strFileRes.c_str(), NULL, strFile.c_str(), 0))
                     {
                         fSuccess = false;

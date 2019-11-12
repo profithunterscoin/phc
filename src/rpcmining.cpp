@@ -109,12 +109,17 @@ Value getstakesubsidy(const Array& params, bool fHelp)
 Value getgenerate(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
+    {
         throw runtime_error(
             "getgenerate\n"
-            "Returns true or false.");
+            "Returns true or false."
+            );
+    }
 
     if (!pMiningKey)
+    {
         return false;
+    }
 
     return GetBoolArg("-gen", false);
 }
@@ -123,12 +128,16 @@ Value getgenerate(const Array& params, bool fHelp)
 Value setgenerate(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 1 || params.size() > 3)
+    {
         throw runtime_error(
             "setgenerate <generate> [genproclimit] <debugtoconsole>\n"
             "<generate> is true or false to turn generation on or off.\n"
             "[genproclimit] CPU threads to use for mining\n"
             "<debugtoconsole> optional to display live debug to unix/dos console (default: false)"
-            "Generation is limited to [genproclimit] processors, -1 is unlimited.");
+            "Generation is limited to [genproclimit] processors, -1 is unlimited."
+            );
+
+    }
 
     bool fGenerate = true;
     bool fDebugConsoleOutputMining = false;
@@ -222,16 +231,18 @@ Value getmininginfo(const Array& params, bool fHelp)
     obj.push_back(Pair("errors",                                    GetWarnings("statusbar")));
     obj.push_back(Pair("protocol_testnet",                          TestNet()));
 
+    /*
     obj.push_back(Pair("blocks",                                    (int)nBestHeight));
     obj.push_back(Pair("bestblockhash",                             pindexBest->GetBlockHash().GetHex()));
     obj.push_back(Pair("blockvalue",                                (int64_t)GetProofOfWorkReward(pindexBest->nHeight, false)));
     obj.push_back(Pair("currentblocksize",                          (uint64_t)nLastBlockSize));
     obj.push_back(Pair("currentblocktx",                            (uint64_t)nLastBlockTx));
     obj.push_back(Pair("pooledtx",                                  (uint64_t)mempool.size()));
-
+    */
+    
     diff.push_back(Pair("proof-of-work minimum",                    GetDifficulty()));
     
-    diff.push_back(Pair("search-interval",                          (int)nLastCoinStakeSearchInterval));
+    //diff.push_back(Pair("search-interval",                          (int)nLastCoinStakeSearchInterval));
     
     obj.push_back(Pair("difficulty",                                GetDifficulty(GetLastBlockIndex(pindexBest, true))));
     obj.push_back(Pair("netmhashps",                                GetPoWMHashPS()));
@@ -274,37 +285,73 @@ Value getstakinginfo(const Array& params, bool fHelp)
 
 
     uint64_t nNetworkWeight = GetPoSKernelPS();
-    
     bool staking = nLastCoinStakeSearchInterval && nWeight;
-    
     nExpectedTime = staking ? (TARGET_SPACING * nNetworkWeight / nWeight) : 0;
 
-    Object obj, weight, chainshield, chainbuddy;
+    Object obj, errors;
 
-    obj.push_back(Pair("errors",                                    GetWarnings("statusbar")));
+    std::string stake_error;
+
+    if (staking == false)
+    {
+		if (pwalletMain && pwalletMain->IsLocked())
+		{
+			stake_error = "Not staking because wallet is locked";
+		}
+		else if (vNodes.empty())
+		{
+			stake_error = "Not staking because wallet is offline";
+		}
+		else if (IsInitialBlockDownload())
+		{
+			stake_error = "Not staking because wallet is syncing";
+		}
+		else if (!nWeight)
+		{
+			stake_error = "Not staking because you don't have mature coins";
+		}
+		else
+		{
+			stake_error = "Not staking";
+		}
+    }		
+
+    obj.push_back(Pair("protocol_testnet",                          TestNet()));
+    
+    errors.push_back(Pair("statusbar",                              GetWarnings("statusbar")));
+    errors.push_back(Pair("stake_error",                            stake_error));
+    obj.push_back(Pair("errors",                                    errors));
+
     obj.push_back(Pair("protocol_testnet",                          TestNet()));
 
     obj.push_back(Pair("enabled",                                   GetBoolArg("-staking", true)));
     obj.push_back(Pair("staking",                                   staking));
 
+    obj.push_back(Pair("stakeweight",                               (uint64_t)nWeight));
+    obj.push_back(Pair("stakethreshold",                            GetStakeCombineThreshold() / COIN));
+
+    obj.push_back(Pair("netstakeweight",                            (uint64_t)nNetworkWeight));
+    obj.push_back(Pair("expectedtime",                              nExpectedTime));
+
+    obj.push_back(Pair("difficulty",                                GetDifficulty(GetLastBlockIndex(pindexBest, true))));
+    obj.push_back(Pair("search-interval",                           (int)nLastCoinStakeSearchInterval));
+
+    /*
+    weight.push_back(Pair("minimum",                                (uint64_t)nWeight));
+    weight.push_back(Pair("maximum",                                (uint64_t)0));
+    weight.push_back(Pair("combined",                               (uint64_t)nWeight));
+    obj.push_back(Pair("stakeweight",                               weight));
+    */
+
+    /*
     obj.push_back(Pair("blocks",                                    (int)nBestHeight));
     obj.push_back(Pair("bestblockhash",                             pindexBest->GetBlockHash().GetHex()));
     obj.push_back(Pair("blockvalue",                                (int64_t)GetProofOfWorkReward(pindexBest->nHeight, false)));
     obj.push_back(Pair("currentblocksize",                          (uint64_t)nLastBlockSize));
     obj.push_back(Pair("currentblocktx",                            (uint64_t)nLastBlockTx));
     obj.push_back(Pair("pooledtx",                                  (uint64_t)mempool.size()));
+    */
 
-    obj.push_back(Pair("difficulty",                                GetDifficulty(GetLastBlockIndex(pindexBest, true))));
-    obj.push_back(Pair("search-interval",                           (int)nLastCoinStakeSearchInterval));
-
-    weight.push_back(Pair("minimum",                                (uint64_t)nWeight));
-    weight.push_back(Pair("maximum",                                (uint64_t)0));
-    weight.push_back(Pair("combined",                               (uint64_t)nWeight));
-    obj.push_back(Pair("stakeweight",                               weight));
-    obj.push_back(Pair("stakethreshold",                            GetStakeCombineThreshold() / COIN));
-
-    obj.push_back(Pair("netstakeweight",                            (uint64_t)nNetworkWeight));
-    obj.push_back(Pair("expectedtime",                              nExpectedTime));
 
     return obj;
 }
@@ -344,7 +391,7 @@ Value checkkernel(const Array& params, bool fHelp)
     
     nTime &= ~STAKE_TIMESTAMP_MASK;
 
-    BOOST_FOREACH(Value& input, inputs)
+    for(Value& input: inputs)
     {
         const Object& o = input.get_obj();
 
@@ -418,6 +465,7 @@ Value checkkernel(const Array& params, bool fHelp)
     result.push_back(Pair("blocktemplatefees", nFees));
 
     CPubKey pubkey;
+
     if (!pMiningKey->GetReservedKey(pubkey))
     {
         throw JSONRPCError(RPC_MISC_ERROR, "GetReservedKey failed");
@@ -472,7 +520,7 @@ Value getworkex(const Array& params, bool fHelp)
                 // Deallocate old blocks since they're obsolete now
                 mapNewBlock.clear();
                 
-                BOOST_FOREACH(CBlock* pblock, vNewBlock)
+                for(CBlock* pblock: vNewBlock)
                 {
                     delete pblock;
                 }
@@ -486,6 +534,7 @@ Value getworkex(const Array& params, bool fHelp)
 
             // Create new block
             pblock = CreateNewBlock(*pMiningKey);
+
             if (!pblock)
             {
                 throw JSONRPCError(-7, "Out of memory");
@@ -500,6 +549,7 @@ Value getworkex(const Array& params, bool fHelp)
 
         // Update nExtraNonce
         static unsigned int nExtraNonce = 0;
+
         IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
 
         // Save
@@ -509,6 +559,7 @@ Value getworkex(const Array& params, bool fHelp)
         char pmidstate[32];
         char pdata[128];
         char phash1[64];
+
         FormatHashBuffers(pblock, pmidstate, pdata, phash1);
 
         uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
@@ -526,7 +577,7 @@ Value getworkex(const Array& params, bool fHelp)
 
         Array merkle_arr;
 
-        BOOST_FOREACH(uint256 merkleh, merkle)
+        for(uint256 merkleh: merkle)
         {
             merkle_arr.push_back(HexStr(BEGIN(merkleh), END(merkleh)));
         }
@@ -646,7 +697,7 @@ Value getwork(const Array& params, bool fHelp)
                 // Deallocate old blocks since they're obsolete now
                 mapNewBlock.clear();
                 
-                BOOST_FOREACH(CBlock* pblock, vNewBlock)
+                for(CBlock* pblock: vNewBlock)
                 {
                     delete pblock;
                 }
@@ -682,6 +733,7 @@ Value getwork(const Array& params, bool fHelp)
 
         // Update nExtraNonce
         static unsigned int nExtraNonce = 0;
+
         IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
 
         // Save
@@ -691,6 +743,7 @@ Value getwork(const Array& params, bool fHelp)
         char pmidstate[32];
         char pdata[128];
         char phash1[64];
+
         FormatHashBuffers(pblock, pmidstate, pdata, phash1);
 
         uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
@@ -870,7 +923,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
     
     CTxDB txdb("r");
     
-    BOOST_FOREACH (CTransaction& tx, pblock->vtx)
+    for(CTransaction& tx: pblock->vtx)
     {
         uint256 txHash = tx.GetHash();
         setTxIndex[txHash] = i++;
@@ -899,7 +952,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
 
             Array deps;
             
-            BOOST_FOREACH (MapPrevTx::value_type& inp, mapInputs)
+            for(MapPrevTx::value_type& inp: mapInputs)
             {
                 if (setTxIndex.count(inp.first))
                 {
@@ -911,6 +964,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
 
             int64_t nSigOps = GetLegacySigOpCount(tx);
             nSigOps += GetP2SHSigOpCount(tx, mapInputs);
+
             entry.push_back(Pair("sigops", nSigOps));
         }
 
@@ -923,6 +977,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
     uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
 
     static Array aMutable;
+    
     if (aMutable.empty())
     {
         aMutable.push_back("time");

@@ -14,7 +14,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
-#include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/tuple/tuple_comparison.hpp>
 
@@ -718,6 +717,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
                     {
                         // ( -- value)
                         CBigNum bn((int)opcode - (int)(OP_1 - 1));
+
                         stack.push_back(bn.getvch());
                     }
                     break;
@@ -832,6 +832,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
                         }
 
                         altstack.push_back(stacktop(-1));
+
                         popstack(stack);
                     }
                     break;
@@ -844,6 +845,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
                         }
 
                         stack.push_back(altstacktop(-1));
+
                         popstack(altstack);
                     }
                     break;
@@ -1081,6 +1083,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
                         }
 
                         valtype vch = stacktop(-1);
+
                         stack.insert(stack.end()-2, vch);
                     }
                     break;
@@ -1103,6 +1106,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
                         vch1.insert(vch1.end(), vch2.begin(), vch2.end());
                         
                         popstack(stack);
+
                         if (stacktop(-1).size() > MAX_SCRIPT_ELEMENT_SIZE)
                         {
                             return false;
@@ -1191,6 +1195,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
                         }
 
                         CBigNum bn(stacktop(-1).size());
+
                         stack.push_back(bn.getvch());
                     }
                     break;
@@ -1378,6 +1383,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
                         }
 
                         popstack(stack);
+
                         stack.push_back(bn.getvch());
                     }
                     break;
@@ -1607,6 +1613,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
                         }
 
                         valtype& vch = stacktop(-1);
+
                         valtype vchHash((opcode == OP_RIPEMD160 || opcode == OP_SHA1 || opcode == OP_HASH160) ? 20 : 32);
 
                         if (opcode == OP_RIPEMD160)
@@ -1624,15 +1631,18 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
                         else if (opcode == OP_HASH160)
                         {
                             uint160 hash160 = Hash160(vch);
+
                             memcpy(&vchHash[0], &hash160, sizeof(hash160));
                         }
                         else if (opcode == OP_HASH256)
                         {
                             uint256 hash = Hash(vch.begin(), vch.end());
+
                             memcpy(&vchHash[0], &hash, sizeof(hash));
                         }
 
                         popstack(stack);
+
                         stack.push_back(vchHash);
                     }
                     break;
@@ -1706,6 +1716,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
                         }
                         
                         nOpCount += nKeysCount;
+
                         if (nOpCount > 201)
                         {
                             return false; 
@@ -1714,6 +1725,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
                         int ikey = ++i;
 
                         i += nKeysCount;
+
                         if ((int)stack.size() < i)
                         {
                             return false;
@@ -2022,6 +2034,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
                     {
                         // ( -- value)
                         CScriptNum bn((int)opcode - (int)(OP_1 - 1));
+
                         stack.push_back(bn.getvch());
                         // The result of these opcodes should always be the minimal way to push the data
                         // they push, so no need for a CheckMinimalPush here.
@@ -2051,6 +2064,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
                     {
                         // <expression> if [statements] [else [statements]] endif
                         bool fValue = false;
+
                         if (fExec)
                         {
                             if (stack.size() < 1)
@@ -2104,6 +2118,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
                         }
 
                         bool fValue = CastToBool(stacktop(-1));
+
                         if (fValue)
                         {
                             popstack(stack);
@@ -2133,6 +2148,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
                         }
 
                         altstack.push_back(stacktop(-1));
+
                         popstack(stack);
                     }
                     break;
@@ -2252,6 +2268,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
                         }
 
                         valtype vch = stacktop(-1);
+
                         if (CastToBool(vch))
                         {
                             stack.push_back(vch);
@@ -2263,6 +2280,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
                     {
                         // -- stacksize
                         CScriptNum bn(stack.size());
+
                         stack.push_back(bn.getvch());
                     }
                     break;
@@ -2288,6 +2306,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
                         }
 
                         valtype vch = stacktop(-1);
+
                         stack.push_back(vch);
                     }
                     break;
@@ -2313,6 +2332,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
                         }
 
                         valtype vch = stacktop(-2);
+
                         stack.push_back(vch);
                     }
                     break;
@@ -2382,6 +2402,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
                         }
 
                         valtype vch = stacktop(-1);
+
                         stack.insert(stack.end()-2, vch);
                     }
                     break;
@@ -2396,6 +2417,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
                         }
 
                         CScriptNum bn(stacktop(-1).size());
+
                         stack.push_back(bn.getvch());
                     }
                     break;
@@ -2508,6 +2530,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
                         }
 
                         popstack(stack);
+
                         stack.push_back(bn.getvch());
                     }
                     break;
@@ -3023,6 +3046,7 @@ bool SignSignature(const CKeyStore &keystore, const CScript& fromPubKey, CTransa
     uint256 hash = SignatureHash(fromPubKey, txTo, nIn, nHashType);
 
     txnouttype whichType;
+
     if (!Solver(keystore, fromPubKey, hash, nHashType, txin.scriptSig, whichType))
     {
         return false;
@@ -3143,8 +3167,7 @@ class CSignatureCache
                 // than our cache size.
                 uint256 randomHash = GetRandHash();
                 std::vector<unsigned char> unused;
-                std::set<sigdata_type>::iterator it =
-                setValid.lower_bound(sigdata_type(randomHash, unused, unused));
+                std::set<sigdata_type>::iterator it = setValid.lower_bound(sigdata_type(randomHash, unused, unused));
 
                 if (it == setValid.end())
                 {
@@ -3165,6 +3188,7 @@ bool CheckSig(vector<unsigned char> vchSig, const vector<unsigned char> &vchPubK
     static CSignatureCache signatureCache;
 
     CPubKey pubkey(vchPubKey);
+
     if (!pubkey.IsValid())
     {
         return false;
@@ -3215,6 +3239,7 @@ bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsi
 {
     // Templates
     static multimap<txnouttype, CScript> mTemplates;
+
     if (mTemplates.empty())
     {
         // Standard tx, sender provides pubkey, receiver adds signature
@@ -3238,6 +3263,7 @@ bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsi
         typeRet = TX_SCRIPTHASH;
 
         vector<unsigned char> hashBytes(scriptPubKey.begin()+2, scriptPubKey.begin()+22);
+
         vSolutionsRet.push_back(hashBytes);
 
         return true;
@@ -3246,9 +3272,10 @@ bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsi
     // Scan templates
     const CScript& script1 = scriptPubKey;
 
-    BOOST_FOREACH(const PAIRTYPE(txnouttype, CScript)& tplate, mTemplates)
+    for(const PAIRTYPE(txnouttype, CScript)& tplate: mTemplates)
     {
         const CScript& script2 = tplate.second;
+
         vSolutionsRet.clear();
 
         opcodetype opcode1, opcode2;
@@ -3264,6 +3291,7 @@ bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsi
             {
                 // Found a match
                 typeRet = tplate.first;
+
                 if (typeRet == TX_MULTISIG)
                 {
                     // Additional checks for TX_MULTISIG:
@@ -3335,6 +3363,7 @@ bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsi
                 if (opcode1 == OP_0 || (opcode1 >= OP_1 && opcode1 <= OP_16))
                 {
                     char n = (char)CScript::DecodeOP_N(opcode1);
+
                     vSolutionsRet.push_back(valtype(1, n));
                 }
                 else
@@ -3360,6 +3389,7 @@ bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsi
     }
 
     vSolutionsRet.clear();
+
     typeRet = TX_NONSTANDARD;
 
     return false;
@@ -3369,6 +3399,7 @@ bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, vector<vector<unsi
 bool Sign1(const CKeyID& address, const CKeyStore& keystore, uint256 hash, int nHashType, CScript& scriptSigRet)
 {
     CKey key;
+
     if (!keystore.GetKey(address, key))
     {
         return false;
@@ -3383,6 +3414,7 @@ bool Sign1(const CKeyID& address, const CKeyStore& keystore, uint256 hash, int n
     }
     
     vchSig.push_back((unsigned char)nHashType);
+
     scriptSigRet << vchSig;
 
     return true;
@@ -3422,6 +3454,7 @@ bool Solver(const CKeyStore& keystore, const CScript& scriptPubKey, uint256 hash
     scriptSigRet.clear();
 
     vector<valtype> vSolutions;
+
     if (!Solver(scriptPubKey, whichTypeRet, vSolutions))
     {
         return false;
@@ -3563,7 +3596,7 @@ unsigned int HaveKeys(const vector<valtype>& pubkeys, const CKeyStore& keystore)
 {
     unsigned int nResult = 0;
 
-    BOOST_FOREACH(const valtype& pubkey, pubkeys)
+    for(const valtype& pubkey: pubkeys)
     {
         CKeyID keyID = CPubKey(pubkey).GetID();
 
@@ -3766,7 +3799,7 @@ class CAffectedKeysVisitor : public boost::static_visitor<void>
 
             if (ExtractDestinations(script, type, vDest, nRequired))
             {
-                BOOST_FOREACH(const CTxDestination &dest, vDest)
+                for(const CTxDestination &dest: vDest)
                 {
                     boost::apply_visitor(*this, dest);
                 }
@@ -3834,6 +3867,7 @@ bool ExtractDestinations(const CScript& scriptPubKey, txnouttype& typeRet, vecto
         for (unsigned int i = 1; i < vSolutions.size()-1; i++)
         {
             CTxDestination address = CPubKey(vSolutions[i]).GetID();
+
             addressRet.push_back(address);
         }
     }
@@ -4103,7 +4137,7 @@ static CScript PushAll(const vector<valtype>& values)
 {
     CScript result;
 
-    BOOST_FOREACH(const valtype& v, values)
+    for(const valtype& v: values)
     {
         result << v;
     }
@@ -4118,7 +4152,8 @@ static CScript CombineMultisig(CScript scriptPubKey, const CTransaction& txTo, u
 
     // Combine all the signatures we've got:
     set<valtype> allsigs;
-    BOOST_FOREACH(const valtype& v, sigs1)
+
+    for(const valtype& v: sigs1)
     {
         if (!v.empty())
         {
@@ -4126,7 +4161,7 @@ static CScript CombineMultisig(CScript scriptPubKey, const CTransaction& txTo, u
         }
     }
 
-    BOOST_FOREACH(const valtype& v, sigs2)
+    for(const valtype& v: sigs2)
     {
         if (!v.empty())
         {
@@ -4152,7 +4187,7 @@ static CScript CombineMultisig(CScript scriptPubKey, const CTransaction& txTo, u
 
     map<valtype, valtype> sigs;
 
-    BOOST_FOREACH(const valtype& sig, allsigs)
+    for(const valtype& sig: allsigs)
     {
         for (unsigned int i = 0; i < nPubKeys; i++)
         {
@@ -4166,6 +4201,7 @@ static CScript CombineMultisig(CScript scriptPubKey, const CTransaction& txTo, u
             if (CheckSig(sig, pubkey, scriptPubKey, txTo, nIn, 0, 0))
             {
                 sigs[pubkey] = sig;
+
                 break;
             }
         }
@@ -4178,6 +4214,7 @@ static CScript CombineMultisig(CScript scriptPubKey, const CTransaction& txTo, u
         if (sigs.count(vSolutions[i+1]))
         {
             result << sigs[vSolutions[i+1]];
+
             ++nSigsHave;
         }
     }
@@ -4286,6 +4323,7 @@ unsigned int CScript::GetSigOpCount(bool fAccurate) const
     while (pc < end())
     {
         opcodetype opcode;
+
         if (!GetOp(pc, opcode))
         {
             break;
@@ -4466,7 +4504,7 @@ void CScript::SetMultisig(int nRequired, const std::vector<CPubKey>& keys)
 
     *this << EncodeOP_N(nRequired);
 
-    BOOST_FOREACH(const CPubKey& key, keys)
+    for(const CPubKey& key: keys)
     {
         *this << key;
     }
@@ -4524,6 +4562,7 @@ bool CScriptCompressor::IsToPubKey(CPubKey &pubkey) const
 bool CScriptCompressor::Compress(std::vector<unsigned char> &out) const
 {
     CKeyID keyID;
+
     if (IsToKeyID(keyID))
     {
         out.resize(21);
@@ -4535,6 +4574,7 @@ bool CScriptCompressor::Compress(std::vector<unsigned char> &out) const
     }
 
     CScriptID scriptID;
+
     if (IsToScriptID(scriptID))
     {
         out.resize(21);
@@ -4546,9 +4586,11 @@ bool CScriptCompressor::Compress(std::vector<unsigned char> &out) const
     }
 
     CPubKey pubkey;
+
     if (IsToPubKey(pubkey))
     {
         out.resize(33);
+        
         memcpy(&out[1], &pubkey[1], 32);
         
         if (pubkey[0] == 0x02 || pubkey[0] == 0x03)
@@ -4688,7 +4730,7 @@ CScript GetScriptForMultisig(int nRequired, const std::vector<CPubKey>& keys)
 
     script << CScript::EncodeOP_N(nRequired);
     
-    BOOST_FOREACH(const CPubKey& key, keys)
+    for(const CPubKey& key: keys)
     {
         script << ToByteVector(key);
     }

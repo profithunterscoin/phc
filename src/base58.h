@@ -88,6 +88,7 @@ class CBase58Data
         vector_uchar vchData;
 
         CBase58Data();
+
         void SetData(const std::vector<unsigned char> &vchVersionIn, const void* pdata, size_t nSize);
         void SetData(const std::vector<unsigned char> &vchVersionIn, const unsigned char *pbegin, const unsigned char *pend);
 
@@ -133,7 +134,7 @@ class CBase58Data
  * Script-hash-addresses have version 5 (or 196 testnet).
  * The data vector contains RIPEMD160(SHA256(cscript)), where cscript is the serialized redemption script.
  */
-class CPHCcoinAddress : public CBase58Data
+class CCoinAddress : public CBase58Data
 {
     public:
 
@@ -143,10 +144,23 @@ class CPHCcoinAddress : public CBase58Data
         
         bool IsValid() const;
 
-        CPHCcoinAddress() {}
-        CPHCcoinAddress(const CTxDestination &dest) { Set(dest); }
-        CPHCcoinAddress(const std::string& strAddress) { SetString(strAddress); }
-        CPHCcoinAddress(const char* pszAddress) { SetString(pszAddress); }
+        CCoinAddress()
+        {}
+
+        CCoinAddress(const CTxDestination &dest)
+        {
+            Set(dest);
+        }
+
+        CCoinAddress(const std::string& strAddress)
+        {
+            SetString(strAddress);
+        }
+
+        CCoinAddress(const char* pszAddress)
+        {
+            SetString(pszAddress);
+        }
 
         CTxDestination Get() const;
         
@@ -171,8 +185,13 @@ class CPHCcoinSecret : public CBase58Data
         bool SetString(const char* pszSecret);
         bool SetString(const std::string& strSecret);
 
-        CPHCcoinSecret(const CKey& vchSecret) { SetKey(vchSecret); }
-        CPHCcoinSecret() {}
+        CPHCcoinSecret(const CKey& vchSecret)
+        {
+            SetKey(vchSecret);
+        }
+
+        CPHCcoinSecret() 
+        {}
 };
 
 
@@ -183,7 +202,9 @@ template<typename K, int Size, CChainParams::Base58Type Type> class CPHCcoinExtK
         void SetKey(const K &key)
         {
             unsigned char vch[Size];
+
             key.Encode(vch);
+
             SetData(Params().Base58Prefix(Type), vch, vch+Size);
         }
 
@@ -224,10 +245,23 @@ class CBitcoinAddress : public CBase58Data
         
         bool IsValid() const;
 
-        CBitcoinAddress() {}
-        CBitcoinAddress(const CTxDestination &dest) { Set(dest); }
-        CBitcoinAddress(const std::string& strAddress) { SetString(strAddress); }
-        CBitcoinAddress(const char* pszAddress) { SetString(pszAddress); }
+        CBitcoinAddress()
+        {}
+
+        CBitcoinAddress(const CTxDestination &dest)
+        {
+            Set(dest);
+        }
+
+        CBitcoinAddress(const std::string& strAddress)
+        {
+            SetString(strAddress);
+        }
+
+        CBitcoinAddress(const char* pszAddress)
+        {
+            SetString(pszAddress);
+        }
 
         CTxDestination Get() const;
         

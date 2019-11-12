@@ -330,7 +330,7 @@
         </widget>
        </item>
       <item row="16" column="0">
-        <widget class="QPushButton" name="openPHCConfigfileButton">
+        <widget class="QPushButton" name="openConfigfileButton">
          <property name="toolTip">
           <string>Open the PHC config file from the current data directory. This can take a few seconds for large log files.</string>
          </property>

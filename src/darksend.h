@@ -27,7 +27,7 @@ class CTxIn;
 class CDarksendPool;
 class CDarkSendSigner;
 class CMasterNodeVote;
-class CPHCcoinAddress;
+class CCoinAddress;
 class CDarksendQueue;
 class CDarksendBroadcastTx;
 class CActiveMasternode;
@@ -131,12 +131,12 @@ class CDarkSendEntry
                 return false;
             }
 
-            BOOST_FOREACH(const CTxIn& in, vinIn)
+            for(const CTxIn& in: vinIn)
             {
                 sev.push_back(in);
             }
 
-            BOOST_FOREACH(const CTxOut& out, voutIn)
+            for(const CTxOut& out: voutIn)
             {
                 vout.push_back(out);
             }
@@ -151,7 +151,7 @@ class CDarkSendEntry
 
         bool AddSig(const CTxIn& vin)
         {
-            BOOST_FOREACH(CTxDSIn& s, sev)
+            for(CTxDSIn& s: sev)
             {
                 if(s.prevout == vin.prevout && s.nSequence == vin.nSequence)
                 {

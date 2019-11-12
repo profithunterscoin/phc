@@ -25,6 +25,7 @@
 
 #include <stdint.h>
 
+
 class TransactionTableModel;
 class ClientModel;
 class WalletModel;
@@ -41,6 +42,7 @@ class MessageModel;
 class BlockBrowser;
 //class tradingDialog;
 
+
 QT_BEGIN_NAMESPACE
 class QLabel;
 class QModelIndex;
@@ -49,6 +51,7 @@ class QProgressDialog;
 class QStackedWidget;
 class QScrollArea;
 QT_END_NAMESPACE
+
 
 /**
   Bitcoin GUI main class. This class represents the main window of the Bitcoin UI. It communicates with both the client and
@@ -61,6 +64,7 @@ class BitcoinGUI : public QMainWindow
     public:
     
         explicit BitcoinGUI(QWidget *parent = 0);
+
         ~BitcoinGUI();
 
         /** Set the client model.
@@ -328,8 +332,6 @@ class BitcoinGUI : public QMainWindow
 
         /** Show progress dialog e.g. for verifychain */
         void showProgress(const QString &title, int nProgress);
-
-
 
 };
 

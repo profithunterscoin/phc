@@ -51,6 +51,7 @@ void HMAC_SHA256_Init(HMAC_SHA256_CTX * ctx, const void * _K, size_t Klen)
 
     /* Inner SHA256 operation is SHA256(K xor [block of 0x36] || data). */
     SHA256_Init(&ctx->ictx);
+
     memset(pad, 0x36, 64);
     
     for (i = 0; i < Klen; i++)
@@ -62,6 +63,7 @@ void HMAC_SHA256_Init(HMAC_SHA256_CTX * ctx, const void * _K, size_t Klen)
 
     /* Outer SHA256 operation is SHA256(K xor [block of 0x5c] || hash). */
     SHA256_Init(&ctx->octx);
+
     memset(pad, 0x5c, 64);
     
     for (i = 0; i < Klen; i++)
@@ -136,6 +138,7 @@ void PBKDF2_SHA256(const uint8_t * passwd, size_t passwdlen, const uint8_t * sal
 
         /* Compute U_1 = PRF(P, S || INT(i)). */
         memcpy(&hctx, &PShctx, sizeof(HMAC_SHA256_CTX));
+        
         HMAC_SHA256_Update(&hctx, ivec, 4);
         HMAC_SHA256_Final(U, &hctx);
 
@@ -158,6 +161,7 @@ void PBKDF2_SHA256(const uint8_t * passwd, size_t passwdlen, const uint8_t * sal
 
         /* Copy as many bytes as necessary into buf. */
         clen = dkLen - i * 32;
+
         if (clen > 32)
         {
             clen = 32;

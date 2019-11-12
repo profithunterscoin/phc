@@ -39,6 +39,7 @@ class CMessageHeader
         CMessageHeader(const char* pszCommand, unsigned int nMessageSizeIn);
 
         std::string GetCommand() const;
+        
         bool IsValid() const;
 
         IMPLEMENT_SERIALIZE

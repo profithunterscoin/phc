@@ -47,6 +47,7 @@ CTxIn::CTxIn(uint256 hashPrevTx, unsigned int nOut, CScript scriptSigIn, unsigne
 std::string CTxIn::ToString() const
 {
     std::string str;
+
     str += "CTxIn(";
     str += prevout.ToString();
 

@@ -15,6 +15,7 @@
 #include "coincontroltreewidget.h"
 #include "coincontroldialog.h"
 
+
 CoinControlTreeWidget::CoinControlTreeWidget(QWidget *parent) : QTreeWidget(parent)
 {
 }
@@ -35,6 +36,7 @@ void CoinControlTreeWidget::keyPressEvent(QKeyEvent *event)
         event->ignore();
         
         CoinControlDialog *coinControlDialog = (CoinControlDialog*)this->parentWidget();
+
         coinControlDialog->done(QDialog::Accepted);
     }
     else

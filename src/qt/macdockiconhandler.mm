@@ -40,6 +40,7 @@ extern void qt_mac_set_dock_menu(QMenu *);
 - (id)initWithDockIconHandler:(MacDockIconHandler *)aDockIconHandler
 {
     self = [super init];
+    
     if (self)
     {
         dockIconHandler = aDockIconHandler;
@@ -77,6 +78,7 @@ MacDockIconHandler::MacDockIconHandler() : QObject()
     this->m_dummyWidget = new QWidget();
     this->m_dockMenu = new QMenu(this->m_dummyWidget);
     this->setMainWindow(NULL);
+
 #if QT_VERSION < 0x050000
     qt_mac_set_dock_menu(this->m_dockMenu);
 #endif
@@ -127,6 +129,7 @@ void MacDockIconHandler::setIcon(const QIcon &icon)
         if (!pixmap.isNull() && notificationBuffer.open(QIODevice::ReadWrite))
         {
             QImageWriter writer(&notificationBuffer, "PNG");
+
             if (writer.write(pixmap.toImage()))
             {
                 NSData* macImgData = [NSData dataWithBytes:notificationBuffer.buffer().data()

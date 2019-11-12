@@ -37,7 +37,11 @@ template<unsigned int BITS> class base_uint2
 {
     protected:
 
-        enum { WIDTH=BITS/32 };
+        enum
+        {
+            WIDTH=BITS/32
+        };
+
         uint32_t pn[WIDTH];
 
     public:
@@ -116,6 +120,7 @@ template<unsigned int BITS> class base_uint2
             }
             
             ret++;
+
             return ret;
         }
 
@@ -190,6 +195,7 @@ template<unsigned int BITS> class base_uint2
             for (int i = 0; i < WIDTH; i++)
             {
                 uint64_t n = carry + pn[i] + b.pn[i];
+
                 pn[i] = n & 0xffffffff;
                 carry = n >> 32;
             }
@@ -252,6 +258,7 @@ template<unsigned int BITS> class base_uint2
         {
             // prefix operator
             int i = 0;
+
             while (--pn[i] == (uint32_t)-1 && i < WIDTH-1)
             {
                 i++;
@@ -282,6 +289,7 @@ template<unsigned int BITS> class base_uint2
         friend inline const base_uint2 operator>>(const base_uint2& a, int shift) { return base_uint2(a) >>= shift; }
         friend inline const base_uint2 operator<<(const base_uint2& a, int shift) { return base_uint2(a) <<= shift; }
         friend inline const base_uint2 operator*(const base_uint2& a, uint32_t b) { return base_uint2(a) *= b; }
+        
         friend inline bool operator==(const base_uint2& a, const base_uint2& b) { return memcmp(a.pn, b.pn, sizeof(a.pn)) == 0; }
         friend inline bool operator!=(const base_uint2& a, const base_uint2& b) { return memcmp(a.pn, b.pn, sizeof(a.pn)) != 0; }
         friend inline bool operator>(const base_uint2& a, const base_uint2& b) { return a.CompareTo(b) > 0; }
@@ -330,6 +338,7 @@ class arith_uint256 : public base_uint2<256>
         arith_uint256() {}
         arith_uint256(const base_uint2<256>& b) : base_uint2<256>(b) {}
         arith_uint256(uint64_t b) : base_uint2<256>(b) {}
+        
         explicit arith_uint256(const std::string& str) : base_uint2<256>(str) {}
 
         /**
@@ -353,6 +362,7 @@ class arith_uint256 : public base_uint2<256>
         * implementation accident.
         */
         arith_uint256& SetCompact(uint32_t nCompact, bool *pfNegative = NULL, bool *pfOverflow = NULL);
+        
         uint32_t GetCompact(bool fNegative = false) const;
 
         friend uint256 ArithToUint256(const arith_uint256 &);

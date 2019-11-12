@@ -32,7 +32,8 @@ class bignum_error : public std::runtime_error
 {
     public:
 
-        explicit bignum_error(const std::string& str) : std::runtime_error(str) {}
+        explicit bignum_error(const std::string& str) : std::runtime_error(str)
+        {}
 };
 
 
@@ -42,6 +43,7 @@ class CAutoBN_CTX
     protected:
 
         BN_CTX* pctx;
+        
         BN_CTX* operator=(BN_CTX* pnew)
         {
             return pctx = pnew;
@@ -861,6 +863,7 @@ class CBigNum
             CBigNum bnBase = nBase;
             CBigNum bn0 = 0;
             std::string str;
+            
             CBigNum bn = *this;
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L   // OPENSSL 1.0

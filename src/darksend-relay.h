@@ -37,7 +37,13 @@ class CDarkSendRelay
         CTxOut out;
 
         CDarkSendRelay();
-        CDarkSendRelay(CTxIn& vinMasternodeIn, vector<unsigned char>& vchSigIn, int nBlockHeightIn, int nRelayTypeIn, CTxIn& in2, CTxOut& out2);
+        CDarkSendRelay(CTxIn& vinMasternodeIn,
+                        vector<unsigned char>& vchSigIn,
+                        int nBlockHeightIn,
+                        int nRelayTypeIn,
+                        CTxIn& in2,
+                        CTxOut& out2
+                    );
         
         IMPLEMENT_SERIALIZE
         (

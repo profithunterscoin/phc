@@ -64,7 +64,9 @@ class CMasternodeDB
         };
 
         CMasternodeDB();
+
         bool Write(const CMasternodeMan &mnodemanToSave);
+        
         ReadResult Read(CMasternodeMan& mnodemanToLoad);
     };
 

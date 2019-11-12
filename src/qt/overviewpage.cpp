@@ -37,6 +37,7 @@
 #define ICON_OFFSET 16
 #define NUM_ITEMS 6
 
+
 class TxViewDelegate : public QAbstractItemDelegate
 {
     Q_OBJECT
@@ -84,13 +85,17 @@ class TxViewDelegate : public QAbstractItemDelegate
             }
 
             painter->setPen(fUseBlackTheme ? QColor(255, 255, 255) : foreground);
+
             QRect boundingRect;
+
             painter->drawText(addressRect, Qt::AlignLeft|Qt::AlignVCenter, address, &boundingRect);
 
             if (index.data(TransactionTableModel::WatchonlyRole).toBool())
             {
                 QIcon iconWatchonly = qvariant_cast<QIcon>(index.data(TransactionTableModel::WatchonlyDecorationRole));
+
                 QRect watchonlyRect(boundingRect.right() + 5, mainRect.top()+ypad+halfheight, 16, halfheight);
+
                 iconWatchonly.paint(painter, watchonlyRect);
             }
 
@@ -108,6 +113,7 @@ class TxViewDelegate : public QAbstractItemDelegate
             }
 
             painter->setPen(fUseBlackTheme ? QColor(255, 255, 255) : foreground);
+
             QString amountText = BitcoinUnits::formatWithUnit(unit, amount, true);
             
             if(!confirmed)
@@ -116,10 +122,8 @@ class TxViewDelegate : public QAbstractItemDelegate
             }
 
             painter->drawText(amountRect, Qt::AlignRight|Qt::AlignVCenter, amountText);
-
             painter->setPen(fUseBlackTheme ? QColor(96, 101, 110) : option.palette.color(QPalette::Text));
             painter->drawText(amountRect, Qt::AlignLeft|Qt::AlignVCenter, GUIUtil::dateTimeStr(date));
-
             painter->restore();
         }
 
@@ -316,6 +320,7 @@ void OverviewPage::setClientModel(ClientModel *model)
 void OverviewPage::setWalletModel(WalletModel *model)
 {
     this->walletModel = model;
+
     if(model && model->getOptionsModel())
     {
         // Set up transaction list
@@ -401,7 +406,7 @@ void OverviewPage::updateDarksendProgress()
     }
 
     QString strAmountAndRounds;
-    QString strAnonymizePHCAmount = BitcoinUnits::formatHtmlWithUnit(nDisplayUnit, nAnonymizePHCAmount * COIN, false, BitcoinUnits::separatorAlways);
+    QString strAnonymizeAmount = BitcoinUnits::formatHtmlWithUnit(nDisplayUnit, nAnonymizeAmount * COIN, false, BitcoinUnits::separatorAlways);
 
     if(currentBalance == 0)
     {
@@ -409,8 +414,8 @@ void OverviewPage::updateDarksendProgress()
         ui->darksendProgress->setToolTip(tr("No inputs detected"));
 
         // when balance is zero just show info from settings
-        strAnonymizePHCAmount = strAnonymizePHCAmount.remove(strAnonymizePHCAmount.indexOf("."), BitcoinUnits::decimals(nDisplayUnit) + 1);
-        strAmountAndRounds = strAnonymizePHCAmount + " / " + tr("%n Rounds", "", nDarksendRounds);
+        strAnonymizeAmount = strAnonymizeAmount.remove(strAnonymizeAmount.indexOf("."), BitcoinUnits::decimals(nDisplayUnit) + 1);
+        strAmountAndRounds = strAnonymizeAmount + " / " + tr("%n Rounds", "", nDarksendRounds);
 
         ui->labelAmountRounds->setToolTip(tr("No inputs detected"));
         ui->labelAmountRounds->setText(strAmountAndRounds);
@@ -446,9 +451,9 @@ void OverviewPage::updateDarksendProgress()
     CAmount nMaxToAnonymize = nAnonymizableBalance + currentAnonymizedBalance + nDenominatedUnconfirmedBalance;
 
     // If it's more than the anon threshold, limit to that.
-    if(nMaxToAnonymize > nAnonymizePHCAmount*COIN)
+    if(nMaxToAnonymize > nAnonymizeAmount*COIN)
     {
-        nMaxToAnonymize = nAnonymizePHCAmount*COIN;
+        nMaxToAnonymize = nAnonymizeAmount*COIN;
     }
 
     if(nMaxToAnonymize == 0)
@@ -456,17 +461,18 @@ void OverviewPage::updateDarksendProgress()
         return;
     }
 
-    if(nMaxToAnonymize >= nAnonymizePHCAmount * COIN)
+    if(nMaxToAnonymize >= nAnonymizeAmount * COIN)
     {
-        ui->labelAmountRounds->setToolTip(tr("Found enough compatible inputs to anonymize %1") .arg(nAnonymizePHCAmount));
-        //strAnonymizePHCAmount = strAnonymizePHCAmount.remove(strAnonymizePHCAmount.indexOf("."), BitcoinUnits::decimals(nDisplayUnit) + 1);
+        ui->labelAmountRounds->setToolTip(tr("Found enough compatible inputs to anonymize %1") .arg(nAnonymizeAmount));
+        
+        //strAnonymizeAmount = strAnonymizeAmount.remove(strAnonymizeAmount.indexOf("."), BitcoinUnits::decimals(nDisplayUnit) + 1);
         strAmountAndRounds = "2 / " + tr("%n Rounds", "", nDarksendRounds);
     }
     else
     {
         //QString strMaxToAnonymize = BitcoinUnits::formatHtmlWithUnit(nDisplayUnit, nMaxToAnonymize, false, BitcoinUnits::separatorAlways);
         ui->labelAmountRounds->setToolTip(tr("Not enough compatible inputs to anonymize <span style='color:red;'>%1</span>,<br>"
-                                             "will anonymize <span style='color:red;'>%2</span> instead") .arg(nAnonymizePHCAmount) .arg(nMaxToAnonymize));
+                                             "will anonymize <span style='color:red;'>%2</span> instead") .arg(nAnonymizeAmount) .arg(nMaxToAnonymize));
         //strMaxToAnonymize = strMaxToAnonymize.remove(strMaxToAnonymize.indexOf("."), BitcoinUnits::decimals(nDisplayUnit) + 1);
         strAmountAndRounds = "<span style='color:red;'>" + QString(BitcoinUnits::factor(nDisplayUnit) == 1 ? "" : "~") + "2" + " / " + tr("%n Rounds", "", nDarksendRounds) + "</span>";
     }
@@ -501,6 +507,7 @@ void OverviewPage::updateDarksendProgress()
     float anonNormWeight = nDarksendRounds;
     float anonFullWeight = 2;
     float fullWeight = denomWeight + anonNormWeight + anonFullWeight;
+    
     // ... and calculate the whole progress
     float denomPartCalc = ceilf((denomPart * denomWeight / fullWeight) * 100) / 100;
     float anonNormPartCalc = ceilf((anonNormPart * anonNormWeight / fullWeight) * 100) / 100;
@@ -545,6 +552,7 @@ void OverviewPage::darkSendStatus()
         if(nBestHeight != darkSendPool.cachedNumBlocks)
         {
             darkSendPool.cachedNumBlocks = nBestHeight;
+            
             updateDarksendProgress();
 
             ui->darksendEnabled->setText(tr("Disabled"));
@@ -633,7 +641,6 @@ void OverviewPage::toggleDarksend()
     if(!fEnableDarksend)
     {
         int64_t balance = currentBalance;
-        
         float minAmount = 1.49 * COIN;
 
         if(balance < minAmount)
@@ -669,6 +676,7 @@ void OverviewPage::toggleDarksend()
     }
 
     fEnableDarksend = !fEnableDarksend;
+    
     darkSendPool.cachedNumBlocks = std::numeric_limits<int>::max();
 
     if(!fEnableDarksend)
@@ -683,7 +691,7 @@ void OverviewPage::toggleDarksend()
 
         /* show darksend configuration if client has defaults set */
 
-        if(nAnonymizePHCAmount == 0)
+        if(nAnonymizeAmount == 0)
         {
             DarksendConfig dlg(this);
             

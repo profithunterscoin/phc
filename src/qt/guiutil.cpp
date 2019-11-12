@@ -99,6 +99,7 @@ namespace GUIUtil
     QFont bitcoinAddressFont()
     {
         QFont font("Monospace");
+
 #if QT_VERSION >= 0x040800
         font.setStyleHint(QFont::Monospace);
 #else
@@ -119,6 +120,7 @@ namespace GUIUtil
     void setupAmountWidget(QLineEdit *widget, QWidget *parent)
     {
         QDoubleValidator *amountValidator = new QDoubleValidator(parent);
+
         amountValidator->setDecimals(8);
         amountValidator->setBottom(0.0);
         widget->setValidator(amountValidator);
@@ -135,6 +137,7 @@ namespace GUIUtil
         }
 
         SendCoinsRecipient rv;
+
         rv.address = uri.path();
         rv.amount = 0;
 
@@ -293,6 +296,7 @@ namespace GUIUtil
 
         /* Add suffix if needed */
         QFileInfo info(result);
+
         if(!result.isEmpty())
         {
             if(info.suffix().isEmpty() && !selectedSuffix.isEmpty())
@@ -333,6 +337,7 @@ namespace GUIUtil
     bool checkPoint(const QPoint &p, const QWidget *w)
     {
         QWidget *atW = QApplication::widgetAt(w->mapToGlobal(p));
+
         if (!atW)
         {
             return false;
@@ -367,7 +372,7 @@ namespace GUIUtil
     }
 
 
-    void openPHCConfigfile()
+    void openConfigfile()
     {
         boost::filesystem::path pathFile = GetDataDir(true) / "phc.conf";
 
@@ -466,6 +471,7 @@ namespace GUIUtil
         if(evt->type() == QEvent::ToolTipChange)
         {
             QWidget *widget = static_cast<QWidget*>(obj);
+
             QString tooltip = widget->toolTip();
             
             if(tooltip.size() > size_threshold && !tooltip.startsWith("<qt") && !Qt::mightBeRichText(tooltip))
@@ -605,8 +611,10 @@ namespace GUIUtil
     TableViewLastColumnResizingFixer::TableViewLastColumnResizingFixer(QTableView* table, int lastColMinimumWidth, int allColsMinimumWidth) : tableView(table), lastColumnMinimumWidth(lastColMinimumWidth), allColumnsMinimumWidth(allColsMinimumWidth)
     {
         columnCount = tableView->horizontalHeader()->count();
+
         lastColumnIndex = columnCount - 1;
         secondToLastColumnIndex = columnCount - 2;
+
         tableView->horizontalHeader()->setMinimumSectionSize(allColumnsMinimumWidth);
         
         setViewHeaderResizeMode(secondToLastColumnIndex, QHeaderView::Interactive);
@@ -645,13 +653,16 @@ namespace GUIUtil
             {
                 // Get the current executable path
                 TCHAR pszExePath[MAX_PATH];
+
                 GetModuleFileName(NULL, pszExePath, sizeof(pszExePath));
 
                 TCHAR pszArgs[5] = TEXT("-min");
 
                 // Set the path to the shortcut target
                 psl->SetPath(pszExePath);
+
                 PathRemoveFileSpec(pszExePath);
+
                 psl->SetWorkingDirectory(pszExePath);
                 psl->SetShowCmd(SW_SHOWMINNOACTIVE);
                 psl->SetArguments(pszArgs);
@@ -659,8 +670,8 @@ namespace GUIUtil
                 // Query IShellLink for the IPersistFile interface for
                 // saving the shortcut in persistent storage.
                 IPersistFile* ppf = NULL;
-                hres = psl->QueryInterface(IID_IPersistFile,
-                                        reinterpret_cast<void**>(&ppf));
+                hres = psl->QueryInterface(IID_IPersistFile, reinterpret_cast<void**>(&ppf));
+
                 if (SUCCEEDED(hres))
                 {
                     WCHAR pwsz[MAX_PATH];
@@ -891,10 +902,12 @@ namespace GUIUtil
             "  -min                   " + tr("Start minimized") + "\n" + "  -splash                " + tr("Show splash screen on startup (default: 1)") + "\n";
 
         setWindowTitle(tr("PHC-Qt"));
+
         setTextFormat(Qt::PlainText);
 
         // setMinimumWidth is ignored for QMessageBox so put in non-breaking spaces to make it wider.
         setText(header + QString(QChar(0x2003)).repeated(50));
+        
         setDetailedText(coreOptions + "\n" + uiOptions);
     }
 

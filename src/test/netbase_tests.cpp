@@ -59,8 +59,11 @@ BOOST_AUTO_TEST_CASE(netbase_properties)
 bool static TestSplitHost(string test, string host, int port)
 {
     string hostOut;
+
     int portOut = -1;
+
     SplitHostPort(test, portOut, hostOut);
+
     return hostOut == host && port == portOut;
 }
 
@@ -86,8 +89,12 @@ BOOST_AUTO_TEST_CASE(netbase_splithost)
 bool static TestParse(string src, string canon)
 {
     CService addr;
+
     if (!LookupNumeric(src.c_str(), addr, 65535))
+    {
         return canon == "";
+    }
+
     return canon == addr.ToString();
 }
 
@@ -107,6 +114,7 @@ BOOST_AUTO_TEST_CASE(onioncat_test)
     // values from http://www.cypherpunk.at/onioncat/wiki/OnionCat
     CNetAddr addr1("5wyqrzbvrdsumnok.onion");
     CNetAddr addr2("FD87:D87E:EB43:edb1:8e4:3588:e546:35ca");
+    
     BOOST_CHECK(addr1 == addr2);
     BOOST_CHECK(addr1.IsTor());
     BOOST_CHECK(addr1.ToStringIP() == "5wyqrzbvrdsumnok.onion");

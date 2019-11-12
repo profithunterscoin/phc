@@ -880,6 +880,7 @@ namespace Consensus
         if (!TestNet())
         {
             ChainBuddy::Enabled = false;
+            
             return false; // Skip on mainnet until testing is completed
         }
 
@@ -953,6 +954,7 @@ namespace Consensus
         if (!TestNet())
         {
             ChainBuddy::Enabled = false;
+
             return false; // Skip on mainnet until testing is completed
         }
 
@@ -1068,7 +1070,7 @@ namespace Consensus
         LOCK(cs_vNodes);
 
         // Find if nodes are synced (agreed to local wallet checkpoint or not)
-        BOOST_FOREACH(CNode* pnode, vNodes)
+        for(CNode* pnode: vNodes)
         {
             if (pnode->fSuccessfullyConnected)
             {

@@ -17,6 +17,7 @@
 
 #include <QDataWidgetMapper>
 
+
 QT_BEGIN_NAMESPACE
 class QWidget;
 QT_END_NAMESPACE

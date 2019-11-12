@@ -90,10 +90,11 @@ class PeerTablePriv
                 }
 
                 cachedNodeStats.clear();
+
     #if QT_VERSION >= 0x040700
                 cachedNodeStats.reserve(vNodes.size());
     #endif
-                BOOST_FOREACH(CNode* pnode, vNodes)
+                for(CNode* pnode: vNodes)
                 {
                     CNodeCombinedStats stats;
                     stats.nodeStateStats.nMisbehavior = 0;
@@ -110,7 +111,7 @@ class PeerTablePriv
 
                 if (lockMain)
                 {
-                    BOOST_FOREACH(CNodeCombinedStats &stats, cachedNodeStats)
+                    for(CNodeCombinedStats &stats: cachedNodeStats)
                     {
                         stats.fNodeStateStatsAvailable = GetNodeStateStats(stats.nodeStats.nodeid, stats.nodeStateStats);
                     }
@@ -125,13 +126,12 @@ class PeerTablePriv
                 qStableSort(cachedNodeStats.begin(), cachedNodeStats.end(), NodeLessThan(sortColumn, sortOrder));
             }
 
-
             // build index map
             mapNodeRows.clear();
 
             int row = 0;
 
-            BOOST_FOREACH(CNodeCombinedStats &stats, cachedNodeStats)
+            for(CNodeCombinedStats &stats: cachedNodeStats)
             {
                 mapNodeRows.insert(std::pair<NodeId, int>(stats.nodeStats.nodeid, row++));
             }
@@ -168,7 +168,9 @@ PeerTableModel::PeerTableModel(ClientModel *parent) : QAbstractTableModel(parent
 
     // set up timer for auto refresh
     timer = new QTimer();
+    
     connect(timer, SIGNAL(timeout()), SLOT(refresh()));
+
     timer->setInterval(MODEL_UPDATE_DELAY);
 
     // load initial data

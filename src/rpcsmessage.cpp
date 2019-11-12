@@ -96,7 +96,6 @@ Value smsgoptions(const Array& params, bool fHelp)
     {
         result.push_back(Pair("option", std::string("newAddressRecv = ") + (smsgOptions.fNewAddressRecv ? "true" : "false")));
         result.push_back(Pair("option", std::string("newAddressAnon = ") + (smsgOptions.fNewAddressAnon ? "true" : "false")));
-        
         result.push_back(Pair("result", "Success."));
     }
     else if (mode == "set")
@@ -105,6 +104,7 @@ Value smsgoptions(const Array& params, bool fHelp)
         {
             result.push_back(Pair("result", "Too few parameters."));
             result.push_back(Pair("expected", "set <optname> <value>"));
+
             return result;
         }
         
@@ -146,6 +146,7 @@ Value smsgoptions(const Array& params, bool fHelp)
             else
             {
                 result.push_back(Pair("result", "Unknown value."));
+
                 return result;
             }
 
@@ -154,6 +155,7 @@ Value smsgoptions(const Array& params, bool fHelp)
         else
         {
             result.push_back(Pair("result", "Option not found."));
+
             return result;
         }
     }
@@ -194,7 +196,6 @@ Value smsglocalkeys(const Array& params, bool fHelp)
     if (mode == "whitelist" || mode == "all")
     {
         uint32_t nKeys = 0;
-        
         int all = mode == "all" ? 1 : 0;
         
         for (std::vector<SecMsgAddress>::iterator it = smsgAddresses.begin(); it != smsgAddresses.end(); ++it)
@@ -204,7 +205,8 @@ Value smsglocalkeys(const Array& params, bool fHelp)
                 continue;
             }
             
-            CPHCcoinAddress coinAddress(it->sAddress);
+            CCoinAddress coinAddress(it->sAddress);
+
             if (!coinAddress.IsValid())
             {
                 continue;
@@ -213,12 +215,14 @@ Value smsglocalkeys(const Array& params, bool fHelp)
             std::string sPublicKey;
             
             CKeyID keyID;
+
             if (!coinAddress.GetKeyID(keyID))
             {
                 continue;
             }
             
             CPubKey pubKey;
+
             if (!pwalletMain->GetPubKey(keyID, pubKey))
             {
                 continue;
@@ -246,7 +250,6 @@ Value smsglocalkeys(const Array& params, bool fHelp)
             
             nKeys++;
         }
-        
         
         snprintf(cbuf, sizeof(cbuf), "%u keys listed.", nKeys);
         
@@ -324,6 +327,7 @@ Value smsglocalkeys(const Array& params, bool fHelp)
         std::string addr    = params[2].get_str();
         
         std::vector<SecMsgAddress>::iterator it;
+
         for (it = smsgAddresses.begin(); it != smsgAddresses.end(); ++it)
         {
             if (addr != it->sAddress)
@@ -352,6 +356,7 @@ Value smsglocalkeys(const Array& params, bool fHelp)
         else
         {
             result.push_back(Pair("result", "Unknown operation."));
+
             return result;
         }
         
@@ -370,14 +375,15 @@ Value smsglocalkeys(const Array& params, bool fHelp)
     {
         uint32_t nKeys = 0;
         
-        BOOST_FOREACH(const PAIRTYPE(CTxDestination, std::string)& entry, pwalletMain->mapAddressBook)
+        for(const PAIRTYPE(CTxDestination, std::string)& entry: pwalletMain->mapAddressBook)
         {
             if (!IsMine(*pwalletMain, entry.first))
             {
                 continue;
             }
             
-            CPHCcoinAddress coinAddress(entry.first);
+            CCoinAddress coinAddress(entry.first);
+
             if (!coinAddress.IsValid())
             {
                 continue;
@@ -507,6 +513,7 @@ Value smsgaddkey(const Array& params, bool fHelp)
     Object result;
     
     int rv = SecureMsgAddAddress(addr, pubk);
+
     if (rv != 0)
     {
         result.push_back(Pair("result", "Public key not added to db."));
@@ -590,6 +597,7 @@ Value smsggetpubkey(const Array& params, bool fHelp)
         {
             result.push_back(Pair("result", "Failed."));
             result.push_back(Pair("message", "Invalid address."));
+
             return result;
         }
         break;
@@ -605,14 +613,16 @@ Value smsggetpubkey(const Array& params, bool fHelp)
         {
             result.push_back(Pair("result", "Failed."));
             result.push_back(Pair("message", "Error."));
+
             return result;
         }
         break;
     }
     
-    CPHCcoinAddress coinAddress(address);
+    CCoinAddress coinAddress(address);
     
     CKeyID keyID;
+
     if (!coinAddress.GetKeyID(keyID))
     {
         result.push_back(Pair("result", "Failed."));
@@ -650,7 +660,8 @@ Value smsggetpubkey(const Array& params, bool fHelp)
         {
             result.push_back(Pair("result", "Failed."));
             result.push_back(Pair("message", "Address not found in wallet or db."));
-                        return result;
+
+            return result;
         }
         break;
 
@@ -659,6 +670,7 @@ Value smsggetpubkey(const Array& params, bool fHelp)
         {
             result.push_back(Pair("result", "Failed."));
             result.push_back(Pair("message", "Error, GetStoredKey()."));
+
             return result;
         }
         break;
@@ -688,6 +700,7 @@ Value smsgsend(const Array& params, bool fHelp)
     Object result;
     
     std::string sError;
+
     if (SecureMsgSend(addrFrom, addrTo, msg, sError) != 0)
     {
         result.push_back(Pair("result",         "Send failed."));
@@ -766,6 +779,7 @@ Value smsginbox(const Array& params, bool fHelp)
     
     std::vector<unsigned char> vchKey;
     vchKey.resize(16);
+
     memset(&vchKey[0], 0, 16);
     
     // Global Namespace Start
@@ -826,6 +840,7 @@ Value smsginbox(const Array& params, bool fHelp)
                 if (SecureMsgDecrypt(false, smsgStored.sAddrTo, &smsgStored.vchMessage[0], &smsgStored.vchMessage[SMSG_HDR_LEN], nPayload, msg) == 0)
                 {
                     Object objM;
+                    
                     objM.push_back(Pair("received",         getTimeString(smsgStored.timeReceived, cbuf, sizeof(cbuf))));
                     objM.push_back(Pair("sent",             getTimeString(msg.timestamp, cbuf, sizeof(cbuf))));
                     objM.push_back(Pair("from",             msg.sFromAddress));
@@ -842,6 +857,7 @@ Value smsginbox(const Array& params, bool fHelp)
                 if (fCheckReadStatus)
                 {
                     smsgStored.status &= ~SMSG_MASK_UNREAD;
+                    
                     dbInbox.WriteSmesg(chKey, smsgStored);
                 }
 
@@ -912,7 +928,9 @@ Value smsgoutbox(const Array& params, bool fHelp)
         SecMsgDB dbOutbox;
         
         if (!dbOutbox.Open("cr+"))
+        {
             throw runtime_error("Could not open DB.");
+        }
         
         uint32_t nMessages = 0;
         char cbuf[256];
@@ -922,16 +940,21 @@ Value smsgoutbox(const Array& params, bool fHelp)
             dbOutbox.TxnBegin();
             
             leveldb::Iterator* it = dbOutbox.pdb->NewIterator(leveldb::ReadOptions());
+
             while (dbOutbox.NextSmesgKey(it, sPrefix, chKey))
             {
                 dbOutbox.EraseSmesg(chKey);
+
                 nMessages++;
             };
+
             delete it;
+
             dbOutbox.TxnCommit();
             
             
             snprintf(cbuf, sizeof(cbuf), "Deleted %u messages.", nMessages);
+
             result.push_back(Pair("result",                 std::string(cbuf)));
         }
         else if (mode == "all")
@@ -949,6 +972,7 @@ Value smsgoutbox(const Array& params, bool fHelp)
                 if (SecureMsgDecrypt(false, smsgStored.sAddrOutbox, &smsgStored.vchMessage[0], &smsgStored.vchMessage[SMSG_HDR_LEN], nPayload, msg) == 0)
                 {
                     Object objM;
+                    
                     objM.push_back(Pair("sent",             getTimeString(msg.timestamp, cbuf, sizeof(cbuf))));
                     objM.push_back(Pair("from",             msg.sFromAddress));
                     objM.push_back(Pair("to",               smsgStored.sAddrTo));
@@ -967,6 +991,7 @@ Value smsgoutbox(const Array& params, bool fHelp)
             delete it;
             
             snprintf(cbuf, sizeof(cbuf), "%u sent messages shown.", nMessages);
+            
             result.push_back(Pair("result",                 std::string(cbuf)));
         }
         else
@@ -1027,6 +1052,7 @@ Value smsgbuckets(const Array& params, bool fHelp)
                 std::string sFile = sBucket + "_01.dat";
                 
                 snprintf(cbuf, sizeof(cbuf), "%" PRIszu, tokenSet.size());
+                
                 std::string snContents(cbuf);
                 
                 std::string sHash = boost::lexical_cast<std::string>(it->second.hash);
@@ -1035,6 +1061,7 @@ Value smsgbuckets(const Array& params, bool fHelp)
                 nMessages += tokenSet.size();
                 
                 Object objM;
+                
                 objM.push_back(Pair("bucket",               sBucket));
                 objM.push_back(Pair("time",                 getTimeString(it->first, cbuf, sizeof(cbuf))));
                 objM.push_back(Pair("no. messages",         snContents));
@@ -1060,7 +1087,6 @@ Value smsgbuckets(const Array& params, bool fHelp)
                 {
                     try
                     {
-                        
                         uint64_t nFBytes = 0;
 
                         nFBytes = boost::filesystem::file_size(fullPath);
@@ -1080,7 +1106,6 @@ Value smsgbuckets(const Array& params, bool fHelp)
 
         }
         // Global Namespace End
-        
         
         std::string snBuckets = boost::lexical_cast<std::string>(nBuckets);
         std::string snMessages = boost::lexical_cast<std::string>(nMessages);
@@ -1124,7 +1149,6 @@ Value smsgbuckets(const Array& params, bool fHelp)
         // Global Namespace End
         
         result.push_back(Pair("result",                     "Removed all buckets."));
-        
     }
     else
     {

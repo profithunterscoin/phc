@@ -76,6 +76,7 @@ template <unsigned int BITS> void base_uint2<BITS>::SetHex(const char* psz)
     }
         
     psz--;
+    
     unsigned char* p1 = (unsigned char*)data;
     unsigned char* pend = p1 + WIDTH;
 

@@ -84,7 +84,7 @@ bool CTxMemPool::remove(const CTransaction &tx, bool fRecursive)
                 }
             }
 
-            BOOST_FOREACH(const CTxIn& txin, tx.vin)
+            for(const CTxIn& txin: tx.vin)
             {
                 mapNextTx.erase(txin.prevout);
             }
@@ -103,7 +103,7 @@ bool CTxMemPool::removeConflicts(const CTransaction &tx)
     // Remove transactions which depend on inputs of tx, recursively
     LOCK(cs);
 
-    BOOST_FOREACH(const CTxIn &txin, tx.vin)
+    for(const CTxIn &txin: tx.vin)
     {
         std::map<COutPoint, CInPoint>::iterator it = mapNextTx.find(txin.prevout);
 

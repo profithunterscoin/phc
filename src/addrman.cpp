@@ -19,13 +19,17 @@ using namespace std;
 int CAddrInfo::GetTriedBucket(const std::vector<unsigned char> &nKey) const
 {
     CDataStream ss1(SER_GETHASH, 0);
+
     std::vector<unsigned char> vchKey = GetKey();
+    
     ss1 << nKey << vchKey;
+
     uint64_t hash1 = Hash(ss1.begin(), ss1.end()).Get64();
 
     CDataStream ss2(SER_GETHASH, 0);
     std::vector<unsigned char> vchGroupKey = GetGroup();
     ss2 << nKey << vchGroupKey << (hash1 % ADDRMAN_TRIED_BUCKETS_PER_GROUP);
+
     uint64_t hash2 = Hash(ss2.begin(), ss2.end()).Get64();
 
     return hash2 % ADDRMAN_TRIED_BUCKET_COUNT;
@@ -35,13 +39,17 @@ int CAddrInfo::GetTriedBucket(const std::vector<unsigned char> &nKey) const
 int CAddrInfo::GetNewBucket(const std::vector<unsigned char> &nKey, const CNetAddr& src) const
 {
     CDataStream ss1(SER_GETHASH, 0);
+
     std::vector<unsigned char> vchGroupKey = GetGroup();
     std::vector<unsigned char> vchSourceGroupKey = src.GetGroup();
+
     ss1 << nKey << vchGroupKey << vchSourceGroupKey;
+
     uint64_t hash1 = Hash(ss1.begin(), ss1.end()).Get64();
 
     CDataStream ss2(SER_GETHASH, 0);
     ss2 << nKey << vchSourceGroupKey << (hash1 % ADDRMAN_NEW_BUCKETS_PER_SOURCE_GROUP);
+
     uint64_t hash2 = Hash(ss2.begin(), ss2.end()).Get64();
 
     return hash2 % ADDRMAN_NEW_BUCKET_COUNT;
@@ -131,6 +139,7 @@ CAddrInfo* CAddrMan::Find(const CNetAddr& addr, int *pnId)
     }
     
     std::map<int, CAddrInfo>::iterator it2 = mapInfo.find((*it).second);
+
     if (it2 != mapInfo.end())
     {
         return &(*it2).second;
@@ -404,6 +413,7 @@ void CAddrMan::MakeTried(CAddrInfo& info, int nId, int nOrigin)
     if (vTried.size() < ADDRMAN_TRIED_BUCKET_SIZE)
     {
         vTried.push_back(nId);
+
         nTried++;
         
         info.fInTried = true;
@@ -547,7 +557,6 @@ bool CAddrMan::Add_(const CAddress &addr, const CNetAddr& source, int64_t nTimeP
     {
         // periodically update nTime
         bool fCurrentlyOnline = (GetAdjustedTime() - addr.nTime < 24 * 60 * 60);
-        
         int64_t nUpdateInterval = (fCurrentlyOnline ? 60 * 60 : 24 * 60 * 60);
         
         if (addr.nTime && (!pinfo->nTime || pinfo->nTime < addr.nTime - nUpdateInterval - nTimePenalty))
