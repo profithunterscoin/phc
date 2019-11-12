@@ -83,8 +83,6 @@
 #include <QTextDocument>
 #include <QInputDialog>
 
-#include <iostream>
-
 extern bool fOnlyTor;
 
 extern CWallet* pwalletMain;
@@ -332,9 +330,56 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 							"	background-color: #A4D300;"
 							"}"
 
-							"QFrame"
+							"QFrame#SendCoinsEntry"
 							"{"
 							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"}"
+
+							"QTableView"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"}"
+
+							"QTextEdit#messagesWidget"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"}"
+
+							"QWidget#RPCConsole"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"}"
+
+							"QWidget#tab_info"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"}"
+
+							"QWidget#tab_console"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"}"
+
+							"QWidget#tab_nettraffic"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"}"
+
+							"QWidget#tab_peers"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"}"
+
+							"QWidget#scrollAreaWidgetContents"
+							"{"
 							"	background-color: #000000;"
 							"}"
 
@@ -1937,14 +1982,12 @@ void BitcoinGUI::updateWeight()
 	}
 
 	TRY_LOCK(cs_main, lockMain);
-	
 	if (!lockMain)
 	{
 		return;
 	}
 
 	TRY_LOCK(pwalletMain->cs_wallet, lockWallet);
-
 	if (!lockWallet)
 	{
 		return;

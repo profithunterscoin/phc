@@ -119,7 +119,6 @@ Value getinfo(const Array& params, bool fHelp)
 
 #endif
 
-
     obj.push_back(Pair("connections",                               (int)vNodes.size()));
 
     obj.push_back(Pair("proxy",                                     (proxy.first.IsValid() ? proxy.first.ToStringIPPort() : string())));
