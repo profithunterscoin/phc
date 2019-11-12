@@ -383,6 +383,12 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 							"	background-color: #000000;"
 							"}"
 
+							"QWidget#MasternodeManager"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"}"
+
 							"QDialog"
 							"{"
 							"	color: #A4D300;"
@@ -468,6 +474,18 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 							"}"
 
 							"QHBoxLayout"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: rgb(0, 0, 0);"
+							"}"
+
+							"QWidget#tab"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: rgb(0, 0, 0);"
+							"}"
+
+							"QWidget#tab_2"
 							"{"
 							"	color: #A4D300;"
 							"	background-color: rgb(0, 0, 0);"
