@@ -23,7 +23,6 @@ class CCoinControl
     public:
 
         CTxDestination destChange;
-        
 
         bool useDarkSend;
         bool useInstantX;

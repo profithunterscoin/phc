@@ -81,9 +81,11 @@ template <class Locker> class LockedPageManagerBase
             for(size_t page = start_page; page <= end_page; page += page_size)
             {
                 Histogram::iterator it = histogram.find(page);
+
                 if(it == histogram.end()) // Newly locked page
                 {
                     locker.Lock(reinterpret_cast<void*>(page), page_size);
+
                     histogram.insert(std::make_pair(page, 1));
                 }
                 else // Page was already locked; increase counter
@@ -117,10 +119,12 @@ template <class Locker> class LockedPageManagerBase
 
                     // Decrease counter for page, when it is zero, the page will be unlocked
                     it->second -= 1;
+
                     if(it->second == 0) // Nothing on the page anymore that keeps it locked
                     {
                         // Unlock page and remove the count from histogram
                         locker.Unlock(reinterpret_cast<void*>(page), page_size);
+
                         histogram.erase(it);
                     }
                 }
@@ -145,6 +149,7 @@ template <class Locker> class LockedPageManagerBase
 
         // map of page base address to lock count
         typedef std::map<size_t,int> Histogram;
+
         Histogram histogram;
 };
 
@@ -202,6 +207,7 @@ class LockedPageManager: public LockedPageManagerBase<MemoryPageLocker>
             // have a static deinitialization order/problem, but the check in
             // LockedPageManagerBase's destructor helps us detect if that ever happens.
             static LockedPageManager instance;
+
             LockedPageManager::_instance = &instance;
         }
 
@@ -221,6 +227,7 @@ template<typename T> void LockObject(const T &t)
 template<typename T> void UnlockObject(const T &t)
 {
     memory_cleanse((void*)(&t), sizeof(T));
+
     LockedPageManager::Instance().UnlockRange((void*)(&t), sizeof(T));
 }
 
@@ -240,13 +247,19 @@ template<typename T> struct secure_allocator : public std::allocator<T>
     typedef typename base::const_reference const_reference;
     typedef typename base::value_type value_type;
 
-    secure_allocator() throw() {}
-    secure_allocator(const secure_allocator& a) throw() : base(a) {}
+    secure_allocator() throw()
+    {}
+
+    secure_allocator(const secure_allocator& a) throw() : base(a)
+    {}
 
     template <typename U>
 
-    secure_allocator(const secure_allocator<U>& a) throw() : base(a) {}
-    ~secure_allocator() throw() {}
+    secure_allocator(const secure_allocator<U>& a) throw() : base(a)
+    {}
+
+    ~secure_allocator() throw()
+    {}
 
     template<typename _Other> struct rebind 
     {
@@ -256,7 +269,9 @@ template<typename T> struct secure_allocator : public std::allocator<T>
     T* allocate(std::size_t n, const void *hint = 0)
     {
         T *p;
+
         p = std::allocator<T>::allocate(n, hint);
+
         if (p != NULL)
         {
             LockedPageManager::Instance().LockRange(p, sizeof(T) * n);
@@ -270,8 +285,10 @@ template<typename T> struct secure_allocator : public std::allocator<T>
         if (p != NULL)
         {
             memory_cleanse(p, sizeof(T) * n);
+
             LockedPageManager::Instance().UnlockRange(p, sizeof(T) * n);
         }
+
         std::allocator<T>::deallocate(p, n);
     }
 };
@@ -292,13 +309,19 @@ template<typename T> struct zero_after_free_allocator : public std::allocator<T>
     typedef typename base::const_reference const_reference;
     typedef typename base::value_type value_type;
     
-    zero_after_free_allocator() throw() {}
-    zero_after_free_allocator(const zero_after_free_allocator& a) throw() : base(a) {}
+    zero_after_free_allocator() throw()
+    {}
+
+    zero_after_free_allocator(const zero_after_free_allocator& a) throw() : base(a)
+    {}
     
     template <typename U>
 
-    zero_after_free_allocator(const zero_after_free_allocator<U>& a) throw() : base(a) {}
-    ~zero_after_free_allocator() throw() {}
+    zero_after_free_allocator(const zero_after_free_allocator<U>& a) throw() : base(a)
+    {}
+    
+    ~zero_after_free_allocator() throw()
+    {}
 
     template<typename _Other> struct rebind
     {

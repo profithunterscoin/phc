@@ -44,6 +44,7 @@ static const char* ppszTypeName[] =
 CMessageHeader::CMessageHeader()
 {
     memcpy(pchMessageStart, Params().MessageStart(), MESSAGE_START_SIZE);
+
     memset(pchCommand, 0, sizeof(pchCommand));
 
     pchCommand[1] = 1;
@@ -55,6 +56,7 @@ CMessageHeader::CMessageHeader()
 CMessageHeader::CMessageHeader(const char* pszCommand, unsigned int nMessageSizeIn)
 {
     memcpy(pchMessageStart, Params().MessageStart(), MESSAGE_START_SIZE);
+
     memset(pchCommand, 0, sizeof(pchCommand));
 
     strncpy(pchCommand, pszCommand, COMMAND_SIZE);
@@ -122,6 +124,7 @@ CAddress::CAddress() : CService()
 CAddress::CAddress(CService ipIn, uint64_t nServicesIn) : CService(ipIn)
 {
     Init();
+
     nServices = nServicesIn;
 }
 
@@ -157,6 +160,7 @@ CInv::CInv(const std::string& strType, const uint256& hashIn)
         if (strType == ppszTypeName[i])
         {
             type = i;
+            
             break;
         }
     }

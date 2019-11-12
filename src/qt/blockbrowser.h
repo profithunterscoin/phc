@@ -32,19 +32,23 @@
 #include <QSettings>
 #include <QSlider>
 
+
 double getBlockHardness(int);
 double getTxTotalValue(std::string);
+
 double convertCoins(int64_t);
 double getTxFees(std::string);
 
 int getBlockTime(int);
 int getBlocknBits(int);
 int getBlockNonce(int);
-int blocksInPastHours(int);
 int getBlockHashrate(int);
+
+int blocksInPastHours(int);
 
 std::string getInputs(std::string);
 std::string getOutputs(std::string);
+
 std::string getBlockHash(int);
 std::string getBlockMerkle(int);
 
@@ -67,6 +71,7 @@ class BlockBrowser : public QWidget
     public:
 
         explicit BlockBrowser(QWidget *parent = 0);
+        
         ~BlockBrowser();
         
         void setModel(WalletModel *model);

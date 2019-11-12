@@ -32,11 +32,11 @@
 #include <boost/bind.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
-#include <boost/foreach.hpp>
 #include <boost/iostreams/concepts.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/shared_ptr.hpp>
+
 #include <list>
 
 using namespace std;
@@ -58,7 +58,7 @@ void RPCTypeCheck(const Array& params, const list<Value_type>& typesExpected, bo
 {
     unsigned int i = 0;
 
-    BOOST_FOREACH(Value_type t, typesExpected)
+    for(Value_type t: typesExpected)
     {
         if (params.size() <= i)
         {
@@ -81,7 +81,7 @@ void RPCTypeCheck(const Array& params, const list<Value_type>& typesExpected, bo
 
 void RPCTypeCheck(const Object& o, const map<string, Value_type>& typesExpected, bool fAllowNull)
 {
-    BOOST_FOREACH(const PAIRTYPE(string, Value_type)& t, typesExpected)
+    for(const PAIRTYPE(string, Value_type)& t: typesExpected)
     {
         const Value& v = find_value(o, t.first);
         
@@ -146,6 +146,7 @@ uint256 ParseHashV(const Value& v, string strName)
     } 
     
     uint256 result;
+
     result.SetHex(strHex);
 
     return result;
@@ -219,6 +220,7 @@ string CRPCTable::help(string strCommand) const
         {
             Array params;
             rpcfn_type pfn = pcmd->actor;
+
             if (setDone.insert(pfn).second)
             {
                 (*pfn)(params, true);
@@ -228,6 +230,7 @@ string CRPCTable::help(string strCommand) const
         {
             // Help text is returned in an exception
             string strHelp = string(e.what());
+
             if (strCommand == "")
             {
                 if (strHelp.find('\n') != string::npos)
@@ -327,6 +330,7 @@ Value debug(const Array& params, bool fHelp)
     mapMultiArgs["-debug"].clear();
 
     boost::split(mapMultiArgs["-debug"], strMode, boost::is_any_of(","));
+
     mapArgs["-debug"] = mapMultiArgs["-debug"][mapMultiArgs["-debug"].size() - 1];
 
     if (strMode == "1")
@@ -578,6 +582,7 @@ static const CRPCCommand vRPCCommands[] =
 CRPCTable::CRPCTable()
 {
     unsigned int vcidx;
+
     for (vcidx = 0; vcidx < (sizeof(vRPCCommands) / sizeof(vRPCCommands[0])); vcidx++)
     {
         const CRPCCommand *pcmd;
@@ -591,6 +596,7 @@ CRPCTable::CRPCTable()
 const CRPCCommand *CRPCTable::operator[](string name) const
 {
     map<string, const CRPCCommand*>::const_iterator it = mapCommands.find(name);
+
     if (it == mapCommands.end())
     {
         return NULL;
@@ -653,7 +659,7 @@ bool ClientAllowed(const boost::asio::ip::address& address)
     const string strAddress = address.to_string();
     const vector<string>& vAllow = mapMultiArgs["-rpcallowip"];
     
-    BOOST_FOREACH(string strAllow, vAllow)
+    for(string strAllow: vAllow)
     {
         if (WildcardMatch(strAddress, strAllow))
         {
@@ -776,6 +782,7 @@ template <typename Protocol, typename SocketAcceptorService> static void RPCAcce
     else
     {
         ServiceConnection(conn);
+
         conn->close();
     
         delete conn;
@@ -792,6 +799,7 @@ void StartRPCThreads()
         unsigned char rand_pwd[32];
         
         GetRandBytes(rand_pwd, 32);
+
         string strWhatAmI = "To use phcd";
         
         if (mapArgs.count("-server"))
@@ -1257,6 +1265,7 @@ json_spirit::Value CRPCTable::execute(const std::string &strMethod, const json_s
 
     // Observe safe mode
     string strWarning = GetWarnings("rpc");
+    
     if (strWarning != "" && !GetBoolArg("-disablesafemode", false) && !pcmd->okSafeMode)
     {
         throw JSONRPCError(RPC_FORBIDDEN_BY_SAFE_MODE, string("Safe mode: ") + strWarning);

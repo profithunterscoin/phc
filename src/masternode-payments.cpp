@@ -20,6 +20,7 @@
 #include "spork.h"
 #include "addrman.h"
 #include <boost/lexical_cast.hpp>
+#include <boost/range/adaptor/reversed.hpp>
 
 CCriticalSection cs_masternodepayments;
 
@@ -84,9 +85,10 @@ void ProcessMessageMasternodePayments(CNode* pfrom, std::string& strCommand, CDa
         }
 
         CTxDestination address1;
+
         ExtractDestination(winner.payee, address1);
 
-        CPHCcoinAddress address2(address1);
+        CCoinAddress address2(address1);
 
         uint256 hash = winner.GetHash();
 
@@ -171,9 +173,10 @@ bool CMasternodePayments::CheckSignature(CMasternodePaymentWinner& winner)
 bool CMasternodePayments::Sign(CMasternodePaymentWinner& winner)
 {
     std::string strMessage = winner.vin.ToString().c_str() + boost::lexical_cast<std::string>(winner.nBlockHeight) + winner.payee.ToString();
-
+    
     CKey key2;
     CPubKey pubkey2;
+    
     std::string errorMessage = "";
 
     if(!darkSendSigner.SetKey(strMasterPrivKey, errorMessage, key2, pubkey2))
@@ -227,7 +230,7 @@ uint64_t CMasternodePayments::CalculateScore(uint256 blockHash, CTxIn& vin)
 
 bool CMasternodePayments::GetBlockPayee(int nBlockHeight, CScript& payee, CTxIn& vin)
 {
-    BOOST_FOREACH(CMasternodePaymentWinner& winner, vWinning)
+    for(CMasternodePaymentWinner& winner: vWinning)
     {
         if(winner.nBlockHeight == nBlockHeight)
         {
@@ -244,7 +247,7 @@ bool CMasternodePayments::GetBlockPayee(int nBlockHeight, CScript& payee, CTxIn&
 
 bool CMasternodePayments::GetWinningMasternode(int nBlockHeight, CTxIn& vinOut)
 {
-    BOOST_FOREACH(CMasternodePaymentWinner& winner, vWinning)
+    for(CMasternodePaymentWinner& winner: vWinning)
     {
         if(winner.nBlockHeight == nBlockHeight)
         {
@@ -271,7 +274,7 @@ bool CMasternodePayments::AddWinningMasternode(CMasternodePaymentWinner& winnerI
 
     bool foundBlock = false;
 
-    BOOST_FOREACH(CMasternodePaymentWinner& winner, vWinning)
+    for(CMasternodePaymentWinner& winner: vWinning)
     {
         if(winner.nBlockHeight == winnerIn.nBlockHeight)
         {
@@ -318,7 +321,7 @@ void CMasternodePayments::CleanPaymentList()
 
     vector<CMasternodePaymentWinner>::iterator it;
 
-    for(it=vWinning.begin();it<vWinning.end();it++)
+    for(it = vWinning.begin(); it<vWinning.end(); it++)
     {
         if(pindexBest->nHeight - (*it).nBlockHeight > nLimit)
         {
@@ -373,7 +376,7 @@ bool CMasternodePayments::ProcessBlock(int nBlockHeight)
 
     std::vector<CTxIn> vecLastPayments;
     
-    BOOST_REVERSE_FOREACH(CMasternodePaymentWinner& winner, vWinning)
+    for(CMasternodePaymentWinner& winner: boost::adaptors::reverse(vWinning))
     {
         //if we already have the same vin - we have one full payment cycle, break
         if(vecLastPayments.size() > (unsigned int)nMinimumAge)
@@ -386,6 +389,7 @@ bool CMasternodePayments::ProcessBlock(int nBlockHeight)
 
     // pay to the oldest MN that still had no payment but its input is old enough and it was active long enough
     CMasternode *pmn = mnodeman.FindOldestNotInVec(vecLastPayments, nMinimumAge);
+
     if(pmn != NULL)
     {
         if (fDebug)
@@ -417,12 +421,14 @@ bool CMasternodePayments::ProcessBlock(int nBlockHeight)
             LogPrint("masternode", "%s :  Find by reverse \n", __FUNCTION__);
         }
 
-        BOOST_REVERSE_FOREACH(CTxIn& vinLP, vecLastPayments)
+        for(CTxIn& vinLP: boost::adaptors::reverse(vecLastPayments))
         {
             CMasternode* pmn = mnodeman.Find(vinLP);
+
             if(pmn != NULL)
             {
                 pmn->Check();
+
                 if(!pmn->IsEnabled())
                 {
                     continue;
@@ -454,12 +460,16 @@ bool CMasternodePayments::ProcessBlock(int nBlockHeight)
     }
 
     CTxDestination address1;
+
     ExtractDestination(newWinner.payee, address1);
-    CPHCcoinAddress address2(address1);
+
+    CCoinAddress address2(address1);
 
     CTxDestination address3;
+
     ExtractDestination(payeeSource, address3);
-    CPHCcoinAddress address4(address3);
+
+    CCoinAddress address4(address3);
 
     if (fDebug)
     {
@@ -487,11 +497,12 @@ void CMasternodePayments::Relay(CMasternodePaymentWinner& winner)
     CInv inv(MSG_MASTERNODE_WINNER, winner.GetHash());
 
     vector<CInv> vInv;
+
     vInv.push_back(inv);
 
     LOCK(cs_vNodes);
 
-    BOOST_FOREACH(CNode* pnode, vNodes)
+    for(CNode* pnode: vNodes)
     {
         pnode->PushMessage("inv", vInv);
     }
@@ -502,7 +513,7 @@ void CMasternodePayments::Sync(CNode* node)
 {
     LOCK(cs_masternodepayments);
 
-    BOOST_FOREACH(CMasternodePaymentWinner& winner, vWinning)
+    for(CMasternodePaymentWinner& winner: vWinning)
     {
         if(winner.nBlockHeight >= pindexBest->nHeight-10 && winner.nBlockHeight <= pindexBest->nHeight + 20)
         {

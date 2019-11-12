@@ -53,8 +53,10 @@ class CAddrInfo : public CAddress
 
     public:
 
-        IMPLEMENT_SERIALIZE(
+        IMPLEMENT_SERIALIZE
+        (
             CAddress* pthis = (CAddress*)(this);
+
             READWRITE(*pthis);
             READWRITE(source);
             READWRITE(nLastSuccess);
@@ -255,7 +257,8 @@ class CAddrMan
     public:
 
         IMPLEMENT_SERIALIZE
-        (({
+        ((
+        {
             // serialized format:
             // * version byte (currently 0)
             // * nKey
@@ -278,7 +281,9 @@ class CAddrMan
             // changes to the ADDRMAN_ parameters without breaking the on-disk structure.
             {
                 LOCK(cs);
+
                 unsigned char nVersion = 0;
+
                 READWRITE(nVersion);
                 READWRITE(nKey);
                 READWRITE(nNew);
@@ -305,6 +310,7 @@ class CAddrMan
 
                         mapUnkIds[(*it).first] = nIds;
                         CAddrInfo &info = (*it).second;
+
                         if (info.nRefCount)
                         {
                             READWRITE(info);
@@ -314,6 +320,7 @@ class CAddrMan
                     }
 
                     nIds = 0;
+
                     for (std::map<int, CAddrInfo>::iterator it = am->mapInfo.begin(); it != am->mapInfo.end(); it++)
                     {
                         if (nIds == nTried)
@@ -336,6 +343,7 @@ class CAddrMan
                         int nSize = vNew.size();
 
                         READWRITE(nSize);
+
                         for (std::set<int>::iterator it2 = vNew.begin(); it2 != vNew.end(); it2++)
                         {
                             int nIndex = mapUnkIds[*it2];
@@ -430,11 +438,13 @@ class CAddrMan
                     }
                 }
             }
-        });)
+        }
+        );)
 
         CAddrMan() : vRandom(0), vvTried(ADDRMAN_TRIED_BUCKET_COUNT, std::vector<int>(0)), vvNew(ADDRMAN_NEW_BUCKET_COUNT, std::set<int>())
         {
             nKey.resize(32);
+
             GetRandBytes(&nKey[0], 32);
 
             nIdCount = 0;
@@ -479,8 +489,11 @@ class CAddrMan
             // Global Namespace Start
             {
                 LOCK(cs);
+
                 Check();
+
                 fRet |= Add_(addr, source, nTimePenalty);
+
                 Check();
             }
             // Global Namespace End
@@ -533,8 +546,11 @@ class CAddrMan
             // Global Namespace Start
             {
                 LOCK(cs);
+
                 Check();
+
                 Good_(addr, nTime);
+
                 Check();
             }
             // Global Namespace End
@@ -546,8 +562,11 @@ class CAddrMan
             // Global Namespace Start
             {
                 LOCK(cs);
+
                 Check();
+
                 Attempt_(addr, nTime);
+
                 Check();
             }
             // Global Namespace End
@@ -562,8 +581,11 @@ class CAddrMan
             // Global Namespace Start
             {
                 LOCK(cs);
+
                 Check();
+
                 addrRet = Select_(nUnkBias);
+
                 Check();
             }
             // Global Namespace End
@@ -575,11 +597,13 @@ class CAddrMan
         std::vector<CAddress> GetAddr()
         {
             Check();
+
             std::vector<CAddress> vAddr;
 
             // Global Namespace Start
             {
                 LOCK(cs);
+
                 GetAddr_(vAddr);
             }
             // Global Namespace End
@@ -595,8 +619,11 @@ class CAddrMan
             // Global Namespace Start
             {
                 LOCK(cs);
+
                 Check();
+
                 Connected_(addr, nTime);
+                
                 Check();
             }
             // Global Namespace End

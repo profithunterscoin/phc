@@ -48,6 +48,7 @@ int static FormatHashBlocks(void* pbuffer, unsigned int len)
     unsigned char* pend = pdata + 64 * blocks;
 
     memset(pdata + len, 0, 64 * blocks - len);
+
     pdata[len] = 0x80;
 
     unsigned int bits = len * 8;
@@ -222,6 +223,7 @@ CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
     // 1-satoshi-fee transactions. It should be set above the real
     // cost to you of processing a transaction.
     int64_t nMinTxFee = MIN_TX_FEE;
+
     if (mapArgs.count("-mintxfee"))
     {
         ParseMoney(mapArgs["-mintxfee"], nMinTxFee);
@@ -235,6 +237,7 @@ CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
     // Global Namespace Start
     {
         LOCK2(cs_main, mempool.cs);
+
         CTxDB txdb("r");
 
         //>PHC<
@@ -245,9 +248,11 @@ CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
         // This vector will be sorted into a priority queue:
         vector<TxPriority> vecPriority;
         vecPriority.reserve(mempool.mapTx.size());
+
         for (map<uint256, CTransaction>::iterator mi = mempool.mapTx.begin(); mi != mempool.mapTx.end(); ++mi)
         {
             CTransaction& tx = (*mi).second;
+
             if (tx.IsCoinBase() || tx.IsCoinStake() || !IsFinalTx(tx, nHeight))
             {
                 continue;
@@ -260,11 +265,12 @@ CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
 
             bool fMissingInputs = false;
 
-            BOOST_FOREACH(const CTxIn& txin, tx.vin)
+            for(const CTxIn& txin: tx.vin)
             {
                 // Read prev transaction
                 CTransaction txPrev;
                 CTxIndex txindex;
+
                 if (!txPrev.ReadFromDisk(txdb, txin.prevout, txindex))
                 {
                     // This should never happen; all transactions in the memory
@@ -364,6 +370,7 @@ CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
 
             // Legacy limits on sigOps:
             unsigned int nTxSigOps = GetLegacySigOpCount(tx);
+
             if (nBlockSigOps + nTxSigOps >= MAX_BLOCK_SIGOPS)
             {
                 continue;
@@ -396,6 +403,7 @@ CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
             MapPrevTx mapInputs;
 
             bool fInvalid;
+
             if (!tx.FetchInputs(txdb, mapTestPoolTmp, false, true, mapInputs, fInvalid))
             {
                 continue;
@@ -404,6 +412,7 @@ CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
             int64_t nTxFees = tx.GetValueIn(mapInputs)-tx.GetValueOut();
 
             nTxSigOps += GetP2SHSigOpCount(tx, mapInputs);
+
             if (nBlockSigOps + nTxSigOps >= MAX_BLOCK_SIGOPS)
             {
                 continue;
@@ -418,6 +427,7 @@ CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
             }
 
             mapTestPoolTmp[tx.GetHash()] = CTxIndex(CDiskTxPos(1,1,1), tx.vout.size());
+
             swap(mapTestPool, mapTestPoolTmp);
 
             // Added
@@ -436,7 +446,7 @@ CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
             uint256 hash = tx.GetHash();
             if (mapDependers.count(hash))
             {
-                BOOST_FOREACH(COrphan* porphan, mapDependers[hash])
+                for(COrphan* porphan: mapDependers[hash])
                 {
                     if (!porphan->setDependsOn.empty())
                     {
@@ -573,6 +583,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
     // 1-satoshi-fee transactions. It should be set above the real
     // cost to you of processing a transaction.
     int64_t nMinTxFee = MIN_TX_FEE;
+
     if (mapArgs.count("-mintxfee"))
     {
         ParseMoney(mapArgs["-mintxfee"], nMinTxFee);
@@ -586,6 +597,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
     // Global Namespace Start
     {
         LOCK2(cs_main, mempool.cs);
+
         CTxDB txdb("r");
 
         //>PHC<
@@ -596,9 +608,11 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
         // This vector will be sorted into a priority queue:
         vector<TxPriority> vecPriority;
         vecPriority.reserve(mempool.mapTx.size());
+
         for (map<uint256, CTransaction>::iterator mi = mempool.mapTx.begin(); mi != mempool.mapTx.end(); ++mi)
         {
             CTransaction& tx = (*mi).second;
+
             if (tx.IsCoinBase() || tx.IsCoinStake() || !IsFinalTx(tx, nHeight))
             {
                 continue;
@@ -611,11 +625,12 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
 
             bool fMissingInputs = false;
 
-            BOOST_FOREACH(const CTxIn& txin, tx.vin)
+            for(const CTxIn& txin: tx.vin)
             {
                 // Read prev transaction
                 CTransaction txPrev;
                 CTxIndex txindex;
+
                 if (!txPrev.ReadFromDisk(txdb, txin.prevout, txindex))
                 {
                     // This should never happen; all transactions in the memory
@@ -708,6 +723,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
 
             // Size limits
             unsigned int nTxSize = ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
+            
             if (nBlockSize + nTxSize >= nBlockMaxSize)
             {
                 continue;
@@ -715,6 +731,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
 
             // Legacy limits on sigOps:
             unsigned int nTxSigOps = GetLegacySigOpCount(tx);
+
             if (nBlockSigOps + nTxSigOps >= MAX_BLOCK_SIGOPS)
             {
                 continue;
@@ -738,6 +755,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
             {
                 fSortedByFee = true;
                 comparer = TxPriorityCompare(fSortedByFee);
+                
                 std::make_heap(vecPriority.begin(), vecPriority.end(), comparer);
             }
 
@@ -747,6 +765,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
             MapPrevTx mapInputs;
 
             bool fInvalid;
+
             if (!tx.FetchInputs(txdb, mapTestPoolTmp, false, true, mapInputs, fInvalid))
             {
                 continue;
@@ -755,6 +774,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
             int64_t nTxFees = tx.GetValueIn(mapInputs)-tx.GetValueOut();
 
             nTxSigOps += GetP2SHSigOpCount(tx, mapInputs);
+
             if (nBlockSigOps + nTxSigOps >= MAX_BLOCK_SIGOPS)
             {
                 continue;
@@ -773,6 +793,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
 
             // Added
             pblock->vtx.push_back(tx);
+
             nBlockSize += nTxSize;
             ++nBlockTx;
             nBlockSigOps += nTxSigOps;
@@ -785,16 +806,19 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
 
             // Add transactions that depend on this one to the priority queue
             uint256 hash = tx.GetHash();
+
             if (mapDependers.count(hash))
             {
-                BOOST_FOREACH(COrphan* porphan, mapDependers[hash])
+                for(COrphan* porphan: mapDependers[hash])
                 {
                     if (!porphan->setDependsOn.empty())
                     {
                         porphan->setDependsOn.erase(hash);
+
                         if (porphan->setDependsOn.empty())
                         {
                             vecPriority.push_back(TxPriority(porphan->dPriority, porphan->dFeePerKb, porphan->ptx));
+                            
                             std::push_heap(vecPriority.begin(), vecPriority.end(), comparer);
                         }
                     }
@@ -843,6 +867,7 @@ void IncrementExtraNonce(CBlock* pblock, CBlockIndex* pindexPrev, unsigned int& 
 {
     // Update nExtraNonce
     static uint256 hashPrevBlock;
+
     if (hashPrevBlock != pblock->hashPrevBlock)
     {
         nExtraNonce = 0;
@@ -893,7 +918,9 @@ void FormatHashBuffers(CBlock* pblock, char* pmidstate, char* pdata, char* phash
 
         unsigned char pchPadding1[64];
     }
+
     tmp;
+
     memset(&tmp, 0, sizeof(tmp));
 
     tmp.block.nVersion       = pblock->nVersion;
@@ -949,6 +976,7 @@ bool ProcessBlockStake(CBlock* pblock, CWallet& wallet)
         // Found a solution
 
         LOCK(cs_main);
+
         if (pblock->hashPrevBlock != hashBestChain)
         {
             return error("%s : generated block is stale", __FUNCTION__);
@@ -958,6 +986,7 @@ bool ProcessBlockStake(CBlock* pblock, CWallet& wallet)
         {
             // Track how many getdata requests this block gets
             LOCK(wallet.cs_wallet);
+
             wallet.mapRequestCount[hashBlock] = 0;
         }
         // Global Namespace End
@@ -1001,34 +1030,22 @@ void ThreadStakeMiner(CWallet *pwallet)
 
     bool fTryToSync = true;
 
-
     while (true)
     {
-        bool fvNodesEmpty = true;
-
         while (pwallet->IsLocked())
         {
             nLastCoinStakeSearchInterval = 0;
 
-            MilliSleep(60000); // wait 1 minute
+            MilliSleep(60000); // 1 minute
         }
 
-        // Global Namespace Start
-        {
-            LOCK(cs_vNodes);
-
-            fvNodesEmpty = vNodes.empty();
-        }
-        // Global Namespace End
-
-        // Minimum required 8 nodes for staking to activate & Synced
-        while (fvNodesEmpty || IsInitialBlockDownload())
+        while (vNodes.empty() || IsInitialBlockDownload())
         {
             nLastCoinStakeSearchInterval = 0;
             
             fTryToSync = true;
             
-            MilliSleep(1000);
+            MilliSleep(60000); // 1 minute
         }
 
         if (fTryToSync)
@@ -1037,7 +1054,7 @@ void ThreadStakeMiner(CWallet *pwallet)
 
             if (vNodes.size() < 8 || pindexBest->GetBlockTime() < GetTime() - 10 * 60)
             {
-                MilliSleep(60000); // wait 1 minute
+                MilliSleep(10000);
             
                 continue;
             }

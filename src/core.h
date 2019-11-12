@@ -81,6 +81,7 @@ class CInPoint
     public:
 
         CTransaction* ptx;
+
         unsigned int n;
 
         CInPoint()
@@ -166,7 +167,6 @@ class CTxOut
     public:
 
         int64_t nValue;
-        
         int nRounds;
         
         CScript scriptPubKey;
@@ -199,6 +199,7 @@ class CTxOut
         void SetEmpty()
         {
             nValue = 0;
+            
             scriptPubKey.clear();
         }
 

@@ -152,7 +152,7 @@ Value darksend(const Array& params, bool fHelp)
                             + HelpRequiringPassphrase());
     }
 
-    CPHCcoinAddress address(params[0].get_str());
+    CCoinAddress address(params[0].get_str());
 
     if (!address.IsValid())
     {
@@ -281,6 +281,7 @@ Value masternode(const Array& params, bool fHelp)
         if(pwalletMain->IsLocked())
         {
             SecureString strWalletPass;
+
             strWalletPass.reserve(100);
 
             if (params.size() == 2)
@@ -332,6 +333,7 @@ Value masternode(const Array& params, bool fHelp)
     	if(pwalletMain->IsLocked())
         {
     		SecureString strWalletPass;
+
     	    strWalletPass.reserve(100);
 
 			if (params.size() == 3)
@@ -352,9 +354,10 @@ Value masternode(const Array& params, bool fHelp)
     	bool found = false;
 
 		Object statusObj;
+
 		statusObj.push_back(Pair("alias", alias));
 
-    	BOOST_FOREACH(CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries())
+    	for(CMasternodeConfig::CMasternodeEntry mne: masternodeConfig.getEntries())
         {
     		if(mne.getAlias() == alias)
             {
@@ -391,6 +394,7 @@ Value masternode(const Array& params, bool fHelp)
     	if(pwalletMain->IsLocked())
         {
 			SecureString strWalletPass;
+
 			strWalletPass.reserve(100);
 
 			if (params.size() == 2)
@@ -415,14 +419,16 @@ Value masternode(const Array& params, bool fHelp)
 
 		Object resultsObj;
 
-		BOOST_FOREACH(CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries())
+		for(CMasternodeConfig::CMasternodeEntry mne: masternodeConfig.getEntries())
         {
 			total++;
 
 			std::string errorMessage;
+
 			bool result = activeMasternode.StopMasterNode(mne.getIp(), mne.getPrivKey(), errorMessage);
 
 			Object statusObj;
+
 			statusObj.push_back(Pair("alias", mne.getAlias()));
 			statusObj.push_back(Pair("result", result ? "successful" : "failed"));
 
@@ -433,6 +439,7 @@ Value masternode(const Array& params, bool fHelp)
             else
             {
 				fail++;
+
 				statusObj.push_back(Pair("errorMessage", errorMessage));
 			}
 
@@ -442,6 +449,7 @@ Value masternode(const Array& params, bool fHelp)
 		pwalletMain->Lock();
 
 		Object returnObj;
+
 		returnObj.push_back(Pair("overall", "Successfully stopped " + boost::lexical_cast<std::string>(successful) +
                                 " masternodes, failed to stop " + boost::lexical_cast<std::string>(fail) +
                                 ", total " + boost::lexical_cast<std::string>(total)));
@@ -493,6 +501,7 @@ Value masternode(const Array& params, bool fHelp)
         if(pwalletMain->IsLocked())
         {
             SecureString strWalletPass;
+
             strWalletPass.reserve(100);
 
             if (params.size() == 2)
@@ -513,39 +522,52 @@ Value masternode(const Array& params, bool fHelp)
         if(activeMasternode.status != MASTERNODE_REMOTELY_ENABLED && activeMasternode.status != MASTERNODE_IS_CAPABLE)
         {
             activeMasternode.status = MASTERNODE_NOT_PROCESSED; // TODO: consider better way
+
             std::string errorMessage;
+
             activeMasternode.ManageStatus();
+
             pwalletMain->Lock();
         }
 
-        if(activeMasternode.status == MASTERNODE_REMOTELY_ENABLED)
+        switch (activeMasternode.status)
         {
-            return "masternode started remotely";
-        }
-        
-        if(activeMasternode.status == MASTERNODE_INPUT_TOO_NEW)
-        {
-            return "masternode input must have at least 15 confirmations";
-        }
-        
-        if(activeMasternode.status == MASTERNODE_STOPPED)
-        {
-            return "masternode is stopped";
-        }
-        
-        if(activeMasternode.status == MASTERNODE_IS_CAPABLE)
-        {
-            return "successfully started masternode";
-        }
-        
-        if(activeMasternode.status == MASTERNODE_NOT_CAPABLE)
-        {
-            return "not capable masternode: " + activeMasternode.notCapableReason;
-        }
-        
-        if(activeMasternode.status == MASTERNODE_SYNC_IN_PROCESS)
-        {
-            return "sync in process. Must wait until client is synced to start.";
+            case MASTERNODE_REMOTELY_ENABLED:
+            {
+                return "masternode started remotely";
+            }
+            break;
+
+            case MASTERNODE_INPUT_TOO_NEW:
+            {
+                return "masternode input must have at least 15 confirmations";
+            }
+            break;
+
+            case MASTERNODE_STOPPED:
+            {
+                return "masternode is stopped";
+            }
+            break;
+
+            case MASTERNODE_IS_CAPABLE:
+            {
+                return "successfully started masternode";
+            }
+            break;
+
+            case MASTERNODE_NOT_CAPABLE:
+            {
+                return "not capable masternode: " + activeMasternode.notCapableReason;
+            }
+            break;
+
+            case MASTERNODE_SYNC_IN_PROCESS:
+            {
+                return "sync in process. Must wait until client is synced to start.";
+            }
+            break;
+
         }
 
         return "unknown";
@@ -563,9 +585,11 @@ Value masternode(const Array& params, bool fHelp)
     	if(pwalletMain->IsLocked())
         {
     		SecureString strWalletPass;
+
     	    strWalletPass.reserve(100);
 
-			if (params.size() == 3){
+			if (params.size() == 3)
+            {
 				strWalletPass = params[2].get_str().c_str();
 			}
             else
@@ -582,9 +606,10 @@ Value masternode(const Array& params, bool fHelp)
     	bool found = false;
 
 		Object statusObj;
+
 		statusObj.push_back(Pair("alias", alias));
 
-    	BOOST_FOREACH(CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries())
+    	for(CMasternodeConfig::CMasternodeEntry mne: masternodeConfig.getEntries())
         {
     		if(mne.getAlias() == alias)
             {
@@ -620,6 +645,7 @@ Value masternode(const Array& params, bool fHelp)
     	if(pwalletMain->IsLocked())
         {
 			SecureString strWalletPass;
+
 			strWalletPass.reserve(100);
 
 			if (params.size() == 2)
@@ -646,7 +672,7 @@ Value masternode(const Array& params, bool fHelp)
 
 		Object resultsObj;
 
-		BOOST_FOREACH(CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries())
+		for(CMasternodeConfig::CMasternodeEntry mne: masternodeConfig.getEntries())
         {
 			total++;
 
@@ -654,6 +680,7 @@ Value masternode(const Array& params, bool fHelp)
             bool result = activeMasternode.Register(mne.getIp(), mne.getPrivKey(), mne.getTxHash(), mne.getOutputIndex(), mne.getRewardAddress(), mne.getRewardPercentage(), errorMessage);
 
 			Object statusObj;
+
 			statusObj.push_back(Pair("alias", mne.getAlias()));
 			statusObj.push_back(Pair("result", result ? "succesful" : "failed"));
 
@@ -673,6 +700,7 @@ Value masternode(const Array& params, bool fHelp)
 		pwalletMain->Lock();
 
 		Object returnObj;
+
 		returnObj.push_back(Pair("overall", "Successfully started " + boost::lexical_cast<std::string>(successful) +
                                 " masternodes, failed to start " + boost::lexical_cast<std::string>(fail) +
                                 ", total " + boost::lexical_cast<std::string>(total)));
@@ -683,34 +711,43 @@ Value masternode(const Array& params, bool fHelp)
 
     if (strCommand == "debug")
     {
-        if(activeMasternode.status == MASTERNODE_REMOTELY_ENABLED)
+        switch (activeMasternode.status)
         {
-            return "masternode started remotely";
-        }
+            case MASTERNODE_REMOTELY_ENABLED:
+            {
+                return "masternode started remotely";
+            }
+            break;
 
-        if(activeMasternode.status == MASTERNODE_INPUT_TOO_NEW)
-        {
-            return "masternode input must have at least 15 confirmations";
-        }
-        
-        if(activeMasternode.status == MASTERNODE_IS_CAPABLE)
-        {
-            return "successfully started masternode";
-        }
-        
-        if(activeMasternode.status == MASTERNODE_STOPPED)
-        {
-            return "masternode is stopped";
-        }
-        
-        if(activeMasternode.status == MASTERNODE_NOT_CAPABLE)
-        {
-            return "not capable masternode: " + activeMasternode.notCapableReason;
-        }
-        
-        if(activeMasternode.status == MASTERNODE_SYNC_IN_PROCESS)
-        {
-            return "sync in process. Must wait until client is synced to start.";
+            case MASTERNODE_INPUT_TOO_NEW:
+            {
+                return "masternode input must have at least 15 confirmations";
+            }
+            break;
+
+            case MASTERNODE_IS_CAPABLE:
+            {
+                return "successfully started masternode";
+            }
+            break;
+
+            case MASTERNODE_STOPPED:
+            {
+                return "masternode is stopped";
+            }
+            break;
+
+            case MASTERNODE_NOT_CAPABLE:
+            {
+                return "not capable masternode: " + activeMasternode.notCapableReason;
+            }
+            break;
+
+            case MASTERNODE_SYNC_IN_PROCESS:
+            {
+                return "sync in process. Must wait until client is synced to start.";
+            }
+            break;
         }
 
         CTxIn vin = CTxIn();
@@ -744,11 +781,14 @@ Value masternode(const Array& params, bool fHelp)
             Object obj;
             
             CScript pubkey;
+
             pubkey.SetDestination(winner->pubkey.GetID());
             
             CTxDestination address1;
+
             ExtractDestination(pubkey, address1);
-            CPHCcoinAddress address2(address1);
+
+            CCoinAddress address2(address1);
 
             obj.push_back(Pair("IP:port",       winner->addr.ToString().c_str()));
             obj.push_back(Pair("protocol",      (int64_t)winner->protocolVersion));
@@ -766,6 +806,7 @@ Value masternode(const Array& params, bool fHelp)
     if (strCommand == "genkey")
     {
         CKey secret;
+
         secret.MakeNewKey(false);
 
         return CPHCcoinSecret(secret).ToString();
@@ -774,6 +815,7 @@ Value masternode(const Array& params, bool fHelp)
     if (strCommand == "winners")
     {
         Object obj;
+
         std::string strMode = "addr";
     
         if (params.size() >= 1)
@@ -790,7 +832,7 @@ Value masternode(const Array& params, bool fHelp)
             {
                 CTxDestination address1;
                 ExtractDestination(payee, address1);
-                CPHCcoinAddress address2(address1);
+                CCoinAddress address2(address1);
 
                 if(strMode == "addr")
                 {
@@ -848,7 +890,7 @@ Value masternode(const Array& params, bool fHelp)
 
         Object resultObj;
 
-        BOOST_FOREACH(CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries())
+        for(CMasternodeConfig::CMasternodeEntry mne: masternodeConfig.getEntries())
         {
     		Object mnObj;
     		
@@ -870,7 +912,8 @@ Value masternode(const Array& params, bool fHelp)
         vector<COutput> possibleCoins = activeMasternode.SelectCoinsMasternode();
 
         Object obj;
-        BOOST_FOREACH(COutput& out, possibleCoins)
+
+        for (COutput& out: possibleCoins)
         {
             obj.push_back(Pair(out.tx->GetHash().ToString().c_str(), boost::lexical_cast<std::string>(out.i)));
         }
@@ -913,7 +956,7 @@ Value masternode(const Array& params, bool fHelp)
 
         Object resultObj;
 
-        BOOST_FOREACH(CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries())
+        for(CMasternodeConfig::CMasternodeEntry mne: masternodeConfig.getEntries())
         {
             std::string errorMessage;
             std::vector<unsigned char> vchMasterNodeSignature;
@@ -934,6 +977,7 @@ Value masternode(const Array& params, bool fHelp)
             }
             
             CMasternode* pmn = mnodeman.Find(pubKeyMasternode);
+
             if(pmn == NULL)
             {
                 printf("Can't find masternode by pubkey for %s\n", mne.getAlias().c_str());
@@ -968,7 +1012,7 @@ Value masternode(const Array& params, bool fHelp)
             //send to all peers
             LOCK(cs_vNodes);
 
-            BOOST_FOREACH(CNode* pnode, vNodes)
+            for(CNode* pnode: vNodes)
             {
                 pnode->PushMessage("mvote", pmn->vin, vchMasterNodeSignature, nVote);
             }
@@ -1034,7 +1078,7 @@ Value masternode(const Array& params, bool fHelp)
         //send to all peers
         LOCK(cs_vNodes);
 
-        BOOST_FOREACH(CNode* pnode, vNodes)
+        for(CNode* pnode: vNodes)
         {
             pnode->PushMessage("mvote", activeMasternode.vin, vchMasterNodeSignature, nVote);
         }
@@ -1050,8 +1094,10 @@ Value masternode(const Array& params, bool fHelp)
         pubkey = GetScriptForDestination(activeMasternode.pubKeyMasternode.GetID());
         
         CTxDestination address1;
+
         ExtractDestination(pubkey, address1);
-        CPHCcoinAddress address2(address1);
+
+        CCoinAddress address2(address1);
 
         Object mnObj;
         
@@ -1121,7 +1167,7 @@ Value masternodelist(const Array& params, bool fHelp)
     {
         std::vector<pair<int, CMasternode> > vMasternodeRanks = mnodeman.GetMasternodeRanks(pindexBest->nHeight);
 
-        BOOST_FOREACH(PAIRTYPE(int, CMasternode)& s, vMasternodeRanks)
+        for(PAIRTYPE(int, CMasternode)& s: vMasternodeRanks)
         {
             std::string strVin = s.second.vin.prevout.ToStringShort();
 
@@ -1137,7 +1183,7 @@ Value masternodelist(const Array& params, bool fHelp)
     {
         std::vector<CMasternode> vMasternodes = mnodeman.GetFullMasternodeVector();
 
-        BOOST_FOREACH(CMasternode& mn, vMasternodes)
+        for(CMasternode& mn: vMasternodes)
         {
             std::string strVin = mn.vin.prevout.ToStringShort();
             
@@ -1153,8 +1199,10 @@ Value masternodelist(const Array& params, bool fHelp)
             else if (strMode == "reward")
             {
                 CTxDestination address1;
+
                 ExtractDestination(mn.rewardAddress, address1);
-                CPHCcoinAddress address2(address1);
+
+                CCoinAddress address2(address1);
 
                 if(strFilter !="" && address2.ToString().find(strFilter) == string::npos && strVin.find(strFilter) == string::npos)
                 {
@@ -1175,11 +1223,14 @@ Value masternodelist(const Array& params, bool fHelp)
             else if (strMode == "full")
             {
                 CScript pubkey;
+
                 pubkey.SetDestination(mn.pubkey.GetID());
                 
                 CTxDestination address1;
+
                 ExtractDestination(pubkey, address1);
-                CPHCcoinAddress address2(address1);
+
+                CCoinAddress address2(address1);
 
                 std::ostringstream addrStream;
                 addrStream << setw(21) << strVin;
@@ -1225,10 +1276,14 @@ Value masternodelist(const Array& params, bool fHelp)
             else if (strMode == "pubkey")
             {
                 CScript pubkey;
+
                 pubkey.SetDestination(mn.pubkey.GetID());
+
                 CTxDestination address1;
+
                 ExtractDestination(pubkey, address1);
-                CPHCcoinAddress address2(address1);
+
+                CCoinAddress address2(address1);
 
                 if(strFilter !="" && address2.ToString().find(strFilter) == string::npos && strVin.find(strFilter) == string::npos)
                 {
@@ -1293,6 +1348,7 @@ Value masternodelist(const Array& params, bool fHelp)
             }
         }
     }
+    
     return obj;
 
 }

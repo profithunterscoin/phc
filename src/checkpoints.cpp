@@ -13,7 +13,7 @@
 
 
 #include <boost/assign/list_of.hpp> // for 'map_list_of()'
-#include <boost/foreach.hpp>
+#include <boost/range/adaptor/reversed.hpp>
 
 #include "checkpoints.h"
 
@@ -88,7 +88,7 @@ namespace Checkpoints
     {
         MapCheckpoints& checkpoints = (TestNet() ? mapCheckpointsTestnet : mapCheckpoints);
 
-        BOOST_REVERSE_FOREACH(const MapCheckpoints::value_type& i, checkpoints)
+        for(const MapCheckpoints::value_type& i: boost::adaptors::reverse(checkpoints))
         {
             const uint256& hash = i.second;
 

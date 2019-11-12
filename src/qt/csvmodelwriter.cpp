@@ -33,6 +33,7 @@ void CSVModelWriter::setModel(const QAbstractItemModel *model)
 void CSVModelWriter::addColumn(const QString &title, int column, int role)
 {
     Column col;
+
     col.title = title;
     col.column = column;
     col.role = role;
@@ -44,7 +45,9 @@ void CSVModelWriter::addColumn(const QString &title, int column, int role)
 static void writeValue(QTextStream &f, const QString &value)
 {
     QString escaped = value;
+
     escaped.replace('"', "\"\"");
+
     f << "\"" << escaped << "\"";
 }
 
@@ -103,6 +106,7 @@ bool CSVModelWriter::write()
             }
             
             QVariant data = model->index(j, columns[i].column).data(columns[i].role);
+            
             writeValue(out, data.toString());
         }
 

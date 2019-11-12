@@ -116,6 +116,7 @@ bool static LookupIntern(const char *pszName, std::vector<CNetAddr>& vIP, unsign
     // Global Namespace Start
     {
         CNetAddr addr;
+
         if (addr.SetSpecial(std::string(pszName)))
         {
             vIP.push_back(addr);
@@ -141,6 +142,7 @@ bool static LookupIntern(const char *pszName, std::vector<CNetAddr>& vIP, unsign
     struct addrinfo *aiRes = NULL;
 
     int nErr = getaddrinfo(pszName, NULL, &aiHint, &aiRes);
+
     if (nErr)
     {
         return false;
@@ -253,6 +255,7 @@ bool Lookup(const char *pszName, CService& addr, int portDefault, bool fAllowLoo
     std::vector<CService> vService;
 
     bool fRet = Lookup(pszName, vService, portDefault, fAllowLookup, 1);
+
     if (!fRet)
     {
         return false;
@@ -302,6 +305,7 @@ bool static Socks4(const CService &addrDest, SOCKET& hSocket)
     int nSize = sizeof(pszSocks4IP);
 
     int ret = send(hSocket, pszSocks4, nSize, MSG_NOSIGNAL);
+
     if (ret != nSize)
     {
         closesocket(hSocket);
@@ -310,6 +314,7 @@ bool static Socks4(const CService &addrDest, SOCKET& hSocket)
     }
 
     char pchRet[8];
+
     if (recv(hSocket, pchRet, 8, 0) != 8)
     {
         closesocket(hSocket);
@@ -368,6 +373,7 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
     }
 
     char pchRet1[2];
+
     if (recv(hSocket, pchRet1, 2, 0) != 2)
     {
         closesocket(hSocket);
@@ -398,6 +404,7 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
     }
 
     char pchRet2[4];
+
     if (recv(hSocket, pchRet2, 4, 0) != 4)
     {
         closesocket(hSocket);
@@ -482,6 +489,7 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
     }
 
     char pchRet3[256];
+
     switch (pchRet2[3])
     {
         case 0x01:
@@ -501,6 +509,7 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
         case 0x03:
         {
             ret = recv(hSocket, pchRet3, 1, 0) != 1;
+
             if (ret)
             {
                 closesocket(hSocket);
@@ -583,9 +592,11 @@ bool static ConnectSocketDirectly(const CService &addrConnect, SOCKET& hSocketRe
 
 #ifdef WIN32
     u_long fNonblock = 1;
+
     if (ioctlsocket(hSocket, FIONBIO, &fNonblock) == SOCKET_ERROR)
 #else
     int fFlags = fcntl(hSocket, F_GETFL, 0);
+
     if (fcntl(hSocket, F_SETFL, fFlags | O_NONBLOCK) == -1)
 #endif
     {
@@ -605,10 +616,12 @@ bool static ConnectSocketDirectly(const CService &addrConnect, SOCKET& hSocketRe
             timeout.tv_usec = (nTimeout % 1000) * 1000;
 
             fd_set fdset;
+
             FD_ZERO(&fdset);
             FD_SET(hSocket, &fdset);
 
             int nRet = select(hSocket + 1, NULL, &fdset, NULL, &timeout);
+
             if (nRet == 0)
             {
                 if (fDebug)
@@ -684,9 +697,11 @@ bool static ConnectSocketDirectly(const CService &addrConnect, SOCKET& hSocketRe
     // but we'll turn it back to blocking just in case
 #ifdef WIN32
     fNonblock = 0;
+
     if (ioctlsocket(hSocket, FIONBIO, &fNonblock) == SOCKET_ERROR)
 #else
     fFlags = fcntl(hSocket, F_GETFL, 0);
+
     if (fcntl(hSocket, F_SETFL, fFlags & ~O_NONBLOCK) == SOCKET_ERROR)
 #endif
     {
@@ -1207,6 +1222,7 @@ bool CNetAddr::IsValid() const
 
     // unspecified IPv6 address (::/128)
     unsigned char ipNone[16] = {};
+
     if (memcmp(ip, ipNone, 16) == 0)
     {
         return false;
@@ -1222,6 +1238,7 @@ bool CNetAddr::IsValid() const
     {
         // INADDR_NONE
         uint32_t ipNone = INADDR_NONE;
+
         if (memcmp(ip+12, &ipNone, 4) == 0)
         {
             return false;
@@ -1229,6 +1246,7 @@ bool CNetAddr::IsValid() const
 
         // 0
         ipNone = 0;
+
         if (memcmp(ip+12, &ipNone, 4) == 0)
         {
             return false;
@@ -1292,6 +1310,7 @@ std::string CNetAddr::ToStringIP() const
     if (serv.GetSockAddr((struct sockaddr*)&sockaddr, &socklen))
     {
         char name[1025] = "";
+
         if (!getnameinfo((const struct sockaddr*)&sockaddr, socklen, name, sizeof(name), NULL, 0, NI_NUMERICHOST))
         {
             return std::string(name);
@@ -1908,6 +1927,7 @@ std::vector<unsigned char> CService::GetKey() const
      std::vector<unsigned char> vKey;
 
      vKey.resize(18);
+
      memcpy(&vKey[0], ip, 16);
 
      vKey[16] = port / 0x100;
@@ -1974,6 +1994,7 @@ CSubNet::CSubNet(const std::string &strSubnet, bool fAllowLookup)
     memset(netmask, 255, sizeof(netmask));
 
     std::string strAddress = strSubnet.substr(0, slash);
+
     if (LookupHost(strAddress.c_str(), vIP, 1, fAllowLookup))
     {
         network = vIP[0];
@@ -2057,62 +2078,62 @@ static inline int NetmaskBits(uint8_t x)
         case 0x00:
         {
             return 0;
-            break;
         }
+        break;
 
         case 0x80:
         {
             return 1;
-            break;
         }
+        break;
 
         case 0xc0:
         {
             return 2;
-            break;
         }
+        break;
 
         case 0xe0:
         {
             return 3;
-            break;
         }
+        break;
 
         case 0xf0:
         {
             return 4;
-            break;
         }
+        break;
 
         case 0xf8:
         {
             return 5;
-            break;
         }
+        break;
 
         case 0xfc:
         {
             return 6;
-            break;
         }
+        break;
 
         case 0xfe:
         {
             return 7;
-            break;
         }
+        break;
 
         case 0xff:
         {
             return 8;
-            break;
         }
+        break;
 
         default:
         {
             return -1;
-            break;
         }
+        break;
     }
 }
 
@@ -2155,6 +2176,7 @@ std::string CSubNet::ToString() const
 
     /* Format output */
     std::string strNetmask;
+
     if (valid_cidr)
     {
         strNetmask = strprintf("%u", cidr);
@@ -2201,6 +2223,8 @@ bool operator<(const CSubNet& a, const CSubNet& b)
 {
     return (a.network < b.network || (a.network == b.network && memcmp(a.netmask, b.netmask, 16) < 0));
 }
+
+
 #ifdef WIN32
 std::string NetworkErrorString(int err)
 {
@@ -2216,6 +2240,8 @@ std::string NetworkErrorString(int err)
         return strprintf("%s : Unknown error (%d)", __FUNCTION__, err);
     }
 }
+
+
 #else
 std::string NetworkErrorString(int err)
 {

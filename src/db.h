@@ -45,7 +45,9 @@ class CDBEnv
     
         bool fDbEnvInit;
         bool fMockDb;
+
         boost::filesystem::path pathEnv;
+
         std::string strPath;
 
         void EnvShutdown();
@@ -53,14 +55,21 @@ class CDBEnv
     public:
 
         mutable CCriticalSection cs_db;
+
         DbEnv dbenv;
+
         std::map<std::string, int> mapFileUseCount;
         std::map<std::string, Db*> mapDb;
 
         CDBEnv();
         ~CDBEnv();
+
         void MakeMock();
-        bool IsMock() { return fMockDb; };
+
+        bool IsMock()
+        {
+            return fMockDb;
+        };
 
         /*
         * Verify that database file strFile is OK. If it is not,
@@ -82,11 +91,14 @@ class CDBEnv
         * for huge databases.
         */
         typedef std::pair<std::vector<unsigned char>, std::vector<unsigned char> > KeyValPair;
+
         bool Salvage(std::string strFile, bool fAggressive, std::vector<KeyValPair>& vResult);
 
         bool Open(boost::filesystem::path pathEnv_);
         void Close();
+
         void Flush(bool fShutdown);
+
         void CheckpointLSN(const std::string& strFile);
 
         void CloseDb(const std::string& strFile);
@@ -116,8 +128,11 @@ class CDB
     protected:
 
         Db* pdb;
+
         std::string strFile;
+
         DbTxn *activeTxn;
+
         bool fReadOnly;
 
         explicit CDB(const std::string& strFilename, const char* pszMode="r+");
@@ -133,6 +148,7 @@ class CDB
     private:
 
         CDB(const CDB&);
+
         void operator=(const CDB&);
 
     protected:
@@ -148,6 +164,7 @@ class CDB
             CDataStream ssKey(SER_DISK, CLIENT_VERSION);
             ssKey.reserve(1000);
             ssKey << key;
+
             Dbt datKey(&ssKey[0], ssKey.size());
 
             // Read
@@ -200,12 +217,14 @@ class CDB
             CDataStream ssKey(SER_DISK, CLIENT_VERSION);
             ssKey.reserve(1000);
             ssKey << key;
+
             Dbt datKey(&ssKey[0], ssKey.size());
 
             // Value
             CDataStream ssValue(SER_DISK, CLIENT_VERSION);
             ssValue.reserve(10000);
             ssValue << value;
+
             Dbt datValue(&ssValue[0], ssValue.size());
 
             // Write
@@ -236,6 +255,7 @@ class CDB
             CDataStream ssKey(SER_DISK, CLIENT_VERSION);
             ssKey.reserve(1000);
             ssKey << key;
+
             Dbt datKey(&ssKey[0], ssKey.size());
 
             // Erase
@@ -258,6 +278,7 @@ class CDB
             CDataStream ssKey(SER_DISK, CLIENT_VERSION);
             ssKey.reserve(1000);
             ssKey << key;
+            
             Dbt datKey(&ssKey[0], ssKey.size());
 
             // Exists
@@ -325,6 +346,7 @@ class CDB
             ssKey.SetType(SER_DISK);
             ssKey.clear();
             ssKey.write((char*)datKey.get_data(), datKey.get_size());
+
             ssValue.SetType(SER_DISK);
             ssValue.clear();
             ssValue.write((char*)datValue.get_data(), datValue.get_size());
@@ -332,6 +354,7 @@ class CDB
             // Clear and free memory
             memset(datKey.get_data(), 0, datKey.get_size());
             memset(datValue.get_data(), 0, datValue.get_size());
+
             free(datKey.get_data());
             free(datValue.get_data());
 

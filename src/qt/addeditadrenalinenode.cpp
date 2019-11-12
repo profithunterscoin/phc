@@ -29,6 +29,7 @@
 #include <QMessageBox>
 #include <QClipboard>
 
+
 AddEditAdrenalineNode::AddEditAdrenalineNode(QWidget *parent) : QDialog(parent), ui(new Ui::AddEditAdrenalineNode)
 {
     ui->setupUi(this);
@@ -42,6 +43,7 @@ AddEditAdrenalineNode::AddEditAdrenalineNode(QWidget *parent) : QDialog(parent),
     //ui->rewardaddressLineEdit->setPlaceholderText("Enter a reward recive address");
     //ui->rewardpercentageLineEdit->setPlaceholderText("Input the % for the reward");
 }
+
 
 AddEditAdrenalineNode::~AddEditAdrenalineNode()
 {

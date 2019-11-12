@@ -64,6 +64,7 @@ int getBlockHashrate(int height)
 const CBlockIndex* getBlockIndex(int height)
 {
     std::string hex = getBlockHash(height);
+
     uint256 hash(hex);
 
     return mapBlockIndex[hash];
@@ -105,6 +106,7 @@ std::string getBlockHash(int Height)
 int getBlockTime(int Height)
 {
     std::string strHash = getBlockHash(Height);
+
     uint256 hash(strHash);
 
     if (mapBlockIndex.count(hash) == 0)
@@ -122,6 +124,7 @@ int getBlockTime(int Height)
 std::string getBlockMerkle(int Height)
 {
     std::string strHash = getBlockHash(Height);
+
     uint256 hash(strHash);
 
     if (mapBlockIndex.count(hash) == 0)
@@ -139,6 +142,7 @@ std::string getBlockMerkle(int Height)
 int getBlocknBits(int Height)
 {
     std::string strHash = getBlockHash(Height);
+
     uint256 hash(strHash);
 
     if (mapBlockIndex.count(hash) == 0)
@@ -157,6 +161,7 @@ int getBlocknBits(int Height)
 int getBlockNonce(int Height)
 {
     std::string strHash = getBlockHash(Height);
+
     uint256 hash(strHash);
 
     if (mapBlockIndex.count(hash) == 0)
@@ -174,6 +179,7 @@ int getBlockNonce(int Height)
 std::string getBlockDebug(int Height)
 {
     std::string strHash = getBlockHash(Height);
+
     uint256 hash(strHash);
 
     if (mapBlockIndex.count(hash) == 0)
@@ -259,6 +265,7 @@ std::string getOutputs(std::string txid)
 
     CTransaction tx;
     uint256 hashBlock = 0;
+
     if (!GetTransaction(hash, tx, hashBlock))
     {
         return "fail";
@@ -268,13 +275,16 @@ std::string getOutputs(std::string txid)
     ssTx << tx;
 
     std::string str = "";
+
     for (unsigned int i = 0; i < tx.vout.size(); i++)
     {
         const CTxOut& txout = tx.vout[i];
         
         CTxDestination source;
+
         ExtractDestination(txout.scriptPubKey, source);
-        CPHCcoinAddress addressSource(source);
+
+        CCoinAddress addressSource(source);
         
         std::string lol7 = addressSource.ToString();
         
@@ -282,6 +292,7 @@ std::string getOutputs(std::string txid)
 		
         std::ostringstream ss;
 		ss << std::fixed << std::setprecision(4) << buffer;
+
         std::string amount = ss.str();
         str.append(lol7);
         str.append(": ");
@@ -317,8 +328,10 @@ std::string getInputs(std::string txid)
         uint256 hash;
         const CTxIn& vin = tx.vin[i];
         hash.SetHex(vin.prevout.hash.ToString());
+        
         CTransaction wtxPrev;
         uint256 hashBlock = 0;
+
         if (!GetTransaction(hash, wtxPrev, hashBlock))
         {
             return "fail";
@@ -328,8 +341,11 @@ std::string getInputs(std::string txid)
         ssTx << wtxPrev;
 
         CTxDestination source;
+
         ExtractDestination(wtxPrev.vout[vin.prevout.n].scriptPubKey, source);
-        CPHCcoinAddress addressSource(source);
+
+        CCoinAddress addressSource(source);
+
         std::string lol6 = addressSource.ToString();
         
         const CScript target = wtxPrev.vout[vin.prevout.n].scriptPubKey;

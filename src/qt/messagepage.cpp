@@ -50,13 +50,16 @@ class MessageViewDelegate : public QStyledItemDelegate
 void MessageViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     QStyleOptionViewItemV4 optionV4 = option;
+
     initStyleOption(&optionV4, index);
 
     QStyle *style = optionV4.widget? optionV4.widget->style() : QApplication::style();
 
     QTextDocument doc;
+    
     QString align(index.data(MessageModel::TypeRole) == 1 ? "left" : "right");
     QString html = "<p align=\"" + align + "\" style=\"color:black;\">" + index.data(MessageModel::HTMLRole).toString() + "</p>";
+    
     doc.setHtml(html);
 
     /// Painting item without text
@@ -72,11 +75,15 @@ void MessageViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem &o
     }
 
     QRect textRect = style->subElementRect(QStyle::SE_ItemViewItemText, &optionV4);
+    
     doc.setTextWidth( textRect.width() );
+
     painter->save();
     painter->translate(textRect.topLeft());
     painter->setClipRect(textRect.translated(-textRect.topLeft()));
+    
     doc.documentLayout()->draw(painter, ctx);
+    
     painter->restore();
 }
 
@@ -88,6 +95,7 @@ QSize MessageViewDelegate::sizeHint ( const QStyleOptionViewItem & option, const
     initStyleOption(&options, index);
 
     QTextDocument doc;
+    
     doc.setHtml(index.data(MessageModel::HTMLRole).toString());
     doc.setTextWidth(options.rect.width());
     

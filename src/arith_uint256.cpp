@@ -281,6 +281,7 @@ template base_uint2<256>& base_uint2<256>::operator>>=(unsigned int);
 template base_uint2<256>& base_uint2<256>::operator*=(uint32_t b32);
 template base_uint2<256>& base_uint2<256>::operator*=(const base_uint2<256>& b);
 template base_uint2<256>& base_uint2<256>::operator/=(const base_uint2<256>& b);
+
 template int base_uint2<256>::CompareTo(const base_uint2<256>&) const;
 template bool base_uint2<256>::EqualTo(uint64_t) const;
 template double base_uint2<256>::getdouble() const;

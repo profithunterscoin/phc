@@ -26,7 +26,9 @@
 #include "darksend.h"
 #include "spork.h"
 #include "txdb.h"
+
 #include <boost/lexical_cast.hpp>
+#include <boost/range/adaptor/reversed.hpp>
 
 using namespace std;
 using namespace boost;
@@ -94,7 +96,7 @@ void ProcessMessageInstantX(CNode* pfrom, std::string& strCommand, CDataStream& 
             return;
         }
 
-        BOOST_FOREACH(const CTxOut o, tx.vout)
+        for(const CTxOut o: tx.vout)
         {
             if(!o.scriptPubKey.IsNormalPaymentScript() && !o.scriptPubKey.IsUnspendable())
             {
@@ -119,6 +121,7 @@ void ProcessMessageInstantX(CNode* pfrom, std::string& strCommand, CDataStream& 
         bool fAccepted = false;
         {
             LOCK(cs_main);
+
             fAccepted = AcceptToMemoryPool(mempool, tx, true, &fMissingInputs);
         }
 
@@ -149,7 +152,7 @@ void ProcessMessageInstantX(CNode* pfrom, std::string& strCommand, CDataStream& 
                 LogPrint("instantx", "%s : Transaction Lock Request: %s %s : rejected %s\n", __FUNCTION__, pfrom->addr.ToString().c_str(), pfrom->cleanSubVer.c_str(), tx.GetHash().ToString().c_str());
             }
 
-            BOOST_FOREACH(const CTxIn& in, tx.vin)
+            for(const CTxIn& in: tx.vin)
             {
                 if(!mapLockedInputs.count(in.prevout))
                 {
@@ -171,6 +174,7 @@ void ProcessMessageInstantX(CNode* pfrom, std::string& strCommand, CDataStream& 
 
                         //reprocess the last 15 blocks
                         block.DisconnectBlock(txdb, pindex);
+
                         tx.DisconnectInputs(txdb);
                     }
                 }
@@ -185,6 +189,7 @@ void ProcessMessageInstantX(CNode* pfrom, std::string& strCommand, CDataStream& 
         vRecv >> ctx;
 
         CInv inv(MSG_TXLOCK_VOTE, ctx.GetHash());
+
         pfrom->AddInventoryKnown(inv);
 
         if(mapTxLockVote.count(ctx.GetHash()))
@@ -246,18 +251,18 @@ bool IsIXTXValid(const CTransaction& txCollateral)
 
     int64_t nValueIn = 0;
     int64_t nValueOut = 0;
-
     bool missingTx = false;
 
-    BOOST_FOREACH(const CTxOut o, txCollateral.vout)
+    for(const CTxOut o: txCollateral.vout)
     {
         nValueOut += o.nValue;
     }
 
-    BOOST_FOREACH(const CTxIn i, txCollateral.vin)
+    for(const CTxIn i: txCollateral.vin)
     {
         CTransaction tx2;
         uint256 hash;
+
         if(GetTransaction(i.prevout.hash, tx2, hash))
         {
             if(tx2.vout.size() > i.prevout.n)
@@ -314,7 +319,7 @@ int64_t CreateNewLock(CTransaction tx)
 {
     int64_t nTxAge = 0;
 
-    BOOST_REVERSE_FOREACH(CTxIn i, tx.vin)
+    for(CTxIn i: boost::adaptors::reverse(tx.vin))
     {
         nTxAge = GetInputAge(i);
 
@@ -348,6 +353,7 @@ int64_t CreateNewLock(CTransaction tx)
         newLock.nExpiration = GetTime()+(20*60); //locks expire after 20 minutes (20 confirmations)
         newLock.nTimeout = GetTime()+(60*5);
         newLock.txHash = tx.GetHash();
+
         mapTxLocks.insert(make_pair(tx.GetHash(), newLock));
     }
     else
@@ -515,6 +521,7 @@ bool ProcessConsensusVote(CNode* pnode, CConsensusVote& ctx)
 
     //compile consessus vote
     std::map<uint256, CTransactionLock>::iterator i = mapTxLocks.find(ctx.txHash);
+
     if (i != mapTxLocks.end())
     {
         (*i).second.AddSignature(ctx);
@@ -543,6 +550,7 @@ bool ProcessConsensusVote(CNode* pnode, CConsensusVote& ctx)
             }
 
             CTransaction& tx = mapTxLockReq[ctx.txHash];
+            
             if(!CheckForConflictingLocks(tx))
             {
 
@@ -558,7 +566,7 @@ bool ProcessConsensusVote(CNode* pnode, CConsensusVote& ctx)
 
                 if(mapTxLockReq.count(ctx.txHash))
                 {
-                    BOOST_FOREACH(const CTxIn& in, tx.vin)
+                    for(const CTxIn& in: tx.vin)
                     {
                         if(!mapLockedInputs.count(in.prevout))
                         {
@@ -596,7 +604,7 @@ bool CheckForConflictingLocks(CTransaction& tx)
         Blocks could have been rejected during this time, which is OK. After they cancel out, the client will
         rescan the blocks and find they're acceptable and then take the chain with the most work.
     */
-    BOOST_FOREACH(const CTxIn& in, tx.vin)
+    for(const CTxIn& in: tx.vin)
     {
         if(mapLockedInputs.count(in.prevout))
         {
@@ -668,7 +676,7 @@ void CleanTransactionLocksList()
             {
                 CTransaction& tx = mapTxLockReq[it->second.txHash];
 
-                BOOST_FOREACH(const CTxIn& in, tx.vin)
+                for(const CTxIn& in: tx.vin)
                 {
                     mapLockedInputs.erase(in.prevout);
                 }
@@ -676,7 +684,7 @@ void CleanTransactionLocksList()
                 mapTxLockReq.erase(it->second.txHash);
                 mapTxLockReqRejected.erase(it->second.txHash);
 
-                BOOST_FOREACH(CConsensusVote& v, it->second.vecConsensusVotes)
+                for(CConsensusVote& v: it->second.vecConsensusVotes)
                 {
                     mapTxLockVote.erase(v.GetHash());
                 }
@@ -788,7 +796,7 @@ bool CConsensusVote::Sign()
 bool CTransactionLock::SignaturesValid()
 {
 
-    BOOST_FOREACH(CConsensusVote vote, vecConsensusVotes)
+    for(CConsensusVote vote: vecConsensusVotes)
     {
         int n = mnodeman.GetMasternodeRank(vote.vinMasternode, vote.nBlockHeight, MIN_INSTANTX_PROTO_VERSION);
 
@@ -847,7 +855,7 @@ int CTransactionLock::CountSignatures()
 
     int n = 0;
 
-    BOOST_FOREACH(CConsensusVote v, vecConsensusVotes)
+    for(CConsensusVote v: vecConsensusVotes)
     {
         if(v.nBlockHeight == nBlockHeight)
         {

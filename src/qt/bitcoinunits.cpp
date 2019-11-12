@@ -291,6 +291,7 @@ QString BitcoinUnits::floorWithUnit(int unit, const CAmount& amount, bool plussi
 QString BitcoinUnits::floorHtmlWithUnit(int unit, const CAmount& amount, bool plussign, SeparatorStyle separators)
 {
     QString str(floorWithUnit(unit, amount, plussign, separators));
+    
     str.replace(QChar(THIN_SP_CP), QString(THIN_SP_HTML));
     
     return QString("<span style='white-space: nowrap;'>%1</span>").arg(str);

@@ -42,9 +42,11 @@ ClientModel::ClientModel(OptionsModel *optionsModel, QObject *parent) : QObject(
     pollTimer = new QTimer(this);
     pollTimer->setInterval(MODEL_UPDATE_DELAY);
     pollTimer->start();
+
     connect(pollTimer, SIGNAL(timeout()), this, SLOT(updateTimer()));
 
     pollMnTimer = new QTimer(this);
+
     connect(pollMnTimer, SIGNAL(timeout()), this, SLOT(updateMnTimer()));
     
     // no need to update as frequent as data for balances/txes/blocks
@@ -183,6 +185,7 @@ void ClientModel::updateAlert(const QString &hash, int status)
     {
         uint256 hash_256;
         hash_256.SetHex(hash.toStdString());
+
         CAlert alert = CAlert::getAlertByHash(hash_256);
         
         if(!alert.IsNull())
@@ -291,6 +294,7 @@ static void NotifyNumConnectionsChanged(ClientModel *clientmodel, int newNumConn
 static void NotifyAlertChanged(ClientModel *clientmodel, const uint256 &hash, ChangeType status)
 {
     qDebug() << "NotifyAlertChanged : " + QString::fromStdString(hash.GetHex()) + " status=" + QString::number(status);
+
     QMetaObject::invokeMethod(clientmodel, "updateAlert", Qt::QueuedConnection, Q_ARG(QString, QString::fromStdString(hash.GetHex())), Q_ARG(int, status));
 }
 
@@ -298,6 +302,7 @@ static void NotifyAlertChanged(ClientModel *clientmodel, const uint256 &hash, Ch
 static void BannedListChanged(ClientModel *clientmodel)
 {
     qDebug() << QString("%1: Requesting update for peer banlist").arg(__func__);
+    
     QMetaObject::invokeMethod(clientmodel, "updateBanlist", Qt::QueuedConnection);
 }
 

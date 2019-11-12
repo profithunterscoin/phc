@@ -46,7 +46,6 @@ namespace boost
 #include <boost/program_options/parsers.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
-#include <boost/foreach.hpp>
 #include <boost/thread.hpp>
 
 #include <boost/asio.hpp>
@@ -97,7 +96,7 @@ bool fEnableInstantX = true;
 
 int nInstantXDepth = 10;
 int nDarksendRounds = 2;
-int nAnonymizePHCAmount = 1000;
+int nAnonymizeAmount = 1000;
 int nLiquidityProvider = 0;
 
 unsigned int LogPrintLog = 0;
@@ -701,7 +700,7 @@ const signed char p_util_hexdigit[256] =
 
 bool IsHex(const string& str)
 {
-    BOOST_FOREACH(char c, str)
+    for(char c: str)
     {
         if (HexDigit(c) < 0)
         {
@@ -809,7 +808,7 @@ void ParseParameters(int argc, const char* const argv[])
     }
 
     // New 0.6 features:
-    BOOST_FOREACH(const PAIRTYPE(string,string)& entry, mapArgs)
+    for(const PAIRTYPE(string,string)& entry: mapArgs)
     {
         string name = entry.first;
 
@@ -1982,12 +1981,13 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime)
             nTimeOffset = 0;
 
             static bool fDone;
+
             if (!fDone)
             {
                 // If nobody has a time different than ours but within 5 minutes of ours, give a warning
                 bool fMatch = false;
 
-                BOOST_FOREACH(int64_t nOffset, vSorted)
+                for(int64_t nOffset: vSorted)
                 {
                     if (nOffset != 0 && abs64(nOffset) < 5 * 60)
                     {
@@ -2015,7 +2015,7 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime)
 
         if (fDebug)
         {
-            BOOST_FOREACH(int64_t n, vSorted)
+            for(int64_t n: vSorted)
             {
                 LogPrint("util", "%s : %+d  ", __FUNCTION__, n);
             }
@@ -2189,7 +2189,10 @@ std::string get_http_data(const std::string& server, const std::string& file)
     // https://www.boost.org/doc/libs/1_45_0/doc/html/boost_asio/example/timers/time_t_timer.cpp
 #endif
 
-		if (!s){ throw "Unable to connect: " + s.error().message(); }
+		if (!s)
+        {
+            throw "Unable to connect: " + s.error().message();
+        }
 
 		// ask for the file
 		s << "GET " << file << " HTTP/1.0\r\n";
@@ -2204,8 +2207,16 @@ std::string get_http_data(const std::string& server, const std::string& file)
 		s >> status_code;
 		std::string status_message;
 		std::getline(s, status_message);
-		if (!s && http_version.substr(0, 5) != "HTTP/"){ throw "Invalid response\n"; }
-		if (status_code != 200){ throw "Response returned with status code " + std::to_string(status_code); }
+
+		if (!s && http_version.substr(0, 5) != "HTTP/")
+        { 
+            throw "Invalid response\n";
+        }
+		
+        if (status_code != 200)
+        {
+            throw "Response returned with status code " + std::to_string(status_code);
+        }
 
 		// Process the response headers, which are terminated by a blank line.
 		std::string header;
@@ -2214,6 +2225,7 @@ std::string get_http_data(const std::string& server, const std::string& file)
 		// Write the remaining data to output.
 		std::stringstream ss;
 		ss << s.rdbuf();
+
 		return ss.str();
 	}
 	catch(std::exception& e)

@@ -20,7 +20,6 @@
 
 #include <stdint.h>
 
-#include <boost/foreach.hpp>
 #include <boost/variant.hpp>
 
 #include "keystore.h"
@@ -170,13 +169,14 @@ static const unsigned int MANDATORY_SCRIPT_VERIFY_FLAGS = SCRIPT_VERIFY_NONE;
 // Standard script verification flags that standard transactions will comply
 // with. However scripts violating these flags may still be present in valid
 // blocks and we must accept those blocks.
-static const unsigned int STANDARD_SCRIPT_VERIFY_FLAGS = MANDATORY_SCRIPT_VERIFY_FLAGS |
-                                                         SCRIPT_VERIFY_STRICTENC |
-                                                         SCRIPT_VERIFY_NULLDUMMY |
-                                                         SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS;
+static const unsigned int STANDARD_SCRIPT_VERIFY_FLAGS = MANDATORY_SCRIPT_VERIFY_FLAGS
+                                                        | SCRIPT_VERIFY_STRICTENC
+                                                        | SCRIPT_VERIFY_NULLDUMMY
+                                                        | SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS;
 
 // For convenience, standard but not mandatory verify flags.
-static const unsigned int STANDARD_NOT_MANDATORY_VERIFY_FLAGS = STANDARD_SCRIPT_VERIFY_FLAGS & ~MANDATORY_SCRIPT_VERIFY_FLAGS;
+static const unsigned int STANDARD_NOT_MANDATORY_VERIFY_FLAGS = STANDARD_SCRIPT_VERIFY_FLAGS
+                                                                & ~MANDATORY_SCRIPT_VERIFY_FLAGS;
 
 
 enum txnouttype
@@ -212,7 +212,7 @@ class CNoDestination
  *  * CNoDestination: no destination set
  *  * CKeyID: TX_PUBKEYHASH destination
  *  * CScriptID: TX_SCRIPTHASH destination
- *  A CTxDestination is the internal data type encoded in a CPHCcoinAddress
+ *  A CTxDestination is the internal data type encoded in a CCoinAddress
  */
 typedef boost::variant<CNoDestination, CKeyID, CScriptID, CStealthAddress> CTxDestination;
 
@@ -386,7 +386,7 @@ inline std::string StackString(const std::vector<std::vector<unsigned char> >& v
 {
     std::string str;
 
-    BOOST_FOREACH(const std::vector<unsigned char>& vch, vStack)
+    for(const std::vector<unsigned char>& vch: vStack)
     {
         if (!str.empty())
         {
@@ -454,6 +454,7 @@ class CScriptNum
                     }
                 }
             }
+
             m_value = set_vch(vch);
         }
 
@@ -573,9 +574,18 @@ class CScriptNum
 
         inline CScriptNum& operator+=(const int64_t& rhs)
         {
-            assert(rhs == 0
-                    || (rhs > 0 && m_value <= std::numeric_limits<int64_t>::max() - rhs)
-                    || (rhs < 0 && m_value >= std::numeric_limits<int64_t>::min() - rhs));
+            if(rhs != 0
+                    || (rhs > 0 && m_value > std::numeric_limits<int64_t>::max() - rhs)
+                    || (rhs < 0 && m_value < std::numeric_limits<int64_t>::min() - rhs)
+                )
+            {
+                if (fDebug)
+                {
+                    LogPrint("key", "%s : CScriptNum += error (assert-2)\n", __FUNCTION__);
+                }
+                
+                cout << __FUNCTION__ << " (assert-2)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+            }
             
             m_value += rhs;
 
@@ -584,7 +594,18 @@ class CScriptNum
 
         inline CScriptNum& operator-=(const int64_t& rhs)
         {
-            assert(rhs == 0 || (rhs > 0 && m_value >= std::numeric_limits<int64_t>::min() + rhs) || (rhs < 0 && m_value <= std::numeric_limits<int64_t>::max() + rhs));
+            if(rhs != 0
+                        || (rhs > 0 && m_value < std::numeric_limits<int64_t>::min() + rhs)
+                        || (rhs < 0 && m_value > std::numeric_limits<int64_t>::max() + rhs)
+                )
+            {
+                if (fDebug)
+                {
+                    LogPrint("key", "%s : CScriptNum -= error (assert-3)\n", __FUNCTION__);
+                }
+                
+                cout << __FUNCTION__ << " (assert-3)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+            }
             
             m_value -= rhs;
 
@@ -686,6 +707,7 @@ class CScriptNum
 class CScript : public std::vector<unsigned char>
 {
     protected:
+
         CScript& push_int64(int64_t n)
         {
             if (n == -1 || (n >= 1 && n <= 16))
@@ -710,6 +732,7 @@ class CScript : public std::vector<unsigned char>
             else
             {
                 CBigNum bn(n);
+
                 *this << bn.getvch();
             }
             
@@ -801,7 +824,17 @@ class CScript : public std::vector<unsigned char>
 
         CScript& operator<<(const CPubKey& key)
         {
-            assert(key.size() < OP_PUSHDATA1);
+            if(key.size() >= OP_PUSHDATA1)
+            {
+                if (fDebug)
+                {
+                    LogPrint("key", "%s : CScriptNum << error (assert-4)\n", __FUNCTION__);
+                }
+                
+                cout << __FUNCTION__ << " (assert-4)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+                return *this;
+            }
 
             insert(end(), (unsigned char)key.size());
             insert(end(), key.begin(), key.end());
@@ -830,13 +863,17 @@ class CScript : public std::vector<unsigned char>
             else if (b.size() <= 0xffff)
             {
                 insert(end(), OP_PUSHDATA2);
+
                 unsigned short nSize = b.size();
+
                 insert(end(), (unsigned char*)&nSize, (unsigned char*)&nSize + sizeof(nSize));
             }
             else
             {
                 insert(end(), OP_PUSHDATA4);
+
                 unsigned int nSize = b.size();
+
                 insert(end(), (unsigned char*)&nSize, (unsigned char*)&nSize + sizeof(nSize));
             }
 
@@ -854,7 +891,7 @@ class CScript : public std::vector<unsigned char>
                 LogPrint("script", "%s : Warning: Pushing a CScript onto a CScript with << is probably not intended, use + to concatenate! (assert-2)\n", __FUNCTION__);
             }
 
-            cout << __FUNCTION__ << " (assert-2)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+            cout << __FUNCTION__ << " (assert-5)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
             return *this;
         }
@@ -919,6 +956,7 @@ class CScript : public std::vector<unsigned char>
             if (opcode <= OP_PUSHDATA4)
             {
                 unsigned int nSize;
+
                 if (opcode < OP_PUSHDATA1)
                 {
                     nSize = opcode;
@@ -940,7 +978,9 @@ class CScript : public std::vector<unsigned char>
                     }
 
                     nSize = 0;
+
                     memcpy(&nSize, &pc[0], 2);
+
                     pc += 2;
                 }
                 else if (opcode == OP_PUSHDATA4)
@@ -951,6 +991,7 @@ class CScript : public std::vector<unsigned char>
                     }
 
                     memcpy(&nSize, &pc[0], 4);
+
                     pc += 4;
                 }
 
@@ -980,13 +1021,32 @@ class CScript : public std::vector<unsigned char>
                 return 0;
             }
 
-            assert(opcode >= OP_1 && opcode <= OP_16);
+            if(opcode < OP_1 && opcode > OP_16)
+            {
+                if (fDebug)
+                {
+                    LogPrint("key", "%s : CScriptNum += error (assert-6)\n", __FUNCTION__);
+                }
+                
+                cout << __FUNCTION__ << " (assert-6)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+
+                return 0;
+            }
 
             return (int)opcode - (int)(OP_1 - 1);
         }
+        
         static opcodetype EncodeOP_N(int n)
         {
-            assert(n >= 0 && n <= 16);
+            if(n < 0 && n > 16)
+            {
+                if (fDebug)
+                {
+                    LogPrint("key", "%s : CScriptNum += error (assert-7)\n", __FUNCTION__);
+                }
+                
+                cout << __FUNCTION__ << " (assert-7)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
+            }
 
             if (n == 0)
             {
@@ -1014,6 +1074,7 @@ class CScript : public std::vector<unsigned char>
                 while (end() - pc >= (long)b.size() && memcmp(&pc[0], &b[0], b.size()) == 0)
                 {
                     erase(pc, pc + b.size());
+
                     ++nFound;
                 }
             }
@@ -1055,6 +1116,7 @@ class CScript : public std::vector<unsigned char>
         bool IsPushOnly() const
         {
             const_iterator pc = begin();
+
             while (pc < end())
             {
                 opcodetype opcode;
@@ -1093,6 +1155,7 @@ class CScript : public std::vector<unsigned char>
             std::string str;
             opcodetype opcode;
             std::vector<unsigned char> vch;
+
             const_iterator pc = begin();
 
             while (pc < end())
@@ -1105,8 +1168,10 @@ class CScript : public std::vector<unsigned char>
                 if (!GetOp(pc, opcode, vch))
                 {
                     str += "[error]";
+
                     return str;
                 }
+
                 if (0 <= opcode && opcode <= OP_PUSHDATA4)
                 {
                     str += fShort? ValueString(vch).substr(0, 10) : ValueString(vch);
@@ -1166,8 +1231,9 @@ class CScriptCompressor
         bool IsToScriptID(CScriptID &hash) const;
         bool IsToPubKey(CPubKey &pubkey) const;
 
-        bool Compress(std::vector<unsigned char> &out) const;
         unsigned int GetSpecialSize(unsigned int nSize) const;
+
+        bool Compress(std::vector<unsigned char> &out) const;
         bool Decompress(unsigned int nSize, const std::vector<unsigned char> &out);
     
     public:
@@ -1179,6 +1245,7 @@ class CScriptCompressor
         unsigned int GetSerializeSize(int nType, int nVersion) const
         {
             std::vector<unsigned char> compr;
+
             if (Compress(compr))
             {
                 return compr.size();
@@ -1192,6 +1259,7 @@ class CScriptCompressor
         template<typename Stream> void Serialize(Stream &s, int nType, int nVersion) const
         {
             std::vector<unsigned char> compr;
+
             if (Compress(compr))
             {
                 s << CFlatData(&compr[0], &compr[compr.size()]);
@@ -1200,6 +1268,7 @@ class CScriptCompressor
             }
 
             unsigned int nSize = script.size() + nSpecialScripts;
+
             s << VARINT(nSize);
             s << CFlatData(&script[0], &script[script.size()]);
         }
@@ -1207,19 +1276,24 @@ class CScriptCompressor
         template<typename Stream> void Unserialize(Stream &s, int nType, int nVersion)
         {
             unsigned int nSize;
+
             s >> VARINT(nSize);
 
             if (nSize < nSpecialScripts)
             {
                 std::vector<unsigned char> vch(GetSpecialSize(nSize), 0x00);
+
                 s >> REF(CFlatData(&vch[0], &vch[vch.size()]));
+
                 Decompress(nSize, vch);
 
                 return;
             }
 
             nSize -= nSpecialScripts;
+
             script.resize(nSize);
+
             s >> REF(CFlatData(&script[0], &script[script.size()]));
         }
 };
@@ -1285,6 +1359,7 @@ class SignatureChecker : public BaseSignatureChecker
     public:
 
         SignatureChecker(const CTransaction& txToIn, unsigned int nInIn) : txTo(txToIn), nIn(nInIn) {}
+
         bool CheckSig(const std::vector<unsigned char>& scriptSig, const std::vector<unsigned char>& vchPubKey, const CScript& scriptCode) const;
 };
 

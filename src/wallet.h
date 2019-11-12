@@ -397,7 +397,7 @@ class CWallet : public CCryptoKeyStore, public CWalletInterface
 
         bool IsMine(const CTransaction& tx) const
         {
-            BOOST_FOREACH(const CTxOut& txout, tx.vout)
+            for(const CTxOut& txout: tx.vout)
             {
                 if (IsMine(txout) && txout.nValue >= nMinimumInputValue)
                 {
@@ -418,7 +418,7 @@ class CWallet : public CCryptoKeyStore, public CWalletInterface
         {
             CAmount nDebit = 0;
 
-            BOOST_FOREACH(const CTxIn& txin, tx.vin)
+            for(const CTxIn& txin: tx.vin)
             {
                 nDebit += GetDebit(txin, filter);
                 if (!MoneyRange(nDebit))
@@ -434,7 +434,7 @@ class CWallet : public CCryptoKeyStore, public CWalletInterface
         {
             CAmount nCredit = 0;
 
-            BOOST_FOREACH(const CTxOut& txout, tx.vout)
+            for(const CTxOut& txout: tx.vout)
             {
                 nCredit += GetCredit(txout, filter);
                 if (!MoneyRange(nCredit))
@@ -449,7 +449,10 @@ class CWallet : public CCryptoKeyStore, public CWalletInterface
         CAmount GetStakeReward(const CTransaction& tx, const isminefilter& filter) const
         {
             if (!MoneyRange(tx.vout[1].nValue))
+            {
                 throw std::runtime_error("CWallet::GetStakeReward() : value out of range");
+            }
+
             return ((IsMine(tx) & filter) ? tx.vout[1].nValue : 0);
         }
 
@@ -457,9 +460,10 @@ class CWallet : public CCryptoKeyStore, public CWalletInterface
         {
             CAmount nChange = 0;
 
-            BOOST_FOREACH(const CTxOut& txout, tx.vout)
+            for(const CTxOut& txout: tx.vout)
             {
                 nChange += GetChange(txout);
+
                 if (!MoneyRange(nChange))
                 {
                     throw std::runtime_error("CWallet::GetChange() : value out of range");
@@ -734,7 +738,8 @@ class CWalletTx : public CMerkleTx
                 pthis->mapValue["fromaccount"] = pthis->strFromAccount;
 
                 std::string str;
-                BOOST_FOREACH(char f, vfSpent)
+
+                for(char f: vfSpent)
                 {
                     str += (f ? '1' : '0');
                     if (f)
@@ -768,7 +773,7 @@ class CWalletTx : public CMerkleTx
 
                 if (mapValue.count("spent"))
                 {
-                    BOOST_FOREACH(char c, pthis->mapValue["spent"])
+                    for(char c: pthis->mapValue["spent"])
                     {
                         pthis->vfSpent.push_back(c != '0');
                     }
@@ -1305,7 +1310,7 @@ class CWalletTx : public CMerkleTx
             }
 
             // Trusted if all inputs are from us and are in the mempool:
-            BOOST_FOREACH(const CTxIn& txin, vin)
+            for(const CTxIn& txin: vin)
             {
                 // Transactions not sent by us: not trusted
                 const CWalletTx* parent = pwallet->GetWalletTx(txin.prevout.hash);
@@ -1363,7 +1368,7 @@ class COutput
         //Used with Darksend. Will return fees, then denominations, everything else, then very small inputs that aren't fees
         int Priority() const
         {
-            BOOST_FOREACH(int64_t d, darkSendDenominations)
+            for(int64_t d: darkSendDenominations)
             {
                 if(tx->vout[i].nValue == d)
                 {

@@ -18,6 +18,7 @@
 #include <QComboBox>
 #include <QVariant>
 
+
 /* QComboBox that can be used with QDataWidgetMapper to select ordinal values from a model. */
 class QValueComboBox : public QComboBox
 {

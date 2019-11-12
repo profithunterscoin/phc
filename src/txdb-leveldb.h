@@ -42,6 +42,7 @@ class CTxDB
     public:
 
         CTxDB(const char* pszMode="r+");
+        
         ~CTxDB()
         {
             // Note that this is not the same as Close() because it deletes only

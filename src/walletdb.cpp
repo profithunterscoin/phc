@@ -20,7 +20,7 @@
 #include "wallet.h"
 
 #include <boost/filesystem.hpp>
-#include <boost/foreach.hpp>
+
 
 using namespace std;
 using namespace boost;
@@ -265,7 +265,7 @@ int64_t CWalletDB::GetAccountCreditDebit(const string& strAccount)
 
     int64_t nCreditDebit = 0;
 
-    BOOST_FOREACH (const CAccountingEntry& entry, entries)
+    for(const CAccountingEntry& entry: entries)
     {
         nCreditDebit += entry.nCreditDebit;
     }
@@ -299,7 +299,6 @@ void CWalletDB::ListAccountCreditDebit(const string& strAccount, list<CAccountin
 
         CDataStream ssValue(SER_DISK, CLIENT_VERSION);
         int ret = ReadAtCursor(pcursor, ssKey, ssValue, fFlags);
-        
         fFlags = DB_NEXT;
         
         if (ret == DB_NOTFOUND)
@@ -342,6 +341,7 @@ void CWalletDB::ListAccountCreditDebit(const string& strAccount, list<CAccountin
 DBErrors CWalletDB::ReorderTransactions(CWallet* pwallet)
 {
     LOCK(pwallet->cs_wallet);
+
     // Old wallets didn't have any defined order for transactions
     // Probably a bad idea to change the output of this
 
@@ -354,6 +354,7 @@ DBErrors CWalletDB::ReorderTransactions(CWallet* pwallet)
     for (map<uint256, CWalletTx>::iterator it = pwallet->mapWallet.begin(); it != pwallet->mapWallet.end(); ++it)
     {
         CWalletTx* wtx = &((*it).second);
+
         txByTime.insert(make_pair(wtx->nTimeReceived, TxPair(wtx, (CAccountingEntry*)0)));
     }
 
@@ -361,13 +362,12 @@ DBErrors CWalletDB::ReorderTransactions(CWallet* pwallet)
     
     ListAccountCreditDebit("", acentries);
     
-    BOOST_FOREACH(CAccountingEntry& entry, acentries)
+    for(CAccountingEntry& entry: acentries)
     {
         txByTime.insert(make_pair(entry.nTime, TxPair((CWalletTx*)0, &entry)));
     }
 
     int64_t& nOrderPosNext = pwallet->nOrderPosNext;
-    
     nOrderPosNext = 0;
     std::vector<int64_t> nOrderPosOffsets;
 
@@ -402,7 +402,7 @@ DBErrors CWalletDB::ReorderTransactions(CWallet* pwallet)
         {
             int64_t nOrderPosOff = 0;
 
-            BOOST_FOREACH(const int64_t& nOffsetStart, nOrderPosOffsets)
+            for(const int64_t& nOffsetStart: nOrderPosOffsets)
             {
                 if (nOrderPos >= nOffsetStart)
                 {
@@ -481,7 +481,7 @@ bool ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue, CW
         {
             string strAddress;
             ssKey >> strAddress;
-            ssValue >> pwallet->mapAddressBook[CPHCcoinAddress(strAddress).Get()];
+            ssValue >> pwallet->mapAddressBook[CCoinAddress(strAddress).Get()];
         }
         else if (strType == "tx")
         {
@@ -504,11 +504,13 @@ bool ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue, CW
                     ssValue >> fTmp >> fUnused >> wtx.strFromAccount;
 
                     strErr = strprintf("%s : upgrading tx ver=%d %d '%s' %s", __FUNCTION__, wtx.fTimeReceivedIsTxTime, fTmp, wtx.strFromAccount, hash.ToString());
+                    
                     wtx.fTimeReceivedIsTxTime = fTmp;
                 }
                 else
                 {
                     strErr = strprintf("%s : repairing tx ver=%d %s", __FUNCTION__, wtx.fTimeReceivedIsTxTime, hash.ToString());
+                    
                     wtx.fTimeReceivedIsTxTime = 0;
                 }
 
@@ -859,6 +861,7 @@ DBErrors CWalletDB::LoadWallet(CWallet* pwallet)
 
             // Try to be tolerant of single corrupt records:
             string strType, strErr;
+            
             if (!ReadKeyValue(pwallet, ssKey, ssValue, wss, strType, strErr))
             {
                 // losing keys is considered a catastrophic error, anything else
@@ -926,7 +929,7 @@ DBErrors CWalletDB::LoadWallet(CWallet* pwallet)
         pwallet->nTimeFirstKey = 1; // 0 would be considered 'no value'
     }
 
-    BOOST_FOREACH(uint256 hash, wss.vWalletUpgrade)
+    for(uint256 hash: wss.vWalletUpgrade)
     {
         WriteTx(hash, pwallet->mapWallet[hash]);
     }
@@ -952,7 +955,7 @@ DBErrors CWalletDB::LoadWallet(CWallet* pwallet)
     
     ListAccountCreditDebit("*", pwallet->laccentries);
     
-    BOOST_FOREACH(CAccountingEntry& entry, pwallet->laccentries)
+    for(CAccountingEntry& entry: pwallet->laccentries)
     {
         pwallet->wtxOrdered.insert(make_pair(entry.nOrderPos, CWallet::TxPair((CWalletTx*)0, &entry)));
     }
@@ -1179,7 +1182,7 @@ bool CWalletDB::Recover(CDBEnv& dbenv, std::string filename, bool fOnlyKeys)
 
     DbTxn* ptxn = dbenv.TxnBegin();
     
-    BOOST_FOREACH(CDBEnv::KeyValPair& row, salvagedData)
+    for(CDBEnv::KeyValPair& row: salvagedData)
     {
         if (fOnlyKeys)
         {

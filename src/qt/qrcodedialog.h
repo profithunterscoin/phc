@@ -18,12 +18,15 @@
 #include <QDialog>
 #include <QImage>
 
+
 namespace Ui
 {
     class QRCodeDialog;
 }
 
+
 class OptionsModel;
+
 
 class QRCodeDialog : public QDialog
 {
@@ -32,6 +35,7 @@ class QRCodeDialog : public QDialog
     public:
 
         explicit QRCodeDialog(const QString &addr, const QString &label, bool enableReq, QWidget *parent = 0);
+        
         ~QRCodeDialog();
 
         void setModel(OptionsModel *model);

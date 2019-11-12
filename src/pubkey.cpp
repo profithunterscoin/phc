@@ -91,7 +91,8 @@ static int ecdsa_signature_parse_der_lax(const secp256k1_context* ctx, secp256k1
     pos++;
 
     /* Integer length for R */
-    if (pos == inputlen) {
+    if (pos == inputlen)
+    {
         return 0;
     }
 
@@ -109,6 +110,7 @@ static int ecdsa_signature_parse_der_lax(const secp256k1_context* ctx, secp256k1
         while (lenbyte > 0 && input[pos] == 0)
         {
             pos++;
+
             lenbyte--;
         }
 
@@ -118,6 +120,7 @@ static int ecdsa_signature_parse_der_lax(const secp256k1_context* ctx, secp256k1
         }
         
         rlen = 0;
+
         while (lenbyte > 0)
         {
             rlen = (rlen << 8) + input[pos];
@@ -157,6 +160,7 @@ static int ecdsa_signature_parse_der_lax(const secp256k1_context* ctx, secp256k1
     if (lenbyte & 0x80)
     {
         lenbyte -= 0x80;
+
         if (pos + lenbyte > inputlen)
         {
             return 0;
@@ -174,6 +178,7 @@ static int ecdsa_signature_parse_der_lax(const secp256k1_context* ctx, secp256k1
         }
         
         slen = 0;
+
         while (lenbyte > 0)
         {
             slen = (slen << 8) + input[pos];
@@ -238,6 +243,7 @@ static int ecdsa_signature_parse_der_lax(const secp256k1_context* ctx, secp256k1
         /* Overwrite the result again with a correctly-parsed but invalid
            signature if parsing failed. */
         memset(tmpsig, 0, 64);
+
         secp256k1_ecdsa_signature_parse_compact(ctx, sig, tmpsig);
     }
 
@@ -529,6 +535,7 @@ ECCVerifyHandle::ECCVerifyHandle()
 ECCVerifyHandle::~ECCVerifyHandle()
 {
     refcount--;
+    
     if (refcount == 0)
     {
         if (secp256k1_context_verify == NULL)

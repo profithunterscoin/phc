@@ -17,6 +17,7 @@
 
 #include <QAbstractListModel>
 
+
 extern bool fUseBlackTheme;
 
 QT_BEGIN_NAMESPACE
@@ -52,13 +53,14 @@ class OptionsModel : public QAbstractListModel
             DisplayUnit,            // BitcoinUnits::Unit
             Language,               // QString
             CoinControlFeatures,    // bool
-            UseBlackTheme,     // bool
-            DarksendRounds,    // int
-            AnonymizePHCAmount, //int
+            UseBlackTheme,          // bool
+            DarksendRounds,         // int
+            AnonymizeAmount,        //int
             OptionIDRowCount,
         };
 
         void Init();
+        
         void Reset();
 
         int rowCount(const QModelIndex & parent = QModelIndex()) const;
@@ -131,7 +133,7 @@ class OptionsModel : public QAbstractListModel
 
         void darksendRoundsChanged(int);
         
-        void AnonymizePHCAmountChanged(int);
+        void AnonymizeAmountChanged(int);
 };
 
 #endif // OPTIONSMODEL_H

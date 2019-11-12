@@ -25,8 +25,14 @@
 #include "base58.h"
 #include "main.h"
 
-using namespace std;
-using namespace boost;
+#include "bignum.h"
+#include "net.h"
+#include "key.h"
+#include "util.h"
+#include "protocol.h"
+#include "darksend.h"
+#include <boost/lexical_cast.hpp>
+
 
 // Don't ever reuse these IDs for other sporks
 #define SPORK_1_MASTERNODE_PAYMENTS_ENFORCEMENT               10000
@@ -56,16 +62,9 @@ using namespace boost;
 #define SPORK_12_RECONSIDER_BLOCKS_DEFAULT                    0
 #define SPORK_13_ENABLE_SUPERBLOCKS_DEFAULT                   4070908800   //OFF
 
+
 class CSporkMessage;
 class CSporkManager;
-
-#include "bignum.h"
-#include "net.h"
-#include "key.h"
-#include "util.h"
-#include "protocol.h"
-#include "darksend.h"
-#include <boost/lexical_cast.hpp>
 
 using namespace std;
 using namespace boost;
@@ -143,7 +142,9 @@ class CSporkManager
         int GetSporkIDByName(std::string strName);
 
         bool UpdateSpork(int nSporkID, int64_t nValue);
+        
         bool SetPrivKey(std::string strPrivKey);
+
         bool CheckSignature(CSporkMessage& spork);
         bool Sign(CSporkMessage& spork);
 

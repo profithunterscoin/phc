@@ -45,6 +45,7 @@ class MasternodeManager : public QWidget
 
     public:
         explicit MasternodeManager(QWidget *parent = 0);
+        
         ~MasternodeManager();
 
         void setClientModel(ClientModel *clientModel);

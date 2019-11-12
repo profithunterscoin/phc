@@ -14,6 +14,7 @@
 
 #include "bitcoinaddressvalidator.h"
 
+
 /* Base58 characters are:
      "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 
@@ -26,6 +27,7 @@
   - 'l' and 'I' to '1'
   - '0' and 'O' to 'o'
 */
+
 
 BitcoinAddressValidator::BitcoinAddressValidator(QObject *parent) : QValidator(parent)
 {

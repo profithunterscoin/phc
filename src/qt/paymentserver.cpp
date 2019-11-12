@@ -11,6 +11,7 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
 
+
 #include <QApplication>
 
 #include "paymentserver.h"
@@ -29,7 +30,9 @@
 #include <QStringList>
 #include <QUrl>
 
+
 using namespace boost;
+
 
 const int BITCOIN_IPC_CONNECT_TIMEOUT = 1000; // milliseconds
 const QString BITCOIN_IPC_PREFIX("PHC:");
@@ -146,6 +149,7 @@ bool PaymentServer::eventFilter(QObject *object, QEvent *event)
     if (event->type() == QEvent::FileOpen)
     {
         QFileOpenEvent* fileEvent = static_cast<QFileOpenEvent*>(event);
+
         if (!fileEvent->url().isEmpty())
         {
             if (saveURIs)
@@ -191,6 +195,7 @@ void PaymentServer::handleURIConnection()
     connect(clientConnection, SIGNAL(disconnected()), clientConnection, SLOT(deleteLater()));
 
     QDataStream in(clientConnection);
+    
     in.setVersion(QDataStream::Qt_4_0);
 
     if (clientConnection->bytesAvailable() < (int)sizeof(quint16))

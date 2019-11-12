@@ -95,21 +95,21 @@ void OptionsModel::Init()
 
     nDarksendRounds = settings.value("nDarksendRounds").toLongLong();
     
-    if (!settings.contains("nAnonymizePHCAmount"))
+    if (!settings.contains("nAnonymizeAmount"))
     {
-        settings.setValue("nAnonymizePHCAmount", 1000);
+        settings.setValue("nAnonymizeAmount", 1000);
     }
 
-    nAnonymizePHCAmount = settings.value("nAnonymizePHCAmount").toLongLong();
+    nAnonymizeAmount = settings.value("nAnonymizeAmount").toLongLong();
     
     if (settings.contains("nDarksendRounds"))
     {
         SoftSetArg("-darksendrounds", settings.value("nDarksendRounds").toString().toStdString());
     }
     
-    if (settings.contains("nAnonymizePHCAmount"))
+    if (settings.contains("nAnonymizeAmount"))
     {
-        SoftSetArg("-anonymizetraveamount", settings.value("nAnonymizePHCAmount").toString().toStdString());
+        SoftSetArg("-anonymizetraveamount", settings.value("nAnonymizeAmount").toString().toStdString());
     }
 
 
@@ -218,6 +218,7 @@ QVariant OptionsModel::data(const QModelIndex & index, int role) const
     if(role == Qt::EditRole)
     {
         QSettings settings;
+
         switch(index.row())
         {
             case StartAtStartup:
@@ -326,9 +327,9 @@ QVariant OptionsModel::data(const QModelIndex & index, int role) const
             }
             break;
             
-            case AnonymizePHCAmount:
+            case AnonymizeAmount:
             {
-                return QVariant(nAnonymizePHCAmount);
+                return QVariant(nAnonymizeAmount);
             }
             break;
             
@@ -353,9 +354,11 @@ QVariant OptionsModel::data(const QModelIndex & index, int role) const
 bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, int role)
 {
     bool successful = true; /* set to false on parse error */
+
     if(role == Qt::EditRole)
     {
         QSettings settings;
+
         switch(index.row())
         {
             case StartAtStartup:
@@ -367,6 +370,7 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
             case MinimizeToTray:
             {
                 fMinimizeToTray = value.toBool();
+
                 settings.setValue("fMinimizeToTray", fMinimizeToTray);
             }
             break;
@@ -375,6 +379,7 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
             {
                 // core option - can be changed on-the-fly
                 settings.setValue("fUseUPnP", value.toBool());
+
                 MapPort(value.toBool());
             }
             break;
@@ -382,6 +387,7 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
             case MinimizeOnClose:
             {
                 fMinimizeOnClose = value.toBool();
+
                 settings.setValue("fMinimizeOnClose", fMinimizeOnClose);
             }
             break;
@@ -392,6 +398,7 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
                 if (settings.value("fUseProxy") != value)
                 {
                     settings.setValue("fUseProxy", value.toBool());
+
                     setRestartRequired(true);
                 }
             }
@@ -407,7 +414,9 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
                 {
                     // construct new value from new IP and current port
                     QString strNewValue = value.toString() + ":" + strlIpPort.at(1);
+
                     settings.setValue("addrProxy", strNewValue);
+
                     setRestartRequired(true);
                 }
             }
@@ -423,7 +432,9 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
                 {
                     // construct new value from current IP and new port
                     QString strNewValue = strlIpPort.at(0) + ":" + value.toString();
+
                     settings.setValue("addrProxy", strNewValue);
+
                     setRestartRequired(true);
                 }
             }
@@ -434,6 +445,7 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
                 if (settings.value("nSocksVersion") != value)
                 {
                     settings.setValue("nSocksVersion", value.toInt());
+
                     setRestartRequired(true);
                 }
             }
@@ -445,7 +457,9 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
                 // core option - can be changed on-the-fly
                 // Todo: Add is valid check  and warn via message, if not
                 nTransactionFee = value.toLongLong();
+
                 settings.setValue("nTransactionFee", (qint64) nTransactionFee);
+
                 emit transactionFeeChanged(nTransactionFee);
             }
             break;
@@ -453,7 +467,9 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
             case ReserveBalance:
             {
                 nReserveBalance = value.toLongLong();
+
                 settings.setValue("nReserveBalance", (qint64) nReserveBalance);
+
                 emit reserveBalanceChanged(nReserveBalance);
             }
             break;
@@ -462,7 +478,9 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
             case DisplayUnit:
             {
                 nDisplayUnit = value.toInt();
+
                 settings.setValue("nDisplayUnit", nDisplayUnit);
+
                 emit displayUnitChanged(nDisplayUnit);
             }
             break;
@@ -472,6 +490,7 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
                 if (settings.value("language") != value)
                 {
                     settings.setValue("language", value);
+
                     setRestartRequired(true);
                 }
             }
@@ -480,7 +499,9 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
             case CoinControlFeatures:
             {
                 fCoinControlFeatures = value.toBool();
+
                 settings.setValue("fCoinControlFeatures", fCoinControlFeatures);
+
                 emit coinControlFeaturesChanged(fCoinControlFeatures);
             }
             break;
@@ -488,6 +509,7 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
             case UseBlackTheme:
             {
                 fUseBlackTheme = value.toBool();
+
                 settings.setValue("fUseBlackTheme", fUseBlackTheme);
             }
             break;
@@ -495,16 +517,20 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
             case DarksendRounds:
             {
                 nDarksendRounds = value.toInt();
+
                 settings.setValue("nDarksendRounds", nDarksendRounds);
+
                 emit darksendRoundsChanged(nDarksendRounds);
             }
             break;
             
-            case AnonymizePHCAmount:
+            case AnonymizeAmount:
             {
-                nAnonymizePHCAmount = value.toInt();
-                settings.setValue("nAnonymizePHCAmount", nAnonymizePHCAmount);
-                emit AnonymizePHCAmountChanged(nAnonymizePHCAmount);
+                nAnonymizeAmount = value.toInt();
+
+                settings.setValue("nAnonymizeAmount", nAnonymizeAmount);
+                
+                emit AnonymizeAmountChanged(nAnonymizeAmount);
             }
             break;
             

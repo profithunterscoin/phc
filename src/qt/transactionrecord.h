@@ -114,6 +114,7 @@ class TransactionRecord
         }
 
         TransactionRecord(uint256 hash, qint64 time, Type type, const std::string &address, CAmount debit, CAmount credit): hash(hash),
+        
         time(time), type(type), address(address), debit(debit), credit(credit), idx(0)
         {
         }
@@ -121,6 +122,7 @@ class TransactionRecord
         /** Decompose CWallet transaction to model transaction records.
         */
         static bool showTransaction(const CWalletTx &wtx);
+        
         static QList<TransactionRecord> decomposeTransaction(const CWallet *wallet, const CWalletTx &wtx);
 
         /** @name Immutable transaction attributes

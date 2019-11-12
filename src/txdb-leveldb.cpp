@@ -59,6 +59,7 @@ void init_blockindex(leveldb::Options& options, bool fRemoveOld = false)
     if (fRemoveOld)
     {
         filesystem::remove_all(directory); // remove directory
+
         unsigned int nFile = 1;
 
         while (true)
@@ -110,7 +111,6 @@ CTxDB::CTxDB(const char* pszMode)
     }
     
     activeBatch = NULL;
-    
     fReadOnly = (!strchr(pszMode, '+') && !strchr(pszMode, 'w'));
 
     if (txdb)
@@ -158,9 +158,7 @@ CTxDB::CTxDB(const char* pszMode)
             init_blockindex(options, true); // Remove directory and create new database
             
             pdb = txdb;
-
             bool fTmp = fReadOnly;
-            
             fReadOnly = false;
             
             WriteVersion(DATABASE_VERSION); // Save transaction index version
@@ -171,7 +169,6 @@ CTxDB::CTxDB(const char* pszMode)
     else if (fCreate)
     {
         bool fTmp = fReadOnly;
-        
         fReadOnly = false;
         
         WriteVersion(DATABASE_VERSION);
@@ -336,6 +333,7 @@ bool CTxDB::WriteAddrIndex(uint160 addrHash, uint256 txHash)
     if(!ReadAddrIndex(addrHash, txHashes))
     {
 	    txHashes.push_back(txHash);
+
         return Write(make_pair(string("adr"), addrHash), txHashes);
     }
     else
@@ -520,10 +518,15 @@ bool CTxDB::LoadBlockIndex()
         
         // Unpack keys and values.
         CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+
         ssKey.write(iterator->key().data(), iterator->key().size());
+
         CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+
         ssValue.write(iterator->value().data(), iterator->value().size());
+
         string strType;
+
         ssKey >> strType;
         
         // Did we reach the end of the data to read?
@@ -591,19 +594,22 @@ bool CTxDB::LoadBlockIndex()
 
     // Calculate nChainTrust
     vector<pair<int, CBlockIndex*> > vSortedByHeight;
+
     vSortedByHeight.reserve(mapBlockIndex.size());
 
-    BOOST_FOREACH(const PAIRTYPE(uint256, CBlockIndex*)& item, mapBlockIndex)
+    for(const PAIRTYPE(uint256, CBlockIndex*)& item: mapBlockIndex)
     {
         CBlockIndex* pindex = item.second;
+
         vSortedByHeight.push_back(make_pair(pindex->nHeight, pindex));
     }
     
     sort(vSortedByHeight.begin(), vSortedByHeight.end());
 
-    BOOST_FOREACH(const PAIRTYPE(int, CBlockIndex*)& item, vSortedByHeight)
+    for(const PAIRTYPE(int, CBlockIndex*)& item: vSortedByHeight)
     {
         CBlockIndex* pindex = item.second;
+
         pindex->nChainTrust = (pindex->pprev ? pindex->pprev->nChainTrust : 0) + pindex->GetBlockTrust();
     }
 
@@ -697,7 +703,7 @@ bool CTxDB::LoadBlockIndex()
             
             mapBlockPos[pos] = pindex;
             
-            BOOST_FOREACH(const CTransaction &tx, block.vtx)
+            for(const CTransaction &tx: block.vtx)
             {
                 uint256 hashTx = tx.GetHash();
                 CTxIndex txindex;
@@ -709,6 +715,7 @@ bool CTxDB::LoadBlockIndex()
                     {
                         // either an error or a duplicate transaction
                         CTransaction txFound;
+
                         if (!txFound.ReadFromDisk(txindex.pos))
                         {
                             if (fDebug)
@@ -737,7 +744,7 @@ bool CTxDB::LoadBlockIndex()
                     
                     if (nCheckLevel>3)
                     {
-                        BOOST_FOREACH(const CDiskTxPos &txpos, txindex.vSpent)
+                        for(const CDiskTxPos &txpos: txindex.vSpent)
                         {
                             if (!txpos.IsNull())
                             {
@@ -780,7 +787,7 @@ bool CTxDB::LoadBlockIndex()
                                     {
                                         bool fFound = false;
                                         
-                                        BOOST_FOREACH(const CTxIn &txin, txSpend.vin)
+                                        for(const CTxIn &txin: txSpend.vin)
                                         {
                                             if (txin.prevout.hash == hashTx && txin.prevout.n == nOutput)
                                             {
@@ -809,7 +816,7 @@ bool CTxDB::LoadBlockIndex()
                 // check level 5: check whether all prevouts are marked spent
                 if (nCheckLevel>4)
                 {
-                     BOOST_FOREACH(const CTxIn &txin, tx.vin)
+                     for(const CTxIn &txin: tx.vin)
                      {
                         CTxIndex txindex;
 
@@ -839,12 +846,14 @@ bool CTxDB::LoadBlockIndex()
         }
 
         CBlock block;
+        
         if (!block.ReadFromDisk(pindexFork))
         {
             return error("%s : block.ReadFromDisk failed", __FUNCTION__);
         }
         
         CTxDB txdb;
+
         block.SetBestChain(txdb, pindexFork);
     }
 

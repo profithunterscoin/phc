@@ -17,6 +17,7 @@
 
 #include <QFrame>
 
+
 namespace Ui
 {
     class SendMessagesEntry;
@@ -24,6 +25,7 @@ namespace Ui
 
 class MessageModel;
 class SendMessagesRecipient;
+
 
 /** A single entry in the dialog for sending messages. */
 class SendMessagesEntry : public QFrame
@@ -33,6 +35,7 @@ class SendMessagesEntry : public QFrame
     public:
 
         explicit SendMessagesEntry(QWidget *parent = 0);
+        
         ~SendMessagesEntry();
 
         void setModel(MessageModel *model);

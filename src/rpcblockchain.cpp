@@ -183,13 +183,14 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool fPri
     
     Array txinfo;
     
-    BOOST_FOREACH (const CTransaction& tx, block.vtx)
+    for(const CTransaction& tx: block.vtx)
     {
         if (fPrintTransactionDetail)
         {
             Object entry;
 
             entry.push_back(Pair("txid", tx.GetHash().GetHex()));
+
             TxToJSON(tx, 0, entry);
 
             txinfo.push_back(entry);
@@ -259,11 +260,12 @@ Value getrawmempool(const Array& params, bool fHelp)
     }
 
     vector<uint256> vtxid;
+
     mempool.queryHashes(vtxid);
 
     Array a;
 
-    BOOST_FOREACH(const uint256& hash, vtxid)
+    for(const uint256& hash: vtxid)
     {
         a.push_back(hash.ToString());
     }
@@ -347,6 +349,7 @@ Value getblockbynumber(const Array& params, bool fHelp)
     uint256 hash = *pblockindex->phashBlock;
 
     pblockindex = mapBlockIndex[hash];
+
     block.ReadFromDisk(pblockindex, true);
 
     return blockToJSON(block, pblockindex, params.size() > 1 ? params[1].get_bool() : false);
@@ -369,7 +372,6 @@ Value getcheckpoint(const Array& params, bool fHelp)
     result.push_back(Pair("synccheckpoint", pindexCheckpoint->GetBlockHash().ToString().c_str()));
     result.push_back(Pair("height", pindexCheckpoint->nHeight));
     result.push_back(Pair("timestamp", DateTimeStrFormat(pindexCheckpoint->GetBlockTime()).c_str()));
-
     result.push_back(Pair("policy", "rolling"));
 
     return result;

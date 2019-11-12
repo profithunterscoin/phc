@@ -94,6 +94,7 @@ bool GetBlockHash(uint256& hash, int nBlockHeight)
         if(n >= nBlocksAgo)
         {
             hash = BlockReading->GetBlockHash();
+
             mapCacheBlockHashes[nBlockHeight] = hash;
         
             return true;
@@ -150,6 +151,7 @@ CMasternode::CMasternode()
     lastVote = 0;
     nScanningErrorCount = 0;
     nLastScanningErrorBlockHeight = 0;
+    
     //mark last paid as current for new entries
     nLastPaid = GetAdjustedTime();
     isPortOpen = true;

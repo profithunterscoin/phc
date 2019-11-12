@@ -364,6 +364,7 @@ void CoinControlDialog::lockCoin()
     }
 
     COutPoint outpt(uint256(contextMenuItem->text(COLUMN_TXHASH).toStdString()), contextMenuItem->text(COLUMN_VOUT_INDEX).toUInt());
+    
     model->lockCoin(outpt);
     
     contextMenuItem->setDisabled(true);
@@ -376,10 +377,12 @@ void CoinControlDialog::lockCoin()
 void CoinControlDialog::unlockCoin()
 {
     COutPoint outpt(uint256(contextMenuItem->text(COLUMN_TXHASH).toStdString()), contextMenuItem->text(COLUMN_VOUT_INDEX).toUInt());
+    
     model->unlockCoin(outpt);
     
     contextMenuItem->setDisabled(false);
     contextMenuItem->setIcon(COLUMN_CHECKBOX, QIcon());
+
     updateLabelLocked();
 }
 
@@ -648,10 +651,11 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog* dialog)
 
     std::vector<COutPoint> vCoinControl;
     std::vector<COutput>   vOutputs;
+    
     coinControl->ListSelected(vCoinControl);
     model->getOutputs(vCoinControl, vOutputs);
 
-    BOOST_FOREACH(const COutput& out, vOutputs)
+    for(const COutput& out: vOutputs)
     {
         // Quantity
         nQuantity++;
@@ -744,6 +748,7 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog* dialog)
             if (nChange > 0 && nChange < CENT)
             {
                 CTxOut txout(nChange, (CScript)std::vector<unsigned char>(24, 0));
+                
                 if (txout.IsDust(MIN_RELAY_TX_FEE))
                 {
                     nPayFee += nChange;
@@ -854,9 +859,10 @@ void CoinControlDialog::updateView()
     int nDisplayUnit = model->getOptionsModel()->getDisplayUnit();
 
     std::map<QString, std::vector<COutput> > mapCoins;
+    
     model->listCoins(mapCoins);
 
-    BOOST_FOREACH(const PAIRTYPE(QString, std::vector<COutput>)& coins, mapCoins)
+    for(const PAIRTYPE(QString, std::vector<COutput>)& coins: mapCoins)
     {
         QTreeWidgetItem *itemWalletAddress = new QTreeWidgetItem();
         itemWalletAddress->setCheckState(COLUMN_CHECKBOX, Qt::Unchecked);
@@ -890,7 +896,7 @@ void CoinControlDialog::updateView()
         int nChildren = 0;
         int nInputSum = 0;
         
-        BOOST_FOREACH(const COutput& out, coins.second)
+        for(const COutput& out: coins.second)
         {
             int nInputSize = 148; // 180 if uncompressed public key
             
@@ -917,7 +923,7 @@ void CoinControlDialog::updateView()
 
             if(ExtractDestination(out.tx->vout[out.i].scriptPubKey, outputAddress))
             {
-                sAddress = QString::fromStdString(CPHCcoinAddress(outputAddress).ToString());
+                sAddress = QString::fromStdString(CCoinAddress(outputAddress).ToString());
 
                 // if listMode or change => show bitcoin address. In tree mode, address is not shown again for direct wallet address outputs
                 if (!treeMode || (!(sAddress == sWalletAddress)))
@@ -996,6 +1002,7 @@ void CoinControlDialog::updateView()
 
             // transaction hash
             uint256 txhash = out.tx->GetHash();
+            
             itemOutput->setText(COLUMN_TXHASH, QString::fromStdString(txhash.GetHex()));
 
             // vout index
@@ -1005,6 +1012,7 @@ void CoinControlDialog::updateView()
             if (model->isLockedCoin(txhash, out.i))
             {
                 COutPoint outpt(txhash, out.i);
+                
                 coinControl->UnSelect(outpt); // just to be sure
                 itemOutput->setDisabled(true);
                 itemOutput->setIcon(COLUMN_CHECKBOX, QIcon(":/icons/lock_closed"));
@@ -1022,6 +1030,7 @@ void CoinControlDialog::updateView()
         if (treeMode)
         {
             dPrioritySum = dPrioritySum / (nInputSum + 78);
+            
             itemWalletAddress->setText(COLUMN_CHECKBOX, "(" + QString::number(nChildren) + ")");
             itemWalletAddress->setText(COLUMN_AMOUNT, BitcoinUnits::format(nDisplayUnit, nSum));
             itemWalletAddress->setText(COLUMN_AMOUNT_INT64, strPad(QString::number(nSum), 15, " "));

@@ -29,6 +29,7 @@
 #include <QClipboard>
 #include <QDataWidgetMapper>
 
+
 SendMessagesDialog::SendMessagesDialog(Mode mode, Type type, QWidget *parent) : QDialog(parent), ui(new Ui::SendMessagesDialog), model(0), mode(mode), type(type)
 {
     ui->setupUi(this);
@@ -169,6 +170,7 @@ void SendMessagesDialog::on_sendButton_clicked()
     for(int i = 0; i < ui->entries->count(); ++i)
     {
         SendMessagesEntry *entry = qobject_cast<SendMessagesEntry*>(ui->entries->itemAt(i)->widget());
+
         if(entry)
         {
             if(entry->validate())
@@ -331,6 +333,7 @@ SendMessagesEntry *SendMessagesDialog::addEntry()
     SendMessagesEntry *entry = new SendMessagesEntry(this);
 
     entry->setModel(model);
+    
     ui->entries->addWidget(entry);
     
     connect(entry, SIGNAL(removeEntry(SendMessagesEntry*)), this, SLOT(removeEntry(SendMessagesEntry*)));

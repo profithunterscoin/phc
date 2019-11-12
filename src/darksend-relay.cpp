@@ -56,6 +56,7 @@ bool CDarkSendRelay::Sign(std::string strSharedKey)
 
     CKey key2;
     CPubKey pubkey2;
+    
     std::string errorMessage = "";
 
     if(!darkSendSigner.SetKey(strSharedKey, errorMessage, key2, pubkey2))
@@ -98,6 +99,7 @@ bool CDarkSendRelay::VerifyMessage(std::string strSharedKey)
 
     CKey key2;
     CPubKey pubkey2;
+
     std::string errorMessage = "";
 
     if(!darkSendSigner.SetKey(strSharedKey, errorMessage, key2, pubkey2))
