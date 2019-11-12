@@ -61,7 +61,6 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("protocol_version",                          (int)PROTOCOL_VERSION));
     obj.push_back(Pair("protocol_testnet",                          TestNet()));
     obj.push_back(Pair("protocol_turbosyncmax",                     TURBOSYNC_MAX));
-    obj.push_back(Pair("errors",                                    GetWarnings("statusbar")));
     obj.push_back(Pair("timeoffset",                                (int64_t)GetTimeOffset()));
 
     if (nBestHeight)
@@ -125,6 +124,8 @@ Value getinfo(const Array& params, bool fHelp)
 
     obj.push_back(Pair("proxy",                                     (proxy.first.IsValid() ? proxy.first.ToStringIPPort() : string())));
     obj.push_back(Pair("ip",                                        GetLocalAddress(NULL).ToStringIP()));
+
+    obj.push_back(Pair("errors",                                    GetWarnings("statusbar")));
 
     return obj;
 }

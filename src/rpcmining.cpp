@@ -228,8 +228,14 @@ Value getmininginfo(const Array& params, bool fHelp)
    
     Object obj, diff, weight, chainshield, chainbuddy;
 
-    obj.push_back(Pair("errors",                                    GetWarnings("statusbar")));
     obj.push_back(Pair("protocol_testnet",                          TestNet()));
+    diff.push_back(Pair("proof-of-work minimum",                    GetDifficulty()));
+    obj.push_back(Pair("difficulty",                                GetDifficulty(GetLastBlockIndex(pindexBest, true))));
+    obj.push_back(Pair("netmhashps",                                GetPoWMHashPS()));
+    obj.push_back(Pair("generate",                                  fGenerating));
+    obj.push_back(Pair("genproclimit",                              GenerateProcLimit));
+    obj.push_back(Pair("hashespersec",                              gethashespersec(params, false)));
+    obj.push_back(Pair("errors",                                    GetWarnings("statusbar")));
 
     /*
     obj.push_back(Pair("blocks",                                    (int)nBestHeight));
@@ -239,18 +245,8 @@ Value getmininginfo(const Array& params, bool fHelp)
     obj.push_back(Pair("currentblocktx",                            (uint64_t)nLastBlockTx));
     obj.push_back(Pair("pooledtx",                                  (uint64_t)mempool.size()));
     */
-    
-    diff.push_back(Pair("proof-of-work minimum",                    GetDifficulty()));
-    
     //diff.push_back(Pair("search-interval",                          (int)nLastCoinStakeSearchInterval));
     
-    obj.push_back(Pair("difficulty",                                GetDifficulty(GetLastBlockIndex(pindexBest, true))));
-    obj.push_back(Pair("netmhashps",                                GetPoWMHashPS()));
-
-    obj.push_back(Pair("generate",                                  fGenerating));
-    obj.push_back(Pair("genproclimit",                              GenerateProcLimit));
-    obj.push_back(Pair("hashespersec",                              gethashespersec(params, false)));
-
     return obj;
 }
 
@@ -317,24 +313,18 @@ Value getstakinginfo(const Array& params, bool fHelp)
     }		
 
     obj.push_back(Pair("protocol_testnet",                          TestNet()));
-    
+    obj.push_back(Pair("enabled",                                   GetBoolArg("-staking", true)));
+    obj.push_back(Pair("staking",                                   staking));
+    obj.push_back(Pair("stakeweight",                               (uint64_t)nWeight));
+    obj.push_back(Pair("stakethreshold",                            GetStakeCombineThreshold() / COIN));
+    obj.push_back(Pair("netstakeweight",                            (uint64_t)nNetworkWeight));
+    obj.push_back(Pair("expectedtime",                              nExpectedTime));
+    obj.push_back(Pair("difficulty",                                GetDifficulty(GetLastBlockIndex(pindexBest, true))));
+    obj.push_back(Pair("search-interval",                           (int)nLastCoinStakeSearchInterval));
+
     errors.push_back(Pair("statusbar",                              GetWarnings("statusbar")));
     errors.push_back(Pair("stake_error",                            stake_error));
     obj.push_back(Pair("errors",                                    errors));
-
-    obj.push_back(Pair("protocol_testnet",                          TestNet()));
-
-    obj.push_back(Pair("enabled",                                   GetBoolArg("-staking", true)));
-    obj.push_back(Pair("staking",                                   staking));
-
-    obj.push_back(Pair("stakeweight",                               (uint64_t)nWeight));
-    obj.push_back(Pair("stakethreshold",                            GetStakeCombineThreshold() / COIN));
-
-    obj.push_back(Pair("netstakeweight",                            (uint64_t)nNetworkWeight));
-    obj.push_back(Pair("expectedtime",                              nExpectedTime));
-
-    obj.push_back(Pair("difficulty",                                GetDifficulty(GetLastBlockIndex(pindexBest, true))));
-    obj.push_back(Pair("search-interval",                           (int)nLastCoinStakeSearchInterval));
 
     /*
     weight.push_back(Pair("minimum",                                (uint64_t)nWeight));
