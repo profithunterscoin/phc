@@ -322,8 +322,8 @@ Value getstakinginfo(const Array& params, bool fHelp)
     obj.push_back(Pair("difficulty",                                GetDifficulty(GetLastBlockIndex(pindexBest, true))));
     obj.push_back(Pair("search-interval",                           (int)nLastCoinStakeSearchInterval));
 
-    errors.push_back(Pair("statusbar",                              GetWarnings("statusbar")));
     errors.push_back(Pair("stake_error",                            stake_error));
+    errors.push_back(Pair("statusbar",                              GetWarnings("statusbar")));
     obj.push_back(Pair("errors",                                    errors));
 
     /*
