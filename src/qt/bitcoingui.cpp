@@ -490,6 +490,27 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 							"	color: #A4D300;"
 							"	background-color: rgb(0, 0, 0);"
 							"}"
+
+							"QFormLayout#formLayoutCoinControl2"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: rgb(0, 0, 0);"
+							"}"
+
+							"CoinControlTreeWidget"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: rgb(0, 0, 0);"
+							"	alternate-background-color: rgb(0, 0, 0);"
+							"}"
+
+							"QTableView"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: rgb(0, 0, 0);"
+							"	alternate-background-color: rgb(0, 0, 0);"
+							"}"
+
 						);
 
 
