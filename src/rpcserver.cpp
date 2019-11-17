@@ -36,7 +36,6 @@
 #include <boost/iostreams/stream.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/shared_ptr.hpp>
-
 #include <list>
 
 using namespace std;
@@ -195,6 +194,7 @@ string CRPCTable::help(string strCommand) const
     for (map<string, const CRPCCommand*>::const_iterator mi = mapCommands.begin(); mi != mapCommands.end(); ++mi)
     {
         const CRPCCommand *pcmd = mi->second;
+
         string strMethod = mi->first;
     
         // We already filter duplicates, but these deprecated screw up the sort order
@@ -213,7 +213,6 @@ string CRPCTable::help(string strCommand) const
         {
             continue;
         }
-
 #endif
 
         try
@@ -305,8 +304,7 @@ Value debug(const Array& params, bool fHelp)
             debugstatus = "False";
         }
 
-        throw runtime_error("Usage:\n"
-                            "debug 0|1\n"
+        throw runtime_error("debug <true|false|categories>\n"
                             "Current Debug State: " + debugstatus + " Categories: " + boost::join(mapMultiArgs["-debug"], ",") + "\n"
                             "|addrman|alert|core|db|rand|rpc|coincontrol|mempool"
                             "|net|socks|darksend|instantsend|wallet|masternode|firewall|stealth"
@@ -330,7 +328,6 @@ Value debug(const Array& params, bool fHelp)
     mapMultiArgs["-debug"].clear();
 
     boost::split(mapMultiArgs["-debug"], strMode, boost::is_any_of(","));
-
     mapArgs["-debug"] = mapMultiArgs["-debug"][mapMultiArgs["-debug"].size() - 1];
 
     if (strMode == "1")
@@ -369,7 +366,6 @@ static const CRPCCommand vRPCCommands[] =
     { "getblockcount",                                  &getblockcount,                                 true,      false,     false },
     { "getconnectioncount",                             &getconnectioncount,                            true,      false,     false },
     { "getpeerinfo",                                    &getpeerinfo,                                   true,      false,     false },
-    { "getpeeraverageheight",                           &getpeeraverageheight,                          true,      false,     false },
     { "addnode",                                        &addnode,                                       true,      true,      false },
     { "getaddednodeinfo",                               &getaddednodeinfo,                              true,      true,      false },
     { "ping",                                           &ping,                                          true,      false,     false },
@@ -399,88 +395,8 @@ static const CRPCCommand vRPCCommands[] =
     { "verifymessage",                                  &verifymessage,                                 false,     false,     false },
     { "searchrawtransactions",                          &searchrawtransactions,                         false,     false,     false },
 
-    /* Firewall General Session Settings */
-    { "firewallstatus",                                 &firewallstatus,                                false,      false,    false },
-    { "firewallenabled",                                &firewallenabled,                               false,      false,    false },
-    { "firewallclearblacklist",                         &firewallclearblacklist,                        false,      false,    false },
-    { "firewallclearbanlist",                           &firewallclearbanlist,                          false,      false,    false },
-    { "firewalltraffictolerance",                       &firewalltraffictolerance,                      false,      false,    false },
-    { "firewalltrafficzone",                            &firewalltrafficzone,                           false,      false,    false },
-    { "firewalladdtowhitelist",                         &firewalladdtowhitelist,                        false,      false,    false },
-    { "firewalladdtoblacklist",                         &firewalladdtoblacklist,                        false,      false,    false },
-
-    /* Firewall Firewall Debug (Live Output) */
-    { "firewalldebug",                                  &firewalldebug,                                 false,      false,    false },
-    { "firewalldebugexam",                              &firewalldebugexam,                             false,      false,    false },
-    { "firewalldebugbans",                              &firewallclearbanlist,                          false,      false,    false },
-    { "firewalldebugblacklist",                         &firewalldebugblacklist,                        false,      false,    false },
-    { "firewalldebugdisconnect",                        &firewalldebugdisconnect,                       false,      false,    false },
-    { "firewalldebugbandwidthabuse",                    &firewalldebugbandwidthabuse,                   false,      false,    false },
-    { "firewalldebugdoublespend",                       &firewalldebugdoublespend,                      false,      false,    false },
-    { "firewalldebuginvalidwallet",                     &firewalldebuginvalidwallet,                    false,      false,    false },
-    { "firewalldebugforkedwallet",                      &firewalldebugforkedwallet,                     false,      false,    false },
-    { "firewalldebugfloodingwallet",                    &firewalldebugfloodingwallet,                   false,      false,    false },
-    { "firewalldebugddoswallet",                        &firewalldebugddoswallet,                       false,      false,    false },
-
-    /* Firewall BandwidthAbuse Session Settings */
-    { "firewalldetectbandwidthabuse",                   &firewalldetectbandwidthabuse,                  false,      false,    false },
-    { "firewallblacklistbandwidthabuse",                &firewallblacklistbandwidthabuse,               false,      false,    false },
-    { "firewallbanbandwidthabuse",                      &firewallbanbandwidthabuse,                     false,      false,    false },
-    { "firewallbantimebandwidthabuse",                  &firewallbantimebandwidthabuse,                 false,      false,    false },
-    { "firewalldisconnectbandwidthabuse",               &firewalldisconnectbandwidthabuse,              false,      false,    false },
-    { "firewallbandwidthabusemincheck",                 &firewallbandwidthabusemincheck,                false,      false,    false },
-
-    /* Firewall Double-Spend Session Settings */
-    { "firewalldetectdoublespend",                      &firewalldetectdoublespend,                     false,      false,    false },
-    { "firewallblacklistdoublespend",                   &firewallblacklistdoublespend,                  false,      false,    false },
-    { "firewallbandoublespend",                         &firewallbandoublespend,                        false,      false,    false },
-    { "firewallbantimedoublespend",                     &firewallbantimedoublespend,                    false,      false,    false },
-    { "firewalldisconnectdoublespend",                  &firewalldisconnectdoublespend,                 false,      false,    false },
-    { "firewalldoublespendmincheck",                    &firewalldoublespendmincheck,                   false,      false,    false },
-    { "firewalldoublespendminattack",                   &firewalldoublespendminattack,                  false,      false,    false },
-    { "firewalldoublespendminattack",                   &firewalldoublespendminattack,                  false,      false,    false },
-
-    /* Firewall Invalid Wallet Session Settings */
-    { "firewalldetectinvalidwallet",                    &firewalldetectinvalidwallet,                   false,      false,    false },
-    { "firewallblacklistinvalidwallet",                 &firewallblacklistinvalidwallet,                false,      false,    false },
-    { "firewallbaninvalidwallet",                       &firewallbaninvalidwallet,                      false,      false,    false },
-    { "firewallbantimeinvalidwallet",                   &firewallbantimeinvalidwallet,                  false,      false,    false },
-    { "firewalldisconnectinvalidwallet",                &firewalldisconnectinvalidwallet,               false,      false,    false },
-    { "firewallinvalidwalletminprotocol",               &firewallinvalidwalletminprotocol,              false,      false,    false },
-    { "firewallinvalidwalletmincheck",                  &firewallinvalidwalletmincheck,                 false,      false,    false },
-
-    /* Firewall Forked Wallet Session Settings */
-    { "firewalldetectforkedwallet",                     &firewalldetectforkedwallet,                    false,      false,    false },
-    { "firewallblacklistforkedwallet",                  &firewallblacklistforkedwallet,                 false,      false,    false },
-    { "firewallbanforkedwallet",                        &firewallbanforkedwallet,                       false,      false,    false },
-    { "firewallbantimeforkedwallet",                    &firewallbantimeforkedwallet,                   false,      false,    false },
-    { "firewalldisconnectforkedwallet",                 &firewalldisconnectforkedwallet,                false,      false,    false },
-    { "firewallforkedwalletnodeheight",                 &firewallforkedwalletnodeheight,                false,      false,    false },
-
-    /* Firewall Flooding Wallet Session Settings */
-    { "firewalldetectfloodingwallet",                   &firewalldetectfloodingwallet,                  false,      false,    false },
-    { "firewallblacklistfloodingwallet",                &firewallblacklistfloodingwallet,               false,      false,    false },
-    { "firewallbanfloodingwallet",                      &firewallbanfloodingwallet,                     false,      false,    false },
-    { "firewallbantimefloodingwallet",                  &firewallbantimefloodingwallet,                 false,      false,    false },
-    { "firewalldisconnectfloodingwallet",               &firewalldisconnectfloodingwallet,              false,      false,    false },
-    { "firewallfloodingwalletminbytes",                 &firewallfloodingwalletminbytes,                false,      false,    false },
-    { "firewallfloodingwalletmaxbytes",                 &firewallfloodingwalletmaxbytes,                false,      false,    false },
-    { "firewallfloodingwalletattackpatternadd",         &firewallfloodingwalletattackpatternadd,        false,      false,    false },
-    { "firewallfloodingwalletattackpatternremove",      &firewallfloodingwalletattackpatternremove,     false,      false,    false },
-    { "firewallfloodingwalletattackignoredadd",         &firewallfloodingwalletattackignoredadd,        false,      false,    false },
-    { "firewallfloodingwalletattackignoredremove",      &firewallfloodingwalletattackignoredremove,     false,      false,    false },
-    { "firewallfloodingwalletmintrafficavg",            &firewallfloodingwalletmintrafficavg,           false,      false,    false },
-    { "firewallfloodingwalletmaxtrafficavg",            &firewallfloodingwalletmaxtrafficavg,           false,      false,    false },
-    { "firewallfloodingwalletmincheck",                 &firewallfloodingwalletmincheck,                false,      false,    false },
-    { "firewallfloodingwalletmaxcheck",                 &firewallfloodingwalletmaxcheck,                false,      false,    false },
-
-    /* Firewall DDoS Wallet Session Settings */
-    { "firewalldetectddoswallet",                       &firewalldetectddoswallet,                      false,      false,    false },
-    { "firewallblacklistddoswallet",                    &firewallblacklistddoswallet,                   false,      false,    false },
-    { "firewallbanddoswallet",                          &firewallbanddoswallet,                         false,      false,    false },
-    { "firewallbantimeddoswallet",                      &firewallbantimeddoswallet,                     false,      false,    false },
-    { "firewalldisconnectddoswallet",                   &firewalldisconnectddoswallet,                  false,      false,    false },
-    { "firewallddoswalletmincheck",                     &firewallddoswalletmincheck,                    false,      false,    false },
+/* Firewall */
+    { "firewall",                                       &firewall,                                      false,      false,    false },
 
 /* Dark features */
     { "spork",                                          &spork,                                         true,      false,      false },
@@ -490,7 +406,7 @@ static const CRPCCommand vRPCCommands[] =
 #ifdef ENABLE_WALLET
     { "darksend",                                       &darksend,                                      false,     false,      true },
     { "getmininginfo",                                  &getmininginfo,                                 true,      false,     false },
-    { "getnetworkhashps",                                  &getnetworkhashps,                                 true,      false,     false },
+    { "getnetworkhashps",                               &getnetworkhashps,                              true,      false,     false },
     { "getstakinginfo",                                 &getstakinginfo,                                true,      false,     false },
     { "getnewaddress",                                  &getnewaddress,                                 true,      false,     true },
     { "getnewpubkey",                                   &getnewpubkey,                                  true,      false,     true },
@@ -596,7 +512,7 @@ CRPCTable::CRPCTable()
 const CRPCCommand *CRPCTable::operator[](string name) const
 {
     map<string, const CRPCCommand*>::const_iterator it = mapCommands.find(name);
-
+    
     if (it == mapCommands.end())
     {
         return NULL;
@@ -782,7 +698,6 @@ template <typename Protocol, typename SocketAcceptorService> static void RPCAcce
     else
     {
         ServiceConnection(conn);
-
         conn->close();
     
         delete conn;
@@ -799,7 +714,6 @@ void StartRPCThreads()
         unsigned char rand_pwd[32];
         
         GetRandBytes(rand_pwd, 32);
-
         string strWhatAmI = "To use phcd";
         
         if (mapArgs.count("-server"))
@@ -1265,7 +1179,6 @@ json_spirit::Value CRPCTable::execute(const std::string &strMethod, const json_s
 
     // Observe safe mode
     string strWarning = GetWarnings("rpc");
-    
     if (strWarning != "" && !GetBoolArg("-disablesafemode", false) && !pcmd->okSafeMode)
     {
         throw JSONRPCError(RPC_FORBIDDEN_BY_SAFE_MODE, string("Safe mode: ") + strWarning);

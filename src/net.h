@@ -35,7 +35,6 @@
 #endif
 
 #include <boost/array.hpp>
-#include <boost/foreach.hpp>
 #include <boost/signals2/signal.hpp>
 #include <openssl/rand.h>
 
@@ -325,7 +324,11 @@ namespace CBan
         BanReasonForkedWallet               = 5,
         BanReasonFloodingWallet             = 6,
         BanReasonDDoSWallet                 = 7,
-        BanReasonDoubleSpendWallet          = 8
+        BanReasonDoubleSpendWallet          = 8,
+        BanReasonEclipseWallet              = 9,
+        BanReasonErebusWallet               = 10,
+        BanReasonBGPWallet                  = 11,
+        BanReasonResettingSyncWallet        = 12
 
     } BanReason;
 
@@ -676,6 +679,8 @@ class CNode
         // Whether a ping is requested.
         bool fPingQueued;
 
+        int nRecvAddrs;
+
         CNode(SOCKET hSocketIn, CAddress addrIn, std::string addrNameIn = "", bool fInboundIn=false) : ssSend(SER_NETWORK, INIT_PROTO_VERSION), setAddrKnown(5000)
         {
             nServices = 0;
@@ -752,10 +757,13 @@ class CNode
             dOrphanRecv.timestamp = 0;
             dOrphanRecv.synced = false;
 
+            nRecvAddrs = 0;
+
             // Global Namespace Start
             {
                 // Node Lock
                 LOCK(cs_nLastNodeId);
+
                 id = nLastNodeId++;
             }
             // Global Namespace End
