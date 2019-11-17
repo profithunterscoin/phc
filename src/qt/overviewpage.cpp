@@ -537,7 +537,7 @@ void OverviewPage::darkSendStatus()
 {
     static int64_t nLastDSProgressBlockTime = 0;
 
-    int nBestHeight;
+    int nBestHeight = 0;
 
     if (pindexBest)
     {
