@@ -5659,6 +5659,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             return error("%s : message addr size() = %u", __FUNCTION__, vAddr.size());
         }
 
+        pfrom->nRecvAddrs = vAddr.size();
+
         // Store the new addresses
         vector<CAddress> vAddrOk;
         int64_t nNow = GetAdjustedTime();
