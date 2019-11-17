@@ -266,14 +266,14 @@ namespace Firewall
     /* Stats Class */
 
     /* VARIABLES: Average Blockheight among Peers */
-    int Stats::AverageHeight = 0;                                            /* Peers Average Block Height                           */
-    int Stats::AverageHeight_Min = 0;                                        /* Peers Average Block Height Minimum Range             */
-    int Stats::AverageHeight_Max = 0;                                        /* Peers Average Block Height Maximum Range             */
-    double Stats::AverageTraffic = 0;                                        /* Peers Average Traffic Ratio                          */
-    double Stats::AverageTraffic_Min = 0;                                    /* Peers Average Traffic Ratio Minimum                  */
-    double Stats::AverageTraffic_Max = 0;                                    /* Peers Average Traffic Ratio Maximum                  */
-    int Stats::AverageSend = 0;                                              /* Peers Average Send Bytes                             */
-    int Stats::AverageRecv = 0;                                              /* Peers Average Recv Bytes                             */
+    int Stats::AverageHeight = 0;                                            /* Peers Average Block Height */
+    int Stats::AverageHeight_Min = 0;                                        /* Peers Average Block Height Minimum Range */
+    int Stats::AverageHeight_Max = 0;                                        /* Peers Average Block Height Maximum Range */
+    double Stats::AverageTraffic = 0;                                        /* Peers Average Traffic Ratio */
+    double Stats::AverageTraffic_Min = 0;                                    /* Peers Average Traffic Ratio Minimum */
+    double Stats::AverageTraffic_Max = 0;                                    /* Peers Average Traffic Ratio Maximum */
+    int Stats::AverageSend = 0;                                              /* Peers Average Send Bytes */
+    int Stats::AverageRecv = 0;                                              /* Peers Average Recv Bytes */
 
     /* ------------------- */
 
@@ -406,13 +406,13 @@ namespace Firewall
 
     /* VARIABLES: Firewall Settings (Double Spend Attack) */
     bool DoubleSpend::Detect = GetBoolArg("-fw:doublespend:detect", true);                              /* True/False */
-    bool DoubleSpend::Denied = GetBoolArg("-fw:doublespend:denied", true);                              /* True/False                                           */
-    bool DoubleSpend::Ban = GetBoolArg("-fw:doublespend:ban", true);                                    /* True/False                                           */
-    int DoubleSpend::BanTime = GetArg("-fw:doublespend:bantime", 0);                                    /* 24 hours                                             */
-    bool DoubleSpend::Disconnect = GetBoolArg("-fw:doublespend:disconnect", true);                      /* True/False                                           */
-    int DoubleSpend::MinCheck = GetArg("-fw:doublespend:mincheck", 30);                                 /* Seconds                                              */
-    double DoubleSpend::MinAttack = GetArg("-fw:doublespend:minattack", 17.1);                          /* Traffic Average Ratio Mimumum                        */
-    double DoubleSpend::MaxAttack = GetArg("-fw:doublespend:maxattack", 17.2);                          /* Traffic Average Ratio Maximum                        */
+    bool DoubleSpend::Denied = GetBoolArg("-fw:doublespend:denied", true);                              /* True/False */
+    bool DoubleSpend::Ban = GetBoolArg("-fw:doublespend:ban", true);                                    /* True/False */
+    int DoubleSpend::BanTime = GetArg("-fw:doublespend:bantime", 0);                                    /* 24 hours */
+    bool DoubleSpend::Disconnect = GetBoolArg("-fw:doublespend:disconnect", true);                      /* True/False */
+    int DoubleSpend::MinCheck = GetArg("-fw:doublespend:mincheck", 30);                                 /* Seconds */
+    double DoubleSpend::MinAttack = 17.1;                                                               /* Traffic Average Ratio Mimumum */
+    double DoubleSpend::MaxAttack = 17.2;                                                               /* Traffic Average Ratio Maximum */
 
     /* FUNCTION: DoubleSpend::Check */
     std::string DoubleSpend::Check(CNode *pnode, int SyncHeight, int TimeConnected, std::string BandwidthAbuse_Output)
