@@ -76,6 +76,7 @@ v1.0.0.7 (Pre-release - unfinished)
 * Optimized InternalMiner/Staking functions
 * Replaced BOOST_FOR with c++11 FOR()
 * Eclipse Attack mitigation (Firewall)
+* RPC fHelp output formatting bug in PHCD (rpcclient.cpp)
 
 TO FINISH:
 * FIX: InitialBlockDownload from Peercoin (modified) https://github.com/sigmike/peercoin/commit/ad71a3b1890208c9ef8ea005c76ee18fbf0b6065

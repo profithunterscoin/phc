@@ -537,7 +537,12 @@ void OverviewPage::darkSendStatus()
 {
     static int64_t nLastDSProgressBlockTime = 0;
 
-    int nBestHeight = pindexBest->nHeight;
+    int nBestHeight = 0;
+
+    if (pindexBest)
+    {
+        nBestHeight = pindexBest->nHeight;
+    }
 
     // we we're processing more then 1 block per second, we'll just leave
     if(((nBestHeight - darkSendPool.cachedNumBlocks) / (GetTimeMillis() - nLastDSProgressBlockTime + 1) > 1))
@@ -625,7 +630,6 @@ void OverviewPage::darksendReset()
 
 void OverviewPage::toggleDarksend()
 {
-
     QSettings settings;
     
     // Popup some information on first mixing
