@@ -404,12 +404,26 @@ int CommandLineRPC(int argc, char *argv[])
 
         if (error.type() != null_type)
         {
-            // Error
-            strPrint = "error: " + write_string(error, false);
-            
-            int code = find_value(error.get_obj(), "code").get_int();
-            
-            nRet = abs(code);
+            if (error.type() != str_type)
+            {
+                // Error Object conversion
+                strPrint = "error: " + write_string(error, true);
+                
+                int code = find_value(error.get_obj(), "code").get_int();
+                
+                nRet = abs(code);
+
+                // Override error when fHelp information is returned
+                if (code == -1)
+                {
+                    strPrint = "\n" + find_value(error.get_obj(), "message").get_str();
+                }
+            }
+            else
+            {   
+                //Error string
+                strPrint = "error: " + error.get_str();
+            }
         }
         else
         {
