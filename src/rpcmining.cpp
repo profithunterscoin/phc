@@ -290,25 +290,41 @@ Value getstakinginfo(const Array& params, bool fHelp)
 
     if (staking == false)
     {
-		if (pwalletMain && pwalletMain->IsLocked())
+		if (pwalletMain && pwalletMain->IsLocked() == true)
 		{
 			stake_error = "Not staking because wallet is locked";
 		}
-		else if (vNodes.empty())
+        else if (vNodes.empty() == true)
 		{
 			stake_error = "Not staking because wallet is offline";
 		}
-		else if (IsInitialBlockDownload())
+		else if (vNodes.size() < 8)
+		{
+			stake_error = "Not staking because you need minimum 8 peers";
+		}
+		else if (IsInitialBlockDownload() == true)
 		{
 			stake_error = "Not staking because wallet is syncing";
 		}
-		else if (!nWeight)
+        else if (pindexBest->GetBlockTime() < GetTime() - 10 * 60)
+		{
+			stake_error = "Not staking, Not staking, waiting for full syncronization";
+		}
+        else if (!nWeight)
 		{
 			stake_error = "Not staking because you don't have mature coins";
 		}
+        else if (GetBoolArg("-staking", true) == true && nLastCoinStakeSearchInterval == 0)
+		{
+			stake_error = "Not staking, CoinStakeSearchInterval = 0, Staking = enabled.";
+		}
+        else if (GetBoolArg("-staking", true) == true)
+		{
+			stake_error = "Not staking, unknown error.";
+		}
 		else
 		{
-			stake_error = "Not staking";
+			stake_error = "Staking disabled.";
 		}
     }		
 

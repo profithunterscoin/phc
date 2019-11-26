@@ -179,7 +179,7 @@ CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
     CScript scriptPubKey = CScript() << ToByteVector(pubkey) << OP_CHECKSIG;
 
     // Create new block
-    unique_ptr<CBlock> pblock(new CBlock());
+    auto_ptr<CBlock> pblock(new CBlock());
 
     if (!pblock.get())
     {
@@ -514,7 +514,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
     }
 
     // Create new block
-    unique_ptr<CBlock> pblock(new CBlock());
+    auto_ptr<CBlock> pblock(new CBlock());
 
     if (!pblock.get())
     {
@@ -1028,44 +1028,53 @@ void ThreadStakeMiner(CWallet *pwallet)
 
     CReserveKey reservekey(pwallet);
 
-    bool fTryToSync = true;
+    int nLastTrySynced = 0;
 
     while (true)
-    {
-        while (pwallet->IsLocked())
+    {   
+        // Check for locked coins
+        if (pwallet->IsLocked())
         {
             nLastCoinStakeSearchInterval = 0;
 
-            MilliSleep(1000);
+            MilliSleep(10000);
+
+            break;
         }
 
-        while (vNodes.empty() || IsInitialBlockDownload())
+        // Check for connected peers or InitialBlockDownload status
+        if (nLastTrySynced < GetTime() - 20 * 60) // Retry every 20 minutes
         {
-            nLastCoinStakeSearchInterval = 0;
-            
-            fTryToSync = true;
-            
-            MilliSleep(1000);
-        }
+            nLastTrySynced = GetTime();
 
-        if (fTryToSync)
-        {
-            fTryToSync = false;
-
-            if (vNodes.size() < 8 || pindexBest->GetBlockTime() < GetTime() - 10 * 60)
+            if (vNodes.size() < 8
+                || IsInitialBlockDownload()
+                )
             {
+                nLastCoinStakeSearchInterval = 0;
+
                 MilliSleep(10000);
-            
-                continue;
+
+                break;
             }
         }
 
+        // Blockchain not fully syncronized
+        if (pindexBest->GetBlockTime() < GetTime() - 10 * 60)
+        {
+            nLastCoinStakeSearchInterval = 0;
+
+            MilliSleep(10000);
+
+            break;
+        }
+        
         //
         // Create new block
         //
         int64_t nFees;
 
-        unique_ptr<CBlock> pblock(CreateNewBlock(reservekey, true, &nFees));
+        auto_ptr<CBlock> pblock(CreateNewBlock(reservekey, true, &nFees));
 
         if (!pblock.get())
         {
@@ -1080,6 +1089,8 @@ void ThreadStakeMiner(CWallet *pwallet)
             ProcessBlockStake(pblock.get(), *pwallet);
             
             Set_ThreadPriority(THREAD_PRIORITY_LOWEST);
+
+            MilliSleep(1000);
         }
 
         MilliSleep(nMinerSleep);
@@ -1212,7 +1223,7 @@ void static InternalcoinMiner(CWallet *pwallet)
 
             CBlockIndex* pindexPrev = pindexBest;
            
-            unique_ptr<CBlock> pblocktemplate(CreateNewBlockWithKey(reservekey, pwallet));
+            auto_ptr<CBlock> pblocktemplate(CreateNewBlockWithKey(reservekey, pwallet));
 
             if (!pblocktemplate.get())
             {

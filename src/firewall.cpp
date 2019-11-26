@@ -596,21 +596,6 @@ namespace Firewall
             /** -------------------------- **/
 
             /** -------------------------- 
-                Attack Detection #3
-                Protocol: lower than mimimum protocol (// 30 Seconds)
-                Check for more than InvalidWallet::MinCheck minutes connection length
-            **/
-            if (GetBoolArg("-lowbandwidth", false) == true
-                && (int)TimeConnected > InvalidWallet::MinCheck / 4  
-                && pindexBest->nHeight - pnode->nStartingHeight > 1000  
-                )
-            {
-                /** Detected **/
-                Attack_Type = "3-Low-Bandwidth-Enabled";
-            }
-            /** -------------------------- **/
-
-            /** -------------------------- 
                 Live Debug Output
             **/
             if (LiveDebug::Enabled == true
@@ -1108,7 +1093,7 @@ namespace Firewall
                 Live Debug Output
             **/
             if (LiveDebug::Enabled == true
-                && LiveDebug::InvalidWallet == true
+                && LiveDebug::FloodingWallet == true
                 )
             {
                 cout << Settings::ModuleName <<
@@ -1153,7 +1138,7 @@ namespace Firewall
     bool DDoSWallet::Ban = GetBoolArg("-fw:ddoswallet:ban", true);                                          /* True/False                                           */
     int DDoSWallet::BanTime = GetArg("-fw:ddoswallet:bantime", 0);                                          /* 24 hours                                             */
     bool DDoSWallet::Disconnect = GetBoolArg("-fw:ddoswallet:disconnect", true);                            /* True/False                                           */
-    int DDoSWallet::MinCheck = GetArg("-fw:ddoswallet:mincheck", 120);                                       /* 30 Seconds                                           */
+    int DDoSWallet::MinCheck = GetArg("-fw:ddoswallet:mincheck", 120);                                      /* 30 Seconds                                           */
 
     /* FUNCTION: DDoSWallet::Check */
     std::string DDoSWallet::Check(CNode *pnode, int TimeConnected, std::string BandwidthAbuse_Output)
@@ -1238,45 +1223,62 @@ namespace Firewall
         if (EclipseWallet::Detect == true)
         {
             /** -------------------------- 
-                Eclipse Attacks
-                This attack allows an adversary controlling a sufficient number of
-                IP addresses to monopolize all connections
-                Report: https://eprint.iacr.org/2015/263.pdf
-                Countermeasure patches: https://github.com/bitcoin/bitcoin/pull/6355/commits/caad33fb232b7d217a3f218ba50f8dd299cd41a6
-                https://github.com/bitcoin/bitcoin/pull/9037
-                https://github.com/bitcoin/bitcoin/pull/8282
-                https://github.com/sickpig/BitcoinUnlimited/commit/562fe5d41760c3accb1222df73895ca655693ddf
-                https://github.com/bitcoin/bitcoin/pull/6355
-                https://github.com/bitcoin/bitcoin/pull/6355/commits/caad33fb232b7d217a3f218ba50f8dd299cd41a6
-                https://github.com/bitcoin/bitcoin/issues/8470
-                https://github.com/bitcoin/bitcoin/commit/a36834f10b80cd349ed35e4d2a04c50a8e02f269
-                https://github.com/bitcoin/bitcoin/commit/e1d6e2af6d89935f6edf027e5d4ea1d2ec6c7f41
-                https://github.com/bitcoin/bitcoin/pull/6355/commits/caad33fb232b7d217a3f218ba50f8dd299cd41a6
-            **/
+                Eclipse Attack
 
-           // Attack identification
-           // 1- Detect peer attempting to fill connection slot by connecting, disconnecting but sending no data
-           // 2- Detect peer with signature of #1 and sending ADDR msg then shortly after disconnecting
+                This attack allows an adversary controlling a sufficient number of IP addresses to monopolize all connections
+                Whitepaper Report: https://eprint.iacr.org/2015/263.pdf
+                Discovered by: Ethan Heilman, Alison Kendler, Aviv Zohar, Sharon Goldberg, Hebrew University/MSR Israel
 
-            /*
-            if ((int)TimeConnected > Eclipse)
-            {
-                std::vector<int, EclipseMap::PeerMap>::iterator it;
+                See: doc/Firewall.txt for more information
+                
 
-                it = std::find (PeerMap.begin(), PeerMap.end(), ser);
+                Related source code patches (Bitcoin Core 10):
+                    https://github.com/bitcoin/bitcoin/pull/6355/commits/caad33fb232b7d217a3f218ba50f8dd299cd41a6
+                    https://github.com/bitcoin/bitcoin/pull/9037
+                    https://github.com/bitcoin/bitcoin/pull/8282
+                    https://github.com/sickpig/BitcoinUnlimited/commit/562fe5d41760c3accb1222df73895ca655693ddf
+                    https://github.com/bitcoin/bitcoin/pull/6355
+                    https://github.com/bitcoin/bitcoin/pull/6355/commits/caad33fb232b7d217a3f218ba50f8dd299cd41a6
+                    https://github.com/bitcoin/bitcoin/issues/8470
+                    https://github.com/bitcoin/bitcoin/commit/a36834f10b80cd349ed35e4d2a04c50a8e02f269
+                    https://github.com/bitcoin/bitcoin/commit/e1d6e2af6d89935f6edf027e5d4ea1d2ec6c7f41
+                    https://github.com/bitcoin/bitcoin/pull/6355/commits/caad33fb232b7d217a3f218ba50f8dd299cd41a6
 
-                if (it != PeerMap.end()) 
-                { 
-                    // Update Existing Peer entry in the PeerMap
-                    // Position: it - PeerMap.begin() + 1
-                }
-                else
+
+                Attack identification (Biznatch Enterprises)
+
+                1- Detect peer attempting to fill connection slot by connecting, disconnecting but sending no data
+                2- Detect peer with signature of #1 and sending ADDR msg then shortly after disconnecting
+                3- hashAskedFor equals  uint256 NullHash
+
+
+                DRAFT only
+                if ((int)TimeConnected > Eclipse)
                 {
-                    // Add new peer entry in the PeerMap
+                    std::vector<int, EclipseMap::PeerMap>::iterator it;
 
+                    it = std::find (PeerMap.begin(), PeerMap.end(), ser);
+
+                    if (it != PeerMap.end()) 
+                    { 
+                        // Update Existing Peer entry in the PeerMap
+                        // Position: it - PeerMap.begin() + 1
+                    }
+                    else
+                    {
+                        // Add new peer entry in the PeerMap
+
+                    }
                 }
-            }
+
             */
+            /** -------------------------- **/
+
+            /** -------------------------- 
+                Detection & Mitigation
+            **/
+            
+            //Attack_Type = "Invalid Packets";
 
             /** -------------------------- **/
 
@@ -1331,10 +1333,24 @@ namespace Firewall
         if (ErebusWallet::Detect == true)
         {
             /** -------------------------- 
-                Erebus Protection
-                Allows large malicious Internet Service Providers (ISPs) to isolate
-                any targeted public nodes from the peer-to-peer network
+                Erebus Attack
+
+                Allows large malicious Internet Service Providers (ISPs) to isolate any targeted public nodes from the peer-to-peer network
                 Report: https://erebus-attack.comp.nus.edu.sg/erebus-attack.pdf
+                Discovered by: Muoi Tran, Inho Choi, Gi Jun Moon, Anh V. Vu, Min Suk Kang (National University of Singapore, Korea University,
+                Japan Advanced Institute of Science and Technolog)
+
+                See: doc/Firewall.txt for more information
+
+                Related source code patches (Bitcoin Core 20):
+                    https://github.com/bitcoin/bitcoin/pull/16702
+                    https://github.com/naumenkogs/bitcoin/tree/asn_buckets
+
+                Proposed patches:
+
+                Development patches:
+                    https://stackoverflow.com/questions/15458438/implementing-traceroute-using-icmp-in-c
+
             **/
 
             /*
@@ -1403,10 +1419,20 @@ namespace Firewall
         {
             /** -------------------------- 
                 BGP Protection (Apostolaki Hijack)
-                By manipulating routing advertisements (BGP hijacks) or by naturally intercepting traffic,
-                Autonomous Systems (ASes) can intercept and manipulate a large fraction of Bitcoin traffic
-                Report: https://btc-hijack.ethz.ch/files/btc_hijack.pdf
+
+                By manipulating routing advertisements (BGP hijacks) or by naturally intercepting traffic, Autonomous Systems (ASes) can intercept
+                and manipulate a large fraction of Bitcoin traffic
+                Whitepaper Report: https://btc-hijack.ethz.ch/files/btc_hijack.pdf
+                Discovered by: Maria Apostolaki, Aviv Zohar, Laurent Vanbever (The Hebrew University, ETH Zürich)
+
+                See: doc/Firewall.txt for more information
             **/
+
+            /* Firewall detections & mitigation
+
+
+
+            */
 
             /*
             if ((int)TimeConnected > InvalidWallet_MinCheck)
@@ -1748,18 +1774,26 @@ namespace Firewall
                 Attack_Detected = true;
             }
 
+            /** -------------------------- **/
             // Low Bandwidth Mode
             // Override default Attack settings
+            // Protocol: lower than mimimum protocol (// 30 Seconds)
             if (GetBoolArg("-lowbandwidth", false) == true)
             {
-                if (Attack_BandwidthAbuse == "2-HighBW-HighHeight" || Attack_BandwidthAbuse == "4-HighBW-LowHeight")
+                if (Attack_BandwidthAbuse == "2-HighBW-HighHeight"
+                    || Attack_BandwidthAbuse == "4-HighBW-LowHeight"
+                    || (int)TimeConnected > BandwidthAbuse::MinCheck
+                    && pindexBest->nHeight - pnode->nStartingHeight > 1000
+                    )
                 {
                     Attack_Ban = true;
                     Attack_BanTime = BandwidthAbuse::BanTime;
                     Attack_BanReason = BanReasonBandwidthAbuse;
                     Attack_Detected = true;
-                }
+                }             
             }
+
+            /** -------------------------- **/
 
             Attack_CheckLog = Attack_CheckLog + Attack_BandwidthAbuse;
         }
