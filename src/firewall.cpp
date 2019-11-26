@@ -1230,7 +1230,6 @@ namespace Firewall
                 Discovered by: Ethan Heilman, Alison Kendler, Aviv Zohar, Sharon Goldberg, Hebrew University/MSR Israel
 
                 See: doc/Firewall.txt for more information
-                
 
                 Related source code patches (Bitcoin Core 10):
                     https://github.com/bitcoin/bitcoin/pull/6355/commits/caad33fb232b7d217a3f218ba50f8dd299cd41a6
@@ -1777,13 +1776,12 @@ namespace Firewall
             /** -------------------------- **/
             // Low Bandwidth Mode
             // Override default Attack settings
-            // Protocol: lower than mimimum protocol (// 30 Seconds)
             if (GetBoolArg("-lowbandwidth", false) == true)
             {
                 if (Attack_BandwidthAbuse == "2-HighBW-HighHeight"
                     || Attack_BandwidthAbuse == "4-HighBW-LowHeight"
                     || (int)TimeConnected > BandwidthAbuse::MinCheck
-                    && pindexBest->nHeight - pnode->nStartingHeight > 1000
+                    (&& pindexBest->nHeight - pnode->nStartingHeight > 1000)
                     )
                 {
                     Attack_Ban = true;

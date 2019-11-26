@@ -1037,7 +1037,7 @@ void ThreadStakeMiner(CWallet *pwallet)
         {
             nLastCoinStakeSearchInterval = 0;
 
-            MilliSleep(10000);
+            MilliSleep(1000);
 
             break;
         }
@@ -1053,7 +1053,7 @@ void ThreadStakeMiner(CWallet *pwallet)
             {
                 nLastCoinStakeSearchInterval = 0;
 
-                MilliSleep(10000);
+                MilliSleep(1000);
 
                 break;
             }
@@ -1064,7 +1064,7 @@ void ThreadStakeMiner(CWallet *pwallet)
         {
             nLastCoinStakeSearchInterval = 0;
 
-            MilliSleep(10000);
+            MilliSleep(1000);
 
             break;
         }

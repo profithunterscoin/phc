@@ -511,6 +511,62 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 							"	alternate-background-color: rgb(0, 0, 0);"
 							"}"
 
+							"QDialog#OptionsDialog"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: rgb(0, 0, 0);"
+							"	alternate-background-color: rgb(0, 0, 0);"
+							"}"
+
+							"QTabWidget"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: rgb(0, 0, 0);"
+							"	alternate-background-color: rgb(0, 0, 0);"
+							"}"
+
+							"QWidget#tabMain"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: rgb(0, 0, 0);"
+							"	alternate-background-color: rgb(0, 0, 0);"
+							"}"
+
+							"QWidget#tabNetwork"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: rgb(0, 0, 0);"
+							"	alternate-background-color: rgb(0, 0, 0);"
+							"}"
+
+							"QWidget#tabWindow"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: rgb(0, 0, 0);"
+							"	alternate-background-color: rgb(0, 0, 0);"
+							"}"
+
+							"QWidget#tabDisplay"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: rgb(0, 0, 0);"
+							"	alternate-background-color: rgb(0, 0, 0);"
+							"}"
+
+							"QWidget#tabSignMessage"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: rgb(0, 0, 0);"
+							"	alternate-background-color: rgb(0, 0, 0);"
+							"}"
+
+							"QWidget#tabVerifyMessage"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: rgb(0, 0, 0);"
+							"	alternate-background-color: rgb(0, 0, 0);"
+							"}"
+
 						);
 
 
