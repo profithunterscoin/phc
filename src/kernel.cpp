@@ -307,12 +307,16 @@ bool CheckStakeKernelHash(CBlockIndex* pindexPrev, unsigned int nBits, unsigned 
 {
     if (nTimeTx < txPrev.nTime)
     {
+        LogPrint("kernel", "%s : Transaction timestamp violation\n", __FUNCTION__);
+
         // Transaction timestamp violation
         return error("%s : nTime violation", __FUNCTION__);
     }  
         
     if (nTimeBlockFrom + nStakeMinAge > nTimeTx)
     {
+        LogPrint("kernel", "%s : Min age requirement\n", __FUNCTION__);
+
         // Min age requirement
         return error("%s : min age violation", __FUNCTION__);
     } 
@@ -325,7 +329,7 @@ bool CheckStakeKernelHash(CBlockIndex* pindexPrev, unsigned int nBits, unsigned 
     int64_t nValueIn = txPrev.vout[prevout.n].nValue;
 
     CBigNum bnWeight = CBigNum(nValueIn);
-    bnTarget *= bnWeight;
+    bnTarget += bnWeight;
 
     targetProofOfStake = bnTarget.getuint256();
 
@@ -340,30 +344,12 @@ bool CheckStakeKernelHash(CBlockIndex* pindexPrev, unsigned int nBits, unsigned 
     ss << nStakeModifier << nTimeBlockFrom << txPrev.nTime << prevout.hash << prevout.n << nTimeTx;
     hashProofOfStake = Hash(ss.begin(), ss.end());
 
-    if (fPrintProofOfStake)
-    {
-        if (fDebug)
-        {
-            LogPrint("kernel", "%s : using modifier 0x%016x at height=%d timestamp=%s for block from timestamp=%s\n", __FUNCTION__,
-                nStakeModifier,
-                nStakeModifierHeight,
-                DateTimeStrFormat(nStakeModifierTime),
-                DateTimeStrFormat(nTimeBlockFrom));
-
-            LogPrint("kernel", "%s : check modifier=0x%016x nTimeBlockFrom=%u nTimeTxPrev=%u nPrevout=%u nTimeTx=%u hashProofOfStake=%s\n", __FUNCTION__, 
-                nStakeModifier,
-                nTimeBlockFrom,
-                txPrev.nTime,
-                prevout.n,
-                nTimeTx,
-                hashProofOfStake.ToString());
-        }
-    }
-
     // Now check if proof-of-stake hash meets target protocol
-    if (CBigNum(hashProofOfStake) > bnTarget)
+    if (CBigNum(hashProofOfStake) < bnTarget)
     {
-         return false;
+        LogPrint("kernel", "%s : HashProofOfStake: %u bnTarget %u doesn't meet target protocol\n", __FUNCTION__, CBigNum(hashProofOfStake), CBigNum(bnTarget));
+
+        return false;
     }
 
     if (fDebug && !fPrintProofOfStake)
@@ -427,7 +413,6 @@ bool CheckProofOfStake(CBlockIndex* pindexPrev, const CTransaction& tx, unsigned
 
     if (!CheckStakeKernelHash(pindexPrev, nBits, block.GetBlockTime(), txPrev, txin.prevout, tx.nTime, hashProofOfStake, targetProofOfStake, fDebug))
     {
-        // may occur during initial download or if behind on block chain sync
         return tx.DoS(1, error("%s : INFO: check kernel failed on coinstake %s, hashProofOfStake=%s", __FUNCTION__, tx.GetHash().ToString(), hashProofOfStake.ToString()));
     }
 

@@ -1,0 +1,523 @@
+
+Attacks Summary:
+
+
+
+    ----------------------------------
+    7. Countermeasures
+
+    We have shown how an attacker with enough IP addresses and time can eclipse any target victim,
+    regardless of the state of the victim’s tried and new tables. We now present countermeasures that
+    make eclipse attacks more difficult. Our countermeasures are inspired by bot-net architectures
+    (Section 8), and designed to be faithful to bitcoin’s network architecture.
+
+    1. Deterministic random eviction.
+    
+    Replace bitcoin eviction as follows: just as each address deterministically hashes to a single bucket
+    in tried and new (Section 2.2), an address also deterministically hashes to a single slot in that bucket.
+    This way, an attacker cannot increase the number of addresses stored by repeatedly inserting the same
+    address in multiple rounds (Section 4.1). Instead, addresses stored in tried are given by the
+    ‘random eviction’ curves in Figures 3, 5, reducing the attack addresses stored in tried.
+
+    2. Random selection.
+
+    Our attacks also exploit the heavy bias towards forming outgoing connections to addresses with fresh
+    timestamps, so that an attacker that owns only a small fraction f = 30% of the victim’s tried table
+    can increase its success probability (to say 50%) by increasing τ `, the time it invests in the attack
+    (Section 3.3). We can eliminate this advantage for the attacker if addresses are selected at random
+    from tried and new; this way, a √ success rate of 50% always requires the adversary to fill
+    8 0.5 = 91.7% of tried, which requires 40 groups in an infrastructure attack, or about 3680 peers in
+    a botnet attack. Combining this with deterministic random eviction, the figure jumps to 10194 bots for
+    50% success probability.
+
+    These countermeasures harden the network, but still allow an attacker with enough addresses to overwrite
+    all of tried. The next countermeasure remedies this.
+
+    3. Test before evict.
+    
+    Before storing an address in its (deterministically-chosen) slot in a bucket in tried, first check if
+    there is an older address stored in that slot. If so, briefly attempt to connect to the older address,
+    and if connection is successful, then the older address is not evicted from the tried table; the new
+    address is stored in tried only if the connection fails.
+
+    We analyze these three countermeasures. Suppose that there are h legitimate addresses in the tried table
+    prior to the attack, and model network churn by supposing that each of the h legitimate addresses in
+    tried is live (i.e., accepts incoming connections) independently with probability p. With test-before-evict,
+    the adversary can-not evict p × h legitimate addresses (in expectation) from tried, regardless of the
+    number of distinct addresses it controls. Thus, even if the rest of tried is full of adversarial addresses,
+    the probability of eclipsing the victim is bounded to about
+
+    This is in stark contrast to today’s protocol, where attackers with enough addresses have unbounded
+    success probability even if tried is full of legitimate addresses. We perform Monte-Carlo simulations
+    assuming churn p, h legitimate addresses initially stored in tried, and a botnet inserting a addresses
+    into tried via unsolicited incoming connections. The area below each curve in Figure 8 is the number of
+    bots a that can eclipse a victim with probability at least 50%, given that there are initially h legitimate
+    addresses in tried. With test-before-evict, √ the curves plateau horizontally at h = 4096(1− 8 0.5)/p;
+    as long as h is greater than this quantity, even a botnet with an infinite number of addresses has success
+    probability bounded by 50%. Importantly, the plateau is absent without test-before-evict; a botnet with
+    enough addresses can eclipse a victim regardless of the number of legitimate addresses h initially in
+    tried. There is one problem, however. Our bitcoin nodes saw high churn rates (Table 1). With a p = 28% churn
+    rate, for example, bounding the adversary’s success probability to 10% requires about h = 3700 addresses
+    in tried; our nodes had h < 400. Our next countermeasure thus adds more legitimate addresses to tried:
+
+    4. Feeler Connections.
+    
+    Add an outgoing connection that establish short-lived test connections to randomly selected addresses in
+    new. If connection succeeds, the address is evicted from new and inserted into tried; otherwise, the
+    address is evicted from new.
+
+    Feeler connections clean trash out of new while increasing the number of fresh address in tried that are
+    likely to be online when a node restarts. Our fifth countermeasure is orthogonal to those above:
+
+    5. Anchor connections.
+    
+    Inspired by Tor entry guard rotation rates [33], we add two connections that persist between restarts.
+    Thus, we add an anchor table, recording addresses of current outgoing connections and the time of first
+    connection to each address. Upon restart, the node dedicates two extra outgoing connections to the oldest
+    anchor addresses that accept incoming connections. Now, in addition to defeating our other countermeasures,
+    a successful attacker must also disrupt anchor connections; eclipse attacks fail if the victim connects
+    to an anchor address not controlled by the attacker. 
+
+    Apart from these five countermeasures, a few other ideas can raise the bar for eclipse attacks:
+    
+    6. More buckets.
+
+    Among the most obvious countermeasure is to increase the size of the tried and new tables. Suppose we
+    doubled the number of buckets in the tried table. If we consider the infrastructure attack, 4s the buckets
+    filled by s groups jumps from (1 − e − 64 ) (per 4s equation (9) to (1 − e − 128 ). Thus, an infrastructure
+    attacker needs double the number of groups in order to expect to fill the same fraction of tried. Similarly,
+    a botnet needs to double the number of bots. Importantly, how ever, this countermeasure is helpful only when
+    tried already contains many legitimate addresses, so that at tacker owns a smaller fraction of the addresses
+    in tried. However, if tried is mostly empty (or contains mostly stale addresses for nodes that are no longer
+    online), the attacker will still own a large fraction of the addresses in tried, even though the number of
+    tried buckets has increased. Thus, this countermeasure should also be accompanied by another countermeasure
+    (e.g., feeler connections) that increases the number of legitimate addresses stored in tried.
+
+    7. More outgoing connections.
+
+    our test bitcoin nodes had at least 65 connections slots available, and [17] indicates that 80% of bitcoin
+    peers allow at least 40 incoming connections. Thus, we can require nodes to make a few additional outgoing
+    connections without risking that the network will run out of connection capacity. Indeed, recent measurements
+    [51] indicate that certain nodes (e.g., mining-pool gateways) do this already. For example, using twelve
+    outgoing connections instead of eight (in addition to the feeler connection and two anchor connections),
+    decreases the attack’s success probability from f 8 to f 12 ; to achieve 50% success probability the
+    infrastructure attacker now needs 46 groups, and the botnet needs 11796 bots. While this improvement is not
+    as dramatic Countermeasures 1-5, it is still a simple way to raise the bar for eclipse attacks. Figure 8: The
+    area below each curve corresponds to a number of bots a that can eclipse a victim with probability at least
+    50%, given that the victim initially has h legitimate addresses in tried. We show one curve per churn rate p.
+    (Top) With test before evict. (Bottom) Without.
+
+    8. Ban unsolicited ADDR messages.
+
+    A node could choose not to accept large unsolicited ADDR messages (with > 10 addresses) from incoming peers,
+    and only solicit ADDR messages from outgoing connections when its new table is too empty. This prevents
+    adversarial incoming connections from flooding a victim’s new table with trash addresses. We argue that this
+    change is not harmful, since even in the current network, there is no shortage of address in the new table
+    (Section 5). To make this more concrete, note that a node request ADDR messages upon establishing an outgoing
+    connection. The peer responds with n randomly selected addresses from its tried and new tables, where n is a
+    random number between x and 2500 and x is 23% of the addresses the peer has stored. If each peer sends, say,
+    about n = 1700 addresses, then new is already 8n/16384 = 83% full the moment that the bitcoin node finishing
+    establishing outgoing connections.
+
+    9. Diversify incoming connections.
+
+    Today, a bitcoin node can have all of its incoming connections come from the same IP address, making it far
+    too easy for a single computer to monopolize a victim’s incoming connections during an eclipse attack or
+    connection-starvation attack [32]. We suggest a node accept only a limited number of connections from the same
+    IP address.
+
+    10. Anomaly detection.
+
+    Our attack has several specific “signatures” that make it detectable including: (1) a flurry of short-lived
+    incoming TCP connections from diverse IP addresses, that send (2) large ADDR messages (3) containing “trash” IP
+    addresses. An attacker that suddenly connects a large number of nodes to the bitcoin network could also be
+    detected, as could one that uses eclipsing per Section 1.1 to dramatically decrease the network’s mining power.
+    Thus, monitoring and anomaly detection systems that look for this behavior are also be useful; at the very least,
+    they would force an eclipse attacker to attack at low rate, or to waste resources on overwriting new (instead of
+    using “trash” IP addresses).
+
+    Status of our countermeasures.
+
+    13 We disclosed our results to the bitcoin core developers in 02/2015. They deployed Countermeasures 1, 2, and 6
+    in the  bitcoind v0.10.1 release, which now uses deterministic random eviction, random selection, and scales up
+    the number of buckets in tried and new by a factor of four. To illustrate the efficacy of this, consider the
+    worst-case scenario for the attacker where tried is completely full of legitimate addresses. We use Lemma A.1 to
+    estimate the success rate of a botnet with t IP addresses as Plotting (11) in Figure 9, we see that this botnet
+    requires 163K addresses for a 50% success rate, and 284K address for a 90% success rate. This is good news, but
+    we caution that ensuring that tried is full of legitimate address is still a challenge (Section 5), especially
+    since there may be fewer than 16384 public-IP nodes in the bitcoin network at a given time. Countermeasures 3
+    and 4 are designed to deal with this, and so we have also developed a patch with these two countermeasures; see
+    [40] for our implementation and its documentation.
+
+    8 Related Work
+
+    The bitcoin peer-to-peer (p2p) network. Recent work considers how bitcoin’s network can delay or prevent block
+    propagation [31] or be used to deanonymize bitcoin users [16, 17, 48]. These works discuss aspects of bitcoin’s
+    networking protocol, with [16] providing an excellent description of ADDR message propagation; we focus instead on
+    the structure of the tried and new tables, timestamps and their impact on address selection (Section 2). [17] shows
+    that nodes connecting over Tor can be eclipsed by a Tor exit node that manipulates both bitcoin and Tor. Other work
+    has mapped bitcoin peers to autonomous systems [38], geolocated peers and measured churn [34], and used side channels
+    to learn the bitcoin network topology [16, 51]. p2p and botnet architectures.
+
+    There has been extensive research on eclipse attacks [27, 61, 62] in structured p2p networks built upon distributed
+    hash tables (DHTs); see [64] for a survey. Many proposals defend against eclipse attacks by adding more structure;
+    [61] constrains peer degree, while others use constraints based on distance metrics like latency [42] or DHT
+    identifiers [13]. Bitcoin, by contrast, uses an unstructured network. While we have focused on exploiting specific
+    quirks in bitcoin’s existing network, other works e.g., [11, 15, 21, 44] design new unstructured networks that are
+    robust to Byzantine attacks. [44] blacklists misbehaving peers. Puppetcast’s [15] centralized solution is based on
+    public-key infrastructure [15], which is not appropriate for bitcoin. Brahms [21] is fully decentralized, and instead
+    constrains the rate at which peers exchange network information—a useful idea that is a significant departure from
+    bitcoin’s current approach. Meanwhile, our goals are also more modest than those in these works; rather than requiring
+    that each node is equally likely to be sampled by an honest node, we just want to limit eclipse attacks on initially
+    well-connected nodes. Thus, our countermeasures are inspired by botnet architectures, which share this same goal.
+    Rossow et al. [59] finds that many botnets, like bitcoin, use unstructured peer-to-peer networks and gossip
+    (i.e., ADDR messages), and describes how botnets defend against attacks that flood local address tables with bogus
+    information. The Sality botnet refuses to evict “high-reputation” addresses; our anchor countermeasure is similar
+    (Section 7). Storm uses test before-evict [30], which we have also recommended for bitcoin. Zeus [12] disallows
+    connections from multiple IP in the same /20, and regularly clean tables by testing if peers are online; our feeler
+    connections are similar.
+
+    We presented an eclipse attack on bitcoin’s peer-to-peer network that undermines bitcoin’s core security guarantees,
+    allowing attacks on the mining and consensus system, including N-confirmation double spending and adversarial forks
+    in the blockchain. Our attack is for nodes with public IPs. We developed mathematical models of our attack, and
+    validated them with Monte Carlo simulations, measurements and experiments. We demonstrated the practically of our
+    attack by performing it on our own live bitcoin nodes, finding that an attacker with 32 distinct /24 IP address
+    blocks, or a 4600-node botnet, can eclipse a victim with over 85% probability in the attacker’s worst case.
+    Moreover, even a 400-node botnet sufficed to attack our own live bitcoin nodes. Finally, we proposed countermeasures
+    that make eclipse attacks more difficult while still preserving bitcoin’s openness and decentralization; several of
+    these were incorporated in a recent bitcoin software upgrade.
+
+    9 Conclusion
+
+    We presented an eclipse attack on bitcoin’s peer-to-peer network that undermines bitcoin’s core security guarantees,
+    allowing attacks on the mining and consensus system, including N-confirmation double spending and adversarial forks
+    in the blockchain. Our attack is for nodes with public IPs. We developed mathematical models of our attack, and
+    validated them with Monte Carlo simulations, measurements and experiments. We demonstrated the practically of our
+    attack by performing it on our own live bitcoin nodes, finding that an attacker with 32 distinct /24 IP address
+    blocks, or a 4600-node botnet, can eclipse a victim with over 85% probability in the attacker’s worst case.
+    Moreover, even a 400-node botnet sufficed to attack our own live bitcoin nodes. Finally, we proposed
+    countermeasures that make eclipse attacks more difficult while still preserving bitcoin’s openness and
+    decentralization; several of these were incorporated in a recent bitcoin software upgrade.
+
+
+
+    ----------------------------------
+    III. O VERVIEW OF THE EREBUS ATTACK
+
+    In this section, we present an overview of the EREBUS attack, beginning with the threat model we consider in this paper
+    (§III-A). We then introduce a naive version of the EREBUS attack to introduce the main intuition of the attack.
+
+    A. Threat Model
+
+    Similar to the Bitcoin hijacking attack [3], we consider a network adversary who has full control of a single AS network,
+    which we call an adversary AS. The adversary may arbitrarily insert/modify/remove/delay any messages traversing her network.
+    Note that typical nation-state adversaries may have such network capability [32]. The adversary’s goal is to control all the
+    peer connections of a target node in the Bitcoin peer-to-peer network. We target around 10K Bitcoin nodes that accept incoming
+    connections. Bitcoin nodes that do not accept incoming connections due to the lack of public IP interface (e.g., nodes behind
+    network address translations (NATs) or connected via Tor bridges) are out of the scope of our attack. Moreover, we consider
+    that the targeted Bitcoin nodes have reliable IP addresses during the entire attack execution period. We assume that the main
+    targets of Bitcoin partitioning attacks would be well-known and influential nodes (e.g., gateway nodes of popular mining pools)
+    that would operate reliably with stable IP addresses. Note that even when a targeted node changes its IP address (e.g., DHCP),
+    our adversary can identify the same node with a different IP via the Bitcoin node fingerprinting technique [10].
+
+    We assume that a Bitcoin node can be attacked by only one adversary at any given time. When two or more adversaries concurrently
+    attack the same node, the attack success rates may drop due to their competition. We leave the analysis of such attack scenarios
+    for future work.
+
+    B. Naive EREBUS Attack
+
+    Our network adversary, a malicious AS (e.g., AS M in Figure 1), targets a benign Bitcoin node as a victim (e.g., a node in AS V in
+    Figure 1). Since the adversary may not be on the path of the original peer connections of the victim node (see the dashed blue
+    arrows), the attack goal is to force the victim node to connect to other benign Bitcoin nodes (e.g., nodes in AS C or D) so that
+    the changed peer connections (see the solid red arrows) of the victim node traverse the adversary AS. Note that the new Bitcoin
+    peer nodes for the victim should be chosen carefully so that the victim-to-node route (e.g., V - to-D route) includes the attacker
+    AS M as in Figure 1. The adversary repeats this until it serves all the peer connections of the victim node. As a natural
+    man-in-the-middle network of the peer connections of the victim node, the adversary AS now can insert/modify/remove/delay any
+    Bitcoin messages that are delivered to the victim node from the Bitcoin peer nodes of her choice, effectively controlling the
+    victim node; i.e., the attack goal is achieved!
+
+    Technical challenges. Though intuitively appealing, implementing the naive EREBUS attack in practice is quite challenging due to
+    several limited and unknown attack capabilities.
+
+    First, there may not exist a sufficient number of benign Bitcoin nodes (such as nodes in AS C or D) whose communication paths to a
+    victim node happen to include the adversary AS. Notice that currently a Bitcoin node may have up to 125 peering connections [11]
+    and, thus, we need 125 or more such Bitcoin peer nodes in the right locations for a reliable attack. Second, even if a sufficient
+    number of such Bitcoin peer nodes exist, it is still hard to influence the peer selection of any Bitcoin node, especially, after
+    several countermeasures have been deployed to thwart the Eclipse attack [29]. Reconnaissance
+
+    C. Full EREBUS Attack [Step I] Harvesting shadow IPs (§IV)
+
+    From the high-level intuition of the naive version, we now describe the full version of the EREBUS attack. Unlike its naive version,
+    the EREBUS adversary uses not only the existing Bitcoin nodes but any valid IP addresses whose victim-to-IP-address routes include
+    the adversary AS. For example, the adversary AS M in Figure 1 can enumerate large numbers of valid IP addresses in AS C and D and
+    force the victim node to peer with any of the enumerated IP addresses. We call such adversary-enumerated IP addresses shadow IPs.
+    A shadow IP represents a virtual (thus, potentially non-existent) Bitcoin node whose would-be victim-to-node route includes the
+    adversary AS. It is important to note that the shadow IPs are not necessarily used by real Bitcoin nodes or even any host.
+
+    The shadow IPs are used only to provide a logical view of the peer-to-peer network to the victim and any attempt to connect to them
+    from the victim node is hijacked and completed with normal Bitcoin message exchanges by the adversary AS. We describe the EREBUS
+    attack in the following two attack phases: a reconnaissance phase (Step I) and an attack execution phase (Step II).
+
+    [Step I] Harvesting the shadow IPs (§IV). In this reconnaissance step, the adversary aims to collect as many IP addresses that can
+    be used for the shadow IPs as possible. As illustrated in Figure 2, this step consists of three substeps. In Step I-, the adversary
+    evaluates the inter-domain routing state and enumerates all the ASes that may have a node whose victim-to-node packets would traverse
+    its own network M . In Step I-➋, the adversary enumerates all the available IP addresses in the selected ASes and use them for the
+    victim-specific shadow IPs, and inserts them into its database. In Step I-➌, the adversary tests if the packets from the victim node
+    indeed traverse its network towards the chosen shadow IPs. Note that this test step can be integrated into the next attack execution
+    step. We show in Section IV that we can easily obtain tens or hundreds of millions of shadow IPs for a large adversary AS and a typical
+    victim node.
+
+    Step II] Creating victim-shadow peering connections (§V). In this attack execution step, the adversary aims to patiently influence the
+    victim node to make peering connections only to the shadow IPs it has harvested in Step I. Note that the control of Bitcoin’s peering
+    decision with some botnets [29] is no longer possible. Our EREBUS adversary exploits the fundamental advantage of being a network
+    adversary. That is, the adversary AS impersonates the millions or more shadow IPs reliably for several weeks to slowly fill up the
+    internal database of a victim node. In Step II-➊, the adversary creates incoming connections with the victim node on behalf of
+    several shadow IPs of its choice. In particular, the adversary initiates the Bitcoin version handshake by spoofing shadow IP addresses.
+    Then, in Step II-➋, the adversary floods the victim node’s internal IP address tables with a large number of shadow IPs in addr messages.
+    After filling the internal tables of the victim node, in Step II-➌, the adversary waits for existing outgoing connections of the victim
+    to be naturally disconnected and replaced by the connections to shadow IPs.
+
+    Figure 2: Two main steps of the EREBUS attack. In the first reconnaissance step, a network adversary collects large numbers of shadow
+    IPs that are used to steer the existing peer connections of the targeted victim Bitcoin node towards. In the second step, the adversary
+    gradually migrates the existing peer connections of the victim node to the shadow IPs by indirectly and patiently influencing the victim
+    node’s peer selection algorithm.
+
+    To expedite the process, the adversary may trigger the victim node to reset and choose new connections from the internal tables.
+
+    D. Attack Properties
+
+    The EREBUS attack has three properties:
+
+    • Undetectability. The biggest difference between the Bitcoin hijacking attack [3] and the EREBUS attack is that the former is a
+    control-plane only attack while the latter is a data-plane only attack.
+    
+    The EREBUS adversary does not propagate any control-plane messages (e.g., routing announcements) and thus it is completely invisible
+    to control-plane monitors, such as BGP message collectors and analysis tools (e.g., RIPE [39], RouteView [47], CAIDA BGPStream [37]).
+    
+    As the data-plane traffic is much larger in volume, there exists no public repository of data-plane traffic on the Internet, which makes
+    the public scrutiny for the EREBUS attack nearly impossible. Some cautious and willing ASes may use their deep-packet inspection (DPI)
+    capability to capture all the Bitcoin messages from a suspicious AS and try to identify any suspicious data-plane messages of the EREBUS
+    attack (e.g., Bitcoin messages exchanged in Step II in Figure 2). However, the EREBUS adversary can always deny the execution of attacks
+    because there is no way to identify the actual originator of packets without any accountable Internet architecture; e.g., [1], [48].
+
+    Immediate availability. The EREBUS attack is shown to be readily available to any Tier-1 ASes against nearly all (99.5%) of the 10K public
+    Bitcoin nodes. Also, many large Tier-2 ASes can target the majority of public Bitcoin nodes in the network; see Section IV-B for our
+    large-scale route evaluations. The network coverage of the adversary ASes matters because the larger the network coverage in the inter-
+    domain topology (e.g., Tier-1 ASes providing connectivity to multiple continents), the more shadow IP addresses are available in general
+    for the EREBUS attack.
+
+    Trickle-down attack strategy. The EREBUS attack first occu-pies the new table slots as much as possible with the shadow IPs and then
+    patiently waits for them to be migrated to the tried table and ultimately dominate the tried table as well. We call this a trickle-down
+    attack strategy. We show that in our evaluation in Section VI Tier-1 or large Tier-2 ASes can inject enough numbers of shadow IPs into
+    the tried table of a victim node to control all the eight outgoing connections in a few weeks of attack duration.
+
+    Adaptive attack strategy.
+
+    We further propose an optional adaptive attack strategy to speed up the attack execution phase. In the baseline trickle-down attack
+    strategy, an adversary AS would wait until the probability of all the eight outgoing connections made to shadow IPs becomes large
+    enough (e.g., 30% or 50%) and trigger a reboot of the victim node. Note that rebooting a targeted Bitcoin node has been demonstrated
+    with several methods including, but not limited to, denial-of-service or exploiting Bitcoin client’s vulnerabilities [29]. In our adaptive
+    attack strategy, an adversary AS keeps tracking of the outgoing connections of the victim node that are already made to shadow IPs. When
+    the adversary AS is a large transit AS, the victim node often has some outgoing connections naturally made to shadow IPs even before
+    attacks. Moreover, as the attack progresses, some of existing outgoing connections expire naturally and new outgoing connections can be
+    made to shadow IPs.
+
+    VII. C OUNTERMEASURES
+
+    Since the EREBUS attack exploits no design or implementation bugs of Bitcoin core but only the enormous network address resources of
+    network adversaries, the prevention of the attack (e.g., via fixing bugs) is hard. Fortunately, making the EREBUS attack much harder is
+    still possible.
+
+    For the sake of argument, we first discuss several naive, ineffective countermeasures that do not work against the EREBUS attack.
+    Then, we discuss a couple of effective countermeasures: the ones that do not change Bitcoin core, and the ones that do require its changes.
+
+    A. Ineffective Countermeasures
+
+    We list six naive solutions that do not, unfortunately, work in practice against the EREBUS attack.
+
+    1) Active route measurements: A victim Bitcoin node may actively measure the end-to-end routes from itself to its peers to test whether
+    its connections traverse a common, potentially malicious AS. However, the active route measurement is ineffective because it can be
+    easily spoofed by the EREBUS adversary and the detection of such spoofing is hard. When route probe packets (e.g., traceroute probes)
+    traverse through the adversary AS, she can alter the measured routes (e.g., by spoofing IPs of ICMP error messages for traceroute)
+    and make the routes look benign (i.e., not traversing the adversary AS). Worse yet, the detection of such spoofing is not straightforward.
+    A victim node may try to detect such spoofing by identifying unusual routes via IP-level route analysis; however, the accuracy of such
+    route manipulation detection is yet unknown and also many false positives may occur whenever router-level paths change.
+
+    2) Inter-domain route estimation: A victim node may try to run BGP simulations to estimate the inter-domain routes of its connections
+    (just like the EREBUS adversary does) to detect the EREBUS attack. This approach is, however, unfortunately ineffective because it is
+    hard for a victim node to validate the estimated routes due to the lack of the ground truth route measurement data (see above for why
+    active route measurement is hard). Without the validation of the routes, many false positives and negatives may occur if the estimated
+    routes differ from the real ones. Note that, the EREBUS adversary, in contrast, can accurately validate her route estimation because
+    she sees all the Bitcoin packets from the victim node if she is on the end-to-end routes.
+
+    3) Whitelisting IP addresses: One way to prevent the EREBUS attacks would be to maintain a whitelist of real Bitcoin nodes in a central
+    location and inform this to all the Bitcoin nodes so that they can easily ignore shadow IPs. Bitcoin, however, in principle allows any
+    node to join and leave the system at any point in time without any permission. Thus, maintaining such whitelist strongly violates the
+    permissionless blockchain principle. Whitelisting can be centralized or decentralized but either way, it is impractical to operate
+    one. A single (or a small number of) centralized whitelist can be a perfect single point of failure of the system because the
+    compromise of the list can fully control the network graph. A decentralized implementation of a whitelist is not trivial because it
+    requires building consensus on such lists among large numbers of nodes itself.
+
+    4) Rate limiting addr messages: Another candidate solution would be to limit the number of addr messages, particularly, the number of IPs
+    received from other Bitcoin nodes to limit the EREBUS adversary’s capability. A victim node can enforce a lower limit to the addr messages
+    received from incoming connections than the ones from outgoing connections as most of shadow IPs are sent via incoming connections.
+    However, as we observe in our attack emulation in Section VI, the number of IP addresses sent by an attacker AS is not very different
+    (e.g., only about 1×–2× of the normal rate), making it hard to design a rate limiter in practice.
+
+    5) Rate limiting incoming connections: Similarly, one may attempt to limit the number of incoming connections per unit time to make the
+    flooding of new incoming connections to a victim node less effective. However, rate limiting the incoming connections does not decrease
+    the chance of adversary occupying the incoming connections when the adversary’s incoming connection requests are indistinguishable from
+    other requests.
+
+    6) Network-level data-plane detection: A benign, cautious transit AS may attempt to detect the EREBUS attack launched by a neighbor AS
+    by monitoring any unusually large numbers of Bitcoin messages (e.g., version, verack, addr) to multiple Bitcoin nodes from the single
+    transit AS. However, such data-plane, in-network detection is hard because: (1) attack traffic rate is not significantly higher than
+    the benign cases; and (2) one cannot definitively confirm the originator of any suspicious Bitcoin messages.
+
+    B. Countermeasures without Bitcoin Protocol Changes
+
+    To test the reachability of an IP address with an EREBUS - AS-free path, a Bitcoin node may rely on third-party proxies 
+    (e.g., VPNs, Tor, relays [20], [2]). Although this approach can potentially detect EREBUS attacks without modifying the current Bitcoin
+    protocol, there are a few caveats of designing and using such third-party proxy systems:
+
+    • Limited scalability. It would be challenging if most of Bitcoin nodes want to have their separate proxy-based reachability tests.
+    There exist around 10K potentially vulnerable nodes in the Bitcoin peer-to-peer system. Providing multiple proxies (ideally in different
+    locations) for all the nodes would be difficult in practice; e.g., no single VPN service has that many different VPN nodes (even Tor has
+    less than 1K exit nodes in total). Moreover, the reliance on the external proxies would increase the attack surface; viz., several
+    vulnerabilities of Bitcoin over Tor [10].
+
+    • Centralization. Due to the limited scalability, any proxy-based approaches could easily end up with a small number of centralized
+    proxies; e.g., a handful of Bitcoin relays, a few popular VPN servers. When a small number of proxies become the centralized components
+    in the peer-to-peer system, they naturally have the power to control the peer-to-peer network topology. Unless we have a highly trustworthy
+    proxy service for the Bitcoin peer-to-peer network, we should critically evaluate the potential risk of centralization in any proxy-based
+    countermeasures.
+
+    C. Countermeasures with Bitcoin Protocol Changes With some Bitcoin protocol changes, we can make the EREBUS attack much harder. We discuss
+    and evaluate several potential countermeasures.
+
+    [C1] Table size reduction. The size of the new and tried tables is an important system parameter that affects the probability of the
+    adversary-injected IP addresses selected for outgoing connections. The Bitcoin community has increased the table sizes four times as the
+    countermeasure against the Eclipse attack [29] because it increases the botnet cost of the Eclipse attack. However, increasing the table
+    sizes, in fact, makes the EREBUS attack much easier; it is the table-size reduction that makes the EREBUS attack harder. Figure 10 shows
+    the evaluated probability of all eight outgoing connections to be made to shadow IPs for different countermeasures. As we can see, if we
+    increase the table size, the adversary achieves much higher success probability. The reduction of the table sizes makes the EREBUS attack
+    less effective. Contrary to the Eclipse attackers, an EREBUS adversary has much larger bandwidth capability and significantly more IP
+    addresses she can utilize for attacks.
+
+    Figure 10: Probability of all outgoing connections made to shadow IPs for varying attack duration (days). In all experiments, attacks are
+    non-adaptive for fair comparisons. We test various countermeasures in Section VII-C. The EREBUS attack becomes harder as the probability
+    decreases. 
+
+    The actual deployment of this change, however, need much more discussion in the community because the reduction of the table sizes may
+    limit the storage of benign and stable IPs in the Bitcoin peer-to-peer network, which may affect the peering dynamics of the system.
+
+    [C2] More outgoing connections. Another effective solution is to increase the number of outgoing connections that can be made in each
+    Bitcoin node. The current maximum is eight and by increasing it we make it harder to occupy all the outgoing connections. As we can see
+    in Figure 10, if we double it, the EREBUS adversary achieves much lower success probability.
+
+    Note that the Eclipse attack paper also proposes a similar countermeasure but this has not been adopted in Bitcoin core. The increase
+    of outgoing connections must be carefully designed because this increase may immediately increase the number of peer connections and
+    the total traffic volume of the system. This abrupt volume increase can easily increase the delay of messages and blocks in the Bitcoin
+    network.
+
+    [C1] and [C2] combined. We combine the two effective Bitcoin protocol modifications and evaluate its final detection effectiveness.
+    The last line in Figure 10 shows the attack success probability when a Bitcoin node reduces the table sizes four times and doubles the
+    number of outgoing connections. This clearly shows that the combined approach does make the EREBUS attack extremely difficult; e.g.,
+    only 5% success probability even after two months of attack execution.
+
+    [C3] Incorporating AS topology in the peer selection. Another highly promising countermeasure is to make the peer selection algorithm
+    aware of the AS-level topology so that the peering decision itself makes the EREBUS attack much harder. To be specific, we can use the
+    AS numbers to group IP addresses in the two tables instead of their prefix groups.
+
+    This way, the attack becomes harder or impossible for the adversaries with IPs distributed in a large number of prefix groups but hosted
+    in a few ASes only. For example, as a result of this defense, about 15% of Tier-1 ASes that do not have at least 100 shadow ASes would
+    not be able to launch the EREBUS attack; see Figure 3 for the distribution of available shadow ASes.
+
+    [C4] Eviction policy that protects peers providing fresher block data. A cross-layer defense approach is to improve the peer eviction
+    policy so that the Bitcoin node keeps the peers that have propagated more recent block data. As a result, censoring a specific block
+    or transaction from the victim’s view becomes less effective if there exists a legitimate incoming connection providing fresher blocks.
+    Status of our countermeasures. We disclosed our findings with the Bitcoin core security team in early June 2019.
+
+    As of July 1, 2019, the Bitcoin core developers are positively considering the deployment of countermeasure [C3] and [C4]. We will keep
+    updating the status of these and any new countermeasures on our public project webpage at https://erebus-attack.comp.nus.edu.sg/.
+
+
+
+
+
+
+
+    ----------------------------------
+    BGP Protection (Apostolaki Hijack)
+
+    By manipulating routing advertisements (BGP hijacks) or by naturally intercepting traffic, Autonomous Systems (ASes) can intercept
+    and manipulate a large fraction of Bitcoin traffic
+    Whitepaper Report: https://btc-hijack.ethz.ch/files/btc_hijack.pdf
+    Discovered by: Maria Apostolaki, Aviv Zohar, Laurent Vanbever (The Hebrew University, ETH Zürich)
+
+
+
+    A. The attacker intercepts outgoing traffic
+    
+    Once a node receives a notification that a new block is available via an INV message,
+    it issues a download request to its sender using a GETDATA message. As an illustration in Fig. 4a the victim requests
+    Block 42 from the first of its peers that advertised the block. Since the attacker intercepts the traffic from the
+    victim to this peer, she can modify this GETDATA message to request an older block, instead of the original one. In
+    Fig. 4a for example, the attacker replaces the hash corresponding to block 42 with that of block 30. The advantage of
+    doing so, over just dropping the packet, is that the length of the message is left unchanged. Notice that if the packet
+    was dropped the attacker would need to intercept both directions of the connection and update the TCP sequence numbers
+    of all following packets to ensure that the connection is not dropped. If the block is not delivered, the victim node
+    will disconnect after 20 minutes. To avoid a disconnection, the attacker can use another GETDATA, sent within the 20
+    minute window, to perform the reverse operation. Specifically, she modifies the hash back to the original one,
+    requested by the victim. Since the GETDATA message for blocks and transactions have the same structure, the attacker
+    is more likely to use the latter as these are much more common. In Fig. 4a for example, she changes the hash of the
+    transaction (Tx #123) to the hash of block 42. Since the block is delivered within the timeout neither of the nodes
+    disconnects or has any indication of the attack (e.g., an error in the log files).
+
+
+    B. The attacker intercepts incoming traffic
+
+    We now describe the mechanism an attacker would use if she intercepts traffic towards the victim, i.e. she can see
+    messages received by the victim, but not the messages that it sends. This attack is less effective compared to the
+    attack working in the opposite direction, as it will eventually result in the connection being dropped 20 minutes
+    after the first delayed block (similarly to [28]). In this case, the attack focuses on the BLOCK messages rather than
+    on the GETDATA. A naive attack would be for the attacker to simply drop any BLOCK message she sees. As Bitcoin relies
+    on TCP though, doing so would quickly kill the TCP connection. A better, yet still simple approach is for the attacker
+    to corrupt the contents of a BLOCK message while preserving the length of the packet (see Fig. 4b). This simple
+    operation causes the BLOCK to be discarded when it reaches the victim, because of a checksum mismatch. Surprisingly
+    though, we discovered (and verified) that the victim will not request the block again, be it from the same or any
+    other peer. After the 20 minute timeout elapses, the victim simply disconnects because its requested block did
+    not arrive on time. An alternative for the adversary is to replace the hash of the most recent Block with a hash of
+    an older one in all the INV messages the victim receives. This attack however would fail if the attacker intercepts
+    only a fraction of the connections, as the victim will be informed via other connections. As such, this practice is
+    only useful when the attacker hijacks and thus intercepts all the traffic directed to the victim.
+
+    A. Short-term measures (recommendations)
+
+    Increase the diversity of node connections The more connected an AS is, the harder it is to attack it. We therefore
+    encourage Bitcoin node owners to ensure they are multi-homed. Observe that even single-homed Bitcoin nodes could
+    benefit from extra connectivity by using one or more VPN services through encrypted tunnels so that Bitcoin traffic
+    to and from the node go through multiple and distinct ASes. Attackers that wish to deny connectivity through the
+    tunnel would need to either know both associated IP addresses or, alternatively, disrupt all encrypted traffic to
+    and from nodes making the attack highly noticeable.
+
+    Select Bitcoin peers while taking routing into account Bitcoin nodes randomly establish 8 outgoing connections.
+    While randomness is important to avoid biased decisions, Bitcoin nodes should establish a few extra connections taking
+    routing into consideration. For this, nodes could either issue a traceroute to each of their peers and analyze how
+    often the same AS appears in the path or, alternatively, tap into the BGP feed of their network and select their peers
+    based on the AS-PATH. In both cases, if the same AS appears in all paths, extra random connections should be
+    established.
+
+    Monitor round-trip time (RTT) The RTT towards hijacked destinations increases during the attack. By monitoring the
+    RTT towards its peers, a node could detect sudden changes and establish extra random connections as a protection
+    mechanism.
+
+    Monitor additional statistics Nodes should deploy anomaly detection mechanisms to recognize sudden changes in: the
+    distribution of connections, the time elapsed between a request and the corresponding answer, the simultaneous
+    disconnections of peers, and other lower-level connection anomalies. Again, anomalies should spur the establishment
+    of extra random connections.
+
+    Embrace churn Nodes should allow the natural churn of the network to refresh their connections. A node with disabled
+    incoming connections or even one that is behind a NAT or a firewall will never receive a random incoming connection
+    from the rest of the network. If the node is hijacked for a few minutes and isolated from a part of the network, it
+    will only reconnect to the other part upon reboot or when one of its outgoing connections fails.

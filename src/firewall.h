@@ -55,7 +55,8 @@ namespace FirewallData
             uint64_t SendBytes;                                             /* Peer SendBytes                       */
             uint64_t ReceiveBytes;                                          /* Peer ReceiveBytes                    */
             int AddrRecvCount;                                              /* Peer Addr Recv Count                 */
-
+            uint256 HashAskedFor;
+            uint256 HashReceived;
     };
 }
 

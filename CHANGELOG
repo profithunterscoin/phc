@@ -73,13 +73,16 @@ v1.0.0.7 (Pre-release - unfinished)
 * Installed ForceRandomSync of X amount of nodes
 * Sanitize command strings (Evil-Knievel) https://github.com/bitcoin/bitcoin/pull/5770/commits/28d4cff0ed2d4438da4bbf2d4ca0465715603af5
 * FIX: slow full-sync, bootstrapping issues
-* Optimized InternalMiner/Staking functions
 * Replaced BOOST_FOR with c++11 FOR()
 * Eclipse Attack mitigation (Firewall)
 * RPC fHelp output formatting bug in PHCD (rpcclient.cpp)
-
-TO FINISH:
+* Script fixes from https://github.com/bitcoin/bitcoin/commit/d1d7775587473410a107e7079616b9ecaae8dd06
 * FIX: InitialBlockDownload from Peercoin (modified) https://github.com/sigmike/peercoin/commit/ad71a3b1890208c9ef8ea005c76ee18fbf0b6065
+* Transaction View Masternode payments / staking / mining
+* Optimized InternalMiner/Staking functions
+
+
+TO FINISH (maybe):
 * Apostolaki Hijack (BGP) fix (Firewall)
 * Erebus Attack fix (Firewall)
 * EclipseAttack countermeasures https://github.com/bitcoin/bitcoin/pull/9037 & https://github.com/bitcoin/bitcoin/pull/8282 & https://github.com/bitcoin/bitcoin/pull/6355
@@ -87,14 +90,11 @@ TO FINISH:
 * https://github.com/dashpay/dash/pull/178/commits/864338a2b2405f3f598961fcc20c0881ae06391e
 * https://github.com/bitcoin/bitcoin/commit/f676c80f437e15ab0ee190e93baea733a88db0f2#commitcomment-8996114
 * Dynamic Coin Distribution (add different stake addresses required)
-
-
-v1.0.0.7 (To Finish before release)
---------
 * DDoS Shield & Firewall upgrades
 * Masternode reward decentralization (Hard-Fork 1)
 * New RPC: getasicchokerlog, blockshield, dynamiccheckpoint
-* Transaction View Masternode payments / staking / mining
+* Toggle staking off/on  GUI & RPC
+
 
 v1.0.0.6
 --------

@@ -32,6 +32,8 @@ bool fDebugConsoleOutputMining = false;
 bool fGenerating;
 int GenerateProcLimit;
 
+bool fStaking;
+
 std::string MinerLogCache;
 
 //////////////////////////////////////////////////////////////////////////////
@@ -179,7 +181,7 @@ CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
     CScript scriptPubKey = CScript() << ToByteVector(pubkey) << OP_CHECKSIG;
 
     // Create new block
-    unique_ptr<CBlock> pblock(new CBlock());
+    auto_ptr<CBlock> pblock(new CBlock());
 
     if (!pblock.get())
     {
@@ -514,7 +516,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
     }
 
     // Create new block
-    unique_ptr<CBlock> pblock(new CBlock());
+    auto_ptr<CBlock> pblock(new CBlock());
 
     if (!pblock.get())
     {
@@ -1028,9 +1030,15 @@ void ThreadStakeMiner(CWallet *pwallet)
 
     CReserveKey reservekey(pwallet);
 
+    unsigned int nExtraNonce = 0;
+
     bool fTryToSync = true;
 
-    while (true)
+    bool fStake = false;
+
+    int LastStakeEarned = 0;
+
+    while (fStake == true)
     {
         while (pwallet->IsLocked())
         {
@@ -1051,8 +1059,7 @@ void ThreadStakeMiner(CWallet *pwallet)
         if (fTryToSync)
         {
             fTryToSync = false;
-
-            if (vNodes.size() < 8 || pindexBest->GetBlockTime() < GetTime() - 10 * 60)
+            if (vNodes.size() < 8)
             {
                 MilliSleep(10000);
             
@@ -1060,16 +1067,63 @@ void ThreadStakeMiner(CWallet *pwallet)
             }
         }
 
+        // Don't even try unless fully synced
+        if (pindexBest->GetBlockTime() < GetTime() - 10 * 60)
+        {
+            MilliSleep(1000);
+
+            continue;
+        }
+
+        // Try to be on target (60 seconds per block)
+        if (GetTime() - pindexBest->GetBlockTime() < 58)
+        {
+            MilliSleep(1000);
+
+            continue;
+        }
+
+        if (mnodeman.size() < 20)
+        {
+            MilliSleep(1000);
+
+            continue;
+        }
+
+        /*
+        //Wait for PoW block
+        if (pindexBest->IsProofOfStake())
+        {
+            MilliSleep(1000);
+
+            continue;
+        }
+        */
+
+
+        if (GetTime() - LastStakeEarned < 2 * 60)
+        {
+            MilliSleep(1000);
+
+            continue;
+        }
+
+
         //
         // Create new block
         //
         int64_t nFees;
 
-        unique_ptr<CBlock> pblock(CreateNewBlock(reservekey, true, &nFees));
+        auto_ptr<CBlock> pblock(CreateNewBlock(reservekey, true, &nFees));
 
         if (!pblock.get())
         {
             return;
+        }
+
+        if (pindexBest->nHeight >= Params().GetHardFork_2())
+        {
+            IncrementExtraNonce(pblock.get(), pindexBest, nExtraNonce);
         }
 
         // Trying to sign a block
@@ -1079,12 +1133,20 @@ void ThreadStakeMiner(CWallet *pwallet)
 
             ProcessBlockStake(pblock.get(), *pwallet);
             
+            LastStakeEarned = GetTime();
+            
             Set_ThreadPriority(THREAD_PRIORITY_LOWEST);
+            
+            MilliSleep(500);
+        }
+        else
+        {
+            MilliSleep(nMinerSleep);
         }
 
-        MilliSleep(nMinerSleep);
     }
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1212,7 +1274,7 @@ void static InternalcoinMiner(CWallet *pwallet)
 
             CBlockIndex* pindexPrev = pindexBest;
            
-            unique_ptr<CBlock> pblocktemplate(CreateNewBlockWithKey(reservekey, pwallet));
+            auto_ptr<CBlock> pblocktemplate(CreateNewBlockWithKey(reservekey, pwallet));
 
             if (!pblocktemplate.get())
             {

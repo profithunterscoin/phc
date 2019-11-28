@@ -192,7 +192,7 @@ class CDB
             }
 
             // Clear and free memory
-            memset(datValue.get_data(), 0, datValue.get_size());
+            //memset(datValue.get_data(), 0, datValue.get_size());
             
             free(datValue.get_data());
 
@@ -352,8 +352,8 @@ class CDB
             ssValue.write((char*)datValue.get_data(), datValue.get_size());
 
             // Clear and free memory
-            memset(datKey.get_data(), 0, datKey.get_size());
-            memset(datValue.get_data(), 0, datValue.get_size());
+            //memset(datKey.get_data(), 0, datKey.get_size());
+            //memset(datValue.get_data(), 0, datValue.get_size());
 
             free(datKey.get_data());
             free(datValue.get_data());
