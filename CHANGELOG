@@ -93,6 +93,7 @@ TO FINISH (maybe):
 * DDoS Shield & Firewall upgrades
 * Masternode reward decentralization (Hard-Fork 1)
 * New RPC: getasicchokerlog, blockshield, dynamiccheckpoint
+* Toggle staking off/on  GUI & RPC
 
 
 v1.0.0.6

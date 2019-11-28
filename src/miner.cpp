@@ -1034,9 +1034,9 @@ void ThreadStakeMiner(CWallet *pwallet)
 
     bool fTryToSync = true;
 
-    bool fStake = true;
+    bool fStake = false;
 
-    //int LastStakeEarned = 0;
+    int LastStakeEarned = 0;
 
     while (fStake == true)
     {
@@ -1067,7 +1067,6 @@ void ThreadStakeMiner(CWallet *pwallet)
             }
         }
 
-        /*
         // Don't even try unless fully synced
         if (pindexBest->GetBlockTime() < GetTime() - 10 * 60)
         {
@@ -1075,7 +1074,6 @@ void ThreadStakeMiner(CWallet *pwallet)
 
             continue;
         }
-        */
 
         // Try to be on target (60 seconds per block)
         if (GetTime() - pindexBest->GetBlockTime() < 58)
@@ -1102,14 +1100,14 @@ void ThreadStakeMiner(CWallet *pwallet)
         }
         */
 
-        /*
-        if (GetTime() - LastStakeEarned < 10 * 60)
+
+        if (GetTime() - LastStakeEarned < 2 * 60)
         {
             MilliSleep(1000);
 
             continue;
         }
-        */
+
 
         //
         // Create new block
@@ -1123,7 +1121,10 @@ void ThreadStakeMiner(CWallet *pwallet)
             return;
         }
 
-        IncrementExtraNonce(pblock.get(), pindexBest, nExtraNonce);
+        if (pindexBest->nHeight >= Params().GetHardFork_2())
+        {
+            IncrementExtraNonce(pblock.get(), pindexBest, nExtraNonce);
+        }
 
         // Trying to sign a block
         if (pblock->SignBlock(*pwallet, nFees))
@@ -1132,7 +1133,7 @@ void ThreadStakeMiner(CWallet *pwallet)
 
             ProcessBlockStake(pblock.get(), *pwallet);
             
-            //LastStakeEarned = GetTime();
+            LastStakeEarned = GetTime();
             
             Set_ThreadPriority(THREAD_PRIORITY_LOWEST);
             
@@ -1145,6 +1146,7 @@ void ThreadStakeMiner(CWallet *pwallet)
 
     }
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////////
