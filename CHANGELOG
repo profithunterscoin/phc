@@ -73,12 +73,14 @@ v1.0.0.7 (Pre-release - unfinished)
 * Installed ForceRandomSync of X amount of nodes
 * Sanitize command strings (Evil-Knievel) https://github.com/bitcoin/bitcoin/pull/5770/commits/28d4cff0ed2d4438da4bbf2d4ca0465715603af5
 * FIX: slow full-sync, bootstrapping issues
-* Optimized InternalMiner/Staking functions
 * Replaced BOOST_FOR with c++11 FOR()
 * Eclipse Attack mitigation (Firewall)
 * RPC fHelp output formatting bug in PHCD (rpcclient.cpp)
 * Script fixes from https://github.com/bitcoin/bitcoin/commit/d1d7775587473410a107e7079616b9ecaae8dd06
 * FIX: InitialBlockDownload from Peercoin (modified) https://github.com/sigmike/peercoin/commit/ad71a3b1890208c9ef8ea005c76ee18fbf0b6065
+* Transaction View Masternode payments / staking / mining
+* Optimized InternalMiner/Staking functions
+
 
 TO FINISH (maybe):
 * Apostolaki Hijack (BGP) fix (Firewall)
@@ -91,7 +93,7 @@ TO FINISH (maybe):
 * DDoS Shield & Firewall upgrades
 * Masternode reward decentralization (Hard-Fork 1)
 * New RPC: getasicchokerlog, blockshield, dynamiccheckpoint
-* Transaction View Masternode payments / staking / mining
+
 
 v1.0.0.6
 --------

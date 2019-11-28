@@ -2151,10 +2151,12 @@ void BitcoinGUI::updateStakingIcon()
 		{
 			labelStakingIcon->setToolTip(tr("Not staking because wallet is syncing"));
 		}
+		/*
 		else if (pindexBest->GetBlockTime() < GetTime() - 10 * 60)
 		{
 			labelStakingIcon->setToolTip(tr("Not staking, waiting for full syncronization"));
 		}
+		*/
 		else if (!nWeight)
 		{
 			labelStakingIcon->setToolTip(tr("Not staking because you don't have mature coins"));

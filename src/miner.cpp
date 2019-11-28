@@ -32,6 +32,8 @@ bool fDebugConsoleOutputMining = false;
 bool fGenerating;
 int GenerateProcLimit;
 
+bool fStaking;
+
 std::string MinerLogCache;
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1028,47 +1030,87 @@ void ThreadStakeMiner(CWallet *pwallet)
 
     CReserveKey reservekey(pwallet);
 
-    int nLastTrySynced = 0;
+    unsigned int nExtraNonce = 0;
 
-    while (true)
-    {   
-        // Check for locked coins
-        if (pwallet->IsLocked())
+    bool fTryToSync = true;
+
+    bool fStake = true;
+
+    //int LastStakeEarned = 0;
+
+    while (fStake == true)
+    {
+        while (pwallet->IsLocked())
         {
             nLastCoinStakeSearchInterval = 0;
 
-            MilliSleep(2000);
-
-            break;
+            MilliSleep(1000);
         }
 
-        // Check for connected peers or InitialBlockDownload status
-        if (nLastTrySynced < GetTime() - 20 * 60) // Retry every 20 minutes
+        while (vNodes.empty() || IsInitialBlockDownload())
         {
-            nLastTrySynced = GetTime();
+            nLastCoinStakeSearchInterval = 0;
+            
+            fTryToSync = true;
+            
+            MilliSleep(1000);
+        }
 
-            if (vNodes.size() < 8
-                || IsInitialBlockDownload()
-                )
+        if (fTryToSync)
+        {
+            fTryToSync = false;
+            if (vNodes.size() < 8)
             {
-                nLastCoinStakeSearchInterval = 0;
-
-                MilliSleep(2000);
-
-                break;
+                MilliSleep(10000);
+            
+                continue;
             }
         }
 
-        // Blockchain not fully syncronized
+        /*
+        // Don't even try unless fully synced
         if (pindexBest->GetBlockTime() < GetTime() - 10 * 60)
         {
-            nLastCoinStakeSearchInterval = 0;
+            MilliSleep(1000);
 
-            MilliSleep(2000);
-
-            break;
+            continue;
         }
-        
+        */
+
+        // Try to be on target (60 seconds per block)
+        if (GetTime() - pindexBest->GetBlockTime() < 58)
+        {
+            MilliSleep(1000);
+
+            continue;
+        }
+
+        if (mnodeman.size() < 20)
+        {
+            MilliSleep(1000);
+
+            continue;
+        }
+
+        /*
+        //Wait for PoW block
+        if (pindexBest->IsProofOfStake())
+        {
+            MilliSleep(1000);
+
+            continue;
+        }
+        */
+
+        /*
+        if (GetTime() - LastStakeEarned < 10 * 60)
+        {
+            MilliSleep(1000);
+
+            continue;
+        }
+        */
+
         //
         // Create new block
         //
@@ -1081,6 +1123,8 @@ void ThreadStakeMiner(CWallet *pwallet)
             return;
         }
 
+        IncrementExtraNonce(pblock.get(), pindexBest, nExtraNonce);
+
         // Trying to sign a block
         if (pblock->SignBlock(*pwallet, nFees))
         {
@@ -1088,12 +1132,17 @@ void ThreadStakeMiner(CWallet *pwallet)
 
             ProcessBlockStake(pblock.get(), *pwallet);
             
+            //LastStakeEarned = GetTime();
+            
             Set_ThreadPriority(THREAD_PRIORITY_LOWEST);
-
-            MilliSleep(1000);
+            
+            MilliSleep(500);
+        }
+        else
+        {
+            MilliSleep(nMinerSleep);
         }
 
-        MilliSleep(nMinerSleep);
     }
 }
 

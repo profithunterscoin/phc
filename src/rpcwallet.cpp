@@ -1868,7 +1868,7 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
                 
                 MaybePushAddress(entry, r.destination);
                 
-                if (wtx.IsCoinBase() || wtx.IsCoinStake())
+                if (wtx.IsCoinBase())
                 {
                     if (wtx.GetDepthInMainChain() < 1)
                     {
@@ -1883,24 +1883,30 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
                         entry.push_back(Pair("category",        "generate"));
                     }
                 }
+                else if (wtx.IsCoinStake() && nFee != 0)
+                {
+                    entry.push_back(Pair("category",            "staked"));
+                    entry.push_back(Pair("amount",              ValueFromAmount(-nFee)));
+                    entry.push_back(Pair("stake",               ValueFromAmount(r.amount)));
+                }
+                else if (wtx.IsCoinStake() && nFee == 0)
+                {
+                    entry.push_back(Pair("category",            "reward"));
+                    entry.push_back(Pair("amount",              ValueFromAmount(r.amount)));
+                    entry.push_back(Pair("fee",                 nFee));
+                }
                 else
                 {
                     entry.push_back(Pair("category",            "receive"));
+                    entry.push_back(Pair("amount",              ValueFromAmount(r.amount)));
+                    entry.push_back(Pair("fee",                 nFee));
                 }
                 
-                if (!wtx.IsCoinStake())
-                {
-                    entry.push_back(Pair("amount", ValueFromAmount(r.amount)));
-                }
-                else
-                {
-                    entry.push_back(Pair("amount",              ValueFromAmount(-nFee)));
-                    stop = true; // only one coinstake output
-                }
+                entry.push_back(Pair("vout",                    r.vout));
                 
                 if (fLong)
                 {
-                    WalletTxToJSON(wtx, entry);
+                    WalletTxToJSON(wtx,                         entry);
                 }
                 
                 ret.push_back(entry);

@@ -306,10 +306,12 @@ Value getstakinginfo(const Array& params, bool fHelp)
 		{
 			stake_error = "Not staking because wallet is syncing";
 		}
+        /*
         else if (pindexBest->GetBlockTime() < GetTime() - 10 * 60)
 		{
 			stake_error = "Not staking, Not staking, waiting for full syncronization";
 		}
+        */
         else if (!nWeight)
 		{
 			stake_error = "Not staking because you don't have mature coins";

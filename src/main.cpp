@@ -2196,7 +2196,7 @@ bool IsInitialBlockDownload()
         nLastUpdate = GetTime();
     }
 
-    return (GetTime() - nLastUpdate < 15 && pindexBest->GetBlockTime() < GetTime() - 60 * 60);
+    return (GetTime() - nLastUpdate < 15 && pindexBest->GetBlockTime() < GetTime() - 5 * 60);
 }
 
 
@@ -4305,8 +4305,11 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
         return error("%s : CheckBlock FAILED\n", __FUNCTION__);
     }
 
-    // Peercoin: verify hash target and signature of coinstake tx
-    // PHC: modified to avoid getting stuck on a fork or invalid stake block during InitialBlockDownload
+    /*
+    Peercoin: verify hash target and signature of coinstake tx
+    PHC: modified to avoid getting stuck on a fork or invalid stake block during InitialBlockDownload
+    */
+
     int nHeight = pindexBest->nHeight+1;
 
     if (pblock->IsProofOfStake())

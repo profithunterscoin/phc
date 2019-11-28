@@ -1776,18 +1776,21 @@ namespace Firewall
             /** -------------------------- **/
             // Low Bandwidth Mode
             // Override default Attack settings
+            // Protocol: lower than mimimum protocol (// 30 Seconds)
             if (GetBoolArg("-lowbandwidth", false) == true)
             {
                 if (Attack_BandwidthAbuse == "2-HighBW-HighHeight"
                     || Attack_BandwidthAbuse == "4-HighBW-LowHeight"
                     || (int)TimeConnected > BandwidthAbuse::MinCheck
-                    (&& pindexBest->nHeight - pnode->nStartingHeight > 1000)
                     )
                 {
-                    Attack_Ban = true;
-                    Attack_BanTime = BandwidthAbuse::BanTime;
-                    Attack_BanReason = BanReasonBandwidthAbuse;
-                    Attack_Detected = true;
+                    if (pindexBest->nHeight - pnode->nStartingHeight > 1000)
+                    {
+                        Attack_Ban = true;
+                        Attack_BanTime = BandwidthAbuse::BanTime;
+                        Attack_BanReason = BanReasonBandwidthAbuse;
+                        Attack_Detected = true;
+                    }
                 }             
             }
 

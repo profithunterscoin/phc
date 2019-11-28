@@ -89,6 +89,8 @@ class TransactionRecord
         {
             Other,
             Generated,
+            Staked,
+            Reward,
             SendToAddress,
             SendToOther,
             RecvWithAddress,
