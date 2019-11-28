@@ -511,6 +511,62 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 							"	alternate-background-color: rgb(0, 0, 0);"
 							"}"
 
+							"QDialog#OptionsDialog"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: rgb(0, 0, 0);"
+							"	alternate-background-color: rgb(0, 0, 0);"
+							"}"
+
+							"QTabWidget"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: rgb(0, 0, 0);"
+							"	alternate-background-color: rgb(0, 0, 0);"
+							"}"
+
+							"QWidget#tabMain"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: rgb(0, 0, 0);"
+							"	alternate-background-color: rgb(0, 0, 0);"
+							"}"
+
+							"QWidget#tabNetwork"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: rgb(0, 0, 0);"
+							"	alternate-background-color: rgb(0, 0, 0);"
+							"}"
+
+							"QWidget#tabWindow"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: rgb(0, 0, 0);"
+							"	alternate-background-color: rgb(0, 0, 0);"
+							"}"
+
+							"QWidget#tabDisplay"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: rgb(0, 0, 0);"
+							"	alternate-background-color: rgb(0, 0, 0);"
+							"}"
+
+							"QWidget#tabSignMessage"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: rgb(0, 0, 0);"
+							"	alternate-background-color: rgb(0, 0, 0);"
+							"}"
+
+							"QWidget#tabVerifyMessage"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: rgb(0, 0, 0);"
+							"	alternate-background-color: rgb(0, 0, 0);"
+							"}"
+
 						);
 
 
@@ -2079,25 +2135,43 @@ void BitcoinGUI::updateStakingIcon()
 	{
 		labelStakingIcon->setPixmap(QIcon(fUseBlackTheme ? ":/icons/black/staking_off" : ":/icons/staking_off").pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
 		
-		if (pwalletMain && pwalletMain->IsLocked())
+		if (pwalletMain && pwalletMain->IsLocked() == true)
 		{
 			labelStakingIcon->setToolTip(tr("Not staking because wallet is locked"));
 		}
-		else if (vNodes.empty())
+        else if (vNodes.empty() == true)
 		{
 			labelStakingIcon->setToolTip(tr("Not staking because wallet is offline"));
 		}
-		else if (IsInitialBlockDownload())
+		else if (vNodes.size() < 8)
+		{
+			labelStakingIcon->setToolTip(tr("Not staking because you need minimum 8 peers"));
+		}
+		else if (IsInitialBlockDownload() == true)
 		{
 			labelStakingIcon->setToolTip(tr("Not staking because wallet is syncing"));
 		}
+		/*
+		else if (pindexBest->GetBlockTime() < GetTime() - 10 * 60)
+		{
+			labelStakingIcon->setToolTip(tr("Not staking, waiting for full syncronization"));
+		}
+		*/
 		else if (!nWeight)
 		{
 			labelStakingIcon->setToolTip(tr("Not staking because you don't have mature coins"));
 		}
+        else if (nLastCoinStakeSearchInterval == 0 && GetBoolArg("-staking", true) == true)
+		{
+			labelStakingIcon->setToolTip(tr("Not staking, CoinStakeSearchInterval = 0, Staking = enabled."));
+		}
+        else if (GetBoolArg("-staking", true) == true)
+		{
+			labelStakingIcon->setToolTip(tr("Not staking, unknown error."));
+		}
 		else
 		{
-			labelStakingIcon->setToolTip(tr("Not staking"));
+			labelStakingIcon->setToolTip(tr("Staking disabled."));
 		}
 	}
 }

@@ -480,6 +480,18 @@ QString TransactionTableModel::formatTxType(const TransactionRecord *wtx) const
             return tr("Mined");
         }
         break;
+
+        case TransactionRecord::Staked:
+        {
+            return tr("Staked");
+        }
+        break;
+
+        case TransactionRecord::Reward:
+        {
+            return tr("Reward");
+        }
+        break;
         
         case TransactionRecord::DarksendDenominate:
         {
@@ -532,6 +544,18 @@ QVariant TransactionTableModel::txAddressDecoration(const TransactionRecord *wtx
             return QIcon(fUseBlackTheme ? ":/icons/black/tx_mined" : ":/icons/tx_mined");
         }
         break;
+
+        case TransactionRecord::Staked:
+        {
+            return QIcon(fUseBlackTheme ? ":/icons/black/tx_staked" : ":/icons/tx_staked");
+        }
+        break;
+
+        case TransactionRecord::Reward:
+        {
+            return QIcon(fUseBlackTheme ? ":/icons/black/tx_reward" : ":/icons/tx_reward");
+        }
+        break;
         
         case TransactionRecord::RecvWithDarksend: case TransactionRecord::RecvWithAddress: case TransactionRecord::RecvFromOther:
         {
@@ -576,7 +600,7 @@ QString TransactionTableModel::formatTxToAddress(const TransactionRecord *wtx, b
         break;
 
         case TransactionRecord::RecvWithAddress: case TransactionRecord::RecvWithDarksend: case TransactionRecord::SendToAddress:
-        case TransactionRecord::Generated: case TransactionRecord::Darksent:
+        case TransactionRecord::Generated: case TransactionRecord::Staked: case TransactionRecord::Reward: case TransactionRecord::Darksent:
         {
             return lookupAddress(wtx->address, tooltip) + watchAddress;
         }
@@ -605,7 +629,8 @@ QVariant TransactionTableModel::addressColor(const TransactionRecord *wtx) const
     // Show addresses without label in a less visible color
     switch(wtx->type)
     {
-        case TransactionRecord::RecvWithAddress: case TransactionRecord::SendToAddress: case TransactionRecord::Generated:
+        case TransactionRecord::RecvWithAddress: case TransactionRecord::SendToAddress:
+        case TransactionRecord::Generated: case TransactionRecord::Staked: case TransactionRecord::Reward:
         {
             QString label = walletModel->getAddressTableModel()->labelForAddress(QString::fromStdString(wtx->address));
             
@@ -904,7 +929,11 @@ QVariant TransactionTableModel::data(const QModelIndex &index, int role) const
                 return COLOR_NEGATIVE;
             }
 
-            if(index.column() == Amount && rec->type != TransactionRecord::Generated && (rec->credit+rec->debit) > 0)
+            if(index.column() == Amount
+                && rec->type != TransactionRecord::Generated
+                && rec->type != TransactionRecord::Staked
+                && rec->type != TransactionRecord::Reward
+                && (rec->credit+rec->debit) > 0)
             {
                 return fUseBlackTheme ? QColor(0, 255, 0) : QColor(0, 128, 0);
             }

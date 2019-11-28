@@ -92,6 +92,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
                     // Generated (proof-of-work)
                     sub.type = TransactionRecord::Generated;
                 }
+
                 if (wtx.IsCoinStake())
                 {
                     // Generated (proof-of-stake)
@@ -117,7 +118,15 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
 
                     }
 
-                    sub.type = TransactionRecord::Generated;
+                    if (nDebit == 0)
+                    {
+                        sub.type = TransactionRecord::Reward;
+                    }
+                    else
+                    {
+                        sub.type = TransactionRecord::Staked;
+                    }
+
                     sub.credit = nNet > 0 ? nNet : nValueOut - nDebit;
                     
                     hashPrev = hash;
@@ -359,6 +368,62 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx)
     else if(type == TransactionRecord::Generated)
     {
         // For generated transactions, determine maturity
+
+        if (wtx.GetBlocksToMaturity() > 0)
+        {
+            status.status = TransactionStatus::Immature;
+
+            if (wtx.IsInMainChain())
+            {
+                status.matures_in = wtx.GetBlocksToMaturity();
+
+                // Check if the block was requested by anyone
+                if (GetAdjustedTime() - wtx.nTimeReceived > 2 * 60 && wtx.GetRequestCount() == 0)
+                {
+                    status.status = TransactionStatus::MaturesWarning;
+                }
+            }
+            else
+            {
+                status.status = TransactionStatus::NotAccepted;
+            }
+        }
+        else
+        {
+            status.status = TransactionStatus::Confirmed;
+        }
+    }
+    else if(type == TransactionRecord::Staked)
+    {
+        // For staked transactions, determine maturity
+
+        if (wtx.GetBlocksToMaturity() > 0)
+        {
+            status.status = TransactionStatus::Immature;
+
+            if (wtx.IsInMainChain())
+            {
+                status.matures_in = wtx.GetBlocksToMaturity();
+
+                // Check if the block was requested by anyone
+                if (GetAdjustedTime() - wtx.nTimeReceived > 2 * 60 && wtx.GetRequestCount() == 0)
+                {
+                    status.status = TransactionStatus::MaturesWarning;
+                }
+            }
+            else
+            {
+                status.status = TransactionStatus::NotAccepted;
+            }
+        }
+        else
+        {
+            status.status = TransactionStatus::Confirmed;
+        }
+    }
+    else if(type == TransactionRecord::Reward)
+    {
+        // For MN reward transactions, determine maturity
 
         if (wtx.GetBlocksToMaturity() > 0)
         {

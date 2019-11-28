@@ -2512,26 +2512,27 @@ bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant *grantOu
         return false;
     }
 
+    // Detect if Firewall has found an attack node (true)
     if (Firewall::Monitoring::Init(pnode, "OpenNetConnection") == false)
     {
-        if (grantOutbound)
-        {
-            grantOutbound->MoveTo(pnode->grantOutbound);
-        }
-
-        pnode->fNetworkNode = true;
-
-        if (fOneShot)
-        {
-            pnode->fOneShot = true;
-        }
-
-        return true;
-    }
-    else
-    {
+        // Abort
         return false;
     }
+
+    if (grantOutbound)
+    {
+        grantOutbound->MoveTo(pnode->grantOutbound);
+    }
+
+    pnode->fNetworkNode = true;
+
+    if (fOneShot)
+    {
+        pnode->fOneShot = true;
+    }
+
+    // Connection Accepted/Open
+    return true;
 }
 
 

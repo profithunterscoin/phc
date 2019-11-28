@@ -139,6 +139,8 @@ vector<string> DebugCategories;
 // Init OpenSSL library multithreading support
 static CCriticalSection** ppmutexOpenSSL;
 
+static boost::mutex* mutexDebugLog = NULL;
+
 
 void copyfile( std::string srce_file, std::string dest_file )
 {
@@ -198,6 +200,8 @@ class CInit
             }
 
             OPENSSL_free(ppmutexOpenSSL);
+
+            delete mutexDebugLog;
         }
 }
 instance_of_cinit;
@@ -322,7 +326,6 @@ static boost::once_flag debugPrintInitFlag = BOOST_ONCE_INIT;
 // We use boost::call_once() to make sure these are initialized in
 // in a thread-safe manner the first time it is called:
 static FILE* fileout = NULL;
-static boost::mutex* mutexDebugLog = NULL;
 
 
 static void DebugPrintInit()

@@ -62,7 +62,7 @@ CTxMemPool mempool;
 
 map<uint256, CBlockIndex*> mapBlockIndex;
 set<pair<COutPoint, unsigned int> > setStakeSeen;
-map<uint256, uint256> mapProofOfStake;
+map<uint256, int> mapProofOfStake;
 
 CBigNum bnProofOfStakeLimit(~uint256(0) >> 20);
 
@@ -2196,7 +2196,7 @@ bool IsInitialBlockDownload()
         nLastUpdate = GetTime();
     }
 
-    return (GetTime() - nLastUpdate < 15 && pindexBest->GetBlockTime() < GetTime() - 8 * 60 * 60);
+    return (GetTime() - nLastUpdate < 15 && pindexBest->GetBlockTime() < GetTime() - 5 * 60);
 }
 
 
@@ -4041,11 +4041,6 @@ bool CBlock::AcceptBlock()
     int nHeight = pindexPrev->nHeight+1;
     uint256 hashProof;
 
-    if (IsProofOfStake() && nHeight < Params().POSStartBlock())
-    {
-        return DoS(100, error("%s : reject proof-of-stake at height <= %d", __FUNCTION__, nHeight));
-    }
-
     if (IsProofOfWork() && nHeight > Params().LastPOWBlock())
     {
         return DoS(100, error("%s : reject proof-of-work at height %d", __FUNCTION__, nHeight));
@@ -4057,6 +4052,11 @@ bool CBlock::AcceptBlock()
         {
             hashProof = GetPoWHash();
         }
+    }
+
+    if (IsProofOfStake() && nHeight < Params().POSStartBlock())
+    {
+        return DoS(100, error("%s : reject proof-of-stake at height <= %d", __FUNCTION__, nHeight));
     }
 
     // BlockShield
@@ -4104,6 +4104,17 @@ bool CBlock::AcceptBlock()
         return DoS(100, error("%s : rejected by hardened checkpoint lock-in at %d", __FUNCTION__, nHeight));
     }
 
+    // Verify hash target and signature of coinstake tx
+    if (IsProofOfStake())
+    {
+        uint256 targetProofOfStake;
+
+        if (!CheckProofOfStake(pindexPrev, vtx[1], nBits, hashProof, targetProofOfStake))
+        {
+            return error("%s : check proof-of-stake failed for block %s", __FUNCTION__, hash.ToString());
+        }
+    }
+
     // Check that the block satisfies synchronized checkpoint
     if (!Checkpoints::CheckSync(nHeight))
     {
@@ -4112,6 +4123,7 @@ bool CBlock::AcceptBlock()
 
     // Enforce rule that the coinbase starts with serialized block height
     CScript expect = CScript() << nHeight;
+
     if (vtx[0].vin[0].scriptSig.size() < expect.size() || !std::equal(expect.begin(), expect.end(), vtx[0].vin[0].scriptSig.begin()))
     {
         return DoS(100, error("%s : block height mismatch in coinbase", __FUNCTION__));
@@ -4293,37 +4305,37 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
         return error("%s : CheckBlock FAILED\n", __FUNCTION__);
     }
 
-    /* TO-DO: FIX
-    // peercoin: verify hash target and signature of coinstake tx
-    // PHC: modified to avoid getting stuck on a fork or invalid stake block (Prev not found)
-    if (pblock->IsProofOfStake())
-    {
-        uint256 proofHash = 0, hashTarget = 0;
-
-        if (!CheckProofOfStake(pindexBest, pblock->vtx[1], pblock->nBits, proofHash, hashTarget))
-        {
-            LogPrint("core", "%s : WARNING: check proof-of-stake failed for block %s\n", __FUNCTION__, hash.ToString().c_str());
-
-            // peershares: ask for missing blocks
-            // Modified by Profit Hunters Coin
-            if (pfrom)
-            {
-                pfrom->PushGetBlocks(pindexBest, hash);
-            }
-
-            // do not error here as we expect this during initial block download
-            //return true;
-        }
-
-        if (!mapProofOfStake.count(hash))
-        {
-            // add to mapProofOfStake
-            mapProofOfStake.insert(make_pair(hash, pblock->hashPrevBlock));
-        }
-    }
+    /*
+    Peercoin: verify hash target and signature of coinstake tx
+    PHC: modified to avoid getting stuck on a fork or invalid stake block during InitialBlockDownload
     */
 
-    /* TO-DO: FIX
+    int nHeight = pindexBest->nHeight+1;
+
+    if (pblock->IsProofOfStake())
+    {
+        uint256 targetProofOfStake;
+
+        if (!CheckProofOfStake(pindexBest, pblock->vtx[1], pblock->nBits, hash, targetProofOfStake))
+        {
+            LogPrint("core", "%s : WARNING: check proof-of-stake failed for block %s @ height: %d\n", __FUNCTION__, hash.ToString().c_str(), nHeight);
+
+            // peershares: ask peer for missing blocks
+            // Modified by Profit Hunters Coin
+            // Only ask for that failed PoS block & parents 1 times maximum (from any peer)
+            if (mapProofOfStake.count(hash) < 1)
+            {
+                if (pfrom)
+                {
+                    pfrom->PushGetBlocks(pindexBest, hash);
+                }
+
+                // add to mapProofOfStake
+                mapProofOfStake.insert(make_pair(hash, nHeight));
+            }
+        }
+    }
+
     if (pblock->hashPrevBlock != hashBestChain)
     {
         // Extra checks to prevent "fill up memory by spamming with bogus blocks"
@@ -4346,7 +4358,6 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             return error("%s : block with timestamp before last checkpoint\n", __FUNCTION__);
         }
     }
-    */
 
     // Block signature can be malleated in such a way that it increases block size up to maximum allowed by protocol
     // For now we just strip garbage from newly received blocks
@@ -4473,8 +4484,9 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 
                 CBlock block;
 
-                block.ReadFromDisk(pindexBest->pprev);
                 pindexBest->pprev->pprev->pnext = NULL;
+
+                block.ReadFromDisk(pindexBest->pprev);
                 block.DisconnectBlock(txdbAddr, pindexBest->pprev);
                 block.SetBestChain(txdbAddr, pindexBest->pprev);
 
@@ -4495,7 +4507,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                     fForceSyncAfterOrphan = fForceSyncAfterOrphan + 1;
                 }
             }
-            else
+            else if (GetBoolArg("-randomsync", true) == true)
             {
                 // Force Random Sync with 3 connected nodes, filter nodes with orphan hash checkpoint
                 CChain::ForceRandomSync(pfrom, hash, 3);
@@ -5022,11 +5034,14 @@ bool LoadExternalBlockFile(FILE* fileIn)
 
                 unsigned int nSize;
                 blkdat >> nSize;
+
                 if (nSize > 0 && nSize <= MAX_BLOCK_SIZE)
                 {
                     CBlock block;
                     blkdat >> block;
+
                     LOCK(cs_main);
+
                     if (ProcessBlock(NULL,&block))
                     {
                         nLoaded++;
@@ -5889,9 +5904,9 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             LogPrint("net", "%s : received getdata for: %s\n", __FUNCTION__, vInv[0].ToString());
         }
 
-        // BGP Hijack Protection
+        // Firewall
         // Keep track of received hash from node
-        pfrom->hashReceived = vInv[0].hash;
+        //pfrom->hashReceived = vInv[0].hash;
 
         pfrom->vRecvGetData.insert(pfrom->vRecvGetData.end(), vInv.begin(), vInv.end());
 
@@ -5973,6 +5988,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         }
 
         CBlockIndex* pindex = NULL;
+
         if (locator.IsNull())
         {
             // If locator is null, return the hashStop block
@@ -6218,9 +6234,9 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
         pfrom->AddInventoryKnown(inv);
 
-        // BGP Attack Protection
+        // Firewall
         // Keep track of hash asked for from node
-        pfrom->hashReceived = inv.hash;
+        //pfrom->hashReceived = inv.hash;
 
         LOCK(cs_main);
 
@@ -6929,11 +6945,12 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
                 if (pto->setInventoryKnown.insert(inv).second)
                 {
                     vInv.push_back(inv);
+
                     if ((signed)vInv.size() >= (signed)GetMaxAddrBandwidth(pto->nTurboSync))
                     {
                         pto->PushMessage("inv", vInv);
 
-                        // BGP Attack Protection
+                        // Firewall
                         // Keep track of hash asked for from node
                         pto->hashAskedFor = inv.hash;
 

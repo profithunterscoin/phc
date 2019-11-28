@@ -24,7 +24,6 @@
 #include "init.h"
 #include "firewall.h"
 
-#include <boost/foreach.hpp>
 #include "json/json_spirit_value.h"
 
 
@@ -78,7 +77,7 @@ Value firewall(const Array& params, bool fHelp)
             strSubCommand != "cleardenied" &&
             strSubCommand != "clearbanned" &&
             strSubCommand != "getpeeraverageheight" &&
-            strSubCommand != "debug" &&
+            strSubCommand != "debug:enabled" &&
             strSubCommand != "debug:exam" &&
             strSubCommand != "debug:bans" &&
             strSubCommand != "debug:denied" &&
@@ -184,6 +183,7 @@ Value firewall(const Array& params, bool fHelp)
                 "2. \"argument 1\"        (string, optional) Argument parameter for the sub-command\n"
                 "3. \"argument 2\"        (string, optional) Argument parameter for the sub-command\n"
                 "\nAvailable commands/arguments:\n"
+                "1.  getpeeraverageheight                   - Returns average blockheight among connected nodes.\n"
                 "1.  getstatus                              - Get the status of Firewall.\n"
                 "1.  setstatus                              - Set the status of Firewall.\n"
                 "2.             true                        - Enables the firewall.\n"
@@ -195,8 +195,7 @@ Value firewall(const Array& params, bool fHelp)
                 "1.  clearbanned                            - Auto-clear denied list upon Firewall execution.\n"
                 "2.             true                        - Enables auto-clear denied list.\n"
                 "2,             false                       - Disables auto-clear denied list.\n"
-                "1.  getpeeraverageheight                   - Returns average blockheight among connected nodes.\n"
-                "1.  debug                                  - Set the status of live-debugging.\n"
+                "1.  debug:enabled                          - Set the status of live-debugging.\n"
                 "2.             true                        - Enables live-debugging.\n"
                 "2,             false                       - Disables live-debugging.\n"
                 "1.  debug:exam                             - Set the status of live-debugging for Examination.\n"
@@ -402,6 +401,22 @@ Value firewall(const Array& params, bool fHelp)
                 );
     }
 
+
+    /* ------------------------------------- */
+    if (strSubCommand == "getpeeraverageheight")
+    {
+        if (fHelp)
+        {
+            throw runtime_error("getpeeraverageheight\n"
+                                "Returns average blockheight among connected nodes.");
+        }
+
+        result.push_back(Pair("peeraverageheight",                  Firewall::Stats::AverageHeight));
+
+        return result;
+    }
+    /* ------------------------------------- */
+
     /* ------------------------------------- */
     if (strSubCommand == "getstatus")
     {
@@ -540,26 +555,11 @@ Value firewall(const Array& params, bool fHelp)
     /* ------------------------------------- */
 
     /* ------------------------------------- */
-    if (strSubCommand == "getpeeraverageheight")
-    {
-        if (fHelp)
-        {
-            throw runtime_error("getpeeraverageheight\n"
-                                "Returns average blockheight among connected nodes.");
-        }
-
-        result.push_back(Pair("peeraverageheight",                  Firewall::Stats::AverageHeight));
-
-        return result;
-    }
-    /* ------------------------------------- */
-
-    /* ------------------------------------- */
-    if (strSubCommand == "debug")
+    if (strSubCommand == "debug:enabled")
     {
 	    if (fHelp || params.size() < 2)
         {
-            throw runtime_error("firewall debug \"true|false\"\n"
+            throw runtime_error("firewall debug:enabled \"true|false\"\n"
                                 "\nFirewall Live Debug Output\n"
                                 "\nArguments:\n"
                                 "Status: \"true|false\" (bool, required)\n"
