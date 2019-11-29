@@ -145,6 +145,8 @@ class BitcoinGUI : public QMainWindow
         QAction *openDebugFileAction;
         QAction *setgenerateTRUEAction;
         QAction *setgenerateFALSEAction;
+        QAction *setstakingTRUEAction;
+        QAction *setstakingFALSEAction;
         QAction *masternodeManagerAction;
         QAction *messageAction;
         QAction *blockAction;

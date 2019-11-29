@@ -23,6 +23,8 @@
 extern bool fGenerating;
 extern int GenerateProcLimit;
 
+extern bool fStaking;
+
 /* Generate a new block, without valid proof-of-work */
 CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake=false, int64_t* pFees = 0);
 

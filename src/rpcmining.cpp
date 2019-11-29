@@ -199,6 +199,37 @@ Value setgenerate(const Array& params, bool fHelp)
 }
 
 
+Value setstaking(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() < 1 || params.size() > 3)
+    {
+        throw runtime_error(
+            "setstaking <generate>\n"
+            "<true|false> is true or false to turn staking on or off.\n"
+            );
+
+    }
+    
+    if (params.size() > 0)
+    {
+        if (params[0].get_str() == "true")
+        {
+            fStaking = true;
+        }
+        else
+        {
+            fStaking = false;
+        }
+    }
+
+    Object obj;
+
+    obj.push_back(Pair("enabled",                                   fStaking));
+
+    return obj;
+}
+
+
 Value gethashespersec(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
@@ -316,11 +347,11 @@ Value getstakinginfo(const Array& params, bool fHelp)
 		{
 			stake_error = "Not staking because you don't have mature coins";
 		}
-        else if (GetBoolArg("-staking", true) == true && nLastCoinStakeSearchInterval == 0)
+        else if (fStaking == true && nLastCoinStakeSearchInterval == 0)
 		{
 			stake_error = "Not staking, CoinStakeSearchInterval = 0, Staking = enabled.";
 		}
-        else if (GetBoolArg("-staking", true) == true)
+        else if (fStaking == true)
 		{
 			stake_error = "Not staking, unknown error.";
 		}
@@ -331,7 +362,7 @@ Value getstakinginfo(const Array& params, bool fHelp)
     }		
 
     obj.push_back(Pair("protocol_testnet",                          TestNet()));
-    obj.push_back(Pair("enabled",                                   GetBoolArg("-staking", true)));
+    obj.push_back(Pair("enabled",                                   fStaking));
     obj.push_back(Pair("staking",                                   staking));
     obj.push_back(Pair("stakeweight",                               (uint64_t)nWeight));
     obj.push_back(Pair("stakethreshold",                            GetStakeCombineThreshold() / COIN));
