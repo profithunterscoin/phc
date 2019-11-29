@@ -770,8 +770,11 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 	connect(openConfigFileAction, SIGNAL(triggered()), rpcConsole, SLOT(on_openPHCConfigfileButton_clicked()));
 	connect(openMasternodeConfigFileAction, SIGNAL(triggered()), rpcConsole, SLOT(on_openMNConfigfileButton_clicked()));
 	connect(openDebugFileAction, SIGNAL(triggered()), rpcConsole, SLOT(on_openDebugLogfileButton_clicked()));
+	
 	connect(setgenerateTRUEAction, SIGNAL(triggered()), rpcConsole, SLOT(setgenerateTRUE()));
 	connect(setgenerateFALSEAction, SIGNAL(triggered()), rpcConsole, SLOT(setgenerateFALSE()));
+	connect(setstakingTRUEAction, SIGNAL(triggered()), rpcConsole, SLOT(setstakingTRUE()));
+	connect(setstakingFALSEAction, SIGNAL(triggered()), rpcConsole, SLOT(setstakingFALSE()));
 
 	// clicking on automatic backups shows details
 	connect(showBackupsAction, SIGNAL(triggered()), rpcConsole, SLOT(showBackups()));
@@ -979,6 +982,12 @@ void BitcoinGUI::createActions()
 	setgenerateFALSEAction = new QAction(QIcon(":/icons/quit"), tr("&Stop"), this);
 	setgenerateFALSEAction->setToolTip(tr("Stop Internal CPU Miner"));
 
+	setstakingTRUEAction = new QAction(QIcon(":/icons/tx_staked"), tr("&Start"), this);
+	setstakingTRUEAction->setToolTip(tr("Start Staking Thread"));
+
+	setstakingFALSEAction = new QAction(QIcon(":/icons/quit"), tr("&Stop"), this);
+	setstakingFALSEAction->setToolTip(tr("Stop Staking Thread"));
+
 	connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
 	connect(aboutAction, SIGNAL(triggered()), this, SLOT(aboutClicked()));
 	connect(aboutQtAction, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
@@ -1059,6 +1068,10 @@ void BitcoinGUI::createMenuBar()
 	tools->addAction(openConfigFileAction);
 	tools->addAction(openMasternodeConfigFileAction);
 	tools->addAction(openDebugFileAction);
+
+	QMenu *staking = appMenuBar->addMenu(tr("&Staking"));
+	staking->addAction(setstakingTRUEAction);
+	staking->addAction(setstakingFALSEAction);
 
 	QMenu *mining = appMenuBar->addMenu(tr("&Mining"));
 	mining->addAction(setgenerateTRUEAction);

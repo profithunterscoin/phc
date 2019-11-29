@@ -24,6 +24,7 @@
 #include "chainparams.h"
 #include "util.h"
 #include "init.h"
+#include "miner.h"
 
 #include "rpcserver.h"
 #include "rpcclient.h"
@@ -830,6 +831,20 @@ void RPCConsole::setgenerateFALSE()
     GeneratePoWcoins(false, pwalletMain, false);
 
 	QMessageBox::warning(this, tr("Internal PoW Miner"), tr("Stopped!"));
+}
+
+void RPCConsole::setstakingTRUE()
+{
+    fStaking = true;
+	
+    QMessageBox::warning(this, tr("Staking threads started"), tr("Started!"));
+}
+
+void RPCConsole::setstakingFALSE()
+{
+    fStaking = false;
+
+	QMessageBox::warning(this, tr("Staking threads stopped"), tr("Stopped!"));
 }
 
 void RPCConsole::on_sldGraphRange_valueChanged(int value)

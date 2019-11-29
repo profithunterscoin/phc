@@ -376,6 +376,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getdifficulty",                                  &getdifficulty,                                 true,      false,     false },
     { "getgenerate",                                    &getgenerate,                                   true,      false,     false },
     { "setgenerate",                                    &setgenerate,                                   true,      false,     true  },
+    { "setstaking",                                     &setstaking,                                    true,      false,     true  },
     { "gethashespersec",                                &gethashespersec,                               true,      false,     false },
     { "getinfo",                                        &getinfo,                                       true,      false,     false },
     { "getrawmempool",                                  &getrawmempool,                                 true,      false,     false },
