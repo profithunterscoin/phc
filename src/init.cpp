@@ -32,6 +32,7 @@
 #include "masternodeconfig.h"
 #include "spork.h"
 #include "smessage.h"
+#include "miner.h"
 
 #ifdef ENABLE_WALLET
 #include "db.h"
@@ -1855,8 +1856,10 @@ bool AppInit2(boost::thread_group& threadGroup)
     }
 
 #ifdef ENABLE_WALLET
+    fStaking = GetBoolArg("-staking", true);
+
     // Mine proof-of-stake blocks in the background (Enabled by default)
-    if (!GetBoolArg("-staking", true))
+    if (!fStaking)
     {
         if (fDebug)
         {

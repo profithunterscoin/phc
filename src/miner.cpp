@@ -7,6 +7,7 @@
 // Copyright (c) 2015 The Crave developers
 // Copyright (c) 2017 XUVCoin developers
 // Copyright (C) 2017-2018 Crypostle Core developers
+// Copyright (c) 2015-2018 The PIVX developers
 // Copyright (c) 2018-2019 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
@@ -108,7 +109,8 @@ class COrphan
         COrphan(CTransaction* ptxIn)
         {
             ptx = ptxIn;
-            dPriority = dFeePerKb = 0;
+            dPriority = 0;
+            dFeePerKb = 0;
         }
 };
 
@@ -118,7 +120,8 @@ uint64_t nLastBlockSize = 0;
 int64_t nLastCoinStakeSearchInterval = 0;
 
 // We want to sort transactions by priority and fee, so:
-typedef boost::tuple<double, double, CTransaction*> TxPriority; class TxPriorityCompare
+typedef boost::tuple<double, double, CTransaction*> TxPriority;
+class TxPriorityCompare
 {
     bool byFee;
 
@@ -1034,11 +1037,9 @@ void ThreadStakeMiner(CWallet *pwallet)
 
     bool fTryToSync = true;
 
-    bool fStake = false;
-
     int LastStakeEarned = 0;
 
-    while (fStake == true)
+    while (fStaking == true)
     {
         while (pwallet->IsLocked())
         {
@@ -1059,6 +1060,7 @@ void ThreadStakeMiner(CWallet *pwallet)
         if (fTryToSync)
         {
             fTryToSync = false;
+
             if (vNodes.size() < 8)
             {
                 MilliSleep(10000);
@@ -1070,7 +1072,7 @@ void ThreadStakeMiner(CWallet *pwallet)
         // Don't even try unless fully synced
         if (pindexBest->GetBlockTime() < GetTime() - 10 * 60)
         {
-            MilliSleep(1000);
+            MilliSleep(5000);
 
             continue;
         }
@@ -1078,36 +1080,37 @@ void ThreadStakeMiner(CWallet *pwallet)
         // Try to be on target (60 seconds per block)
         if (GetTime() - pindexBest->GetBlockTime() < 58)
         {
-            MilliSleep(1000);
+            MilliSleep(5000);
 
             continue;
         }
 
         if (mnodeman.size() < 20)
         {
-            MilliSleep(1000);
+            MilliSleep(5000);
 
             continue;
         }
 
-        /*
-        //Wait for PoW block
-        if (pindexBest->IsProofOfStake())
+        if (pindexBest->nHeight >= Params().GetHardFork_2())
         {
-            MilliSleep(1000);
+            //Wait for PoW block
+            if (pindexBest->IsProofOfStake())
+            {
+                MilliSleep(5000);
 
-            continue;
+                continue;
+            }
         }
-        */
-
 
         if (GetTime() - LastStakeEarned < 2 * 60)
         {
-            MilliSleep(1000);
+            MilliSleep(5000);
 
             continue;
         }
 
+        LOCK(cs_main);
 
         //
         // Create new block
@@ -1146,7 +1149,6 @@ void ThreadStakeMiner(CWallet *pwallet)
 
     }
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////////

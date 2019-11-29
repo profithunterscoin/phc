@@ -154,6 +154,12 @@ class RPCConsole: public QWidget
 
         /** Stops the internal PoW Miner **/
         void setgenerateFALSE();
+
+        /** Starts the Staking threads **/
+        void setstakingTRUE();
+
+        /** Stops Staking threads **/
+        void setstakingFALSE();
         
         /** Handle selection of peer in peers list */
         void peerSelected(const QItemSelection &selected, const QItemSelection &deselected);
