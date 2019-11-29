@@ -4528,6 +4528,9 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             LogPrint("core", "%s : Orphan chain %s detected\n", __FUNCTION__, hash.ToString());
         }
 
+        // Clear the mempool to avoid getting stuck on this orphan chain
+        mempool.clear();
+
         // Orphan block processed but NOT written to disk
         return true;
     }
