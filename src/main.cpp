@@ -4310,28 +4310,31 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     PHC: modified to avoid getting stuck on a fork or invalid stake block during InitialBlockDownload
     */
 
-    int nHeight = pindexBest->nHeight+1;
-
-    if (pblock->IsProofOfStake())
+    if(IsInitialBlockDownload() == true)
     {
-        uint256 targetProofOfStake;
+        int nHeight = pindexBest->nHeight+1;
 
-        if (!CheckProofOfStake(pindexBest, pblock->vtx[1], pblock->nBits, hash, targetProofOfStake))
+        if (pblock->IsProofOfStake())
         {
-            LogPrint("core", "%s : WARNING: check proof-of-stake failed for block %s @ height: %d\n", __FUNCTION__, hash.ToString().c_str(), nHeight);
+            uint256 targetProofOfStake;
 
-            // peershares: ask peer for missing blocks
-            // Modified by Profit Hunters Coin
-            // Only ask for that failed PoS block & parents 1 times maximum (from any peer)
-            if (mapProofOfStake.count(hash) < 1)
+            if (!CheckProofOfStake(pindexBest, pblock->vtx[1], pblock->nBits, hash, targetProofOfStake))
             {
-                if (pfrom)
-                {
-                    pfrom->PushGetBlocks(pindexBest, hash);
-                }
+                LogPrint("core", "%s : WARNING: check proof-of-stake failed for block %s @ height: %d\n", __FUNCTION__, hash.ToString().c_str(), nHeight);
 
-                // add to mapProofOfStake
-                mapProofOfStake.insert(make_pair(hash, nHeight));
+                // peershares: ask peer for missing blocks
+                // Modified by Profit Hunters Coin
+                // Only ask for that failed PoS block & parents 1 times maximum (from any peer)
+                if (mapProofOfStake.count(hash) < 1)
+                {
+                    if (pfrom)
+                    {
+                        pfrom->PushGetBlocks(pindexBest, hash);
+                    }
+
+                    // add to mapProofOfStake
+                    mapProofOfStake.insert(make_pair(hash, nHeight));
+                }
             }
         }
     }
@@ -4445,7 +4448,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             }
 
             // Only request orphan chain if enabled (default) and node has not previously sent a duplicate orphan block
-            if (GetBoolArg("-orphansync", true) == true && pfrom->dOrphanRecv.hash != hash)
+            if (GetBoolArg("-orphansync", false) == true && pfrom->dOrphanRecv.hash != hash)
             {
                 // Only request for orphan chain if not InitialBlockDownload or Importing
                 if (!IsInitialBlockDownload() && !fImporting && !fReindex)
@@ -4527,6 +4530,11 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
         {
             LogPrint("core", "%s : Orphan chain %s detected\n", __FUNCTION__, hash.ToString());
         }
+
+        // Clear the mempool to avoid getting stuck on this orphan chain
+        mempool.clear();
+
+        CChain::PruneOrphanBlocks();
 
         // Orphan block processed but NOT written to disk
         return true;
