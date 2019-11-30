@@ -544,7 +544,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     nNodeLifespan = GetArg("-addrlifespan", 7);
     fUseFastIndex = GetBoolArg("-fastindex", true);
-    nMinerSleep = GetArg("-minersleep", 500);
+    nMinerSleep = GetArg("-minersleep", 5);
 
     nDerivationMethodIndex = 0;
 
@@ -1856,7 +1856,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     }
 
 #ifdef ENABLE_WALLET
-    fStaking = GetBoolArg("-staking", true);
+    fStaking = GetBoolArg("-staking", false);
 
     // Mine proof-of-stake blocks in the background (Enabled by default)
     if (!fStaking)
