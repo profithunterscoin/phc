@@ -4448,7 +4448,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             }
 
             // Only request orphan chain if enabled (default) and node has not previously sent a duplicate orphan block
-            if (GetBoolArg("-orphansync", false) == true && pfrom->dOrphanRecv.hash != hash)
+            if (GetBoolArg("-orphansync", true) == true && pfrom->dOrphanRecv.hash != hash)
             {
                 // Only request for orphan chain if not InitialBlockDownload or Importing
                 if (!IsInitialBlockDownload() && !fImporting && !fReindex)

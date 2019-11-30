@@ -1856,7 +1856,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     }
 
 #ifdef ENABLE_WALLET
-    fStaking = GetBoolArg("-staking", true);
+    fStaking = GetBoolArg("-staking", false);
 
     // Mine proof-of-stake blocks in the background (Enabled by default)
     if (!fStaking)

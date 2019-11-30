@@ -1095,7 +1095,7 @@ void ThreadStakeMiner(CWallet *pwallet)
                 continue;
             }
 
-            //Wait for PoW block
+            //Wait for PoW block (TO REVIEW for Hard Fork 2)
             if (pindexBest->IsProofOfStake())
             {
                 boost::this_thread::sleep_for(boost::chrono::seconds(5));
@@ -1141,11 +1141,11 @@ void ThreadStakeMiner(CWallet *pwallet)
             
             Set_ThreadPriority(THREAD_PRIORITY_LOWEST);
             
-            boost::this_thread::sleep_for(boost::chrono::seconds(5));
+            boost::this_thread::sleep_for(boost::chrono::milliseconds(500));
         }
         else
         {
-            boost::this_thread::sleep_for(boost::chrono::seconds(nMinerSleep));
+            boost::this_thread::sleep_for(boost::chrono::milliseconds(nMinerSleep));
         }
 
     }
