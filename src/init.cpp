@@ -544,7 +544,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     nNodeLifespan = GetArg("-addrlifespan", 7);
     fUseFastIndex = GetBoolArg("-fastindex", true);
-    nMinerSleep = GetArg("-minersleep", 500);
+    nMinerSleep = GetArg("-minersleep", 5);
 
     nDerivationMethodIndex = 0;
 
