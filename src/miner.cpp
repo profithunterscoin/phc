@@ -184,7 +184,7 @@ CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
     CScript scriptPubKey = CScript() << ToByteVector(pubkey) << OP_CHECKSIG;
 
     // Create new block
-    auto_ptr<CBlock> pblock(new CBlock());
+    unique_ptr<CBlock> pblock(new CBlock());
 
     if (!pblock.get())
     {
@@ -519,7 +519,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
     }
 
     // Create new block
-    auto_ptr<CBlock> pblock(new CBlock());
+    unique_ptr<CBlock> pblock(new CBlock());
 
     if (!pblock.get())
     {
@@ -1117,7 +1117,7 @@ void ThreadStakeMiner(CWallet *pwallet)
         //
         int64_t nFees;
 
-        auto_ptr<CBlock> pblock(CreateNewBlock(reservekey, true, &nFees));
+        unique_ptr<CBlock> pblock(CreateNewBlock(reservekey, true, &nFees));
 
         if (!pblock.get())
         {
@@ -1276,7 +1276,7 @@ void static InternalcoinMiner(CWallet *pwallet)
 
             CBlockIndex* pindexPrev = pindexBest;
            
-            auto_ptr<CBlock> pblocktemplate(CreateNewBlockWithKey(reservekey, pwallet));
+            unique_ptr<CBlock> pblocktemplate(CreateNewBlockWithKey(reservekey, pwallet));
 
             if (!pblocktemplate.get())
             {
