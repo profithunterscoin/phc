@@ -42,21 +42,34 @@ namespace FirewallData
             IMPLEMENT_SERIALIZE
             (
                 READWRITE(IP);
+
                 READWRITE(Version);
+
                 READWRITE(TimeConnected);
+
                 READWRITE(SendBytes);
                 READWRITE(ReceiveBytes);
+
                 READWRITE(AddrRecvCount);
             )
 
             std::string IP;                                                 /* Peer IP Address                      */
             std::string Version;                                            /* Peer Version                         */
+
             int TimeConnected;                                              /* Peer Time Connected (Seconds)        */
+
+            int StartHeight;                                                /* Peer Block Start Height              */
+
             uint64_t SendBytes;                                             /* Peer SendBytes                       */
             uint64_t ReceiveBytes;                                          /* Peer ReceiveBytes                    */
+
             int AddrRecvCount;                                              /* Peer Addr Recv Count                 */
-            uint256 HashAskedFor;
-            uint256 HashReceived;
+            std::vector<pair<std::string, int>> AddrRecvPrefixes;
+
+            uint256 HashAskedFor;                                           /* Peer last Hash Asked For             */
+            uint256 HashReceived;                                           /* Peer last Hash Received              */
+
+            int BlocksAccepted;                                             /* Total blocks accepted from peer      */
     };
 }
 
@@ -67,7 +80,7 @@ namespace Firewall
     {
         public:
 
-            static std::string ModuleName;                                      /* String                               */
+            static std::string ModuleName;                                  /* String                               */
             
             /* VARIABLES: Global Firewall Variables */
             static int AllCheck_Timer;                                      /* Start Time                           */

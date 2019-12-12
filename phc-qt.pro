@@ -55,12 +55,6 @@ DEFINES += BOOST_VARIANT_USE_RELAXED_GET_BY_DEFAULT
 # *****************************************************
 
 # *****************************************************
-win32:BOOST_LIB_SUFFIX=-mgw49-mt-s-1_57
-win32:BOOST_INCLUDE_PATH=C:/deps/boost_1_57_0
-win32:BOOST_LIB_PATH=C:/deps/boost_1_57_0/stage/lib
-# *****************************************************
-
-# *****************************************************
 macx:BOOST_INCLUDE_PATH = /usr/local/Cellar/boost@1.59/1.59.0/include
 macx:BOOST_LIB_PATH = /usr/local/Cellar/boost@1.59/1.59.0/lib
 macx:BDB_INCLUDE_PATH = /usr/local/Cellar/berkeley-db@4/4.8.30/include
@@ -71,27 +65,7 @@ macx:MINIUPNPC_INCLUDE_PATH = /usr/local/Cellar/miniupnpc/include
 macx:MINIUPNPC_LIB_PATH = /usr/local/Cellar/miniupnpc/lib
 # *****************************************************
 
-# --------------------------------------------------
-# RGPickles AKA Jimmy updated new version of berkley
-# --------------------------------------------------
-
-win32:BDB_INCLUDE_PATH=C:/deps/db-18.1.32/build_unix
-win32:BDB_LIB_PATH=C:/deps/db-18.1.32/build_unix/.libs
-
-win32:OPENSSL_INCLUDE_PATH=C:/deps/openssl-1.0.2/include
-win32:OPENSSL_LIB_PATH=C:/deps/openssl-1.0.2
-win32:MINIUPNPC_INCLUDE_PATH=C:/deps/
-win32:MINIUPNPC_LIB_PATH=C:/deps/miniupnpc
-win32:QRENCODE_INCLUDE_PATH=C:/deps/qrencode-3.4.4
-win32:QRENCODE_LIB_PATH=C:/deps/qrencode-3.4.4/.libs		
-
-# --------------------------------------------------
-# RGPickles AKA Jimmy updated correct dependency folders
-# --------------------------------------------------
-
-win32:SECP256K1_LIB_PATH=C:/deps/secp256k1_win/lib32
-win32:SECP256K1_INCLUDE_PATH=C:/deps/secp256k1_win/include	
-
+# *****************************************************
 OBJECTS_DIR = build
 MOC_DIR = build
 UI_DIR = build
@@ -213,7 +187,7 @@ QMAKE_CLEAN += $$PWD/src/leveldb/libleveldb.a; cd $$PWD/src/leveldb ; $(MAKE) cl
 #Build Secp256k1
 # RGPickles AKA Jimmy updated for Windows
 
-#Build Secp256k1
+# Linux & Mac
 !win32 {
 INCLUDEPATH += src/secp256k1/include
 LIBS += $$PWD/src/secp256k1/src/libsecp256k1_la-secp256k1.o
@@ -226,8 +200,8 @@ LIBS += $$PWD/src/secp256k1/src/libsecp256k1_la-secp256k1.o
     # Gross ugly hack that depends on qmake internals, unfortunately there is no other way to do it.
     QMAKE_CLEAN += $$PWD/src/secp256k1/src/libsecp256k1_la-secp256k1.o; cd $$PWD/src/secp256k1; $(MAKE) clean
 } else {
+# Windows
 
-   
 }
 
 # regenerate src/build.h
