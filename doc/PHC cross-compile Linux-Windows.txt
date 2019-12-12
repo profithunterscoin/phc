@@ -1,13 +1,11 @@
-
-
 [HOWTO] compile altcoin for windows on linux using mxe and mingw
 June 04, 2015, 02:45:26 PM
-Reply with quote  +Merit  #1
+
 Hello!
 In this tutorial I show you how to cross compile altcoin-qt using mxe and mingw.
 What is mxe? Well this is set of makefiles allowing you compile an cross environment with needed packages (mingw-w64, qt, boost, etc) without pain.
 
-For example I will compile blackcoin-qt for 32-bit Windows on 64-bit Ubuntu 14.04 LTS, but this method should work with another altcoins.
+For example I will compile phc-qt for 32-bit Windows on 64-bit Ubuntu 14.04 LTS, but this method should work with another altcoins.
 
 Step 1.
 Firstly we need install cross compile environment.
@@ -56,12 +54,12 @@ Compiling berkley db:
 Download and unpack berkeley db:
 Code:
 cd /mnt
-wget http://download.oracle.com/berkeley-db/db-5.3.28.tar.gz
-tar zxvf db-5.3.28.tar.gz
+wget https://fossies.org/linux/misc/db-18.1.32.tar.gz
+tar zxvf db-18.1.32.tar.gz
 
 Make bash script for compilation:
 Code:
-cd /mnt/db-5.3.28
+cd /mnt/db-18.1.32
 touch compile-db.sh
 chmod ugo+x compile-db.sh
 
@@ -76,6 +74,7 @@ cd build_mxe
 CC=$MXE_PATH/usr/bin/i686-w64-mingw32.static-gcc \
 CXX=$MXE_PATH/usr/bin/i686-w64-mingw32.static-g++ \
 ../dist/configure \
+  --with-mutex=x86/gcc-assembly \
 	--disable-replication \
 	--enable-mingw \
 	--enable-cxx \
@@ -122,58 +121,218 @@ Compile:
 Code:
 ./compile-m.sh
 
-Step 5.
-Yay! Making our environment is done! Now we can compile blackcoin.
+Build qrencode
+wget http://fukuchi.org/works/qrencode/qrencode-3.4.4.tar.gz
+tar -xvf qrencode-3.4.4.tar.gz
+cd qrencode-3.4.4
+./configure --host=i686-w64-mingw32.static --prefix=/mnt/mxe/usr/i686-w64-mingw32.static --enable-static --disable-shared --without-tools
+make
+make install
 
-Add mxe bins to PATH:
+Step 5.
+Yay! Making our environment is done! Now we can compile PHC.
+
+Add mxe bins to PATH (Must do this step every new login session):
 Code:
 export PATH=/mnt/mxe/usr/bin:$PATH
 
 Download and unpack blackcoin sources:
 Code:
 cd /mnt
-git clone https://github.com/rat4/blackcoin.git
+git clone https://github.com/profithunterscoin/phc.git
 
 Make bash script for compilation:
 Code:
-cd /mnt/blackcoin
-touch compile-blk.sh
-chmod ugo+x compile-blk.sh
+cd /mnt/phc
+touch compile-phc.sh
+chmod ugo+x compile-phc.sh
 
-Content of compile-blk.sh:
+Content of compile-phc.sh:
 Code:
 #!/bin/bash
 MXE_INCLUDE_PATH=/mnt/mxe/usr/i686-w64-mingw32.static/include
 MXE_LIB_PATH=/mnt/mxe/usr/i686-w64-mingw32.static/lib
+export PATH=/mnt/mxe/usr/bin:$PATH
 
 i686-w64-mingw32.static-qmake-qt5 \
 	BOOST_LIB_SUFFIX=-mt \
 	BOOST_THREAD_LIB_SUFFIX=_win32-mt \
-	BOOST_INCLUDE_PATH=$MXE_INCLUDE_PATH/boost \
-	BOOST_LIB_PATH=$MXE_LIB_PATH \
+	BOOST_INCLUDE_PATH=/mnt/boost_1_70_0 \
+	BOOST_LIB_PATH=/mnt/boost_1_70_0/stage/lib \
 	OPENSSL_INCLUDE_PATH=$MXE_INCLUDE_PATH/openssl \
 	OPENSSL_LIB_PATH=$MXE_LIB_PATH \
-	BDB_INCLUDE_PATH=$MXE_INCLUDE_PATH \
-	BDB_LIB_PATH=$MXE_LIB_PATH \
+	BDB_INCLUDE_PATH=/mnt/db-18.1.32/include \
+	BDB_LIB_PATH=/mnt/db-18.1.32/include \
 	MINIUPNPC_INCLUDE_PATH=$MXE_INCLUDE_PATH \
 	MINIUPNPC_LIB_PATH=$MXE_LIB_PATH \
-	QMAKE_LRELEASE=/mnt/mxe/usr/i686-w64-mingw32.static/qt5/bin/lrelease blackcoin-qt.pro
+  SECP256K1_INCLUDE_PATH=/mnt/phc/src/secp256k1/.libs \
+  SECP256K1_LIB_PATH=/mnt/phc/src/secp256k1/include \
+	QMAKE_LRELEASE=/mnt/mxe/usr/i686-w64-mingw32.static/qt5/bin/lrelease phc-qt.pro
 
 make -f Makefile.Release
 
 Compile:
 Code:
-./compile-blk.sh
+./compile-phc.sh
 
 And that all.
-Our blackcoin-qt.exe placed in /mnt/blackcoin/release
+Our phc-qt.exe placed in /mnt/phc/release
 Hope this help someone
 
+===========================================================
+NOTE: NOT WORKING
 
+build/smessage.o:smessage.cpp:(.text$_ZN18SecMsgBatchScannerD1Ev[__ZN18SecMsgBatchScannerD1Ev]+0x25): undefined reference to `leveldb::WriteBatch::Handler::~Handler()'
+build/smessage.o:smessage.cpp:(.text$_ZN18SecMsgBatchScannerD0Ev[__ZN18SecMsgBatchScannerD0Ev]+0x21): undefined reference to `leveldb::WriteBatch::Handler::~Handler()'
+build/smessage.o:smessage.cpp:(.text$_ZN8SecMsgDBD1Ev[__ZN8SecMsgDBD1Ev]+0xe): undefined reference to `leveldb::WriteBatch::~WriteBatch()'
+build/smessage.o:smessage.cpp:(.text$_ZN8SecMsgDB8TxnBeginEv+0x83): undefined reference to `leveldb::WriteBatch::WriteBatch()'
+build/smessage.o:smessage.cpp:(.text$_ZN8SecMsgDB10WriteSmesgEPhR12SecMsgStored+0x29a): undefined reference to `leveldb::WriteBatch::Put(leveldb::Slice const&, leveldb::Slice const&)'
+build/smessage.o:smessage.cpp:(.text$_ZN8SecMsgDB10WriteSmesgEPhR12SecMsgStored+0x487): undefined reference to `leveldb::Status::ToString[abi:cxx11]() const'
+build/smessage.o:smessage.cpp:(.text$_ZN8SecMsgDB10EraseSmesgEPh+0x10d): undefined reference to `leveldb::WriteBatch::Delete(leveldb::Slice const&)'
+build/smessage.o:smessage.cpp:(.text$_ZN8SecMsgDB10EraseSmesgEPh+0x254): undefined reference to `leveldb::Status::ToString[abi:cxx11]() const'
+build/smessage.o:smessage.cpp:(.text$_ZN8SecMsgDB7WritePKER6CKeyIDR7CPubKey+0x2bd): undefined reference to `leveldb::WriteBatch::Put(leveldb::Slice const&, leveldb::Slice const&)'
+build/smessage.o:smessage.cpp:(.text$_ZN8SecMsgDB7WritePKER6CKeyIDR7CPubKey+0x4e7): undefined reference to `leveldb::Status::ToString[abi:cxx11]() const'
+build/smessage.o:smessage.cpp:(.text$_ZNK8SecMsgDB9ScanBatchERK11CDataStreamPNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPb+0xf1): undefined reference to `leveldb::WriteBatch::Iterate(leveldb::WriteBatch::Handler*) const'
+build/smessage.o:smessage.cpp:(.text$_ZNK8SecMsgDB9ScanBatchERK11CDataStreamPNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPb+0x138): undefined reference to `leveldb::WriteBatch::Handler::~Handler()'
+build/smessage.o:smessage.cpp:(.text$_ZNK8SecMsgDB9ScanBatchERK11CDataStreamPNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPb+0x174): undefined reference to `leveldb::Status::ToString[abi:cxx11]() const'
+build/smessage.o:smessage.cpp:(.text$_ZN8SecMsgDB6ReadPKER6CKeyIDR7CPubKey+0x33e): undefined reference to `leveldb::Status::ToString[abi:cxx11]() const'
+build/smessage.o:smessage.cpp:(.text$_ZN8SecMsgDB9TxnCommitEv+0x7b): undefined reference to `leveldb::WriteBatch::~WriteBatch()'
+build/smessage.o:smessage.cpp:(.text$_ZN8SecMsgDB9TxnCommitEv+0xe1): undefined reference to `leveldb::Status::ToString[abi:cxx11]() const'
+build/smessage.o:smessage.cpp:(.text$_ZN8SecMsgDB9ReadSmesgEPhR12SecMsgStored+0x2ea): undefined reference to `leveldb::Status::ToString[abi:cxx11]() const'
+build/smessage.o:smessage.cpp:(.text$_ZN8SecMsgDB4OpenEPKc+0x10f): undefined reference to `leveldb::Options::Options()'
+build/smessage.o:smessage.cpp:(.text$_ZN8SecMsgDB4OpenEPKc+0x164): undefined reference to `leveldb::DB::Open(leveldb::Options const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, leveldb::DB**)'
+build/smessage.o:smessage.cpp:(.text$_ZN8SecMsgDB4OpenEPKc+0x1d2): undefined reference to `leveldb::Status::ToString[abi:cxx11]() const'
+build/smessage.o:smessage.cpp:(.text$_Z22SecureMsgInsertAddressR6CKeyIDR7CPubKey+0x99): undefined reference to `leveldb::WriteBatch::~WriteBatch()'
+build/smessage.o:smessage.cpp:(.text$_Z22SecureMsgInsertAddressR6CKeyIDR7CPubKey+0xea): undefined reference to `leveldb::WriteBatch::~WriteBatch()'
+build/smessage.o:smessage.cpp:(.text$_Z21SecureMsgGetStoredKeyR6CKeyIDR7CPubKey+0xd3): undefined reference to `leveldb::WriteBatch::~WriteBatch()'
+build/smessage.o:smessage.cpp:(.text$_Z18SecureMsgScanBlockR6CBlock+0x145): undefined reference to `leveldb::WriteBatch::~WriteBatch()'
+build/smessage.o:smessage.cpp:(.text$_Z18SecureMsgScanBlockR6CBlock+0x217): undefined reference to `leveldb::WriteBatch::~WriteBatch()'
+build/smessage.o:smessage.cpp:(.text$_Z22ScanChainForPublicKeysP11CBlockIndex+0x166): more undefined references to `leveldb::WriteBatch::~WriteBatch()' follow
+build/key.o:key.cpp:(.text$_ZNK4CKey11SignCompactERK7uint256RSt6vectorIhSaIhEE+0x7c): undefined reference to `secp256k1_ecdsa_sign_recoverable'
+build/key.o:key.cpp:(.text$_ZNK4CKey11SignCompactERK7uint256RSt6vectorIhSaIhEE+0xa2): undefined reference to `secp256k1_ecdsa_recoverable_signature_serialize_compact'
+build/key.o:key.cpp:(.text$_ZNK4CKey11SignCompactERK7uint256RSt6vectorIhSaIhEE+0x10c): undefined reference to `secp256k1_ecdsa_recoverable_signature_serialize_compact'
+build/main.o:main.cpp:(.text$_ZN5CTxDBD1Ev[__ZN5CTxDBD1Ev]+0xe): undefined reference to `leveldb::WriteBatch::~WriteBatch()'
+build/main.o:main.cpp:(.text$_ZN6CBlock17SetBestChainInnerER5CTxDBP11CBlockIndex+0x52): undefined reference to `leveldb::WriteBatch::~WriteBatch()'
+build/main.o:main.cpp:(.text$_ZN6CBlock12SetBestChainER5CTxDBP11CBlockIndex+0xf10): undefined reference to `leveldb::WriteBatch::~WriteBatch()'
+build/main.o:main.cpp:(.text$_ZN6CChain13RollbackChainEi+0x132): undefined reference to `leveldb::WriteBatch::~WriteBatch()'
+build/main.o:main.cpp:(.text$_Z14LoadBlockIndexv+0xc2): undefined reference to `leveldb::WriteBatch::~WriteBatch()'
+build/rpcmining.o:rpcmining.cpp:(.text$_Z16getblocktemplateRKSt6vectorIN11json_spirit10Value_implINS0_13Config_vectorINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEEEEESaISA_EEb+0x2385): more undefined references to `leveldb::WriteBatch::~WriteBatch()' follow
+build/init.o:init.cpp:(.text$_Z8Shutdownv+0x3d2): undefined reference to `GetPidFile()'
+build/instantx.o:instantx.cpp:(.text$_Z20ProcessConsensusVoteP5CNodeR14CConsensusVote+0x983): undefined reference to `leveldb::WriteBatch::~WriteBatch()'
+build/rpcrawtransaction.o:rpcrawtransaction.cpp:(.text$_Z18signrawtransactionRKSt6vectorIN11json_spirit10Value_implINS0_13Config_vectorINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEEEEESaISA_EEb+0xdff): undefined reference to `leveldb::WriteBatch::~WriteBatch()'
+build/rpcrawtransaction.o:rpcrawtransaction.cpp:(.text$_Z18signrawtransactionRKSt6vectorIN11json_spirit10Value_implINS0_13Config_vectorINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEEEEESaISA_EEb+0x4031): undefined reference to `leveldb::WriteBatch::~WriteBatch()'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZN13CBatchScannerD1Ev[__ZN13CBatchScannerD1Ev]+0x25): undefined reference to `leveldb::WriteBatch::Handler::~Handler()'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZN13CBatchScannerD0Ev[__ZN13CBatchScannerD0Ev]+0x21): undefined reference to `leveldb::WriteBatch::Handler::~Handler()'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZN5CTxDB8TxnBeginEv+0x8a): undefined reference to `leveldb::WriteBatch::WriteBatch()'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZNK5CTxDB9ScanBatchERK11CDataStreamPNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPb+0x130): undefined reference to `leveldb::WriteBatch::Iterate(leveldb::WriteBatch::Handler*) const'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZNK5CTxDB9ScanBatchERK11CDataStreamPNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPb+0x169): undefined reference to `leveldb::WriteBatch::Handler::~Handler()'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZNK5CTxDB9ScanBatchERK11CDataStreamPNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPb+0x233): undefined reference to `leveldb::Status::ToString[abi:cxx11]() const'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZN5CTxDB5WriteINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE7CBigNumEEbRKT_RKT0_[__ZN5CTxDB5WriteINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE7CBigNumEEbRKT_RKT0_]+0x282): undefined reference to `leveldb::WriteBatch::Put(leveldb::Slice const&, leveldb::Slice const&)'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZN5CTxDB5WriteINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE7CBigNumEEbRKT_RKT0_[__ZN5CTxDB5WriteINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE7CBigNumEEbRKT_RKT0_]+0x5f7): undefined reference to `leveldb::Status::ToString[abi:cxx11]() const'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZN5CTxDB5WriteISt4pairINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE7uint256E15CDiskBlockIndexEEbRKT_RKT0_[__ZN5CTxDB5WriteISt4pairINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE7uint256E15CDiskBlockIndexEEbRKT_RKT0_]+0x5e3): undefined reference to `leveldb::WriteBatch::Put(leveldb::Slice const&, leveldb::Slice const&)'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZN5CTxDB5WriteISt4pairINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE7uint256E15CDiskBlockIndexEEbRKT_RKT0_[__ZN5CTxDB5WriteISt4pairINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE7uint256E15CDiskBlockIndexEEbRKT_RKT0_]+0x917): undefined reference to `leveldb::Status::ToString[abi:cxx11]() const'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZN5CTxDB5WriteISt4pairINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE7uint256E8CTxIndexEEbRKT_RKT0_[__ZN5CTxDB5WriteISt4pairINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE7uint256E8CTxIndexEEbRKT_RKT0_]+0x28f): undefined reference to `leveldb::WriteBatch::Put(leveldb::Slice const&, leveldb::Slice const&)'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZN5CTxDB5WriteISt4pairINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE7uint256E8CTxIndexEEbRKT_RKT0_[__ZN5CTxDB5WriteISt4pairINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE7uint256E8CTxIndexEEbRKT_RKT0_]+0x547): undefined reference to `leveldb::Status::ToString[abi:cxx11]() const'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZN5CTxDB5WriteINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE7uint256EEbRKT_RKT0_[__ZN5CTxDB5WriteINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE7uint256EEbRKT_RKT0_]+0x1ea): undefined reference to `leveldb::WriteBatch::Put(leveldb::Slice const&, leveldb::Slice const&)'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZN5CTxDB5WriteINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE7uint256EEbRKT_RKT0_[__ZN5CTxDB5WriteINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE7uint256EEbRKT_RKT0_]+0x457): undefined reference to `leveldb::Status::ToString[abi:cxx11]() const'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZN5CTxDB5WriteISt4pairINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE7uint160ESt6vectorI7uint256SaISB_EEEEbRKT_RKT0_[__ZN5CTxDB5WriteISt4pairINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE7uint160ESt6vectorI7uint256SaISB_EEEEbRKT_RKT0_]+0x27a): undefined reference to `leveldb::WriteBatch::Put(leveldb::Slice const&, leveldb::Slice const&)'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZN5CTxDB5WriteISt4pairINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE7uint160ESt6vectorI7uint256SaISB_EEEEbRKT_RKT0_[__ZN5CTxDB5WriteISt4pairINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE7uint160ESt6vectorI7uint256SaISB_EEEEbRKT_RKT0_]+0x4e7): undefined reference to `leveldb::Status::ToString[abi:cxx11]() const'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZN5CTxDB5WriteINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEiEEbRKT_RKT0_[__ZN5CTxDB5WriteINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEiEEbRKT_RKT0_]+0x1f8): undefined reference to `leveldb::WriteBatch::Put(leveldb::Slice const&, leveldb::Slice const&)'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZN5CTxDB5WriteINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEiEEbRKT_RKT0_[__ZN5CTxDB5WriteINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEiEEbRKT_RKT0_]+0x467): undefined reference to `leveldb::Status::ToString[abi:cxx11]() const'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_Z15init_blockindexRN7leveldb7OptionsEb+0x891): undefined reference to `leveldb::DB::Open(leveldb::Options const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, leveldb::DB**)'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_Z15init_blockindexRN7leveldb7OptionsEb+0x8e9): undefined reference to `leveldb::Status::ToString[abi:cxx11]() const'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZN5CTxDB9TxnCommitEv+0x7c): undefined reference to `leveldb::WriteBatch::~WriteBatch()'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZN5CTxDB9TxnCommitEv+0xd6): undefined reference to `leveldb::Status::ToString[abi:cxx11]() const'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZN5CTxDB4ReadISt4pairINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE7uint256E8CTxIndexEEbRKT_RT0_[__ZN5CTxDB4ReadISt4pairINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE7uint256E8CTxIndexEEbRKT_RT0_]+0x571): undefined reference to `leveldb::Status::ToString[abi:cxx11]() const'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZN5CTxDB17ReadHashBestChainER7uint256+0x437): undefined reference to `leveldb::Status::ToString[abi:cxx11]() const'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZN5CTxDB4ReadINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEiEEbRKT_RT0_[__ZN5CTxDB4ReadINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEiEEbRKT_RT0_]+0x3ba): undefined reference to `leveldb::Status::ToString[abi:cxx11]() const'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZN5CTxDBC2EPKc+0x66): undefined reference to `leveldb::Options::Options()'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZN5CTxDBC2EPKc+0x107): undefined reference to `leveldb::Options::Options()'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZN5CTxDBC2EPKc+0x171): undefined reference to `leveldb::NewLRUCache(unsigned int)'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZN5CTxDBC2EPKc+0x180): undefined reference to `leveldb::NewBloomFilterPolicy(int)'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZN5CTxDBC2EPKc+0x1d8): undefined reference to `leveldb::NewBloomFilterPolicy(int)'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZN5CTxDBC2EPKc+0x651): undefined reference to `leveldb::WriteBatch::~WriteBatch()'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZN5CTxDB4ReadISt4pairINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE7uint160ESt6vectorI7uint256SaISB_EEEEbRKT_RT0_[__ZN5CTxDB4ReadISt4pairINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE7uint160ESt6vectorI7uint256SaISB_EEEEbRKT_RT0_]+0x550): undefined reference to `leveldb::Status::ToString[abi:cxx11]() const'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZN5CTxDB12EraseTxIndexERK12CTransaction+0x20f): undefined reference to `leveldb::WriteBatch::Delete(leveldb::Slice const&)'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZN5CTxDB4ReadINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE7CBigNumEEbRKT_RT0_[__ZN5CTxDB4ReadINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE7CBigNumEEbRKT_RT0_]+0x59a): undefined reference to `leveldb::Status::ToString[abi:cxx11]() const'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZN5CTxDB14LoadBlockIndexEv+0x1595): undefined reference to `leveldb::WriteBatch::~WriteBatch()'
+build/txdb-leveldb.o:txdb-leveldb.cpp:(.text$_ZN5CTxDB14LoadBlockIndexEv+0x2d95): undefined reference to `leveldb::WriteBatch::~WriteBatch()'
+build/miner.o:miner.cpp:(.text$_Z21CreateNewBlockWithKeyR11CReserveKeyP7CWallet+0x12bc): undefined reference to `leveldb::WriteBatch::~WriteBatch()'
+build/miner.o:miner.cpp:(.text$_Z21CreateNewBlockWithKeyR11CReserveKeyP7CWallet+0x1ea6): undefined reference to `leveldb::WriteBatch::~WriteBatch()'
+build/miner.o:miner.cpp:(.text$_Z14CreateNewBlockR11CReserveKeybPx+0x1619): undefined reference to `leveldb::WriteBatch::~WriteBatch()'
+build/miner.o:miner.cpp:(.text$_Z14CreateNewBlockR11CReserveKeybPx+0x2409): more undefined references to `leveldb::WriteBatch::~WriteBatch()' follow
+build/pubkey.o:pubkey.cpp:(.text$_ZN7CPubKey14RecoverCompactERK7uint256RKSt6vectorIhSaIhEE+0x59): undefined reference to `secp256k1_ecdsa_recoverable_signature_parse_compact'
+build/pubkey.o:pubkey.cpp:(.text$_ZN7CPubKey14RecoverCompactERK7uint256RKSt6vectorIhSaIhEE+0x81): undefined reference to `secp256k1_ecdsa_recover'
+build/transactiondesc.o:transactiondesc.cpp:(.text$_ZN15TransactionDesc6toHTMLEP7CWalletR9CWalletTxP17TransactionRecordi+0x30dd): undefined reference to `leveldb::WriteBatch::~WriteBatch()'
+build/transactiondesc.o:transactiondesc.cpp:(.text$_ZN15TransactionDesc6toHTMLEP7CWalletR9CWalletTxP17TransactionRecordi+0x63f0): undefined reference to `leveldb::WriteBatch::~WriteBatch()'
+collect2: error: ld returned 1 exit status
 
 
 ===========================================================
+Quote from: main.h on June 04, 2015, 02:45:26 PM
 
+Compile boost:
+Code:
+cd /mnt/mxe
+make MXE_TARGETS="i686-w64-mingw32.static" boost
+
+if error message:
+Missing requirement: libtool
+than
+Code:
+sudo apt-get install libtool-bin
+
+Quote from: main.h on June 04, 2015, 02:45:26 PM
+
+Step 3.
+Now we need compile boost and qt5 for our environment (need a couple of hours for this).
+
+less than one hour if i5+SSD
+
+
+
+
+
+If you have levelDB issue (libleveldb.a / libmemenv.a), plz follow below instruction.
+
+Code:
+cd %coin_folder%/src/leveldb
+TARGET_OS=NATIVE_WINDOWS make libleveldb.a libmemenv.a CC=/mnt/mxe/usr/bin/i686-w64-mingw32.static-gcc CXX=/mnt/mxe/usr/bin/i686-w64-mingw32.static-g++
+make
+
+
+https://bitcointalk.org/index.php?topic=1080289.0
+
+=============
+
+
+
+cd src/leveldb
+make clean
+export PATH=/mnt/mxe/usr/bin:$PATH
+export PATH=$MXEPATH/bin:$PATH
+TARGET_OS=NATIVE_WINDOWS make -j4 CC=i686-w64-mingw32.static-gcc CXX=i686-w64-
+mingw32.static-g++ libleveldb.a libmemenv.a
+cd ../..
+chmod 775 * -R
+
+cd src/secp256k1
+make clean
+export PATH=/mnt/mxe/usr/bin:$PATH
+export PATH=$MXEPATH/bin:$PATH
+chmod 775 * -R
+./autogen.sh
+./configure --host=i686-w64-mingw32.static --enable-static --disable-shared --enable-modulerecovery
+make -j4
+
+cd ../..
+export PATH=/mnt/mxe/usr/bin:$PATH
+export PATH=$MXEPATH/bin:$PATH
+/mnt/mxe/usr/i686-w64-mingw32.static/qt5/bin/qmake phc-qt.pro
+make -j4
+
+
+===========================================================
 
 
 Gavin's notes on getting gitian builds up and running using KVM:
