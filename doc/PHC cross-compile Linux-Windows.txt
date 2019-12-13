@@ -138,7 +138,7 @@ cd boost_1_70_0
 ./b2
 
 Build Openssl
-git clone https://github.com/profithunterscoin/openssl
+git clone https://github.com/openssl/openssl
 cd openssl
 ./config
 make
@@ -146,6 +146,9 @@ make install
 
 Step 5.
 Yay! Making our environment is done! Now we can compile PHC.
+
+Every new session:
+export PATH=/mnt/mxe/usr/bin:$PATH
 
 Download and unpack PHC sources:
 Code:
@@ -163,19 +166,16 @@ Code:
 #!/bin/bash
 MXE_INCLUDE_PATH=/mnt/mxe/usr/i686-w64-mingw32.static/include
 MXE_LIB_PATH=/mnt/mxe/usr/i686-w64-mingw32.static/lib
-export PATH=/mnt/mxe/usr/bin:$PATH
 
 i686-w64-mingw32.static-qmake-qt5 \
 	BOOST_LIB_SUFFIX=-mt \
 	BOOST_THREAD_LIB_SUFFIX=_win32-mt \
   BOOST_INCLUDE_PATH=/mnt/boost_1_70_0 \
 	BOOST_LIB_PATH=/mnt/boost_1_70_0/stage/lib \
-	#BOOST_INCLUDE_PATH=$MXE_INCLUDE_PATH/boost \
-	#BOOST_LIB_PATH=$MXE_LIB_PATH \
 	OPENSSL_INCLUDE_PATH=/mnt/openssl/include \
 	OPENSSL_LIB_PATH=/mnt/openssl \
 	BDB_INCLUDE_PATH=/mnt/db-18.1.32/include \
-	BDB_LIB_PATH=/mnt/db-18.1.32/include \
+	BDB_LIB_PATH=/mnt/db-18.1.32 \
 	MINIUPNPC_INCLUDE_PATH=$MXE_INCLUDE_PATH \
 	MINIUPNPC_LIB_PATH=$MXE_LIB_PATH \
   SECP256K1_INCLUDE_PATH=/mnt/phc/src/secp256k1/include \
@@ -279,6 +279,14 @@ build/pubkey.o:pubkey.cpp:(.text$_ZN7CPubKey14RecoverCompactERK7uint256RKSt6vect
 build/transactiondesc.o:transactiondesc.cpp:(.text$_ZN15TransactionDesc6toHTMLEP7CWalletR9CWalletTxP17TransactionRecordi+0x30dd): undefined reference to `leveldb::WriteBatch::~WriteBatch()'
 build/transactiondesc.o:transactiondesc.cpp:(.text$_ZN15TransactionDesc6toHTMLEP7CWalletR9CWalletTxP17TransactionRecordi+0x63f0): undefined reference to `leveldb::WriteBatch::~WriteBatch()'
 collect2: error: ld returned 1 exit status
+
+===================
+
+more info https://bitcointalk.org/index.php?topic=1080289.260
+
+https://github.com/CoinMonkey/mxe
+
+https://github.com/abhisit/mxe
 
 ===================
 
