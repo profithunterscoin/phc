@@ -110,7 +110,7 @@ win32:QMAKE_LFLAGS *= -Wl,--dynamicbase -Wl,--nxcompat
 win32:QMAKE_LFLAGS *= -Wl,--large-address-aware -static
 
 # i686-w64-mingw32
-win32:QMAKE_LFLAGS *= -static-libgcc -static-libstdc++
+# win32:QMAKE_LFLAGS *= -static-libgcc -static-libstdc++
 
 # *****************************************************
 
