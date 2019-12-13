@@ -129,14 +129,11 @@ cd qrencode-3.4.4
 make
 make install
 
+
 Step 5.
 Yay! Making our environment is done! Now we can compile PHC.
 
-Add mxe bins to PATH (Must do this step every new login session):
-Code:
-export PATH=/mnt/mxe/usr/bin:$PATH
-
-Download and unpack blackcoin sources:
+Download and unpack PHC sources:
 Code:
 cd /mnt
 git clone https://github.com/profithunterscoin/phc.git
@@ -157,16 +154,18 @@ export PATH=/mnt/mxe/usr/bin:$PATH
 i686-w64-mingw32.static-qmake-qt5 \
 	BOOST_LIB_SUFFIX=-mt \
 	BOOST_THREAD_LIB_SUFFIX=_win32-mt \
-	BOOST_INCLUDE_PATH=/mnt/boost_1_70_0 \
+  BOOST_INCLUDE_PATH=/mnt/boost_1_70_0 \
 	BOOST_LIB_PATH=/mnt/boost_1_70_0/stage/lib \
+	#BOOST_INCLUDE_PATH=$MXE_INCLUDE_PATH/boost \
+	#BOOST_LIB_PATH=$MXE_LIB_PATH \
 	OPENSSL_INCLUDE_PATH=$MXE_INCLUDE_PATH/openssl \
 	OPENSSL_LIB_PATH=$MXE_LIB_PATH \
 	BDB_INCLUDE_PATH=/mnt/db-18.1.32/include \
 	BDB_LIB_PATH=/mnt/db-18.1.32/include \
 	MINIUPNPC_INCLUDE_PATH=$MXE_INCLUDE_PATH \
 	MINIUPNPC_LIB_PATH=$MXE_LIB_PATH \
-  SECP256K1_INCLUDE_PATH=/mnt/phc/src/secp256k1/.libs \
-  SECP256K1_LIB_PATH=/mnt/phc/src/secp256k1/include \
+  SECP256K1_INCLUDE_PATH=/mnt/phc/src/secp256k1/include \
+  SECP256K1_LIB_PATH=/mnt/phc/src/secp256k1/.libs \
 	QMAKE_LRELEASE=/mnt/mxe/usr/i686-w64-mingw32.static/qt5/bin/lrelease phc-qt.pro
 
 make -f Makefile.Release
@@ -267,6 +266,39 @@ build/transactiondesc.o:transactiondesc.cpp:(.text$_ZN15TransactionDesc6toHTMLEP
 build/transactiondesc.o:transactiondesc.cpp:(.text$_ZN15TransactionDesc6toHTMLEP7CWalletR9CWalletTxP17TransactionRecordi+0x63f0): undefined reference to `leveldb::WriteBatch::~WriteBatch()'
 collect2: error: ld returned 1 exit status
 
+===================
+
+i'm having trouble with building a coin using secp256k1
+
+Code:
+libsecp256k1_la-secp256k1.o: file not recognized: File format not recognized
+
+generally it seems like i have success with secp256k1 but it is not recognized on qt build.
+
+i've tried a variety of things including
+
+Code:
+./autogen.sh
+./configure --host=i686-w64-mingw32.static
+make
+
+fails on qt build
+
+and
+Code:
+./configure --host=i686-w64-mingw32.static --prefix=/home/mxe/mxe/usr/i686-w64-mingw32.static --enable-static --disable-shared
+
+gives error during configure
+Code:
+./configure: line 12234: SECP_64BIT_ASM_CHECK: command not found
+./configure: line 12263: SECP_INT128_CHECK: command not found
+./configure: line 12291: SECP_INT128_CHECK: command not found
+./configure: line 12316: SECP_GMP_CHECK: command not found
+./configure: line 12422: SECP_OPENSSL_CHECK: command not found
+
+also fails on qt build
+
+
 
 ===========================================================
 Quote from: main.h on June 04, 2015, 02:45:26 PM
@@ -289,7 +321,20 @@ Now we need compile boost and qt5 for our environment (need a couple of hours fo
 
 less than one hour if i5+SSD
 
+=======================================================
 
+
+Boost:
+cd /mnt
+wget https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.bz2
+tar xvjf boost_1_70_0.tar.bz2
+cd boost_1_70_0
+./bootstrap.sh --prefix=/mnt/mxe/usr/i686-w64-mingw32.static
+./b2
+
+
+
+====================
 
 
 
