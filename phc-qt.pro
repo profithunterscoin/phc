@@ -202,6 +202,15 @@ LIBS += $$PWD/src/secp256k1/src/libsecp256k1_la-secp256k1.o
 } else {
 # Windows
 
+    isEmpty(SECP256K1_LIB_PATH)
+    {
+        # win32:SECP256K1_LIB_PATH=C:/deps/secp256k1/.libs
+    }
+    
+    isEmpty(SECP256K1_INCLUDE_PATH)
+    {
+        # win32:SECP256K1_INCLUDE_PATH=C:/deps/secp256k1/include
+    }
 }
 
 # regenerate src/build.h
