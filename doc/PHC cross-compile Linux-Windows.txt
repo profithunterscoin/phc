@@ -129,6 +129,20 @@ cd qrencode-3.4.4
 make
 make install
 
+Build Boost:
+cd /mnt
+wget https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.bz2
+tar xvjf boost_1_70_0.tar.bz2
+cd boost_1_70_0
+./bootstrap.sh --prefix=/mnt/mxe/usr/i686-w64-mingw32.static
+./b2
+
+Build Openssl
+git clone https://github.com/profithunterscoin/openssl
+cd openssl
+./config
+make
+make install
 
 Step 5.
 Yay! Making our environment is done! Now we can compile PHC.
@@ -158,8 +172,8 @@ i686-w64-mingw32.static-qmake-qt5 \
 	BOOST_LIB_PATH=/mnt/boost_1_70_0/stage/lib \
 	#BOOST_INCLUDE_PATH=$MXE_INCLUDE_PATH/boost \
 	#BOOST_LIB_PATH=$MXE_LIB_PATH \
-	OPENSSL_INCLUDE_PATH=$MXE_INCLUDE_PATH/openssl \
-	OPENSSL_LIB_PATH=$MXE_LIB_PATH \
+	OPENSSL_INCLUDE_PATH=/mnt/openssl/include \
+	OPENSSL_LIB_PATH=/mnt/openssl \
 	BDB_INCLUDE_PATH=/mnt/db-18.1.32/include \
 	BDB_LIB_PATH=/mnt/db-18.1.32/include \
 	MINIUPNPC_INCLUDE_PATH=$MXE_INCLUDE_PATH \
@@ -322,20 +336,6 @@ Now we need compile boost and qt5 for our environment (need a couple of hours fo
 less than one hour if i5+SSD
 
 =======================================================
-
-
-Boost:
-cd /mnt
-wget https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.bz2
-tar xvjf boost_1_70_0.tar.bz2
-cd boost_1_70_0
-./bootstrap.sh --prefix=/mnt/mxe/usr/i686-w64-mingw32.static
-./b2
-
-
-
-====================
-
 
 
 If you have levelDB issue (libleveldb.a / libmemenv.a), plz follow below instruction.
