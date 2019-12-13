@@ -2182,14 +2182,14 @@ std::string get_http_data(const std::string& server, const std::string& file)
 	try
 	{
 		boost::asio::ip::tcp::iostream s(server, "http");
-#ifndef __ANDROID__
+
+        // The entire sequence of I/O operations must complete within 60 seconds.
+        // If an expiry occurs, the socket is automatically closed and the stream
+        // becomes bad.
+#if BOOST_VERSION < 107000
 		s.expires_from_now(boost::posix_time::seconds(60));
 #else
-    // TO FIX for Android
-    // https://www.boost.org/doc/libs/1_71_0/doc/html/boost_asio/overview/cpp2011/chrono.html
-    // http://detercode121.blogspot.com/2011/05/c11-who-is-failing-boost-clang-or-gcc.html
-    // http://www.howtobuildsoftware.com/index.php/how-do/b6fO/c-11-boost-clang-boost-asio-who-is-failing-boost-clang-or-gcc-issue-with-stdchrono-used-with-boostasio
-    // https://www.boost.org/doc/libs/1_45_0/doc/html/boost_asio/example/timers/time_t_timer.cpp
+        s.expires_from_now(std::chrono::seconds(60));
 #endif
 
 		if (!s)
@@ -2206,8 +2206,10 @@ std::string get_http_data(const std::string& server, const std::string& file)
 		// Check that response is OK.
 		std::string http_version;
 		s >> http_version;
+
 		unsigned int status_code;
 		s >> status_code;
+
 		std::string status_message;
 		std::getline(s, status_message);
 
@@ -2223,7 +2225,9 @@ std::string get_http_data(const std::string& server, const std::string& file)
 
 		// Process the response headers, which are terminated by a blank line.
 		std::string header;
-		while (std::getline(s, header) && header != "\r"){}
+
+		while (std::getline(s, header) && header != "\r")
+        {}
 
 		// Write the remaining data to output.
 		std::stringstream ss;

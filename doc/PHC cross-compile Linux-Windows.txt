@@ -282,6 +282,8 @@ collect2: error: ld returned 1 exit status
 
 ===================
 
+more info https://bitcointalk.org/index.php?topic=1080289.260
+
 https://github.com/CoinMonkey/mxe
 
 https://github.com/abhisit/mxe
