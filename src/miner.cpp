@@ -1084,8 +1084,8 @@ void ThreadStakeMiner(CWallet *pwallet)
             continue;
         }
 
-        // HardFork 2 Activate strict PoS rules
-        if (pindexBest->nHeight >= Params().GetHardFork_2())
+        // PIP6 - Activate strict PoS rules
+        if (pindexBest->nHeight >= Params().PIP6_Height())
         {
             // Try to be on target (60 seconds per block)
             if (GetTime() - pindexBest->GetBlockTime() < 58)
@@ -1102,13 +1102,14 @@ void ThreadStakeMiner(CWallet *pwallet)
 
                 continue;
             }
+        }
 
-            if (GetTime() - LastStakeEarned < 2 * 60)
-            {
-                boost::this_thread::sleep_for(boost::chrono::seconds(5));
+        // Prevent stakes generated too quickly (possible forking)
+        if (GetTime() - LastStakeEarned < 60)
+        {
+            boost::this_thread::sleep_for(boost::chrono::seconds(60));
 
-                continue;
-            }
+            continue;
         }
 
         LOCK(cs_main);
@@ -1125,7 +1126,8 @@ void ThreadStakeMiner(CWallet *pwallet)
             return;
         }
 
-        if (pindexBest->nHeight >= Params().GetHardFork_2())
+        // PIP7 - Activate IncrementExtraNonce
+        if (pindexBest->nHeight >= Params().PIP7_Height())
         {
             IncrementExtraNonce(pblock.get(), pindexBest, nExtraNonce);
         }

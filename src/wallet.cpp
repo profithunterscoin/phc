@@ -5348,7 +5348,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 
     // Add the dev fees payment
 	
-    if (pindexPrev->nHeight+1 > Params().GetHardFork_2())
+    if (pindexPrev->nHeight+1 > Params().PIP2_Height())
     {
         masternodePayment = nReward * 0.7;
         devfee = nReward * 0.1;
