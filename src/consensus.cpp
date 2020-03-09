@@ -597,8 +597,8 @@ namespace Consensus
         int ActivationHeight = 1; // Block #1 (Default)
         int nHeight = 0;
 
-        // PHC Hard Fork 2
-        ActivationHeight = Params().GetHardFork_2();
+        // PIP6 - ASIC Choker Activation
+        ActivationHeight = Params().PIP6_Height();
 
         uint256 hash = pblock->GetHash();
 

@@ -701,11 +701,14 @@ LIBS += $$join(BOOST_LIB_PATH,,-L,) $$join(BDB_LIB_PATH,,-L,) $$join(OPENSSL_LIB
 # Added -lminiupnpc -lqrencode to LIBS for OS X builds
 LIBS += -lssl -lcrypto -ldb_cxx$$BDB_LIB_SUFFIX -lminiupnpc -lqrencode
 
+
+win32:LIBS += -lssl -lcrypto -ldb_cxx-4.8.30$$BDB_LIB_SUFFIX
+
 # --------------------------------------------------
 # RGPickles AKA Jimmy -ldb_cxx changed to -ldb_cxx-18.1
 # --------------------------------------------------
 
-win32:LIBS += -lssl -lcrypto -ldb_cxx-18.1$$BDB_LIB_SUFFIX
+# win32:LIBS +=  -ldb_cxx-18.1$$BDB_LIB_SUFFIX
 
 # -lgdi32 has to happen after -lcrypto (see  #681)
 windows:LIBS += -lws2_32 -lshlwapi -lmswsock -lole32 -loleaut32 -luuid -lgdi32

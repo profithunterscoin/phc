@@ -10,15 +10,9 @@ Required Platform:
 Installing Required Dependencies:
 ----------------------------
 
-Quick Command:
-
-Get Root permissions:
-
-su
-
 Install depends:
 
-apt-get update && apt-get upgrade && apt-get install build-essential libssl-dev libboost-all-dev libqrencode-dev miniupnpc libminiupnpc-dev libcurl4-openssl-dev dh-autoreconf autoconf automake git nano pkg-config libtool libtool-bin libgmp-dev software-properties-common
+sudo apt-get update && sudo apt-get upgrade && sudo apt-get install build-essential libssl-dev libboost-all-dev libqrencode-dev miniupnpc libminiupnpc-dev libcurl4-openssl-dev dh-autoreconf autoconf automake git nano pkg-config libtool libtool-bin libgmp-dev software-properties-common
 
 Manually:
 
@@ -52,6 +46,17 @@ sudo add-apt-repository ppa:bitcoin/bitcoin
 sudo apt-get update
 sudo apt-get install libdb4.8-dev libdb4.8++-dev
 
+
+Openssl 1.0.2
+----------------------------
+
+wget https://www.openssl.org/source/openssl-1.0.2n.tar.gz -O openssl-1.0.2n.tar.gz
+tar -zxf openssl-1.0.2n.tar.gz
+cd openssl-1.0.2n
+./config
+make
+make test
+sudo make install
 
 Installing QT Dependencies:
 ----------------------------
@@ -94,13 +99,13 @@ cd phc
 Creating a swap space (optional):
 ----------------------------
 
-fallocate -l 3G /swapfile
+sudo fallocate -l 3G /swapfile
 sudo sudo dd if=/dev/zero of=swapfile bs=1M count=3072
-mkswap /swapfile
-chmod 600 /swapfile
-swapon /swapfile
-echo -e "/swapfile none swap sw 0 0 \n" >> /etc/fstab
-cat /proc/meminfo
+sudo mkswap /swapfile
+sudo chmod 600 /swapfile
+sudo swapon /swapfile
+sudo echo -e "/swapfile none swap sw 0 0 \n" >> /etc/fstab
+sudo cat /proc/meminfo
 
 
 Compiling Daemon:

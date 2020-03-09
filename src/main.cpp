@@ -1887,7 +1887,7 @@ double GetDynamicBlockReward3(int nHeight)
     int nSubsidyMod = 0;
     int TightForkHeight = 0;
 
-    TightForkHeight = Params().GetHardFork_1();;
+    TightForkHeight = Params().PIP1_Height();;
 
     /* ------ Pre-Mining Phase: Block #0 (Start) ------ */
     if (nHeight == 0)
@@ -2102,9 +2102,8 @@ unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime)
 
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake)
 {
-    // TargetTimespan correction after development testing
-    // PHC Hard Fork 2
-    if (nBestHeight >= Params().GetHardFork_2())
+    // PIP2 - TargetTimespan correction after development testing
+    if (nBestHeight >= Params().PIP2_Height())
     {
         nTargetTimespan = 60; // 1 Minute
     }
@@ -3574,10 +3573,10 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                     {
                         int DeActivationHeight = 1;
 
-                        // PHC Hard Fork 2
+                        // PIP 3
                         // Do not allow blank payments
                         
-                        DeActivationHeight = Params().GetHardFork_2(); // DeActivation
+                        DeActivationHeight = Params().PIP3_Height(); // DeActivation
 
                         if (pindexBest->nHeight+1 >= DeActivationHeight)
                         {
@@ -3618,8 +3617,8 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
 
                     bool foundDevFee = false;
 
-                    // devfee
-                    if (pindex->nHeight >= Params().GetHardFork_2())
+                    // PIP4 - Developers Fee (TO-DO: troubleshoot and test)
+                    if (pindex->nHeight >= Params().PIP4_Height())
                     {
                         CCoinAddress devRewardAddress(getDevRewardAddress(pindex->nHeight + 1));
                         
@@ -3642,7 +3641,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
 
                     CCoinAddress address2(address1);
 
-                    if (pindex->nHeight >= Params().GetHardFork_2())
+                    if (pindex->nHeight >= Params().PIP4_Height())
                     {
                         if (!foundDevFee)
                         {
@@ -3765,8 +3764,8 @@ bool CBlock::BlockShield(int Block_nHeight) const
     double Compare3;
     std::string TempLogCache;
 
-    // PHC Hard Fork 2
-    ActivationHeight = Params().GetHardFork_2();
+    // PIP 5
+    ActivationHeight = Params().PIP5_Height();
 
     if (Block_nHeight >= ActivationHeight)
     {
@@ -6791,6 +6790,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
                     if (!fNoListen)
                     {
                         CAddress addr = GetLocalAddress(&pnode->addr);
+
                         if (addr.IsRoutable())
                         {
                             pnode->PushAddress(addr);
@@ -6810,6 +6810,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         if (fSendTrickle)
         {
             vector<CAddress> vAddr;
+            
             vAddr.reserve(pto->vAddrToSend.size());
 
             for(const CAddress& addr: pto->vAddrToSend)
@@ -6818,6 +6819,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
                 if (pto->setAddrKnown.insert(addr).second)
                 {
                     vAddr.push_back(addr);
+                    
                     // receiver rejects addr messages larger than 1000 by default
                     if ((signed)vAddr.size() >= (signed)GetMaxAddrBandwidth(pto->nTurboSync))
                     {
@@ -7014,7 +7016,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
             pto->mapAskFor.erase(pto->mapAskFor.begin());
         }
 
-       if (!vGetData.empty())
+        if (!vGetData.empty())
         {
             pto->PushMessage("getdata", vGetData);
         }
@@ -7324,8 +7326,18 @@ namespace CChain
             LogPrint("core", "%s : REORGANIZE\n", __FUNCTION__);
         }
 
-        // Find the fork (Step back 1 parent blocks to reduce resource use & increase security)
-        CBlockIndex* pfork = pindexBest->pprev->pprev->pprev->pprev->pprev;
+        CBlockIndex* pfork;
+
+        if (IsInitialBlockDownload() == true)
+        {
+            // Find the fork (Step back 5 parent blocks to reduce resource use & increase security)
+            pfork = pindexBest->pprev->pprev->pprev->pprev->pprev;
+        }
+        else
+        {
+            pfork = pindexBest;
+        }
+
         CBlockIndex* plonger = pindexNew;
 
         while (pfork != plonger)
@@ -7446,8 +7458,6 @@ namespace CChain
             {
                 pindex->pprev->pnext = NULL;
             }
-
-            MilliSleep(3);
         }
 
         // Connect longer branch
@@ -7457,16 +7467,12 @@ namespace CChain
             {
                 pindex->pprev->pnext = pindex;
             }
-
-            MilliSleep(3);
         }
 
         // Resurrect memory transactions that were in the disconnected branch
         for(CTransaction& tx: vResurrect)
         {
             AcceptToMemoryPool(mempool, tx, false, NULL);
-
-            MilliSleep(3);
         }
 
         // Delete redundant memory transactions that are in the connected branch
@@ -7474,8 +7480,6 @@ namespace CChain
         {
             mempool.remove(tx);
             mempool.removeConflicts(tx);
-
-            MilliSleep(3);
         }
 
         if (fDebug)
