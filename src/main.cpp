@@ -223,6 +223,7 @@ namespace
         }
     };
 
+    // Map maintaining per-node state. Requires cs_main.
     map<NodeId, CNodeState> mapNodeState;
 
     // Requires cs_main.
