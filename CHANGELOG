@@ -85,6 +85,7 @@ v1.0.0.7 (Pre-release - unfinished)
 * Apostolaki Hijack (BGP) mitigation (Firewall)
 * DBDnv fix https://github.com/bitcoin/bitcoin/commit/323a5fe06af43d3922a435e696d6c52acc6fade1
 * Introduction of PIPs for hard-fork upgrades
+* StartSync function modified to sync from multiple nodes with a new BestScore
 
 TO FINISH (maybe):
 

@@ -2560,25 +2560,26 @@ void static StartSync(const vector<CNode*> &vNodes)
     for(CNode* pnode: vNodes)
     {
         // check preconditions for allowing a sync
-        if (!pnode->fClient && !pnode->fOneShot && !pnode->fDisconnect && pnode->fSuccessfullyConnected && (pnode->nStartingHeight > (nBestHeight - 144)) &&
-            (pnode->nVersion < NOBLKS_VERSION_START || pnode->nVersion >= NOBLKS_VERSION_END))
+        if (!pnode->fClient
+            && !pnode->fOneShot
+            && !pnode->fDisconnect
+            && pnode->fSuccessfullyConnected
+            && (pnode->nStartingHeight > (nBestHeight - 144))
+            && (pnode->nVersion < NOBLKS_VERSION_START || pnode->nVersion >= NOBLKS_VERSION_END))
         {
             // if ok, compare node's score with the best so far
             int64_t nScore = NodeSyncScore(pnode);
 
-            if (pnodeNewSync == NULL || nScore > nBestScore)
+            if (nScore > nBestScore)
             {
-                pnodeNewSync = pnode;
+                /// Increase the best score
                 nBestScore = nScore;
+
+                // if a new sync candidate was found, start sync!
+                // Must have a new best score to initiate sync
+                pnode->fStartSync = true;
             }
         }
-    }
-
-    // if a new sync candidate was found, start sync!
-    if (pnodeNewSync)
-    {
-        pnodeNewSync->fStartSync = true;
-        pnodeSync = pnodeNewSync;
     }
 }
 
