@@ -453,6 +453,7 @@ class CNodeStats
         
         bool fInbound;
         bool fSyncNode;
+
         double dPingTime;
         double dPingWait;
 
@@ -601,7 +602,7 @@ class CNode
         int nRefCount;
         NodeId id;
 
-        bool fStartSync;
+        bool fSyncNode;
 
         // Turbosync (C) 2019 - Profit Hunters Coin
         int64_t nTurboSync;
@@ -713,7 +714,7 @@ class CNode
             hashLastGetBlocksEnd = 0;
             nStartingHeight = -1;
 
-            fStartSync = false;
+            fSyncNode = false;
             fGetAddr = false;
             fRelayTxes = false;
             

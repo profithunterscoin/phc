@@ -22,11 +22,13 @@
 
 using namespace boost::assign;
 
+/* Not used yet
 struct SeedSpec6
 {
     uint8_t addr[16];
     uint16_t port;
 };
+*/
 
 #include "chainparamsseeds.h"
 
@@ -156,6 +158,9 @@ class CMainParams : public CChainParams
             base58Prefixes[STEALTH_ADDRESS] = std::vector<unsigned char>(1,40);
             base58Prefixes[EXT_PUBLIC_KEY] = list_of(0x04)(0x88)(0xB2)(0x1E).convert_to_container<std::vector<unsigned char> >();;
             base58Prefixes[EXT_SECRET_KEY] = list_of(0x04)(0x88)(0xAD)(0xE4).convert_to_container<std::vector<unsigned char> >();;
+
+            //vFixedSeeds.clear();
+            //vSeeds.clear();
 
             vSeeds.push_back(CDNSSeedData("0",  "54.37.233.45"));
             vSeeds.push_back(CDNSSeedData("1",  "142.44.246.195"));
@@ -435,11 +440,11 @@ class CTestNetParams : public CMainParams
 
             assert(hashGenesisBlock == uint256("0000ce8f49c8c59ed8a4c50cdacddc1f84b1be04e52232989887c99aad3e8e4e"));
 
-            vFixedSeeds.clear();
-            vSeeds.clear();
+            //vFixedSeeds.clear();
+            //vSeeds.clear();
 
             vSeeds.push_back(CDNSSeedData("1",  "54.37.233.45"));
-            vSeeds.push_back(CDNSSeedData("2",  "173.199.114.227"));
+            //vSeeds.push_back(CDNSSeedData("2",  "173.199.114.227"));
             vSeeds.push_back(CDNSSeedData("3",  "178.33.146.163"));
             vSeeds.push_back(CDNSSeedData("4",  "194.182.66.218"));
             vSeeds.push_back(CDNSSeedData("5",  "80.211.194.210"));

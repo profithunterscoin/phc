@@ -223,7 +223,6 @@ namespace
         }
     };
 
-    // Map maintaining per-node state. Requires cs_main.
     map<NodeId, CNodeState> mapNodeState;
 
     // Requires cs_main.
@@ -5280,6 +5279,7 @@ void static ProcessGetData(CNode* pfrom)
             {
                 // Send block from disk
                 map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(inv.hash);
+                
                 if (mi != mapBlockIndex.end())
                 {
                     CBlock block;
@@ -5636,6 +5636,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             AddTimeData(pfrom->addr, nTime);
         }
     }
+
     /////////////////////
     //
     // Get Message: version = (NULL)
@@ -5652,6 +5653,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
         return false;
     }
+
     /////////////////////
     //
     // Get Message: verack
@@ -5660,6 +5662,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
     {
         pfrom->SetRecvVersion(min(pfrom->nVersion, PROTOCOL_VERSION));
     }
+
     /////////////////////
     //
     // Get Message: addr
@@ -5768,6 +5771,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         }
 
     }
+
     /////////////////////
     //
     // Get Message: checkpoint
@@ -5816,6 +5820,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             }
         }
     }
+
     /////////////////////
     //
     // Get Message: inv
@@ -5886,6 +5891,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             g_signals.Inventory(inv.hash);
         }
     }
+
     /////////////////////
     //
     // Get Message: getdata
@@ -5920,6 +5926,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
         ProcessGetData(pfrom);
     }
+
     /////////////////////
     //
     // Get Message: getblocks
@@ -5978,6 +5985,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             }
         }
     }
+
     /////////////////////
     //
     // Get Message: getheaders
@@ -6038,6 +6046,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
         pfrom->PushMessage("headers", vHeaders);
     }
+
     /////////////////////
     //
     // Get Message: tx or dstx
@@ -6082,6 +6091,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
             //these allow masternodes to publish a limited amount of free transactions
             CMasternode* pmn = mnodeman.Find(vin);
+
             if(pmn != NULL)
             {
                 if(!pmn->allowFreeTx)
@@ -6122,6 +6132,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
                 if(!mapDarksendBroadcastTxes.count(tx.GetHash()))
                 {
                     CDarksendBroadcastTx dstx;
+                    
                     dstx.tx = tx;
                     dstx.vin = vin;
                     dstx.vchSig = vchSig;
@@ -6223,6 +6234,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             Misbehaving(pfrom->GetId(), tx.nDoS);
         }
     }
+
     /////////////////////
     //
     // Get Message: block
@@ -6266,6 +6278,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         }
 
     }
+
     /////////////////////
     //
     // Get Message: getaddr
@@ -6292,6 +6305,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             }
         }
     }
+
     /////////////////////
     //
     // Get Message: mempool
@@ -6324,6 +6338,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         }
 
     }
+
     /////////////////////
     //
     // Get Message: ping
@@ -6349,6 +6364,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             pfrom->PushMessage("pong", nonce);
         }
     }
+
     /////////////////////
     //
     // Get Message: pong
@@ -6424,6 +6440,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             pfrom->nPingNonceSent = 0;
         }
     }
+
     /////////////////////
     //
     // Get Message: alert
@@ -6462,6 +6479,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             }
         }
     }
+
     /////////////////////
     //
     // Get Message: unknown
@@ -6751,16 +6769,16 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         //
 
         TRY_LOCK(cs_main, lockMain); // Acquire cs_main for IsInitialBlockDownload() and CNodeState()
+        
         if (!lockMain)
         {
             return true;
         }
 
         // Start block sync
-        if (pto->fStartSync && !fImporting && !fReindex)
+        if (pto->fSyncNode && !fImporting && !fReindex)
         {
-            pto->fStartSync = false;
-            pto->PushGetBlocks(pindexBest, uint256(0));
+            pto->PushGetBlocks(pindexBest->pprev, uint256(0));
         }
 
         // Resend wallet transactions that haven't gotten in a block yet
@@ -6773,6 +6791,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
 
         // Address refresh broadcast
         static int64_t nLastRebroadcast;
+
         if (!IsInitialBlockDownload() && (GetTime() - nLastRebroadcast > 24 * 60 * 60))
         {
             // Global Namespace Start
@@ -6791,7 +6810,6 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
                     if (!fNoListen)
                     {
                         CAddress addr = GetLocalAddress(&pnode->addr);
-
                         if (addr.IsRoutable())
                         {
                             pnode->PushAddress(addr);
@@ -6811,7 +6829,6 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         if (fSendTrickle)
         {
             vector<CAddress> vAddr;
-            
             vAddr.reserve(pto->vAddrToSend.size());
 
             for(const CAddress& addr: pto->vAddrToSend)
@@ -6820,7 +6837,6 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
                 if (pto->setAddrKnown.insert(addr).second)
                 {
                     vAddr.push_back(addr);
-                    
                     // receiver rejects addr messages larger than 1000 by default
                     if ((signed)vAddr.size() >= (signed)GetMaxAddrBandwidth(pto->nTurboSync))
                     {
@@ -7105,8 +7121,6 @@ namespace CChain
                     if (pindexBest)
                     {
                         // Start a new fresh sync
-                        pnode->fStartSync = false;
-
                         pnode->PushGetBlocks(pindexBest->pprev, uint256(0));
 
                         NodeCount++;
@@ -7165,8 +7179,6 @@ namespace CChain
                 if (SyncNode == true)
                 {
                     // Start a new fresh sync
-                    pnode->fStartSync = false;
-
                     pnode->PushGetBlocks(pindexBest->pprev, uint256(0));
 
                     NodeCount++;

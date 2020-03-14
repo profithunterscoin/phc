@@ -46,7 +46,6 @@ v1.0.0.7 (Pre-release - unfinished)
 * Menu Items update: File -> Main, Settings -> Wallet, Added: Tools, Mining & Social Links
 * Fixes from Talium coin (https://github.com/taliumtech/talium/commit/f673d50f41b4f5ee6f9e670d859a9de634620071)
 * Installed: Developer Fee, 10% of block reward (Hard Fork 1)
-* TurboSync 1.0.0 (2x network sync speedup, unlimited scaling)
 * Installed: RPC forcesync, getpeeraverageheight
 * Dynamic Checkpoints 1.0.0
 * Chain Shield 1.0.0 (default check every 1 block)
@@ -85,7 +84,8 @@ v1.0.0.7 (Pre-release - unfinished)
 * Apostolaki Hijack (BGP) mitigation (Firewall)
 * DBDnv fix https://github.com/bitcoin/bitcoin/commit/323a5fe06af43d3922a435e696d6c52acc6fade1
 * Introduction of PIPs for hard-fork upgrades
-* StartSync function modified to sync from multiple nodes with a new BestScore
+* StartSync function modified to NodeSync (More efficient legacy sync, stops random stalling)
+* TurboSync 1.0.1 (2x legacy network sync speedup, unlimited scaling, getchain P2P)
 
 TO FINISH (maybe):
 
