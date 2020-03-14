@@ -2554,7 +2554,7 @@ void static NodeSync(const vector<CNode*> &vNodes)
         // check preconditions for allowing a sync
         if (!pnode->fClient
             && !pnode->fSyncNode
-            && nRefCount > 0
+            && pnode->nRefCount > 0
             && pnode->nLastRecv > 0
             && !pnode->fOneShot
             && !pnode->fDisconnect
