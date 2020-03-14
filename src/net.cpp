@@ -708,13 +708,6 @@ void CNode::CloseSocketDisconnect()
     {
         vRecvMsg.clear();
     }
-
-    // if this was the sync node, we'll need a new one
-    if (this == pnodeSync)
-    {
-        pnodeSync = NULL;
-    }
-
 }
 
 
@@ -944,7 +937,7 @@ void CNode::copyStats(CNodeStats &stats)
     X(nInvalidRecvPackets);
     X(nSendBytes);
     X(nRecvBytes);
-    stats.fSyncNode = (this == pnodeSync);
+    X(fSyncNode);
 
     // It is common for nodes with good ping times to suddenly become lagged,
     // due to a new block arriving or other large transfer.
@@ -2535,20 +2528,10 @@ bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant *grantOu
     return true;
 }
 
+int nLastSyncCycle;
 
-// for now, use a very simple selection metric: the node from which we received
-// most recently
-static int64_t NodeSyncScore(const CNode *pnode)
+void static NodeSync(const vector<CNode*> &vNodes)
 {
-    return pnode->nLastRecv;
-}
-
-
-void static StartSync(const vector<CNode*> &vNodes)
-{
-    CNode *pnodeNewSync = NULL;
-    int64_t nBestScore = 0;
-
     // fImporting and fReindex are accessed out of cs_main here, but only
     // as an optimization - they are checked again in SendMessages.
     if (fImporting || fReindex)
@@ -2556,28 +2539,36 @@ void static StartSync(const vector<CNode*> &vNodes)
         return;
     }
 
+    if (nLastSyncCycle > 0 && nLastSyncCycle > GetTime() - 60)
+    {
+        return;
+    }
+
+    nLastSyncCycle = GetTime();
+
     // Iterate over all nodes
     for(CNode* pnode: vNodes)
     {
+        LOCK(cs_vNodes);
+
         // check preconditions for allowing a sync
         if (!pnode->fClient
+            && !pnode->fSyncNode
+            && nRefCount > 0
+            && pnode->nLastRecv > 0
             && !pnode->fOneShot
             && !pnode->fDisconnect
             && pnode->fSuccessfullyConnected
             && (pnode->nStartingHeight > (nBestHeight - 144))
             && (pnode->nVersion < NOBLKS_VERSION_START || pnode->nVersion >= NOBLKS_VERSION_END))
         {
-            // if ok, compare node's score with the best so far
-            int64_t nScore = NodeSyncScore(pnode);
-
-            if (nScore > nBestScore)
+            // if a new sync candidate was found, start sync!
+            pnode->fSyncNode = true;
+            
+            // Force a new GetBlocks request to each node if Hypersync mode is enabled
+            if (GetBoolArg("-hypersync", false) == true)
             {
-                /// Increase the best score
-                nBestScore = nScore;
-
-                // if a new sync candidate was found, start sync!
-                // Must have a new best score to initiate sync
-                pnode->fStartSync = true;
+                pnode->PushGetBlocks(pindexBest->pprev, uint256(0));
             }
         }
     }
@@ -2590,8 +2581,6 @@ void ThreadMessageHandler()
 
     while (true)
     {
-        bool fHaveSyncNode = false;
-
         vector<CNode*> vNodesCopy;
         {
             LOCK(cs_vNodes);
@@ -2601,18 +2590,10 @@ void ThreadMessageHandler()
             for(CNode* pnode: vNodesCopy)
             {
                 pnode->AddRef();
-
-                if (pnode == pnodeSync)
-                {
-                    fHaveSyncNode = true;
-                }
             }
         }
 
-        if (!fHaveSyncNode)
-        {
-            StartSync(vNodesCopy);
-        }
+        NodeSync(vNodesCopy);
 
         CNode* pnodeTrickle = NULL;
 

@@ -1237,6 +1237,7 @@ class CBlockIndex
             if (block.IsProofOfStake())
             {
                 SetProofOfStake();
+
                 prevoutStake = block.vtx[1].vin[0].prevout;
                 nStakeTime = block.vtx[1].nTime;
             }
@@ -1256,7 +1257,28 @@ class CBlockIndex
         CBlock GetBlockHeader() const
         {
             CBlock block;
+
             block.nVersion       = nVersion;
+
+            if (pprev)
+            {
+                block.hashPrevBlock = pprev->GetBlockHash();
+            }
+
+            block.hashMerkleRoot = hashMerkleRoot;
+            block.nTime          = nTime;
+            block.nBits          = nBits;
+            block.nNonce         = nNonce;
+
+            return block;
+        }
+
+        CBlock GetBlock() const
+        {
+            CBlock block;
+
+            block.nVersion       = nVersion;
+
             if (pprev)
             {
                 block.hashPrevBlock = pprev->GetBlockHash();
