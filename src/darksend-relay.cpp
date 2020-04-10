@@ -152,7 +152,8 @@ void CDarkSendRelay::RelayThroughNode(int nRank)
 
     if(pmn != NULL)
     {
-        //printf("RelayThroughNode %s\n", pmn->addr.ToString().c_str());
+        //printf("RelayThroughNode %s\n", pmn->addr.ToStringIPPort().c_str());
+
         if(ConnectNode((CAddress)pmn->addr, NULL, true))
         {
             //printf("Connected\n");

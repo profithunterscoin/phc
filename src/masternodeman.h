@@ -141,6 +141,7 @@ class CMasternodeDB
 
             // Find an entry
             CMasternode* Find(const CTxIn& vin);
+            CMasternode* Find(const CService& addr);
             CMasternode* Find(const CPubKey& pubKeyMasternode);
 
             //Find an entry thta do not match every entry provided vector

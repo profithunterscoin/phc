@@ -185,20 +185,14 @@ class CChainParams
             return nPIP5;
         }
 
-        // strict PoS rules
+        // ASIC Choker
         int PIP6_Height() const
         {
             return nPIP6;
         }
 
-        // ASIC Choker
-        int PIP7_Height() const
-        {
-            return nPIP6;
-        }
-
         // IncrementExtraNonce
-        int PIP8_Height() const
+        int PIP7_Height() const
         {
             return nPIP7;
         }

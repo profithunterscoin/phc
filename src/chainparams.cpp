@@ -331,11 +331,8 @@ class CMainParams : public CChainParams
             // ASIC Choker
             nPIP6 = 999999999; // Block # Activation (UNDECIDED)
 
-            // strict PoS rules
-            nPIP6 = 999999999; // Block # Activation (UNDECIDED)
-
             // IncrementExtraNonce
-            nPIP6 = 999999999; // Block # Activation (UNDECIDED)
+            nPIP7 = 999999999; // Block # Activation (UNDECIDED)
         }
 
         virtual const CBlock& GenesisBlock() const
@@ -490,11 +487,8 @@ class CTestNetParams : public CMainParams
             // ASIC Choker
             nPIP6 = 1; // Block #1 Activation
 
-            // strict PoS rules
-            nPIP7 = 1; // Block #1 Activation
-
             // IncrementExtraNonce
-            nPIP8 = 1; // Block #1 Activation
+            nPIP7 = 1; // Block #1 Activation
 
 
             ///////////////////////

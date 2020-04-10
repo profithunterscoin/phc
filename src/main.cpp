@@ -5496,7 +5496,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
             if (fDebug)
             {
-                LogPrint("net", "%s : peer %s banned for sending version command after received version %i; disconnecting\n", __FUNCTION__, pfrom->addr.ToString(), pfrom->nVersion);
+                LogPrint("net", "%s : peer %s banned for sending version command after received version %i; disconnecting\n", __FUNCTION__, pfrom->addr.ToStringIPPort(), pfrom->nVersion);
             }
 
             return false;
@@ -5513,7 +5513,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             // disconnect from peers older than this proto version
             if(fDebug)
             {
-                LogPrint("net", "%s : partner %s using obsolete version %i; disconnecting\n", __FUNCTION__, pfrom->addr.ToString(), pfrom->nVersion);
+                LogPrint("net", "%s : partner %s using obsolete version %i; disconnecting\n", __FUNCTION__, pfrom->addr.ToStringIPPort(), pfrom->nVersion);
             }
 
             pfrom->fDisconnect = true;
@@ -5550,7 +5550,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         {
             if(fDebug)
             {
-                LogPrint("net", "%s : connected to self at %s, disconnecting\n", __FUNCTION__, pfrom->addr.ToString());
+                LogPrint("net", "%s : connected to self at %s, disconnecting\n", __FUNCTION__, pfrom->addr.ToStringIPPort());
             }
             
             pfrom->fDisconnect = true;
@@ -5628,7 +5628,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
         if(fDebug)
         {
-            LogPrint("net", "%s : receive version message: version %d, blocks=%d, us=%s, them=%s, peer=%s\n", __FUNCTION__, pfrom->nVersion, pfrom->nStartingHeight, addrMe.ToString(), addrFrom.ToString(), pfrom->addr.ToString());
+            LogPrint("net", "%s : receive version message: version %d, blocks=%d, us=%s, them=%s, peer=%s\n", __FUNCTION__, pfrom->nVersion, pfrom->nStartingHeight, addrMe.ToString(), addrFrom.ToString(), pfrom->addr.ToStringIPPort());
         }
 
         if (GetBoolArg("-synctime", true))
@@ -5648,7 +5648,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
         if(fDebug)
         {
-            LogPrint("net", "%s : failed to receive version message from peer: %s (banned)\n", __FUNCTION__, pfrom->addr.ToString());
+            LogPrint("net", "%s : failed to receive version message from peer: %s (banned)\n", __FUNCTION__, pfrom->addr.ToStringIPPort());
         }
 
         return false;
@@ -6431,7 +6431,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         {
             if(fDebug)
             {
-                LogPrint("net", "%s : pong %s %s: %s, %x expected, %x received, %zu bytes\n", __FUNCTION__, pfrom->addr.ToString(), pfrom->strSubVer, sProblem, pfrom->nPingNonceSent, nonce, nAvail);
+                LogPrint("net", "%s : pong %s %s: %s, %x expected, %x received, %zu bytes\n", __FUNCTION__, pfrom->addr.ToStringIPPort(), pfrom->strSubVer, sProblem, pfrom->nPingNonceSent, nonce, nAvail);
             }
         }
 
@@ -6860,7 +6860,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
             {
                 if (fDebug)
                 {
-                    LogPrint("net", "%s : Warning: not banning local node %s!\n", __FUNCTION__, pto->addr.ToString().c_str());
+                    LogPrint("net", "%s : Warning: not banning local node %s!\n", __FUNCTION__, pto->addr.ToStringIPPort().c_str());
                 }
             }
             else

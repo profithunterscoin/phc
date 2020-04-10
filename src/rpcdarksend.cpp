@@ -204,7 +204,7 @@ Value getpoolinfo(const Array& params, bool fHelp)
 
     Object obj;
     
-    obj.push_back(Pair("current_masternode",        mnodeman.GetCurrentMasterNode()->addr.ToString()));
+    obj.push_back(Pair("current_masternode",        mnodeman.GetCurrentMasterNode()->addr.ToStringIPPort()));
     obj.push_back(Pair("state",                     darkSendPool.GetState()));
     obj.push_back(Pair("entries",                   darkSendPool.GetEntriesCount()));
     obj.push_back(Pair("entries_accepted",          darkSendPool.GetCountEntriesAccepted()));
@@ -790,7 +790,7 @@ Value masternode(const Array& params, bool fHelp)
 
             CCoinAddress address2(address1);
 
-            obj.push_back(Pair("IP:port",       winner->addr.ToString().c_str()));
+            obj.push_back(Pair("IP:port",       winner->addr.ToStringIPPort().c_str()));
             obj.push_back(Pair("protocol",      (int64_t)winner->protocolVersion));
             obj.push_back(Pair("vin",           winner->vin.prevout.hash.ToString().c_str()));
             obj.push_back(Pair("pubkey",        address2.ToString().c_str()));
@@ -1240,7 +1240,7 @@ Value masternodelist(const Array& params, bool fHelp)
                                mn.Status() << " " <<
                                mn.protocolVersion << " " <<
                                address2.ToString() << " " <<
-                               mn.addr.ToString() << " " <<
+                               mn.addr.ToStringIPPort() << " " <<
                                mn.lastTimeSeen << " " << setw(8) <<
                                (mn.lastTimeSeen - mn.sigTime) << " " <<
                                mn.nLastPaid;
@@ -1310,7 +1310,7 @@ Value masternodelist(const Array& params, bool fHelp)
                     continue;
                 }
 
-                obj.push_back(Pair(strVin,       mn.addr.ToString().c_str()));
+                obj.push_back(Pair(strVin,       mn.addr.ToStringIPPort().c_str()));
             }
             else if(strMode == "votes")
             {

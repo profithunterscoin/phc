@@ -1039,13 +1039,15 @@ void ThreadStakeMiner(CWallet *pwallet)
 
     int LastStakeEarned = 0;
 
+    int LastBlockStake = 0;
+
     while (fStaking == true)
     {
         while (pwallet->IsLocked())
         {
             nLastCoinStakeSearchInterval = 0;
 
-            boost::this_thread::sleep_for(boost::chrono::seconds(5));
+            boost::this_thread::sleep_for(boost::chrono::milliseconds(nMinerSleep));
         }
 
         while (vNodes.empty() || IsInitialBlockDownload())
@@ -1054,7 +1056,7 @@ void ThreadStakeMiner(CWallet *pwallet)
             
             fTryToSync = true;
             
-            boost::this_thread::sleep_for(boost::chrono::seconds(5));
+            boost::this_thread::sleep_for(boost::chrono::milliseconds(nMinerSleep));
         }
 
         if (fTryToSync)
@@ -1063,15 +1065,16 @@ void ThreadStakeMiner(CWallet *pwallet)
 
             if (vNodes.size() < 8)
             {
-                boost::this_thread::sleep_for(boost::chrono::seconds(60));
+                boost::this_thread::sleep_for(boost::chrono::milliseconds(nMinerSleep));
             
                 continue;
             }
         }
 
-        if (mnodeman.size() < 20)
+        // No less than 50 masternodes in list allowed for staking
+        if (mnodeman.size() < 50)
         {
-            boost::this_thread::sleep_for(boost::chrono::seconds(5));
+            boost::this_thread::sleep_for(boost::chrono::milliseconds(nMinerSleep));
 
             continue;
         }
@@ -1079,35 +1082,33 @@ void ThreadStakeMiner(CWallet *pwallet)
         // Don't even try unless fully synced
         if (pindexBest->GetBlockTime() < GetTime() - 10 * 60)
         {
-            boost::this_thread::sleep_for(boost::chrono::seconds(5));
+            boost::this_thread::sleep_for(boost::chrono::milliseconds(nMinerSleep));
 
             continue;
         }
 
-        // PIP6 - Activate strict PoS rules
-        if (pindexBest->nHeight >= Params().PIP6_Height())
+        /*
+        //Wait for PoW block
+        if (pindexBest->IsProofOfStake())
         {
-            // Try to be on target (60 seconds per block)
-            if (GetTime() - pindexBest->GetBlockTime() < 58)
-            {
-                boost::this_thread::sleep_for(boost::chrono::seconds(5));
+            boost::this_thread::sleep_for(boost::chrono::seconds(10));
 
-                continue;
-            }
+            continue;
+        }
+        */
 
-            //Wait for PoW block (TO REVIEW for Hard Fork 2)
-            if (pindexBest->IsProofOfStake())
-            {
-                boost::this_thread::sleep_for(boost::chrono::seconds(5));
+        // Prevent stakes generated too quickly (less than the minimum block time)
+        if (GetTime() - LastStakeEarned < 240)
+        {
+            boost::this_thread::sleep_for(boost::chrono::milliseconds(nMinerSleep));
 
-                continue;
-            }
+            continue;
         }
 
-        // Prevent stakes generated too quickly (possible forking)
-        if (GetTime() - LastStakeEarned < 60)
+        // Prevent stakes generated too quickly (stake every 3 blocks max)
+        if (pindexBest->nHeight - LastBlockStake < 3)
         {
-            boost::this_thread::sleep_for(boost::chrono::seconds(60));
+            boost::this_thread::sleep_for(boost::chrono::milliseconds(nMinerSleep));
 
             continue;
         }
@@ -1140,16 +1141,13 @@ void ThreadStakeMiner(CWallet *pwallet)
             ProcessBlockStake(pblock.get(), *pwallet);
             
             LastStakeEarned = GetTime();
+
+            LastBlockStake = pindexBest->nHeight;
             
             Set_ThreadPriority(THREAD_PRIORITY_LOWEST);
-            
-            boost::this_thread::sleep_for(boost::chrono::milliseconds(500));
-        }
-        else
-        {
-            boost::this_thread::sleep_for(boost::chrono::milliseconds(nMinerSleep));
         }
 
+        boost::this_thread::sleep_for(boost::chrono::milliseconds(nMinerSleep));
     }
 }
 

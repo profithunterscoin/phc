@@ -283,20 +283,49 @@ bool CMasternodeMan::Add(CMasternode &mn)
 {
     LOCK(cs);
 
-    CMasternode *pmn = Find(mn.vin);
-
-    if (pmn == NULL)
+    // Check Port is not closed
+    if (mn.isPortOpen == false)
     {
         if (fDebug)
         {
-            LogPrint("masternode", "%s : Adding new masternode %s - %i now\n", __FUNCTION__, mn.addr.ToString().c_str(), size() + 1);
+            LogPrint("masternode", "%s : Port Closed for masternode %s - %i skipping\n", __FUNCTION__, mn.addr.ToStringIPPort().c_str(), size() + 1);
         }
 
+        return false;
+    }
+
+
+    // Check IP is not already found in the list
+    CMasternode *pmn1 = Find(mn.addr);
+
+    if (pmn1 != NULL)
+    {
+        if (fDebug)
+        {
+            LogPrint("masternode", "%s : Duplicate IP found for masternode %s - %i skipping\n", __FUNCTION__, mn.addr.ToStringIPPort().c_str(), size() + 1);
+        }
+
+        return false;
+    }
+
+
+    // Check VIN is not already found in the list
+    CMasternode *pmn2 = Find(mn.vin);
+
+    if (pmn2 == NULL)
+    {
+        if (fDebug)
+        {
+            LogPrint("masternode", "%s : Adding new masternode %s - %i now\n", __FUNCTION__, mn.addr.ToStringIPPort().c_str(), size() + 1);
+        }
+
+        // Add to Masternode List
         vMasternodes.push_back(mn);
         
         return true;
     }
 
+    // Fail: Error
     return false;
 }
 
@@ -352,11 +381,13 @@ void CMasternodeMan::CheckAndRemove()
 
     while(it != vMasternodes.end())
     {
-        if((*it).activeState == CMasternode::MASTERNODE_REMOVE || (*it).activeState == CMasternode::MASTERNODE_VIN_SPENT || (*it).protocolVersion < nMasternodeMinProtocol)
+        if((*it).activeState != CMasternode::MASTERNODE_ENABLED
+            || (*it).isPortOpen == false
+            || (*it).protocolVersion < nMasternodeMinProtocol)
         {
             if (fDebug)
             {
-                LogPrint("masternode", "%s : Removing inactive masternode %s - %i now\n", __FUNCTION__, (*it).addr.ToString().c_str(), size() - 1);
+                LogPrint("masternode", "%s : Removing inactive masternode %s - %i now\n", __FUNCTION__, (*it).addr.ToStringIPPort().c_str(), size() - 1);
             }
 
             it = vMasternodes.erase(it);
@@ -367,8 +398,51 @@ void CMasternodeMan::CheckAndRemove()
         }
     }
 
+    // Remove duplicate nodes
+    while(it != vMasternodes.end())
+    {
+        CMasternode *pmn;
+        bool fMNRemoved;
+
+        // Find Masternode based on IP address
+        pmn = Find((*it).addr);
+
+        if(pmn != NULL)
+        {
+            it = vMasternodes.erase(it);
+            fMNRemoved = true;
+        } 
+        
+        // Search for duplicate add from previous removal if not still found
+        CMasternode *pmn1;
+
+        // Find Masternode based on IP address
+        pmn1 = Find((*it).addr);
+
+        if(pmn1 == NULL)
+        {
+            if (fMNRemoved == true)
+            {
+                vMasternodes.push_back((*it));
+            }
+        }
+        else
+        {
+            if (fDebug)
+            {
+                LogPrint("masternode", "%s : Removed duplicate masternode %s - %i now\n", __FUNCTION__, (*it).addr.ToStringIPPort().c_str(), size() - 1);
+            }
+        }
+
+        // Search for unreachable connections (give them 100 block intervals)
+        // TO-DO: Connect, and ask for hash of (dynamiccheckpoint & MN.pubkey)
+
+        ++it;
+    }
+
     // check who's asked for the masternode list
     map<CNetAddr, int64_t>::iterator it1 = mAskedUsForMasternodeList.begin();
+
     while(it1 != mAskedUsForMasternodeList.end())
     {
         if((*it1).second < GetTime())
@@ -383,6 +457,7 @@ void CMasternodeMan::CheckAndRemove()
 
     // check who we asked for the masternode list
     it1 = mWeAskedForMasternodeList.begin();
+
     while(it1 != mWeAskedForMasternodeList.end())
     {
         if((*it1).second < GetTime())
@@ -481,7 +556,7 @@ void CMasternodeMan::DsegUpdate(CNode* pnode)
         {
             if (fDebug)
             {
-                LogPrint("masternode", "%s : we already asked %s for the list; skipping...\n", __FUNCTION__, pnode->addr.ToString());
+                LogPrint("masternode", "%s : we already asked %s for the list; skipping...\n", __FUNCTION__, pnode->addr.ToStringIPPort());
             }
 
             return;
@@ -503,6 +578,23 @@ CMasternode *CMasternodeMan::Find(const CTxIn &vin)
     for(CMasternode& mn: vMasternodes)
     {
         if(mn.vin.prevout == vin.prevout)
+        {
+            return &mn;
+        }
+    }
+
+    return NULL;
+}
+
+
+CMasternode *CMasternodeMan::Find(const CService &addr)
+{
+    LOCK(cs);
+
+    for(CMasternode& mn: vMasternodes)
+    {
+        // Find IP Address but ignore Port
+        if(mn.addr.ToString() == addr.ToString())
         {
             return &mn;
         }
@@ -857,7 +949,7 @@ void CMasternodeMan::ProcessMasternodeConnections()
         {
             if (fDebug)
             {
-                LogPrint("masternode", "%s : Closing masternode connection %s \n", __FUNCTION__, pnode->addr.ToString().c_str());
+                LogPrint("masternode", "%s : Closing masternode connection %s \n", __FUNCTION__, pnode->addr.ToStringIPPort().c_str());
             }
 
             pnode->CloseSocketDisconnect();
@@ -954,7 +1046,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         std::string vchPubKey(pubkey.begin(), pubkey.end());
         std::string vchPubKey2(pubkey2.begin(), pubkey2.end());
 
-        strMessage = addr.ToString() + boost::lexical_cast<std::string>(sigTime) + vchPubKey + vchPubKey2 + boost::lexical_cast<std::string>(protocolVersion);    
+        strMessage = addr.ToStringIPPort() + boost::lexical_cast<std::string>(sigTime) + vchPubKey + vchPubKey2 + boost::lexical_cast<std::string>(protocolVersion);    
 
         if(protocolVersion < MIN_POOL_PEER_PROTO_VERSION)
         {
@@ -1048,7 +1140,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
                     if (fDebug)
                     {
-                        LogPrint("masternode", "%s : Got updated entry for %s\n", __FUNCTION__, addr.ToString().c_str());
+                        LogPrint("masternode", "%s : Got updated entry for %s\n", __FUNCTION__, addr.ToStringIPPort().c_str());
                     }
 
                     pmn->pubkey2 = pubkey2;
@@ -1085,7 +1177,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
         if (fDebug)
         {
-            LogPrint("masternode", "%s : Got NEW masternode entry %s\n", __FUNCTION__, addr.ToString().c_str());
+            LogPrint("masternode", "%s : Got NEW masternode entry %s\n", __FUNCTION__, addr.ToStringIPPort().c_str());
         }
 
         // make sure it's still unspent
@@ -1149,7 +1241,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
                 {
                     if (fDebug)
                     {
-                        LogPrint("masternode", "%s : Bad sigTime %d for masternode %20s %105s (%i conf block is at %d)\n", __FUNCTION__, sigTime, addr.ToString(), vin.ToString(), MASTERNODE_MIN_CONFIRMATIONS, pConfIndex->GetBlockTime());
+                        LogPrint("masternode", "%s : Bad sigTime %d for masternode %20s %105s (%i conf block is at %d)\n", __FUNCTION__, sigTime, addr.ToStringIPPort(), vin.ToString(), MASTERNODE_MIN_CONFIRMATIONS, pConfIndex->GetBlockTime());
                     }
 
                     return;
@@ -1187,7 +1279,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         {
             if (fDebug)
             {
-                LogPrint("masternode", "%s : Rejected masternode entry %s\n", __FUNCTION__, addr.ToString().c_str());
+                LogPrint("masternode", "%s : Rejected masternode entry %s\n", __FUNCTION__, addr.ToStringIPPort().c_str());
             }
 
             int nDoS = 0;
@@ -1196,7 +1288,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
             {
                 if (fDebug)
                 {
-                    LogPrint("masternode", "%s : %s from %s %s was not accepted into the memory pool\n", __FUNCTION__, tx.GetHash().ToString().c_str(), pfrom->addr.ToString().c_str(), pfrom->cleanSubVer.c_str());
+                    LogPrint("masternode", "%s : %s from %s %s was not accepted into the memory pool\n", __FUNCTION__, tx.GetHash().ToString().c_str(), pfrom->addr.ToStringIPPort().c_str(), pfrom->cleanSubVer.c_str());
                 }
 
                 if (nDoS > 0)
@@ -1285,7 +1377,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         std::string vchPubKey(pubkey.begin(), pubkey.end());
         std::string vchPubKey2(pubkey2.begin(), pubkey2.end());
 
-        strMessage = addr.ToString() + boost::lexical_cast<std::string>(sigTime) + vchPubKey + vchPubKey2 + boost::lexical_cast<std::string>(protocolVersion)  + rewardAddress.ToString() + boost::lexical_cast<std::string>(rewardPercentage);
+        strMessage = addr.ToStringIPPort() + boost::lexical_cast<std::string>(sigTime) + vchPubKey + vchPubKey2 + boost::lexical_cast<std::string>(protocolVersion)  + rewardAddress.ToString() + boost::lexical_cast<std::string>(rewardPercentage);
         
         if(rewardPercentage < 0 || rewardPercentage > 100)
         {
@@ -1389,7 +1481,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
                     if (fDebug)
                     {
-                        LogPrint("masternode", "%s : Got updated entry for %s\n", __FUNCTION__, addr.ToString().c_str());
+                        LogPrint("masternode", "%s : Got updated entry for %s\n", __FUNCTION__, addr.ToStringIPPort().c_str());
                     }
 
                     pmn->pubkey2 = pubkey2;
@@ -1428,7 +1520,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
         if (fDebug)
         {
-            LogPrint("masternode", "%s : Got NEW masternode entry %s\n", __FUNCTION__, addr.ToString().c_str());
+            LogPrint("masternode", "%s : Got NEW masternode entry %s\n", __FUNCTION__, addr.ToStringIPPort().c_str());
         }
 
         // make sure it's still unspent
@@ -1493,7 +1585,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
                 {
                     if (fDebug)
                     {
-                        LogPrint("masternode", "%s : Bad sigTime %d for masternode %20s %105s (%i conf block is at %d)\n", __FUNCTION__, sigTime, addr.ToString(), vin.ToString(), MASTERNODE_MIN_CONFIRMATIONS, pConfIndex->GetBlockTime());
+                        LogPrint("masternode", "%s : Bad sigTime %d for masternode %20s %105s (%i conf block is at %d)\n", __FUNCTION__, sigTime, addr.ToStringIPPort(), vin.ToString(), MASTERNODE_MIN_CONFIRMATIONS, pConfIndex->GetBlockTime());
                     }
 
                     return;
@@ -1539,7 +1631,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         {
             if (fDebug)
             {
-                LogPrint("masternode", "%s : Rejected masternode entry %s\n", __FUNCTION__, addr.ToString().c_str());
+                LogPrint("masternode", "%s : Rejected masternode entry %s\n", __FUNCTION__, addr.ToStringIPPort().c_str());
             }
 
             int nDoS = 0;
@@ -1548,7 +1640,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
             {
                 if (fDebug)
                 {
-                    LogPrint("masternode", "%s : %s from %s %s was not accepted into the memory pool\n", __FUNCTION__, tx.GetHash().ToString().c_str(), pfrom->addr.ToString().c_str(), pfrom->cleanSubVer.c_str());
+                    LogPrint("masternode", "%s : %s from %s %s was not accepted into the memory pool\n", __FUNCTION__, tx.GetHash().ToString().c_str(), pfrom->addr.ToStringIPPort().c_str(), pfrom->cleanSubVer.c_str());
                 }
 
                 if (nDoS > 0)
@@ -1610,7 +1702,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
             // take this only if it's newer
             if(pmn->lastDseep < sigTime)
             {
-                std::string strMessage = pmn->addr.ToString() + boost::lexical_cast<std::string>(sigTime) + boost::lexical_cast<std::string>(stop);
+                std::string strMessage = pmn->addr.ToStringIPPort() + boost::lexical_cast<std::string>(sigTime) + boost::lexical_cast<std::string>(stop);
 
                 std::string errorMessage = "";
 
@@ -1781,7 +1873,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
             {
                 if (fDebug)
                 {
-                    LogPrint("masternode", "%s : Sending masternode entry - %s \n", __FUNCTION__, mn.addr.ToString().c_str());
+                    LogPrint("masternode", "%s : Sending masternode entry - %s \n", __FUNCTION__, mn.addr.ToStringIPPort().c_str());
                 }
 
                 if(vin == CTxIn())
@@ -1808,7 +1900,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
                     if (fDebug)
                     {
-                        LogPrint("masternode", "%s : Sent 1 masternode entries to %s\n", __FUNCTION__, pfrom->addr.ToString().c_str());
+                        LogPrint("masternode", "%s : Sent 1 masternode entries to %s\n", __FUNCTION__, pfrom->addr.ToStringIPPort().c_str());
                     }
 
                     return;
@@ -1820,7 +1912,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
         if (fDebug)
         {
-            LogPrint("masternode", "%s : Sent %d masternode entries to %s\n", __FUNCTION__, i, pfrom->addr.ToString().c_str());
+            LogPrint("masternode", "%s : Sent %d masternode entries to %s\n", __FUNCTION__, i, pfrom->addr.ToStringIPPort().c_str());
         }
     }
 
@@ -1872,7 +1964,7 @@ void CMasternodeMan::Remove(CTxIn vin)
         {
             if (fDebug)
             {
-                LogPrint("masternode", "%s : Removing Masternode %s - %i now\n", __FUNCTION__, (*it).addr.ToString().c_str(), size() - 1);
+                LogPrint("masternode", "%s : Removing Masternode %s - %i now\n", __FUNCTION__, (*it).addr.ToStringIPPort().c_str(), size() - 1);
             }
             
             vMasternodes.erase(it);
