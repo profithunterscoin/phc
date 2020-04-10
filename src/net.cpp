@@ -74,7 +74,6 @@ static bool vfReachable[NET_MAX] = {};
 static bool vfLimited[NET_MAX] = {};
 
 static CNode* pnodeLocalHost = NULL;
-static CNode* pnodeSync = NULL;
 
 uint64_t nLocalHostNonce = 0;
 
@@ -350,7 +349,7 @@ bool AddLocal(const CService& addr, int nScore)
 
     if (fDebug)
     {
-        LogPrint("net", "%s : (%s,%i)\n", __FUNCTION__, addr.ToString(), nScore);
+        LogPrint("net", "%s : (%s,%i)\n", __FUNCTION__, addr.ToStringIPPort(), nScore);
     }
 
     // Global Namespace Start
@@ -722,7 +721,7 @@ void CNode::PushVersion()
     
     if (fDebug)
     {
-        LogPrint("net", "%s : send version message: version %d, blocks=%d, us=%s, them=%s, peer=%s\n", __FUNCTION__, PROTOCOL_VERSION, nBestHeight, addrMe.ToString(), addrYou.ToString(), addr.ToString());
+        LogPrint("net", "%s : send version message: version %d, blocks=%d, us=%s, them=%s, peer=%s\n", __FUNCTION__, PROTOCOL_VERSION, nBestHeight, addrMe.ToString(), addrYou.ToString(), addr.ToStringIPPort());
     }
 
     PushMessage("version", PROTOCOL_VERSION, nLocalServices, nTime, addrYou, addrMe, nLocalHostNonce, strSubVersion, nBestHeight);
@@ -1285,11 +1284,11 @@ void RefreshRecentConnections(int RefreshMinutes)
 void IdleNodeCheck(CNode *pnode)
 {
     // Disconnect node/peer if send/recv data becomes idle
-    if (GetTime() - pnode->nTimeConnected > 120)
+    if (GetTime() - pnode->nTimeConnected > IDLE_TIMEOUT)
     {
-        if (GetTime() - pnode->nLastRecv > 120)
+        if (GetTime() - pnode->nLastRecv > IDLE_TIMEOUT)
         {
-            if (GetTime() - pnode->nLastSend < 120)
+            if (GetTime() - pnode->nLastSend < IDLE_TIMEOUT)
             {
                 if (fDebug)
                 {
@@ -1698,7 +1697,7 @@ void ThreadSocketHandler()
                 {
                     if (fDebug)
                     {
-                        LogPrint("net", "%s : connection from %s dropped (banned)\n", __FUNCTION__, addr.ToString());
+                        LogPrint("net", "%s : connection from %s dropped (banned)\n", __FUNCTION__, addr.ToStringIPPort());
                     }
 
                     closesocket(hSocket);
@@ -1716,7 +1715,7 @@ void ThreadSocketHandler()
 
                     if (fDebug)
                     {
-                        LogPrint("net", "%s : accepted connection %s\n", __FUNCTION__, addr.ToString());
+                        LogPrint("net", "%s : accepted connection %s\n", __FUNCTION__, addr.ToStringIPPort());
                     }
 
                     CNode* pnode = new CNode(hSocket, addr, "", true);

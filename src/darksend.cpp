@@ -131,7 +131,7 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
             {
                 if (fDebug)
                 {
-                    LogPrint("darksend", "%s : dsa -- last dsq too recent, must wait. %s \n", __FUNCTION__, pfrom->addr.ToString().c_str());
+                    LogPrint("darksend", "%s : dsa -- last dsq too recent, must wait. %s \n", __FUNCTION__, pfrom->addr.ToStringIPPort().c_str());
                 }
 
                 std::string strError = _("Last Darksend was too recent.");
@@ -220,7 +220,7 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
             {
                 if (fDebug)
                 {
-                    LogPrint("darksend", "%s : dsq - message doesn't match current Masternode - %s != %s\n", __FUNCTION__, pSubmittedToMasternode->addr.ToString().c_str(), addr.ToString().c_str());
+                    LogPrint("darksend", "%s : dsq - message doesn't match current Masternode - %s != %s\n", __FUNCTION__, pSubmittedToMasternode->addr.ToStringIPPort().c_str(), addr.ToStringIPPort().c_str());
                 }
 
                 return;
@@ -230,7 +230,7 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
             {
                 if (fDebug)
                 {
-                    LogPrint("darksend", "%s : Darksend queue is ready - %s\n", __FUNCTION__, addr.ToString().c_str());
+                    LogPrint("darksend", "%s : Darksend queue is ready - %s\n", __FUNCTION__, addr.ToStringIPPort().c_str());
                 }
 
                 PrepareDarksendDenominate();
@@ -256,7 +256,7 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
             {
                 if (fDebug)
                 {
-                    LogPrint("darksend", "%s : dsq -- Masternode sending too many dsq messages. %s \n", __FUNCTION__, pmn->addr.ToString().c_str());
+                    LogPrint("darksend", "%s : dsq -- Masternode sending too many dsq messages. %s \n", __FUNCTION__, pmn->addr.ToStringIPPort().c_str());
                 }
 
                 return;
@@ -269,7 +269,7 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
 
             if (fDebug)
             {
-                LogPrint("darksend", "%s : dsq - new Darksend queue object - %s\n", __FUNCTION__, addr.ToString().c_str());
+                LogPrint("darksend", "%s : dsq - new Darksend queue object - %s\n", __FUNCTION__, addr.ToStringIPPort().c_str());
             }
 
             vecDarksendQueue.push_back(dsq);
@@ -510,7 +510,7 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
         {
             if (fDebug)
             {
-                LogPrint("darksend", "%s : dssu - message doesn't match current Masternode - %s != %s\n", __FUNCTION__, pSubmittedToMasternode->addr.ToString().c_str(), pfrom->addr.ToString().c_str());
+                LogPrint("darksend", "%s : dssu - message doesn't match current Masternode - %s != %s\n", __FUNCTION__, pSubmittedToMasternode->addr.ToStringIPPort().c_str(), pfrom->addr.ToStringIPPort().c_str());
             }
 
             return;
@@ -597,7 +597,7 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
         {
             if (fDebug)
             {
-                LogPrint("darksend", "%s : dsc - message doesn't match current Masternode - %s != %s\n", __FUNCTION__, pSubmittedToMasternode->addr.ToString().c_str(), pfrom->addr.ToString().c_str());
+                LogPrint("darksend", "%s : dsc - message doesn't match current Masternode - %s != %s\n", __FUNCTION__, pSubmittedToMasternode->addr.ToStringIPPort().c_str(), pfrom->addr.ToStringIPPort().c_str());
             }
 
             return;
@@ -636,7 +636,7 @@ void CDarksendPool::ProcessMessageDarksend(CNode* pfrom, std::string& strCommand
 
         if((CNetAddr)pSubmittedToMasternode->addr != (CNetAddr)pfrom->addr)
         {
-            LogPrint("darksend", "%s : dsc - message doesn't match current Masternode - %s != %s\n", __FUNCTION__, pSubmittedToMasternode->addr.ToString().c_str(), pfrom->addr.ToString().c_str());
+            LogPrint("darksend", "%s : dsc - message doesn't match current Masternode - %s != %s\n", __FUNCTION__, pSubmittedToMasternode->addr.ToStringIPPort().c_str(), pfrom->addr.ToStringIPPort().c_str());
             
             return;
         }
@@ -2781,7 +2781,7 @@ bool CDarksendPool::DoAutomaticDenominating(bool fDryRun)
                     
                     if (fDebug)
                     {
-                        LogPrint("darksend", "%s : connected (from queue), sending dsa for %d - %s\n", __FUNCTION__, sessionDenom, pnode->addr.ToString());
+                        LogPrint("darksend", "%s : connected (from queue), sending dsa for %d - %s\n", __FUNCTION__, sessionDenom, pnode->addr.ToStringIPPort());
                     }
 
                     strAutoDenomResult = _("Mixing in progress...");
@@ -2840,7 +2840,7 @@ bool CDarksendPool::DoAutomaticDenominating(bool fDryRun)
 
             if (fDebug)
             {
-                LogPrint("darksend", "%s : attempt %d connection to Masternode %s\n", __FUNCTION__, i, pmn->addr.ToString().c_str());
+                LogPrint("darksend", "%s : attempt %d connection to Masternode %s\n", __FUNCTION__, i, pmn->addr.ToStringIPPort().c_str());
             }
 
             CNode* pnode = ConnectNode((CAddress)pmn->addr, NULL, true);
@@ -3978,7 +3978,7 @@ void CDarksendPool::RelayIn(const std::vector<CTxDSIn>& vin, const int64_t& nAmo
     {
         if (fDebug)
         {
-            LogPrint("darksend", "%s : RelayIn - found master, relaying message - %s \n", __FUNCTION__, pnode->addr.ToString());
+            LogPrint("darksend", "%s : RelayIn - found master, relaying message - %s \n", __FUNCTION__, pnode->addr.ToStringIPPort());
         }
 
         pnode->PushMessage("dsi", vin2, nAmount, txCollateral, vout2);
