@@ -319,19 +319,19 @@ class CMainParams : public CChainParams
             ///////////////////////
             // 1.0.0.8 - Hard Forks (Proposed)
 
-            // TargetTimespan correction after development testing
+            // PIP2 - TargetTimespan correction after development testing
             nPIP2 = 999999999; // Block # Activation (UNDECIDED)
 
-            // Developers fee
+            // PIP4 - Developers fee
             nPIP4 = 999999999; // Block # Activation (UNDECIDED)
 
-            // Blockshield
+            // PIP5 - Blockshield
             nPIP5 = 999999999; // Block # Activation (UNDECIDED)
 
-            // ASIC Choker
+            // PIP6 - ASIC Choker
             nPIP6 = 999999999; // Block # Activation (UNDECIDED)
 
-            // IncrementExtraNonce
+            // PIP7 - IncrementExtraNonce
             nPIP7 = 999999999; // Block # Activation (UNDECIDED)
         }
 
@@ -478,25 +478,24 @@ class CTestNetParams : public CMainParams
             // PIP3 - Do not allow blank payments (deactivation)
             nPIP3 = 1; // Block #1 Activation
 
-            // TargetTimespan correction after development testing
+            // PIP2 - TargetTimespan correction after development testing
             nPIP2 = 1; // Block #1 Activation
 
-            // Blockshield
+            // PIP5 - Blockshield
             nPIP5 = 1; // Block #1 Activation
 
-            // ASIC Choker
+            // PIP6 - ASIC Choker
             nPIP6 = 1; // Block #1 Activation
 
-            // IncrementExtraNonce
+            // PIP7 - IncrementExtraNonce
             nPIP7 = 1; // Block #1 Activation
 
 
             ///////////////////////
             // 1.0.0.8 - Protocol Improvement Proposals (Proposed Hard Forks)
 
-            // Developers fee
+            // PIP4 - Developers fee
             nPIP4 = 999999999; // Block # Activation (UNDECIDED)
-
 
         }
 

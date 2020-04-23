@@ -1958,7 +1958,14 @@ std::string CService::ToStringIPPort() const
 
 std::string CService::ToString() const
 {
-    return ToStringIPPort();
+    if (IsIPv4() || IsTor() || IsI2P())
+    {
+        return ToStringIP();
+    }
+    else
+    {
+        return "[" + ToStringIP() + "]";
+    }
 }
 
 

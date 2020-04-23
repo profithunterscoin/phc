@@ -98,7 +98,7 @@ Value getinfo(const Array& params, bool fHelp)
         }
 
         obj.push_back(Pair("pow_newmint",                           ValueFromAmount(pwalletMain->GetNewPOWMint())));
-        obj.push_back(Pair("pos_newmint",                           ValueFromAmount(pwalletMain->GetNewPOSMint())));
+        //obj.push_back(Pair("pos_newmint",                           ValueFromAmount(pwalletMain->GetNewPOSMint())));
 
         obj.push_back(Pair("stake_locked",                          ValueFromAmount(pwalletMain->GetStake())));
 

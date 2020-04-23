@@ -35,14 +35,30 @@ int GenerateProcLimit;
 
 bool fStaking;
 
+// LogCache for Miner
 std::string MinerLogCache;
+
+// Log for InternalStakeMiner
+int LastBlockStake;
+
+extern unsigned int nMinerSleep;
+
+static const unsigned int pSHA256InitState[8] = {0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19};
+
+// We want to sort transactions by priority and fee, so:
+typedef boost::tuple<double, double, CTransaction*> TxPriority;
+
+
+uint64_t nLastBlockTx = 0;
+uint64_t nLastBlockSize = 0;
+int64_t nLastCoinStakeSearchInterval = 0;
 
 //////////////////////////////////////////////////////////////////////////////
 //
 // Miner Functions
 //
 
-extern unsigned int nMinerSleep;
+
 
 int static FormatHashBlocks(void* pbuffer, unsigned int len)
 {
@@ -65,7 +81,6 @@ int static FormatHashBlocks(void* pbuffer, unsigned int len)
 }
 
 
-static const unsigned int pSHA256InitState[8] = {0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19};
 
 
 void SHA256Transform(void* pstate, void* pinput, const void* pinit)
@@ -115,12 +130,7 @@ class COrphan
 };
 
 
-uint64_t nLastBlockTx = 0;
-uint64_t nLastBlockSize = 0;
-int64_t nLastCoinStakeSearchInterval = 0;
 
-// We want to sort transactions by priority and fee, so:
-typedef boost::tuple<double, double, CTransaction*> TxPriority;
 class TxPriorityCompare
 {
     bool byFee;
@@ -1035,81 +1045,56 @@ void ThreadStakeMiner(CWallet *pwallet)
 
     unsigned int nExtraNonce = 0;
 
-    bool fTryToSync = true;
-
-    int LastStakeEarned = 0;
-
-    int LastBlockStake = 0;
 
     while (fStaking == true)
     {
-        while (pwallet->IsLocked())
+        if (pwallet->IsLocked() == true
+                || pwallet->GetStake() > 0)
         {
             nLastCoinStakeSearchInterval = 0;
 
             boost::this_thread::sleep_for(boost::chrono::milliseconds(nMinerSleep));
+            //MilliSleep(nMinerSleep);
+
+            // Skip tryng to stake this round
+            continue;
         }
 
-        while (vNodes.empty() || IsInitialBlockDownload())
+        if (vNodes.empty() == true
+                || IsInitialBlockDownload()
+                || vNodes.size() < 8
+                || pindexBest->GetBlockTime() < GetTime() - 2 * 60)
         {
             nLastCoinStakeSearchInterval = 0;
             
-            fTryToSync = true;
-            
-            boost::this_thread::sleep_for(boost::chrono::milliseconds(nMinerSleep));
-        }
-
-        if (fTryToSync)
-        {
-            fTryToSync = false;
-
-            if (vNodes.size() < 8)
-            {
-                boost::this_thread::sleep_for(boost::chrono::milliseconds(nMinerSleep));
-            
-                continue;
-            }
-        }
-
-        // No less than 50 masternodes in list allowed for staking
-        if (mnodeman.size() < 50)
-        {
-            boost::this_thread::sleep_for(boost::chrono::milliseconds(nMinerSleep));
-
+            boost::this_thread::sleep_for(boost::chrono::milliseconds(nMinerSleep * 10));
+            //MilliSleep(nMinerSleep * 10);
+        
+            // Skip tryng to stake this round
             continue;
         }
 
-        // Don't even try unless fully synced
-        if (pindexBest->GetBlockTime() < GetTime() - 10 * 60)
+        // No less than 10 masternodes in list allowed for staking
+        if (mnodeman.size() < 10)
         {
             boost::this_thread::sleep_for(boost::chrono::milliseconds(nMinerSleep));
+            //MilliSleep(nMinerSleep);
 
+            // Skip tryng to stake this round
             continue;
         }
 
-        /*
-        //Wait for PoW block
-        if (pindexBest->IsProofOfStake())
+        // Wait for another block from network to continue staking
+        if (pindexBest->nHeight == LastBlockStake
+            || pindexBest->nHeight-1 == LastBlockStake)
         {
-            boost::this_thread::sleep_for(boost::chrono::seconds(10));
+            // Force asking all other peers for new blocks
+            CChain::ForceSync(NULL, pindexBest->GetBlockHash());
 
-            continue;
-        }
-        */
-
-        // Prevent stakes generated too quickly (less than the minimum block time)
-        if (GetTime() - LastStakeEarned < 240)
-        {
             boost::this_thread::sleep_for(boost::chrono::milliseconds(nMinerSleep));
+            //MilliSleep(nMinerSleep);
 
-            continue;
-        }
-
-        // Prevent stakes generated too quickly (stake every 3 blocks max)
-        if (pindexBest->nHeight - LastBlockStake < 3)
-        {
-            boost::this_thread::sleep_for(boost::chrono::milliseconds(nMinerSleep));
-
+            // Skip tryng to stake this round
             continue;
         }
 
@@ -1136,18 +1121,31 @@ void ThreadStakeMiner(CWallet *pwallet)
         // Trying to sign a block
         if (pblock->SignBlock(*pwallet, nFees))
         {
-            Set_ThreadPriority(THREAD_PRIORITY_NORMAL);
+            // Set Thread Priority to Normal
+            //Set_ThreadPriority(THREAD_PRIORITY_NORMAL);
 
-            ProcessBlockStake(pblock.get(), *pwallet);
-            
-            LastStakeEarned = GetTime();
+            // Process the pblock (Attempt to accept)
+            if (ProcessBlockStake(pblock.get(), *pwallet) == true)
+            {
+                // LastStakeEarned (Block Number)
+                LastBlockStake = pindexBest->nHeight;
 
-            LastBlockStake = pindexBest->nHeight;
-            
-            Set_ThreadPriority(THREAD_PRIORITY_LOWEST);
+                // Broadcast Block to connected peers
+                CChain::BlockBroadCast(pblock.get());
+            }
+
+            boost::this_thread::sleep_for(boost::chrono::milliseconds(nMinerSleep));
+            //MilliSleep(nMinerSleep);
+
+            // Force asking all other peers for new blocks
+            CChain::ForceSync(NULL, pindexBest->GetBlockHash());
+
+            // Set Thread Priority to Lowest
+            //Set_ThreadPriority(THREAD_PRIORITY_LOWEST);
         }
 
-        boost::this_thread::sleep_for(boost::chrono::milliseconds(nMinerSleep));
+        boost::this_thread::sleep_for(boost::chrono::milliseconds(nMinerSleep / 200));
+        //MilliSleep(nMinerSleep / 200);
     }
 }
 
@@ -1329,7 +1327,7 @@ void static InternalcoinMiner(CWallet *pwallet)
                         // Found a solution
                         Set_ThreadPriority(THREAD_PRIORITY_NORMAL);
                         
-                        if (ProcessBlockFound(pblock, *pwallet, reservekey))
+                        if (ProcessBlockFound(pblock, *pwallet, reservekey) == true)
                         {
                             TempMinerLogCache = "accepted:" + thash.GetHex();
 
@@ -1347,6 +1345,9 @@ void static InternalcoinMiner(CWallet *pwallet)
                             }
 
                             MinerLogCache = "accepted:" + thash.GetHex();
+
+                            // Broadcast Block to connected peers
+                            CChain::BlockBroadCast(pblock);
 
                             MilliSleep(120000);
                         }

@@ -7187,12 +7187,65 @@ namespace CChain
                     {
                         LogPrint("core", "%s : Asking other peer %s for valid chain @ %s\n", __FUNCTION__, pnode->addrName, pindexBest->pprev->GetBlockHash().ToString());
                     }
+
+                    MilliSleep(1200);
                 }
             }
         }
         // Global Namespace End
 
         return NodeCount;
+    }
+
+
+    int BlockBroadCast(CBlock* pblock)
+    {
+        // BlockBroadCast - Forces block broadcast to all connected nodes
+        // (C) 2020 Profit Hunters Coin
+
+        if (vNodes.size() < 1)
+        {
+            // Zero connections available, skip
+            return 0;
+        }
+
+        int NodeCount = 0;
+
+        // Global Namespace Start
+        {
+            LOCK(cs_vNodes);
+
+            for(CNode* pnode: vNodes)
+            {
+                // Broadcast Block
+                pnode->PushMessage("block", *pblock);
+
+                MilliSleep(1200);
+
+                // Trigger them to send a getblocks request for the next batch of inventory
+
+                // Bypass PushInventory, this must send even if redundant,
+                // and we want it right after the last block so they don't
+                // wait for other stuff first.
+                vector<CInv> vInv;
+
+                vInv.push_back(CInv(MSG_BLOCK, hashBestChain));
+
+                pnode->PushMessage("inv", vInv);
+
+                NodeCount++;
+
+                if(fDebug)
+                {
+                    LogPrint("core", "%s : broadcasting block %s to peer %s\n", __FUNCTION__, pblock->GetHash().ToString(), pnode->addrName);
+                }
+
+                MilliSleep(1200);
+            }
+        }
+        // Global Namespace End
+
+        return NodeCount;        
     }
 
 
