@@ -13,8 +13,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 
-#ifndef NOVACOIN_MINER_H
-#define NOVACOIN_MINER_H
+#ifndef BITCOIN_MINER_H
+#define BITCOIN_MINER_H
 
 #include "main.h"
 #include "script.h"
@@ -24,6 +24,12 @@ extern bool fGenerating;
 extern int GenerateProcLimit;
 
 extern bool fStaking;
+
+// LogCache for Miner
+extern std::string MinerLogCache;
+
+// Log for InternalStakeMiner
+extern int LastBlockStake;
 
 /* Generate a new block, without valid proof-of-work */
 CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake=false, int64_t* pFees = 0);
@@ -45,4 +51,4 @@ void SHA256Transform(void* pstate, void* pinput, const void* pinit);
 
 void GeneratePoWcoins(bool fGenerate, CWallet* pwallet, bool fDebugToConsole);
 
-#endif // NOVACOIN_MINER_H
+#endif // COIN_MINER_H

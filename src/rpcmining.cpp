@@ -15,12 +15,17 @@
 
 #include "rpcserver.h"
 #include "chainparams.h"
-#include "main.h"
 #include "db.h"
 #include "txdb.h"
 #include "init.h"
 #include "miner.h"
 #include "kernel.h"
+
+#ifdef ENABLE_WALLET
+#include "wallet.h"
+#include "walletdb.h"
+#endif
+
 
 #include <boost/assign/list_of.hpp>
 
@@ -337,19 +342,17 @@ Value getstakinginfo(const Array& params, bool fHelp)
 		{
 			stake_error = "Not staking because wallet is syncing";
 		}
-        /*
         else if (pindexBest->GetBlockTime() < GetTime() - 10 * 60)
 		{
-			stake_error = "Not staking, Not staking, waiting for full syncronization";
+			stake_error = "Not staking, Waiting for full syncronization";
 		}
-        */
         else if (!nWeight)
 		{
 			stake_error = "Not staking because you don't have mature coins";
 		}
-        else if (fStaking == true && nLastCoinStakeSearchInterval == 0)
+        else if (fStaking == true && nLastCoinStakeSearchInterval == 0 && pwalletMain->GetStake() > 0)
 		{
-			stake_error = "Not staking, CoinStakeSearchInterval = 0, Staking = enabled.";
+			stake_error = "Not staking, waiting to unlock coins...";
 		}
         else if (fStaking == true)
 		{
@@ -362,14 +365,25 @@ Value getstakinginfo(const Array& params, bool fHelp)
     }		
 
     obj.push_back(Pair("protocol_testnet",                          TestNet()));
-    obj.push_back(Pair("enabled",                                   fStaking));
-    obj.push_back(Pair("staking",                                   staking));
+    obj.push_back(Pair("stake_enabled",                             fStaking));
+    obj.push_back(Pair("stake_now",                                 staking));
+
+
+#ifdef ENABLE_WALLET
+    if (pwalletMain)
+    {
+        obj.push_back(Pair("stake_locked",                          ValueFromAmount(pwalletMain->GetStake())));
+        obj.push_back(Pair("wallet_locked",                        pwalletMain->IsLocked()));
+    }
+#endif
+
     obj.push_back(Pair("stakeweight",                               (uint64_t)nWeight));
     obj.push_back(Pair("stakethreshold",                            GetStakeCombineThreshold() / COIN));
     obj.push_back(Pair("netstakeweight",                            (uint64_t)nNetworkWeight));
     obj.push_back(Pair("expectedtime",                              nExpectedTime));
     obj.push_back(Pair("difficulty",                                GetDifficulty(GetLastBlockIndex(pindexBest, true))));
-    obj.push_back(Pair("search-interval",                           (int)nLastCoinStakeSearchInterval));
+    obj.push_back(Pair("search_interval",                           (int)nLastCoinStakeSearchInterval));
+    obj.push_back(Pair("lastblockstake",                            (int)LastBlockStake));
 
     errors.push_back(Pair("stake_error",                            stake_error));
     errors.push_back(Pair("statusbar",                              GetWarnings("statusbar")));

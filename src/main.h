@@ -179,6 +179,9 @@ namespace CChain
     /** Force Sync from current Block (Request all connected nodes) */
     int ForceSync(CNode* pfrom, uint256 hashfilter);
 
+    /** Force Block Broadcast (Send to all connected nodes) */
+    int BlockBroadCast(CBlock* pblock);
+
     /** Prune Orphan blocks from index */
     void PruneOrphanBlocks();
 
