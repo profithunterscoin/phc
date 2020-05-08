@@ -6,7 +6,7 @@
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015 The Crave developers
 // Copyright (c) 2017 XUVCoin developers
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
@@ -66,9 +66,10 @@ void RPCTypeCheck(const Array& params, const list<Value_type>& typesExpected, bo
 
         const Value& v = params[i];
 
-        if (!((v.type() == t) || (fAllowNull && (v.type() == null_type))))
+        if (!((v.type() == t)
+            || (fAllowNull && (v.type() == null_type))))
         {
-            string err = strprintf("Expected type %s, got %s", Value_type_name[t], Value_type_name[v.type()]);
+            string err = strprintf("ERROR - Expected type %s, got %s", Value_type_name[t], Value_type_name[v.type()]);
             
             throw JSONRPCError(RPC_TYPE_ERROR, err);
         }
@@ -84,14 +85,16 @@ void RPCTypeCheck(const Object& o, const map<string, Value_type>& typesExpected,
     {
         const Value& v = find_value(o, t.first);
         
-        if (!fAllowNull && v.type() == null_type)
+        if (!fAllowNull
+            && v.type() == null_type)
         {
-            throw JSONRPCError(RPC_TYPE_ERROR, strprintf("Missing %s", t.first));
+            throw JSONRPCError(RPC_TYPE_ERROR, strprintf("ERROR - Missing %s", t.first));
         }
 
-        if (!((v.type() == t.second) || (fAllowNull && (v.type() == null_type))))
+        if (!((v.type() == t.second)
+            || (fAllowNull && (v.type() == null_type))))
         {
-            string err = strprintf("Expected type %s for %s, got %s", Value_type_name[t.second], t.first, Value_type_name[v.type()]);
+            string err = strprintf("ERROR - Expected type %s for %s, got %s", Value_type_name[t.second], t.first, Value_type_name[v.type()]);
             
             throw JSONRPCError(RPC_TYPE_ERROR, err);
         }
@@ -103,16 +106,17 @@ int64_t AmountFromValue(const Value& value)
 {
     double dAmount = value.get_real();
 
-    if (dAmount <= 0.0 || dAmount > MAX_MONEY)
+    if (dAmount <= 0.0
+        || dAmount > MAX_MONEY)
     {
-        throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount");
+        throw JSONRPCError(RPC_TYPE_ERROR, "ERROR - Invalid amount");
     }
     
     CAmount nAmount = roundint64(dAmount * COIN);
     
     if (!MoneyRange(nAmount))
     {
-        throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount");
+        throw JSONRPCError(RPC_TYPE_ERROR, "ERROR - Invalid amount");
     }
     
     return nAmount;
@@ -203,7 +207,8 @@ string CRPCTable::help(string strCommand) const
             continue;
         }
     
-        if (strCommand != "" && strMethod != strCommand)
+        if (strCommand != ""
+            && strMethod != strCommand)
         {
             continue;
         }
@@ -255,7 +260,8 @@ string CRPCTable::help(string strCommand) const
 
 Value help(const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() > 1)
+    if (fHelp
+        || params.size() > 1)
     {
         throw runtime_error("help [command]\n"
                             "List commands, or get help for a command.");
@@ -275,7 +281,8 @@ Value help(const Array& params, bool fHelp)
 Value stop(const Array& params, bool fHelp)
 {
     // Accept the deprecated and ignored 'detach' boolean argument
-    if (fHelp || params.size() > 1)
+    if (fHelp
+        || params.size() > 1)
     {
         throw runtime_error("stop\n"
                             "Stop PHC server.");
@@ -284,13 +291,14 @@ Value stop(const Array& params, bool fHelp)
     // Shutdown will take long enough that the response should get back
     StartShutdown();
     
-    return "PHC server stopping";
+    return "OK - PHC server stopping";
 }
 
 
 Value debug(const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() != 1)
+    if (fHelp
+        || params.size() != 1)
     {
         string debugstatus =  "";
         string debugargs = "";
@@ -304,7 +312,7 @@ Value debug(const Array& params, bool fHelp)
             debugstatus = "False";
         }
 
-        throw runtime_error("debug <true|false|categories>\n"
+        throw runtime_error("debug <true|false|categories> \n"
                             "Current Debug State: " + debugstatus + " Categories: " + boost::join(mapMultiArgs["-debug"], ",") + "\n"
                             "|addrman|alert|core|db|rand|rpc|coincontrol|mempool"
                             "|net|socks|darksend|instantsend|wallet|masternode|firewall|stealth"
@@ -312,10 +320,10 @@ Value debug(const Array& params, bool fHelp)
                             "|smessage|gui|qt|mining|coinage|spork|blockshield|blocktree"
                             "|asicchoker|phc|noui|chainbuddy|chainshield|key|uint|leveldb|base58|script|wallet|"
                             "Change debug category on the fly."
-                            "Specify single category or use comma to specify many.\n"
+                            "Specify single category or use comma to specify many. \n"
                             "Special note: phcd must be run with -debug option and"
-                            "then can be disabled or enabled, or configured using this rpc command\n"
-                            "\nExamples:\n"
+                            "then can be disabled or enabled, or configured using this rpc command \n"
+                            "\nExamples: \n"
                             + HelpExampleCli("debug", "0")
                             + HelpExampleCli("debug", "1")
                             + HelpExampleRpc("debug", "netbase,net,alert")
@@ -328,6 +336,7 @@ Value debug(const Array& params, bool fHelp)
     mapMultiArgs["-debug"].clear();
 
     boost::split(mapMultiArgs["-debug"], strMode, boost::is_any_of(","));
+
     mapArgs["-debug"] = mapMultiArgs["-debug"][mapMultiArgs["-debug"].size() - 1];
 
     if (strMode == "1")
@@ -562,12 +571,15 @@ void ErrorReply(std::ostream& stream, const Object& objError, const Value& id)
 bool ClientAllowed(const boost::asio::ip::address& address)
 {
     // Make sure that IPv4-compatible and IPv4-mapped IPv6 addresses are treated as IPv4 addresses
-    if (address.is_v6() && (address.to_v6().is_v4_compatible() || address.to_v6().is_v4_mapped()))
+    if (address.is_v6() && (address.to_v6().is_v4_compatible()
+        || address.to_v6().is_v4_mapped()))
     {
         return ClientAllowed(address.to_v6().to_v4());
     }
 
-    if (address == asio::ip::address_v4::loopback() || address == asio::ip::address_v6::loopback() || (address.is_v4() && (address.to_v4().to_ulong() & 0xff000000) == 0x7f000000))
+    if (address == asio::ip::address_v4::loopback()
+        || address == asio::ip::address_v6::loopback()
+        || (address.is_v4() && (address.to_v4().to_ulong() & 0xff000000) == 0x7f000000))
     {
         // Check whether IPv4 addresses match 127.0.0.0/8 (loopback subnet)
         return true;
@@ -682,7 +694,8 @@ template <typename Protocol, typename SocketAcceptorService> static void RPCAcce
     {
         delete conn;
     }
-    else if (tcp_conn && !ClientAllowed(tcp_conn->peer.address()))
+    else if (tcp_conn
+            && !ClientAllowed(tcp_conn->peer.address()))
     {
         // Restrict callers by IP.  It is important to
         // do this before starting client thread, to filter out
@@ -710,11 +723,14 @@ void StartRPCThreads()
 {
     strRPCUserColonPass = mapArgs["-rpcuser"] + ":" + mapArgs["-rpcpassword"];
 
-    if (((mapArgs["-rpcpassword"] == "") || (mapArgs["-rpcuser"] == mapArgs["-rpcpassword"])) && Params().RequireRPCPassword())
+    if (((mapArgs["-rpcpassword"] == "")
+        || (mapArgs["-rpcuser"] == mapArgs["-rpcpassword"]))
+        && Params().RequireRPCPassword())
     {
         unsigned char rand_pwd[32];
         
         GetRandBytes(rand_pwd, 32);
+
         string strWhatAmI = "To use phcd";
         
         if (mapArgs.count("-server"))
@@ -725,16 +741,16 @@ void StartRPCThreads()
         {
             strWhatAmI = strprintf(_("To use the %s option"), "\"-daemon\"");
 
-            uiInterface.ThreadSafeMessageBox(strprintf(("%s, you must set a rpcpassword in the configuration file:\n"
-                                                        "%s\n"
-                                                        "It is recommended you use the following random password:\n"
-                                                        "rpcuser=PHCrpc\n"
-                                                        "rpcpassword=%s\n"
-                                                        "(you do not need to remember this password)\n"
-                                                        "The username and password MUST NOT be the same.\n"
-                                                        "If the file does not exist, create it with owner-readable-only file permissions.\n"
-                                                        "It is also recommended to set alertnotify so you are notified of problems;\n"
-                                                        "for example: alertnotify=echo %%s | mail -s \"PHC Alert\" admin@foo.com\n"),
+            uiInterface.ThreadSafeMessageBox(strprintf(("%s, you must set a rpcpassword in the configuration file: \n"
+                                                        "%s \n"
+                                                        "It is recommended you use the following random password: \n"
+                                                        "rpcuser=PHCrpc \n"
+                                                        "rpcpassword=%s \n"
+                                                        "(you do not need to remember this password) \n"
+                                                        "The username and password MUST NOT be the same. \n"
+                                                        "If the file does not exist, create it with owner-readable-only file permissions. \n"
+                                                        "It is also recommended to set alertnotify so you are notified of problems; \n"
+                                                        "for example: alertnotify=echo %%s | mail -s \"PHC Alert\" admin@foo.com \n"),
             strWhatAmI, GetConfigFile().string(), EncodeBase58(&rand_pwd[0],&rand_pwd[0]+32)), "", CClientUIInterface::MSG_ERROR);
             
             StartShutdown();
@@ -747,7 +763,7 @@ void StartRPCThreads()
     {
         if (fDebug)
         {
-            LogPrint("rpc", "%s : rpc_io_service != NULL\n", __FUNCTION__);
+            LogPrint("rpc", "%s : ERROR - rpc_io_service != NULL \n", __FUNCTION__);
         }
 
         return;
@@ -779,7 +795,7 @@ void StartRPCThreads()
         {
             if (fDebug)
             {
-                LogPrint("rpc", "%s : ERROR: missing server certificate file %s\n", __FUNCTION__, pathCertFile.string());
+                LogPrint("rpc", "%s : ERROR - Missing server certificate file %s \n", __FUNCTION__, pathCertFile.string());
             }
         }
 
@@ -798,7 +814,7 @@ void StartRPCThreads()
         {
             if (fDebug)
             {
-                LogPrint("rpc", "%s : ERROR: missing server private key file %s\n", __FUNCTION__, pathPKFile.string());
+                LogPrint("rpc", "%s : ERROR - Missing server private key file %s \n", __FUNCTION__, pathPKFile.string());
             }
         } 
 
@@ -842,13 +858,15 @@ void StartRPCThreads()
     }
     catch(boost::system::system_error &e)
     {
-        strerr = strprintf(_("An error occurred while setting up the RPC port %u for listening on IPv6, falling back to IPv4: %s"), endpoint.port(), e.what());
+        strerr = strprintf(_("ERROR - An error occurred while setting up the RPC port %u for listening on IPv6, falling back to IPv4: %s"), endpoint.port(), e.what());
     }
 
     try
     {
         // If dual IPv6/IPv4 failed (or we're opening loopback interfaces only), open IPv4 separately
-        if (!fListening || loopback || v6_only_error)
+        if (!fListening
+            || loopback
+            || v6_only_error)
         {
             bindAddress = loopback ? asio::ip::address_v4::loopback() : asio::ip::address_v4::any();
             endpoint.address(bindAddress);
@@ -866,7 +884,7 @@ void StartRPCThreads()
     }
     catch(boost::system::system_error &e)
     {
-        strerr = strprintf(_("An error occurred while setting up the RPC port %u for listening on IPv4: %s"), endpoint.port(), e.what());
+        strerr = strprintf(_("ERROR - An error occurred while setting up the RPC port %u for listening on IPv4: %s"), endpoint.port(), e.what());
     }
 
     if (!fListening)
@@ -923,7 +941,7 @@ void RPCRunLater(const std::string& name, boost::function<void(void)> func, int6
     {
         if (fDebug)
         {
-            LogPrint("rpc", "%s : rpc_io_service == NULL\n", __FUNCTION__);
+            LogPrint("rpc", "%s : ERROR - rpc_io_service = NULL \n", __FUNCTION__);
         }
 
         return;
@@ -961,7 +979,7 @@ void JSONRequest::parse(const Value& valRequest)
     // Parse request
     if (valRequest.type() != obj_type)
     {
-        throw JSONRPCError(RPC_INVALID_REQUEST, "Invalid Request object");
+        throw JSONRPCError(RPC_INVALID_REQUEST, "ERROR - Invalid Request object");
     }
     
     const Object& request = valRequest.get_obj();
@@ -974,12 +992,12 @@ void JSONRequest::parse(const Value& valRequest)
 
     if (valMethod.type() == null_type)
     {
-        throw JSONRPCError(RPC_INVALID_REQUEST, "Missing method");
+        throw JSONRPCError(RPC_INVALID_REQUEST, "ERROR - Missing method");
     }
     
     if (valMethod.type() != str_type)
     {
-        throw JSONRPCError(RPC_INVALID_REQUEST, "Method must be a string");
+        throw JSONRPCError(RPC_INVALID_REQUEST, "ERROR - Method must be a string");
     }
     
     strMethod = valMethod.get_str();
@@ -988,7 +1006,7 @@ void JSONRequest::parse(const Value& valRequest)
     {
         if (fDebug)
         {
-            LogPrint("rpc", "%s : method=%s\n", __FUNCTION__, strMethod);
+            LogPrint("rpc", "%s : ERROR - method=%s \n", __FUNCTION__, strMethod);
         }
     }
 
@@ -1005,7 +1023,7 @@ void JSONRequest::parse(const Value& valRequest)
     }
     else
     {
-        throw JSONRPCError(RPC_INVALID_REQUEST, "Params must be an array");
+        throw JSONRPCError(RPC_INVALID_REQUEST, "ERROR - Params must be an array");
     }
 }
 
@@ -1088,7 +1106,7 @@ void ServiceConnection(AcceptedConnection *conn)
         {
             if (fDebug)
             {
-                LogPrint("rpc", "%s : incorrect password attempt from %s\n", __FUNCTION__, conn->peer_address_to_string());
+                LogPrint("rpc", "%s : ERROR - Incorrect password attempt from %s \n", __FUNCTION__, conn->peer_address_to_string());
             }
 
             /* Deter brute-forcing short passwords.
@@ -1117,7 +1135,7 @@ void ServiceConnection(AcceptedConnection *conn)
 
             if (!read_string(strRequest, valRequest))
             {
-                throw JSONRPCError(RPC_PARSE_ERROR, "Parse error");
+                throw JSONRPCError(RPC_PARSE_ERROR, "ERROR - Parse error");
             }
 
             string strReply;
@@ -1140,7 +1158,7 @@ void ServiceConnection(AcceptedConnection *conn)
             }
             else
             {
-                throw JSONRPCError(RPC_PARSE_ERROR, "Top-level object parse error");
+                throw JSONRPCError(RPC_PARSE_ERROR, "ERROR - Top-level object parse error");
             }
 
             conn->stream() << HTTPReply(HTTP_OK, strReply, fRun) << std::flush;
@@ -1168,21 +1186,24 @@ json_spirit::Value CRPCTable::execute(const std::string &strMethod, const json_s
     
     if (!pcmd)
     {
-        throw JSONRPCError(RPC_METHOD_NOT_FOUND, "Method not found");
+        throw JSONRPCError(RPC_METHOD_NOT_FOUND, "ERROR - Method not found");
     }
 
 #ifdef ENABLE_WALLET
     if (pcmd->reqWallet && !pwalletMain)
     {
-        throw JSONRPCError(RPC_METHOD_NOT_FOUND, "Method not found (disabled)");
+        throw JSONRPCError(RPC_METHOD_NOT_FOUND, "ERROR - Method not found (disabled)");
     }
 #endif
 
     // Observe safe mode
     string strWarning = GetWarnings("rpc");
-    if (strWarning != "" && !GetBoolArg("-disablesafemode", false) && !pcmd->okSafeMode)
+
+    if (strWarning != ""
+        && !GetBoolArg("-disablesafemode", false)
+        && !pcmd->okSafeMode)
     {
-        throw JSONRPCError(RPC_FORBIDDEN_BY_SAFE_MODE, string("Safe mode: ") + strWarning);
+        throw JSONRPCError(RPC_FORBIDDEN_BY_SAFE_MODE, string("ERROR - Safe mode: ") + strWarning);
     }
 
     try
@@ -1245,7 +1266,7 @@ std::string HelpExampleCli(string methodname, string args)
 std::string HelpExampleRpc(string methodname, string args)
 {
     return "> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", "
-            "\"method\": \"" + methodname + "\", \"params\": [" + args + "] }' -H 'content-type: text/plain;' http://127.0.0.1:9998/\n";
+            "\"method\": \"" + methodname + "\", \"params\": [" + args + "] }' -H 'content-type: text/plain;' http://127.0.0.1:9998/ \n";
 }
 
 const CRPCTable tableRPC;

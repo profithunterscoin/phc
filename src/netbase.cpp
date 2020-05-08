@@ -6,7 +6,7 @@
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015 The Crave developers
 // Copyright (c) 2017 XUVCoin developers
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
@@ -80,17 +80,26 @@ void SplitHostPort(std::string in, int &portOut, std::string &hostOut)
 
     // if a : is found, and it either follows a [...], or no other : is in the string, treat it as port separator
     bool fHaveColon = colon != in.npos;
-    bool fBracketed = fHaveColon && (in[0]=='[' && in[colon-1]==']'); // if there is a colon, and in[0]=='[', colon is not 0, so in[colon-1] is safe
+
+    // if there is a colon, and in[0]=='[', colon is not 0, so in[colon-1] is safe
+    bool fBracketed = fHaveColon && (in[0]=='[' && in[colon-1]==']');
+
     bool fMultiColon = fHaveColon && (in.find_last_of(':',colon-1) != in.npos);
     
-    if (fHaveColon && (colon==0 || fBracketed || !fMultiColon))
+    if (fHaveColon
+        && (colon==0
+        || fBracketed
+        || !fMultiColon))
     {
         char *endp = NULL;
         int n = strtol(in.c_str() + colon + 1, &endp, 10);
 
-        if (endp && *endp == 0 && n >= 0)
+        if (endp
+            && *endp == 0
+            && n >= 0)
         {
             in = in.substr(0, colon);
+
             if (n > 0 && n < 0x10000)
             {
                 portOut = n;
@@ -98,7 +107,9 @@ void SplitHostPort(std::string in, int &portOut, std::string &hostOut)
         }
     }
 
-    if (in.size()>0 && in[0] == '[' && in[in.size()-1] == ']')
+    if (in.size()>0
+        && in[0] == '['
+        && in[in.size()-1] == ']')
     {
         hostOut = in.substr(1, in.size()-2);
     }
@@ -158,10 +169,8 @@ bool static LookupIntern(const char *pszName, std::vector<CNetAddr>& vIP, unsign
             {
                 if (fDebug)
                 {
-                    LogPrint("net", "%s : aiTrav->ai_addrlen < sizeof(sockaddr_in) (assert-1)\n", __FUNCTION__);
+                    LogPrint("net", "%s : ERROR - aiTrav->ai_addrlen < sizeof(sockaddr_in) \n", __FUNCTION__);
                 }
-
-                cout << __FUNCTION__ << " (assert-1)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
                 return false;
             }
@@ -175,10 +184,8 @@ bool static LookupIntern(const char *pszName, std::vector<CNetAddr>& vIP, unsign
             {
                 if (fDebug)
                 {
-                    LogPrint("net", "%s : aiTrav->ai_addrlen < sizeof(sockaddr_in6) (assert-2)\n", __FUNCTION__);
+                    LogPrint("net", "%s : ERROR - aiTrav->ai_addrlen < sizeof(sockaddr_in6) \n", __FUNCTION__);
                 }
-
-                cout << __FUNCTION__ << " (assert-2)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
                 return false;
             }
@@ -204,7 +211,8 @@ bool LookupHost(const char *pszName, std::vector<CNetAddr>& vIP, unsigned int nM
         return false;
     }
 
-    if (boost::algorithm::starts_with(strHost, "[") && boost::algorithm::ends_with(strHost, "]"))
+    if (boost::algorithm::starts_with(strHost, "[")
+        && boost::algorithm::ends_with(strHost, "]"))
     {
         strHost = strHost.substr(1, strHost.size() - 2);
     }
@@ -234,6 +242,7 @@ bool Lookup(const char *pszName, std::vector<CService>& vAddr, int portDefault, 
     std::vector<CNetAddr> vIP;
 
     bool fRet = LookupIntern(hostname.c_str(), vIP, nMaxSolutions, fAllowLookup);
+
     if (!fRet)
     {
         return false;
@@ -277,25 +286,26 @@ bool static Socks4(const CService &addrDest, SOCKET& hSocket)
 {
     if (fDebug)
     {
-        LogPrint("socks", "%s : SOCKS4 connecting %s\n", __FUNCTION__, addrDest.ToString());
+        LogPrint("socks", "%s : NOTICE - SOCKS4 connecting %s \n", __FUNCTION__, addrDest.ToString());
     }
 
     if (!addrDest.IsIPv4())
     {
         closesocket(hSocket);
 
-        return error("%s : Proxy destination is not IPv4", __FUNCTION__);
+        return error("%s : ERROR - Proxy destination is not IPv4", __FUNCTION__);
     }
 
     char pszSocks4IP[] = "\4\1\0\0\0\0\0\0user";
     struct sockaddr_in addr;
     socklen_t len = sizeof(addr);
 
-    if (!addrDest.GetSockAddr((struct sockaddr*)&addr, &len) || addr.sin_family != AF_INET)
+    if (!addrDest.GetSockAddr((struct sockaddr*)&addr, &len)
+        || addr.sin_family != AF_INET)
     {
         closesocket(hSocket);
 
-        return error("%s : Cannot get proxy destination address", __FUNCTION__);
+        return error("%s : ERROR - Cannot get proxy destination address", __FUNCTION__);
     }
 
     memcpy(pszSocks4IP + 2, &addr.sin_port, 2);
@@ -310,7 +320,7 @@ bool static Socks4(const CService &addrDest, SOCKET& hSocket)
     {
         closesocket(hSocket);
 
-        return error("%s : Error sending to proxy", __FUNCTION__);
+        return error("%s : ERROR - Sending to proxy", __FUNCTION__);
     }
 
     char pchRet[8];
@@ -319,7 +329,7 @@ bool static Socks4(const CService &addrDest, SOCKET& hSocket)
     {
         closesocket(hSocket);
 
-        return error("%s : Error reading proxy response", __FUNCTION__);
+        return error("%s : ERROR - Reading proxy response", __FUNCTION__);
     }
 
     if (pchRet[1] != 0x5a)
@@ -339,7 +349,7 @@ bool static Socks4(const CService &addrDest, SOCKET& hSocket)
 
     if (fDebug)
     {
-        LogPrint("socks", "%s : SOCKS4 connected %s\n", __FUNCTION__, addrDest.ToString());
+        LogPrint("socks", "%s : OK - SOCKS4 connected %s\n", __FUNCTION__, addrDest.ToString());
     }
 
     return true;
@@ -350,14 +360,14 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
 {
     if (fDebug)
     {
-        LogPrint("socks", "%s : SOCKS5 connecting %s\n", __FUNCTION__, strDest);
+        LogPrint("socks", "%s : NOTICE - SOCKS5 connecting %s\n", __FUNCTION__, strDest);
     }
 
     if (strDest.size() > 255)
     {
         closesocket(hSocket);
 
-        return error("%s : Hostname too long", __FUNCTION__);
+        return error("%s : ERROR - Hostname too long", __FUNCTION__);
     }
 
     char pszSocks5Init[] = "\5\1\0";
@@ -369,7 +379,7 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
     {
         closesocket(hSocket);
 
-        return error("%s : Error sending to proxy", __FUNCTION__);
+        return error("%s : ERROR - Sending to proxy", __FUNCTION__);
     }
 
     char pchRet1[2];
@@ -378,14 +388,15 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
     {
         closesocket(hSocket);
 
-        return error("%s : Error reading proxy response", __FUNCTION__);
+        return error("%s : ERROR - Reading proxy response", __FUNCTION__);
     }
 
-    if (pchRet1[0] != 0x05 || pchRet1[1] != 0x00)
+    if (pchRet1[0] != 0x05
+        || pchRet1[1] != 0x00)
     {
         closesocket(hSocket);
 
-        return error("%s : Proxy failed to initialize", __FUNCTION__);
+        return error("%s : ERROR - Proxy failed to initialize", __FUNCTION__);
     }
 
     string strSocks5("\5\1");
@@ -396,11 +407,12 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
     strSocks5 += static_cast<char>((port >> 0) & 0xFF);
 
     ret = send(hSocket, strSocks5.c_str(), strSocks5.size(), MSG_NOSIGNAL);
+
     if (ret != (ssize_t)strSocks5.size())
     {
         closesocket(hSocket);
 
-        return error("%s : Error sending to proxy", __FUNCTION__);
+        return error("%s : ERROR - Error sending to proxy", __FUNCTION__);
     }
 
     char pchRet2[4];
@@ -409,14 +421,14 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
     {
         closesocket(hSocket);
 
-        return error("%s : Error reading proxy response", __FUNCTION__);
+        return error("%s : ERROR - Reading proxy response", __FUNCTION__);
     }
 
     if (pchRet2[0] != 0x05)
     {
         closesocket(hSocket);
 
-        return error("%s : Proxy failed to accept request", __FUNCTION__);
+        return error("%s : ERROR - Proxy failed to accept request", __FUNCTION__);
     }
 
     if (pchRet2[1] != 0x00)
@@ -427,55 +439,55 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
         {
             case 0x01:
             {
-                return error("%s : Proxy error: general failure", __FUNCTION__);
+                return error("%s : ERROR - Genneral proxy failure", __FUNCTION__);
             }
             break;
 
             case 0x02:
             {
-                return error("%s : Proxy error: connection not allowed", __FUNCTION__);
+                return error("%s : ERROR - Proxy onnection not allowed", __FUNCTION__);
             }
             break;
 
             case 0x03:
             {
-                return error("%s : Proxy error: network unreachable", __FUNCTION__);
+                return error("%s : ERROR - Proxy network unreachable", __FUNCTION__);
             }
             break;
 
             case 0x04:
             {
-                return error("%s : Proxy error: host unreachable", __FUNCTION__);
+                return error("%s : ERROR - Proxy host unreachable", __FUNCTION__);
             }
             break;
 
             case 0x05:
             {
-                return error("%s : Proxy error: connection refused", __FUNCTION__);
+                return error("%s : ERROR - Proxy connection refused", __FUNCTION__);
             }
             break;
 
             case 0x06:
             {
-                return error("%s : Proxy error: TTL expired", __FUNCTION__);
+                return error("%s : ERROR - Proxy TTL expired", __FUNCTION__);
             }
             break;
 
             case 0x07:
             {
-                return error("%s : Proxy error: protocol error", __FUNCTION__);
+                return error("%s : ERROR - Proxy protocol error", __FUNCTION__);
             }
             break;
 
             case 0x08:
             {
-                return error("%s : Proxy error: address type not supported", __FUNCTION__);
+                return error("%s : ERROR - Proxy address type not supported", __FUNCTION__);
             }
             break;
 
             default:
             {
-                return error("%s : Proxy error: unknown", __FUNCTION__);
+                return error("%s : ERROR - Proxy failure unknown", __FUNCTION__);
             }
             break;
         }
@@ -485,7 +497,7 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
     {
         closesocket(hSocket);
 
-        return error("%s : Error: malformed proxy response", __FUNCTION__);
+        return error("%s : ERROR - Malformed proxy response", __FUNCTION__);
     }
 
     char pchRet3[256];
@@ -514,10 +526,11 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
             {
                 closesocket(hSocket);
 
-                return error("%s : Error reading from proxy", __FUNCTION__);
+                return error("%s : ERROR - Reading from proxy", __FUNCTION__);
             }
 
             int nRecv = pchRet3[0];
+
             ret = recv(hSocket, pchRet3, nRecv, 0) != nRecv;
 
             break;
@@ -527,7 +540,7 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
         {
             closesocket(hSocket);
 
-            return error("%s : Error: malformed proxy response");
+            return error("%s : ERROR - Malformed proxy response");
         }
     }
 
@@ -535,19 +548,19 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
     {
         closesocket(hSocket);
 
-        return error("%s : Error reading from proxy", __FUNCTION__);
+        return error("%s : ERROR - Reading from proxy", __FUNCTION__);
     }
 
     if (recv(hSocket, pchRet3, 2, 0) != 2)
     {
         closesocket(hSocket);
 
-        return error("%s : Error reading from proxy", __FUNCTION__);
+        return error("%s : ERROR - Reading from proxy", __FUNCTION__);
     }
 
     if (fDebug)
     {
-        LogPrint("socks", "%s : SOCKS5 connected %s\n", __FUNCTION__, strDest);
+        LogPrint("socks", "%s : OK - SOCKS5 connected %s \n", __FUNCTION__, strDest);
     }
 
     return true;
@@ -565,13 +578,14 @@ bool static ConnectSocketDirectly(const CService &addrConnect, SOCKET& hSocketRe
     {
         if (fDebug)
         {
-            LogPrint("net", "%s : Cannot connect to %s: unsupported network\n", __FUNCTION__, addrConnect.ToString());
+            LogPrint("net", "%s : ERROR - Cannot connect to %s: unsupported network \n", __FUNCTION__, addrConnect.ToString());
         }
 
         return false;
     }
 
     SOCKET hSocket = socket(((struct sockaddr*)&sockaddr)->sa_family, SOCK_STREAM, IPPROTO_TCP);
+
     if (hSocket == INVALID_SOCKET)
     {
         return false;
@@ -608,7 +622,9 @@ bool static ConnectSocketDirectly(const CService &addrConnect, SOCKET& hSocketRe
     if (connect(hSocket, (struct sockaddr*)&sockaddr, len) == SOCKET_ERROR)
     {
         // WSAEINVAL is here because some legacy version of winsock uses it
-        if (WSAGetLastError() == WSAEINPROGRESS || WSAGetLastError() == WSAEWOULDBLOCK || WSAGetLastError() == WSAEINVAL)
+        if (WSAGetLastError() == WSAEINPROGRESS
+            || WSAGetLastError() == WSAEWOULDBLOCK
+            || WSAGetLastError() == WSAEINVAL)
         {
             struct timeval timeout;
 
@@ -626,7 +642,7 @@ bool static ConnectSocketDirectly(const CService &addrConnect, SOCKET& hSocketRe
             {
                 if (fDebug)
                 {
-                    LogPrint("net", "%s : connection to %s timeout\n", __FUNCTION__, addrConnect.ToString());
+                    LogPrint("net", "%s : ERROR - Connection to %s timeout \n", __FUNCTION__, addrConnect.ToString());
                 }
 
                 closesocket(hSocket);
@@ -638,7 +654,7 @@ bool static ConnectSocketDirectly(const CService &addrConnect, SOCKET& hSocketRe
             {
                 if (fDebug)
                 {
-                    LogPrint("net", "%s : select() for %s failed: %i\n", __FUNCTION__, addrConnect.ToString(), WSAGetLastError());
+                    LogPrint("net", "%s : ERROR - Select() for %s failed: %i \n", __FUNCTION__, addrConnect.ToString(), WSAGetLastError());
                 }
 
                 closesocket(hSocket);
@@ -655,7 +671,7 @@ bool static ConnectSocketDirectly(const CService &addrConnect, SOCKET& hSocketRe
             {
                 if (fDebug)
                 {
-                    LogPrint("net", "%s : getsockopt() for %s failed: %i\n", __FUNCTION__, addrConnect.ToString(), WSAGetLastError());
+                    LogPrint("net", "%s : ERROR - Getsockopt() for %s failed: %i \n", __FUNCTION__, addrConnect.ToString(), WSAGetLastError());
                 }
 
                 closesocket(hSocket);
@@ -667,7 +683,7 @@ bool static ConnectSocketDirectly(const CService &addrConnect, SOCKET& hSocketRe
             {
                 if (fDebug)
                 {
-                    LogPrint("net", "%s : connect() to %s failed after select(): %s\n", __FUNCTION__, addrConnect.ToString(), strerror(nRet));
+                    LogPrint("net", "%s : ERROR - Connect() to %s failed after select(): %s \n", __FUNCTION__, addrConnect.ToString(), strerror(nRet));
                 }
 
                 closesocket(hSocket);
@@ -683,7 +699,7 @@ bool static ConnectSocketDirectly(const CService &addrConnect, SOCKET& hSocketRe
         {
             if (fDebug)
             {
-                LogPrint("net", "%s : connect() to %s failed: %i\n", __FUNCTION__, addrConnect.ToString(), WSAGetLastError());
+                LogPrint("net", "%s : ERROR - Connect() to %s failed: %i \n", __FUNCTION__, addrConnect.ToString(), WSAGetLastError());
             }
 
             closesocket(hSocket);
@@ -722,20 +738,21 @@ bool SetProxy(enum Network net, CService addrProxy, int nSocksVersion)
     {
         if (fDebug)
         {
-            LogPrint("net", "%s : net < 0 && net > NET_MAX (assert-3)\n", __FUNCTION__);
+            LogPrint("net", "%s : ERROR - net < 0 && net > NET_MAX \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-3)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return false;
     }
 
-    if (nSocksVersion != 0 && nSocksVersion != 4 && nSocksVersion != 5)
+    if (nSocksVersion != 0
+        && nSocksVersion != 4
+        && nSocksVersion != 5)
     {
         return false;
     }
 
-    if (nSocksVersion != 0 && !addrProxy.IsValid())
+    if (nSocksVersion != 0
+        && !addrProxy.IsValid())
     {
         return false;
     }
@@ -750,14 +767,13 @@ bool SetProxy(enum Network net, CService addrProxy, int nSocksVersion)
 
 bool GetProxy(enum Network net, proxyType &proxyInfoOut)
 {
-    if (net < 0 && net > NET_MAX)
+    if (net < 0
+        && net > NET_MAX)
     {
         if (fDebug)
         {
-            LogPrint("net", "%s : net < 0 && net > NET_MAX (assert-4)\n", __FUNCTION__);
+            LogPrint("net", "%s : ERROR - net < 0 && net > NET_MAX \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-4)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return false;
     }
@@ -777,12 +793,14 @@ bool GetProxy(enum Network net, proxyType &proxyInfoOut)
 
 bool SetNameProxy(CService addrProxy, int nSocksVersion)
 {
-    if (nSocksVersion != 0 && nSocksVersion != 5)
+    if (nSocksVersion != 0
+        && nSocksVersion != 5)
     {
         return false;
     }
 
-    if (nSocksVersion != 0 && !addrProxy.IsValid())
+    if (nSocksVersion != 0
+        && !addrProxy.IsValid())
     {
         return false;
     }
@@ -900,6 +918,7 @@ bool ConnectSocketByName(CService &addr, SOCKET& hSocketRet, const char *pszDest
     SOCKET hSocket = INVALID_SOCKET;
 
     proxyType nameproxy;
+
     GetNameProxy(nameproxy);
 
     CService addrResolved(CNetAddr(strDest, fNameLookup && !nameproxy.second), port);
@@ -983,10 +1002,8 @@ void CNetAddr::SetRaw(Network network, const uint8_t *ip_in)
         {
             if (fDebug)
             {
-                LogPrint("net", "%s : Invalid network (assert-5)\n", __FUNCTION__);
+                LogPrint("net", "%s : ERROR - Invalid network \n", __FUNCTION__);
             }
-
-            cout << __FUNCTION__ << " (assert-5)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
         }
         break;
     }
@@ -999,7 +1016,8 @@ static const unsigned char pchGarliCat[] = {0xFD,0x60,0xDB,0x4D,0xDD,0xB5};
 
 bool CNetAddr::SetSpecial(const std::string &strName)
 {
-    if (strName.size()>6 && strName.substr(strName.size() - 6, 6) == ".onion")
+    if (strName.size()>6
+        && strName.substr(strName.size() - 6, 6) == ".onion")
     {
         std::vector<unsigned char> vchAddr = DecodeBase32(strName.substr(0, strName.size() - 6).c_str());
 
@@ -1018,7 +1036,8 @@ bool CNetAddr::SetSpecial(const std::string &strName)
         return true;
     }
 
-    if (strName.size()>11 && strName.substr(strName.size() - 11, 11) == ".oc.b32.i2p")
+    if (strName.size()>11
+        && strName.substr(strName.size() - 11, 11) == ".oc.b32.i2p")
     {
         std::vector<unsigned char> vchAddr = DecodeBase32(strName.substr(0, strName.size() - 11).c_str());
 
@@ -1105,25 +1124,37 @@ bool CNetAddr::IsIPv6() const
 
 bool CNetAddr::IsRFC1918() const
 {
-    return IsIPv4() && (GetByte(3) == 10 || (GetByte(3) == 192 && GetByte(2) == 168) || (GetByte(3) == 172 && (GetByte(2) >= 16 && GetByte(2) <= 31)));
+    return IsIPv4()
+            && (GetByte(3) == 10
+            || (GetByte(3) == 192
+            && GetByte(2) == 168)
+            || (GetByte(3) == 172
+            && (GetByte(2) >= 16
+            && GetByte(2) <= 31)));
 }
 
 
 bool CNetAddr::IsRFC3927() const
 {
-    return IsIPv4() && (GetByte(3) == 169 && GetByte(2) == 254);
+    return IsIPv4()
+            && (GetByte(3) == 169
+            && GetByte(2) == 254);
 }
 
 
 bool CNetAddr::IsRFC3849() const
 {
-    return GetByte(15) == 0x20 && GetByte(14) == 0x01 && GetByte(13) == 0x0D && GetByte(12) == 0xB8;
+    return GetByte(15) == 0x20
+            && GetByte(14) == 0x01
+            && GetByte(13) == 0x0D
+            && GetByte(12) == 0xB8;
 }
 
 
 bool CNetAddr::IsRFC3964() const
 {
-    return (GetByte(15) == 0x20 && GetByte(14) == 0x02);
+    return (GetByte(15) == 0x20
+            && GetByte(14) == 0x02);
 }
 
 
@@ -1165,7 +1196,10 @@ bool CNetAddr::IsRFC6145() const
 
 bool CNetAddr::IsRFC4843() const
 {
-    return (GetByte(15) == 0x20 && GetByte(14) == 0x01 && GetByte(13) == 0x00 && (GetByte(12) & 0xF0) == 0x10);
+    return (GetByte(15) == 0x20
+            && GetByte(14) == 0x01
+            && GetByte(13) == 0x00
+            && (GetByte(12) & 0xF0) == 0x10);
 }
 
 
@@ -1184,7 +1218,9 @@ bool CNetAddr::IsI2P() const
 bool CNetAddr::IsLocal() const
 {
     // IPv4 loopback
-   if (IsIPv4() && (GetByte(3) == 127 || GetByte(3) == 0))
+   if (IsIPv4()
+        && (GetByte(3) == 127
+        || GetByte(3) == 0))
    {
        return true;
    }
@@ -1203,7 +1239,9 @@ bool CNetAddr::IsLocal() const
 
 bool CNetAddr::IsMulticast() const
 {
-    return (IsIPv4() && (GetByte(3) & 0xF0) == 0xE0) || (GetByte(15) == 0xFF);
+    return (IsIPv4()
+            && (GetByte(3) & 0xF0) == 0xE0)
+            || (GetByte(15) == 0xFF);
 }
 
 
@@ -1259,7 +1297,14 @@ bool CNetAddr::IsValid() const
 
 bool CNetAddr::IsRoutable() const
 {
-    return IsValid() && !(IsRFC1918() || IsRFC3927() || IsRFC4862() || (IsRFC4193() && !IsTor() && !IsI2P()) || IsRFC4843() || IsLocal());
+    return IsValid() && !(IsRFC1918()
+            || IsRFC3927()
+            || IsRFC4862()
+            || (IsRFC4193()
+            && !IsTor()
+            && !IsI2P())
+            || IsRFC4843()
+            || IsLocal());
 }
 
 
@@ -1400,7 +1445,9 @@ std::vector<unsigned char> CNetAddr::GetGroup() const
         nClass = NET_UNROUTABLE;
         nBits = 0;
     }
-    else if (IsIPv4() || IsRFC6145() || IsRFC6052())
+    else if (IsIPv4()
+            || IsRFC6145()
+            || IsRFC6052())
     {
         // for IPv4 addresses, '1' + the 16 higher-order bits of the IP
         // includes mapped IPv4, SIIT translated IPv4, and the well-known prefix
@@ -1435,7 +1482,10 @@ std::vector<unsigned char> CNetAddr::GetGroup() const
         nStartByte = 6;
         nBits = 4;
     }
-    else if (GetByte(15) == 0x20 && GetByte(14) == 0x01 && GetByte(13) == 0x04 && GetByte(12) == 0x70)
+    else if (GetByte(15) == 0x20
+            && GetByte(14) == 0x01
+            && GetByte(13) == 0x04
+            && GetByte(12) == 0x70)
     {
         // for he.net, use /36 groups
         nBits = 36;
@@ -1480,7 +1530,7 @@ void CNetAddr::print() const
 {
     if (fDebug)
     {
-        LogPrint("net", "%s : CNetAddr(%s)\n", __FUNCTION__, ToString());
+        LogPrint("net", "%s : OK - CNetAddr(%s) \n", __FUNCTION__, ToString());
     }
 }
 
@@ -1741,10 +1791,8 @@ CService::CService(const struct sockaddr_in& addr) : CNetAddr(addr.sin_addr), po
     {
         if (fDebug)
         {
-            LogPrint("net", "%s : addr.sin_family != AF_INET (assert-6)\n", __FUNCTION__);
+            LogPrint("net", "%s : ERROR - Addr.sin_family != AF_INET \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-6)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
     }
 }
 
@@ -1755,10 +1803,8 @@ CService::CService(const struct sockaddr_in6 &addr) : CNetAddr(addr.sin6_addr), 
     {
         if (fDebug)
         {
-            LogPrint("net", "%s : addr.sin6_family != AF_INET6 (assert-7)\n", __FUNCTION__);
+            LogPrint("net", "%s : ERROR - Addr.sin6_family != AF_INET6 \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-7)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
     }
 }
 
@@ -1852,19 +1898,23 @@ unsigned short CService::GetPort() const
 
 bool operator==(const CService& a, const CService& b)
 {
-    return (CNetAddr)a == (CNetAddr)b && a.port == b.port;
+    return (CNetAddr)a == (CNetAddr)b 
+            && a.port == b.port;
 }
 
 
 bool operator!=(const CService& a, const CService& b)
 {
-    return (CNetAddr)a != (CNetAddr)b || a.port != b.port;
+    return (CNetAddr)a != (CNetAddr)b
+            || a.port != b.port;
 }
 
 
 bool operator<(const CService& a, const CService& b)
 {
-    return (CNetAddr)a < (CNetAddr)b || ((CNetAddr)a == (CNetAddr)b && a.port < b.port);
+    return (CNetAddr)a < (CNetAddr)b
+            || ((CNetAddr)a == (CNetAddr)b
+            && a.port < b.port);
 }
 
 
@@ -1945,7 +1995,9 @@ std::string CService::ToStringPort() const
 
 std::string CService::ToStringIPPort() const
 {
-    if (IsIPv4() || IsTor() || IsI2P())
+    if (IsIPv4()
+        || IsTor()
+        || IsI2P())
     {
         return ToStringIP() + ":" + ToStringPort();
     }
@@ -1958,7 +2010,9 @@ std::string CService::ToStringIPPort() const
 
 std::string CService::ToString() const
 {
-    if (IsIPv4() || IsTor() || IsI2P())
+    if (IsIPv4()
+        || IsTor()
+        || IsI2P())
     {
         return ToStringIP();
     }
@@ -1973,7 +2027,7 @@ void CService::print() const
 {
     if (fDebug)
     {
-        LogPrint("net", "%s : CService(%s)\n", __FUNCTION__, ToString());
+        LogPrint("net", "%s : OK - CService(%s) \n", __FUNCTION__, ToString());
     }
 }
 
@@ -2016,7 +2070,8 @@ CSubNet::CSubNet(const std::string &strSubnet, bool fAllowLookup)
 
             if (ParseInt32(strNetmask, &n)) // If valid number, assume /24 symtex
             {
-                if(n >= 0 && n <= (128 - noffset)) // Only valid if in range of bits of address
+                if(n >= 0
+                    && n <= (128 - noffset)) // Only valid if in range of bits of address
                 {
                     n += noffset;
 
@@ -2061,7 +2116,8 @@ CSubNet::CSubNet(const std::string &strSubnet, bool fAllowLookup)
 
 bool CSubNet::Match(const CNetAddr &addr) const
 {
-    if (!valid || !addr.IsValid())
+    if (!valid
+        || !addr.IsValid())
     {
         return false; 
     }
@@ -2216,7 +2272,9 @@ bool CSubNet::IsValid() const
 
 bool operator==(const CSubNet& a, const CSubNet& b)
 {
-    return a.valid == b.valid && a.network == b.network && !memcmp(a.netmask, b.netmask, 16);
+    return a.valid == b.valid
+            && a.network == b.network
+            && !memcmp(a.netmask, b.netmask, 16);
 }
 
 
@@ -2228,7 +2286,9 @@ bool operator!=(const CSubNet& a, const CSubNet& b)
 
 bool operator<(const CSubNet& a, const CSubNet& b)
 {
-    return (a.network < b.network || (a.network == b.network && memcmp(a.netmask, b.netmask, 16) < 0));
+    return (a.network < b.network
+            || (a.network == b.network
+            && memcmp(a.netmask, b.netmask, 16) < 0));
 }
 
 
@@ -2240,11 +2300,11 @@ std::string NetworkErrorString(int err)
 
     if(FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK, NULL, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buf, sizeof(buf), NULL))
     {
-        return strprintf("%s : %s (%d)", __FUNCTION__, buf, err);
+        return strprintf("%s : ERROR - %s (%d)", __FUNCTION__, buf, err);
     }
     else
     {
-        return strprintf("%s : Unknown error (%d)", __FUNCTION__, err);
+        return strprintf("%s : ERROR - Unknown NetworkErrorString! (%d)", __FUNCTION__, err);
     }
 }
 
@@ -2264,6 +2324,6 @@ std::string NetworkErrorString(int err)
     (void)strerror_r(err, buf, sizeof(buf));
 #endif
 
-    return strprintf("%s : %s (%d)", __FUNCTION__, s, err);
+    return strprintf("%s : ERROR - %s (%d)", __FUNCTION__, s, err);
 }
 #endif

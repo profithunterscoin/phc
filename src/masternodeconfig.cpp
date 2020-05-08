@@ -6,7 +6,7 @@
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015 The Crave developers
 // Copyright (c) 2017 XUVCoin developers
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
@@ -34,7 +34,8 @@ bool CMasternodeConfig::read(boost::filesystem::path path)
 
     if (!streamConfig.good())
     {
-        return true; // No masternode.conf file is OK
+        // No masternode.conf file is OK
+        return true;
     }
 
     for(std::string line; std::getline(streamConfig, line);)
@@ -59,7 +60,7 @@ bool CMasternodeConfig::read(boost::filesystem::path path)
             {
                 if (fDebug)
                 {
-                    LogPrint("masternode", "%s : Could not parse masternode.conf line: %s\n", __FUNCTION__, line.c_str());
+                    LogPrint("masternode", "%s : ERROR - Could not parse masternode.conf line: %s \n", __FUNCTION__, line.c_str());
                 }
 
                 streamConfig.close();
@@ -89,7 +90,7 @@ bool CMasternodeConfig::read(boost::filesystem::path path)
             {
                 if (fDebug)
                 {
-                    LogPrint("masternode", "%s : Invalid TX address in masternode.conf line: %s\n", __FUNCTION__, line.c_str());
+                    LogPrint("masternode", "%s : ERROR - Invalid TX address in masternode.conf line: %s \n", __FUNCTION__, line.c_str());
                 }
 
                 streamConfig.close();

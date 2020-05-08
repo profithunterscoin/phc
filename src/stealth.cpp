@@ -1,5 +1,5 @@
 // Copyright (c) 2014-2015 The ShadowCoin developers
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file license.txt or http://www.opensource.org/licenses/mit-license.php.
@@ -7,7 +7,6 @@
 
 #include "stealth.h"
 #include "base58.h"
-
 
 #include <openssl/rand.h>
 #include <openssl/ec.h>
@@ -23,7 +22,7 @@ bool CStealthAddress::SetEncoded(const std::string& encodedAddress)
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s : DecodeBase58 falied.\n", __FUNCTION__);
+            LogPrint("stealth", "%s : ERROR - DecodeBase58 falied. \n", __FUNCTION__);
         }
 
         return false;
@@ -33,7 +32,7 @@ bool CStealthAddress::SetEncoded(const std::string& encodedAddress)
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s : verify_checksum falied.\n", __FUNCTION__);
+            LogPrint("stealth", "%s : ERROR - Verify_checksum falied. \n", __FUNCTION__);
         }
 
         return false;
@@ -43,7 +42,7 @@ bool CStealthAddress::SetEncoded(const std::string& encodedAddress)
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s : too few bytes provided.\n", __FUNCTION__);
+            LogPrint("stealth", "%s : ERROR - Too few bytes provided. \n", __FUNCTION__);
         }
 
         return false;
@@ -57,7 +56,7 @@ bool CStealthAddress::SetEncoded(const std::string& encodedAddress)
     {
         if (fDebug)
         {
-            LogPrint("stealth", "%s : version mismatch 0x%x != 0x%x.\n", __FUNCTION__, version, stealth_version_byte);
+            LogPrint("stealth", "%s : ERROR - Version mismatch 0x%x != 0x%x. \n", __FUNCTION__, version, stealth_version_byte);
         }
 
         return false;
@@ -115,7 +114,8 @@ int CStealthAddress::SetScanPubKey(CPubKey pk)
 
 uint32_t BitcoinChecksum(uint8_t* p, uint32_t nBytes)
 {
-    if (!p || nBytes == 0)
+    if (!p
+        || nBytes == 0)
     {
         return 0;
     }
@@ -173,7 +173,9 @@ int GenerateRandomSecret(ec_secret& out)
     RandAddSeedPerfmon();
     
     static uint256 max("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364140");
-    static uint256 min(16000); // increase? min valid key is 1
+
+    // increase? min valid key is 1
+    static uint256 min(16000);
     
     uint256 test;
     
@@ -255,7 +257,8 @@ int SecretToPublicKey(const ec_secret& secret, ec_point& out)
     {
         out.resize(ec_compressed_size);
 
-        if (BN_num_bytes(bnOut) != (int) ec_compressed_size || BN_bn2bin(bnOut, &out[0]) != (int) ec_compressed_size)
+        if (BN_num_bytes(bnOut) != (int) ec_compressed_size
+            || BN_bn2bin(bnOut, &out[0]) != (int) ec_compressed_size)
         {
                 if (fDebug)
                 {
@@ -414,7 +417,8 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
     
     vchOutQ.resize(ec_compressed_size);
 
-    if (BN_num_bytes(bnOutQ) != (int) ec_compressed_size || BN_bn2bin(bnOutQ, &vchOutQ[0]) != (int) ec_compressed_size)
+    if (BN_num_bytes(bnOutQ) != (int) ec_compressed_size
+        || BN_bn2bin(bnOutQ, &vchOutQ[0]) != (int) ec_compressed_size)
     {
         if (fDebug)
         {
@@ -476,7 +480,6 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
 
         goto End;
     };
-    
     
     if (!(R = EC_POINT_bn2point(ecgrp, bnR, NULL, bnCtx)))
     {
@@ -540,7 +543,8 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
     
     pkOut.resize(ec_compressed_size);
 
-    if (BN_num_bytes(bnOutR) != (int) ec_compressed_size || BN_bn2bin(bnOutR, &pkOut[0]) != (int) ec_compressed_size)
+    if (BN_num_bytes(bnOutR) != (int) ec_compressed_size
+        || BN_bn2bin(bnOutR, &pkOut[0]) != (int) ec_compressed_size)
     {
         if (fDebug)
         {
@@ -726,7 +730,8 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
     
     vchOutP.resize(ec_compressed_size);
 
-    if (BN_num_bytes(bnOutP) != (int) ec_compressed_size || BN_bn2bin(bnOutP, &vchOutP[0]) != (int) ec_compressed_size)
+    if (BN_num_bytes(bnOutP) != (int) ec_compressed_size
+        || BN_bn2bin(bnOutP, &vchOutP[0]) != (int) ec_compressed_size)
     {
         if (fDebug)
         {
@@ -755,7 +760,8 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
         goto End;
     };
     
-    if (!(bnOrder = BN_new()) || !EC_GROUP_get_order(ecgrp, bnOrder, bnCtx))
+    if (!(bnOrder = BN_new())
+        || !EC_GROUP_get_order(ecgrp, bnOrder, bnCtx))
     {
         if (fDebug)
         {
@@ -793,7 +799,8 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
         goto End;
     };
     
-    if (BN_is_zero(bnSpend)) // possible?
+    // possible?
+    if (BN_is_zero(bnSpend))
     {
         if (fDebug)
         {
@@ -809,7 +816,8 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
 
     memset(&secretOut.e[0], 0, ec_secret_size);
 
-    if ((nBytes = BN_num_bytes(bnSpend)) > (int)ec_secret_size || BN_bn2bin(bnSpend, &secretOut.e[ec_secret_size-nBytes]) != nBytes)
+    if ((nBytes = BN_num_bytes(bnSpend)) > (int)ec_secret_size
+        || BN_bn2bin(bnSpend, &secretOut.e[ec_secret_size-nBytes]) != nBytes)
     {
         if (fDebug)
         {
@@ -916,7 +924,8 @@ int StealthSharedToSecretSpend(ec_secret& sharedS, ec_secret& spendSecret, ec_se
         goto End;
     };
     
-    if (!(bnOrder = BN_new()) || !EC_GROUP_get_order(ecgrp, bnOrder, bnCtx))
+    if (!(bnOrder = BN_new())
+        || !EC_GROUP_get_order(ecgrp, bnOrder, bnCtx))
     {
         if (fDebug)
         {
@@ -954,7 +963,8 @@ int StealthSharedToSecretSpend(ec_secret& sharedS, ec_secret& spendSecret, ec_se
         goto End;
     };
     
-    if (BN_is_zero(bnSpend)) // possible?
+    // possible?
+    if (BN_is_zero(bnSpend))
     {
         if (fDebug)
         {
@@ -970,7 +980,8 @@ int StealthSharedToSecretSpend(ec_secret& sharedS, ec_secret& spendSecret, ec_se
 
     memset(&secretOut.e[0], 0, ec_secret_size);
     
-    if ((nBytes = BN_num_bytes(bnSpend)) > (int)ec_secret_size || BN_bn2bin(bnSpend, &secretOut.e[ec_secret_size-nBytes]) != nBytes)
+    if ((nBytes = BN_num_bytes(bnSpend)) > (int)ec_secret_size
+        || BN_bn2bin(bnSpend, &secretOut.e[ec_secret_size-nBytes]) != nBytes)
     {
         if (fDebug)
         {

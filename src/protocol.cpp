@@ -6,7 +6,7 @@
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015 The Crave developers
 // Copyright (c) 2017 XUVCoin developers
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
@@ -94,7 +94,8 @@ bool CMessageHeader::IsValid() const
                 }
             }
         }
-        else if (*p1 < ' ' || *p1 > 0x7E)
+        else if (*p1 < ' '
+                || *p1 > 0x7E)
         {
             return false;
         }
@@ -105,7 +106,7 @@ bool CMessageHeader::IsValid() const
     {
         if (fDebug)
         {
-            LogPrint("protocol", "%s : (%s, %u bytes) nMessageSize > MAX_SIZE\n", __FUNCTION__, GetCommand(), nMessageSize);
+            LogPrint("protocol", "%s : ERROR - (%s, %u bytes) nMessageSize > MAX_SIZE \n", __FUNCTION__, GetCommand(), nMessageSize);
         }
 
         return false;
@@ -167,7 +168,7 @@ CInv::CInv(const std::string& strType, const uint256& hashIn)
 
     if (i == ARRAYLEN(ppszTypeName))
     {
-        throw std::out_of_range(strprintf("%s : unknown type '%s'", __FUNCTION__, strType));
+        throw std::out_of_range(strprintf("%s : ERROR - unknown type '%s'", __FUNCTION__, strType));
     }
 
     hash = hashIn;
@@ -176,13 +177,16 @@ CInv::CInv(const std::string& strType, const uint256& hashIn)
 
 bool operator<(const CInv& a, const CInv& b)
 {
-    return (a.type < b.type || (a.type == b.type && a.hash < b.hash));
+    return (a.type < b.type
+            || (a.type == b.type
+            && a.hash < b.hash));
 }
 
 
 bool CInv::IsKnownType() const
 {
-    return (type >= 1 && type < (int)ARRAYLEN(ppszTypeName));
+    return (type >= 1
+            && type < (int)ARRAYLEN(ppszTypeName));
 }
 
 
@@ -190,7 +194,7 @@ const char* CInv::GetCommand() const
 {
     if (!IsKnownType())
     {
-        throw std::out_of_range(strprintf("%s : type=%d unknown type", __FUNCTION__, type));
+        throw std::out_of_range(strprintf("%s : ERROR - type=%d unknown type", __FUNCTION__, type));
     }
 
     return ppszTypeName[type];
@@ -201,3 +205,4 @@ std::string CInv::ToString() const
 {
     return strprintf("%s %s", GetCommand(), hash.ToString());
 }
+

@@ -6,7 +6,7 @@
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015 The Crave developers
 // Copyright (c) 2017 XUVCoin developers
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
@@ -587,7 +587,7 @@ void OverviewPage::darkSendStatus()
     {
         if (fDebug)
         {
-            LogPrint("darksend", "%s : Last Darksend message: %s\n", __FUNCTION__, strStatus.toStdString());
+            LogPrint("darksend", "%s : NOTICE - Last Darksend message: %s \n", __FUNCTION__, strStatus.toStdString());
         }
     }
 
@@ -670,7 +670,7 @@ void OverviewPage::toggleDarksend()
                 
                 if (fDebug)
                 {
-                    LogPrint("wallet", "%s : Wallet is locked and user declined to unlock. Disabling Darksend.\n", __FUNCTION__);
+                    LogPrint("wallet", "%s : OK - Wallet is locked and user declined to unlock. Disabling Darksend. \n", __FUNCTION__);
                 }
                 
                 return;
