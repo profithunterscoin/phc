@@ -7,7 +7,7 @@
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015 The Crave developers
 // Copyright (c) 2017 XUVCoin developers
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
@@ -2373,7 +2373,11 @@ void BitcoinGUI::updateStakingIcon()
 		{
 			labelStakingIcon->setToolTip(tr("Not staking, waiting to unlock coins..."));
 		}
-        else if (GetBoolArg("-staking", true) == true)
+        else if (GetBoolArg("-staking", true) == true && nLastCoinStakeSearchInterval == 0)
+		{
+			labelStakingIcon->setToolTip(tr("Not staking, waiting to sign a block."));
+		}
+		else if (GetBoolArg("-staking", true) == true)
 		{
 			labelStakingIcon->setToolTip(tr("Not staking, unknown error."));
 		}

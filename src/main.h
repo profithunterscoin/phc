@@ -6,7 +6,7 @@
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015 The Crave developers
 // Copyright (c) 2017 XUVCoin developers
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
@@ -30,13 +30,17 @@
 
 class CValidationState;
 
-#define START_MASTERNODE_PAYMENTS_TESTNET 1513486992 //GMT: Sunday, December 17, 2017 5:03:12 AM
-#define START_MASTERNODE_PAYMENTS 1516001840 //GMT: Monday, January 15, 2018 7:37:20 AM
+//GMT: Sunday, December 17, 2017 5:03:12 AM
+#define START_MASTERNODE_PAYMENTS_TESTNET 1513486992
+
+//GMT: Monday, January 15, 2018 7:37:20 AM
+#define START_MASTERNODE_PAYMENTS 1516001840 
 
 static const int64_t DARKSEND_COLLATERAL = (10*COIN);
 static const int64_t DARKSEND_POOL_MAX = (49.99*COIN);
 
-//static const int64_t STATIC_POS_REWARD = 1000 * COIN; //Constant reward of 10 PHC per COIN i.e. 8%
+//Constant reward of 10 PHC per COIN i.e. 8%
+//static const int64_t STATIC_POS_REWARD = 1000 * COIN;
 
 static const int64_t TARGET_SPACING = 60; //60 sec
 
@@ -51,8 +55,8 @@ class CNode;
 class CReserveKey;
 class CWallet;
 
-/** The maximum allowed size for a serialized block, in bytes (network rule) */
-static const unsigned int MAX_BLOCK_SIZE = 30000000;  //30MB
+/** The maximum allowed size for a serialized block, in bytes (network rule) 30 MB default */
+static const unsigned int MAX_BLOCK_SIZE = 30000000;
 
 /** The maximum size for mined blocks */
 static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
@@ -76,7 +80,7 @@ static const unsigned int MAX_TX_SIGOPS = MAX_BLOCK_SIGOPS/5;
 static const unsigned int MAX_ORPHAN_TRANSACTIONS = MAX_BLOCK_SIZE/100;
 
 /** Default for -maxorphanblocks, maximum number of orphan blocks kept in memory */
-static const unsigned int DEFAULT_MAX_ORPHAN_BLOCKS = 25;
+static const unsigned int DEFAULT_MAX_ORPHAN_BLOCKS = 10;
 
 /** Fees smaller than this (in satoshi) are considered zero fee (for transaction creation) */
 static const int64_t MIN_TX_FEE = 1000;
@@ -84,8 +88,8 @@ static const int64_t MIN_TX_FEE = 1000;
 /** Fees smaller than this (in satoshi) are considered zero fee (for relaying) */
 static const int64_t MIN_RELAY_TX_FEE = MIN_TX_FEE;
 
-/** No amount larger than this (in satoshi) is valid */
-static const int64_t MAX_MONEY = 100000000 * COIN;  // 100M COIN
+/** No amount larger than this (in satoshi) is valid (100 Million coins) */
+static const int64_t MAX_MONEY = 100000000 * COIN;
 
 inline bool MoneyRange(int64_t nValue)
 {
@@ -93,9 +97,11 @@ inline bool MoneyRange(int64_t nValue)
 }
 
 /** Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp. */
-static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
+// Tue Nov  5 00:53:20 1985 UTC
+static const unsigned int LOCKTIME_THRESHOLD = 500000000;
 
-static const int64_t DRIFT = 5 * 60; // 5 minutes into the future
+// 5 minutes drift into the future
+static const int64_t DRIFT = 5 * 60; 
 inline int64_t FutureDrift(int64_t nTime)
 { 
     return nTime + DRIFT;
@@ -113,7 +119,8 @@ inline int64_t GetMNCollateral(int nHeight)
 
 extern int64_t TURBOSYNC_MAX;
 
-static const int64_t DYNAMICCHECKPOINTS_INTERVAL = 60;  // 1 minute
+// Dynamic Checkpoints Interval (1 minute)
+static const int64_t DYNAMICCHECKPOINTS_INTERVAL = 60;  
 
 extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
@@ -255,7 +262,7 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
 void UpdateTime(CBlock& block, const CBlockIndex* pindexPrev);
 
 /** Run the internal miner threads */
-void GeneratePoWcoins(bool fGenerate, CWallet* pwallet, bool fDebugConsoleOutputMining);
+void GeneratePoWcoins(bool fGenerate, CWallet* pwallet, bool fDebugConsoleMining);
 
 int64_t GetProofOfWorkReward(int nHeight, int64_t nFees);
 int64_t GetProofOfStakeReward(const CBlockIndex* pindexPrev, int64_t nCoinAge, int64_t nFees);
@@ -397,6 +404,7 @@ class CTransaction
         bool DoS(int nDoSIn, bool fIn) const
         {
             nDoS += nDoSIn;
+
             return fIn;
         }
 
@@ -432,7 +440,8 @@ class CTransaction
 
         bool IsNull() const
         {
-            return (vin.empty() && vout.empty());
+            return (vin.empty()
+            && vout.empty());
         }
 
         uint256 GetHash() const
@@ -442,13 +451,18 @@ class CTransaction
 
         bool IsCoinBase() const
         {
-            return (vin.size() == 1 && vin[0].prevout.IsNull() && vout.size() >= 1);
+            return (vin.size() == 1
+                && vin[0].prevout.IsNull()
+                && vout.size() >= 1);
         }
 
         bool IsCoinStake() const
         {
             // ppcoin: the coin stake transaction is marked with the first output empty
-            return (vin.size() > 0 && (!vin[0].prevout.IsNull()) && vout.size() >= 2 && vout[0].IsEmpty());
+            return (vin.size() > 0
+                && (!vin[0].prevout.IsNull())
+                && vout.size() >= 2
+                && vout[0].IsEmpty());
         }
 
         // Compute priority, given priority of inputs and (optionally) tx size
@@ -465,7 +479,8 @@ class CTransaction
             {
                 nValueOut += txout.nValue;
 
-                if (!MoneyRange(txout.nValue) || !MoneyRange(nValueOut))
+                if (!MoneyRange(txout.nValue)
+                    || !MoneyRange(nValueOut))
                 {
                     throw std::runtime_error(strprintf("%s : value out of range", __FUNCTION__));
                 }
@@ -488,6 +503,7 @@ class CTransaction
         bool ReadFromDisk(CDiskTxPos pos, FILE** pfileRet=NULL)
         {
             CAutoFile filein = CAutoFile(OpenBlockFile(pos.nFile, 0, pfileRet ? "rb+" : "rb"), SER_DISK, CLIENT_VERSION);
+
             if (filein.IsNull())
             {
                 return error("%s : OpenBlockFile failed", __FUNCTION__);
@@ -824,7 +840,9 @@ class CBlock
         mutable int nDoS;
         bool DoS(int nDoSIn, bool fIn) const
         {
-            nDoS += nDoSIn; return fIn;
+            nDoS += nDoSIn;
+            
+            return fIn;
         }
 
         CBlock()
@@ -924,7 +942,7 @@ class CBlock
 
             if (fDebug)
             {
-                LogPrint("stakemodifier", "%s : GetStakeEntropyBit: hashBlock=%s nEntropyBit=%u\n", __FUNCTION__, GetHash().ToString(), nEntropyBit);
+                LogPrint("stakemodifier", "%s : ERROR - GetStakeEntropyBit: hashBlock=%s nEntropyBit=%u \n", __FUNCTION__, GetHash().ToString(), nEntropyBit);
             }
             
             return nEntropyBit;
@@ -969,11 +987,13 @@ class CBlock
             }
 
             int j = 0;
+
             for (int nSize = vtx.size(); nSize > 1; nSize = (nSize + 1) / 2)
             {
                 for (int i = 0; i < nSize; i += 2)
                 {
                     int i2 = std::min(i+1, nSize-1);
+
                     vMerkleTree.push_back(Hash(BEGIN(vMerkleTree[j+i]),  END(vMerkleTree[j+i]), BEGIN(vMerkleTree[j+i2]), END(vMerkleTree[j+i2])));
                 }
 
@@ -991,13 +1011,17 @@ class CBlock
             }
 
             std::vector<uint256> vMerkleBranch;
+
             int j = 0;
 
             for (int nSize = vtx.size(); nSize > 1; nSize = (nSize + 1) / 2)
             {
                 int i = std::min(nIndex^1, nSize-1);
+
                 vMerkleBranch.push_back(vMerkleTree[j+i]);
+
                 nIndex >>= 1;
+
                 j += nSize;
             }
 
@@ -1032,6 +1056,7 @@ class CBlock
         {
             // Open history file to append
             CAutoFile fileout = CAutoFile(AppendBlockFile(nFileRet), SER_DISK, CLIENT_VERSION);
+
             if (fileout.IsNull())
             {
                 return error("%s : AppendBlockFile failed", __FUNCTION__);
@@ -1043,6 +1068,7 @@ class CBlock
 
             // Write block
             long fileOutPos = ftell(fileout.Get());
+
             if (fileOutPos < 0)
             {
                 return error("%s : ftell failed", __FUNCTION__);
@@ -1053,7 +1079,9 @@ class CBlock
 
             // Flush stdio buffers and commit to disk before returning
             fflush(fileout.Get());
-            if (!IsInitialBlockDownload() || (nBestHeight+1) % 500 == 0)
+
+            if (!IsInitialBlockDownload()
+                || (nBestHeight+1) % 500 == 0)
             {
                 FileCommit(fileout.Get());
             }
@@ -1067,6 +1095,7 @@ class CBlock
 
             // Open history file to read
             CAutoFile filein = CAutoFile(OpenBlockFile(nFile, nBlockPos, "rb"), SER_DISK, CLIENT_VERSION);
+
             if (filein.IsNull())
             {
                 return error("%s : OpenBlockFile failed", __FUNCTION__);
@@ -1088,7 +1117,9 @@ class CBlock
             }
 
             // Check the header
-            if (fReadTransactions && IsProofOfWork() && !CheckProofOfWork(GetPoWHash(), nBits))
+            if (fReadTransactions
+                && IsProofOfWork()
+                && !CheckProofOfWork(GetPoWHash(), nBits))
             {
                 return error("%s : errors in block header", __FUNCTION__);
             }
@@ -1153,14 +1184,19 @@ class CBlockIndex
         CBlockIndex* pnext;
         unsigned int nFile;
         unsigned int nBlockPos;
-        uint256 nChainTrust; // ppcoin: trust score of block chain
+
+        // ppcoin: trust score of block chain
+        uint256 nChainTrust;
+
         int nHeight;
     #ifndef LOWMEM
         int64_t nPOWMint;
         int64_t nPOSMint;
         int64_t nMoneySupply;
     #endif
-        unsigned int nFlags;  // ppcoin: block index flags
+        // ppcoin: block index flags
+        unsigned int nFlags;
+
         enum
         {
             BLOCK_PROOF_OF_STAKE = (1 << 0), // is proof-of-stake block
@@ -1168,7 +1204,8 @@ class CBlockIndex
             BLOCK_STAKE_MODIFIER = (1 << 2), // regenerated stake modifier
         };
 
-        uint64_t nStakeModifier; // hash modifier for proof-of-stake
+        // hash modifier for proof-of-stake
+        uint64_t nStakeModifier;
     #ifndef LOWMEM
         uint256 bnStakeModifierV2;
     #endif
@@ -1314,7 +1351,8 @@ class CBlockIndex
 
         bool IsInMainChain() const
         {
-            return (pnext || this == pindexBest);
+            return (pnext
+                    || this == pindexBest);
         }
 
         bool CheckIndex() const
@@ -1336,6 +1374,7 @@ class CBlockIndex
             int64_t* pend = &pmedian[nMedianTimeSpan];
 
             const CBlockIndex* pindex = this;
+
             for (int i = 0; i < nMedianTimeSpan && pindex; i++, pindex = pindex->pprev)
             {
                 *(--pbegin) = pindex->GetBlockTime();
@@ -1386,6 +1425,7 @@ class CBlockIndex
         void SetStakeModifier(uint64_t nModifier, bool fGeneratedStakeModifier)
         {
             nStakeModifier = nModifier;
+
             if (fGeneratedStakeModifier)
             {
                 nFlags |= BLOCK_STAKE_MODIFIER;
@@ -1494,7 +1534,9 @@ class CDiskBlockIndex : public CBlockIndex
 
         uint256 GetBlockHash() const
         {
-            if (fUseFastIndex && (nTime < GetAdjustedTime() - 24 * 60 * 60) && blockHash != 0)
+            if (fUseFastIndex
+                && (nTime < GetAdjustedTime() - 24 * 60 * 60)
+                && blockHash != 0)
             {
                 return blockHash;
             }
@@ -1547,6 +1589,7 @@ class CBlockLocator
         explicit CBlockLocator(uint256 hashBlock)
         {
             std::map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hashBlock);
+
             if (mi != mapBlockIndex.end())
             {
                 Set((*mi).second);
@@ -1581,7 +1624,9 @@ class CBlockLocator
         void Set(const CBlockIndex* pindex)
         {
             vHave.clear();
+
             int nStep = 1;
+
             while (pindex)
             {
                 vHave.push_back(pindex->GetBlockHash());
@@ -1610,9 +1655,11 @@ class CBlockLocator
             for(const uint256& hash: vHave)
             {
                 std::map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hash);
+
                 if (mi != mapBlockIndex.end())
                 {
                     CBlockIndex* pindex = (*mi).second;
+
                     if (pindex->IsInMainChain())
                     {
                         return nDistance;
@@ -1621,6 +1668,7 @@ class CBlockLocator
                 }
 
                 nDistance += nStep;
+
                 if (nDistance > 100)
                 {
                     nStep *= 2;
@@ -1637,9 +1685,11 @@ class CBlockLocator
             for(const uint256& hash: vHave)
             {
                 std::map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hash);
+
                 if (mi != mapBlockIndex.end())
                 {
                     CBlockIndex* pindex = (*mi).second;
+
                     if (pindex->IsInMainChain())
                     {
                         return pindex;
@@ -1656,9 +1706,11 @@ class CBlockLocator
             for(const uint256& hash: vHave)
             {
                 std::map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hash);
+
                 if (mi != mapBlockIndex.end())
                 {
                     CBlockIndex* pindex = (*mi).second;
+
                     if (pindex->IsInMainChain())
                     {
                         return hash;
@@ -1672,6 +1724,7 @@ class CBlockLocator
         int GetHeight()
         {
             CBlockIndex* pindex = GetBlockIndex();
+            
             if (!pindex)
             {
                 return 0;

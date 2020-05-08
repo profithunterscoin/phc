@@ -6,7 +6,7 @@
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015 The Crave developers
 // Copyright (c) 2017 XUVCoin developers
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
@@ -21,9 +21,10 @@
 #include "masternodeconfig.h"
 #include "rpcserver.h"
 #include <boost/lexical_cast.hpp>
-//#include "amount.h"
 #include "util.h"
+
 //#include "utilmoneystr.h"
+//#include "amount.h"
 
 #include <fstream>
 using namespace json_spirit;
@@ -39,6 +40,11 @@ Value SendMoney(const CTxDestination &address, CAmount nValue, CWalletTx& wtxNew
     {
         strError = "Invalid amount";
 
+        if (fDebug)
+        {
+            LogPrint("darksend", "%s : ERROR - %s \n", __FUNCTION__, strError);
+        }
+
         throw JSONRPCError(RPC_INVALID_PARAMETER, strError);
 
         return strError;
@@ -48,6 +54,11 @@ Value SendMoney(const CTxDestination &address, CAmount nValue, CWalletTx& wtxNew
     {
         strError = "Insufficient funds";
 
+        if (fDebug)
+        {
+            LogPrint("darksend", "%s : ERROR - %s \n", __FUNCTION__, strError);
+        }
+
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, strError);
 
         return strError;
@@ -55,11 +66,11 @@ Value SendMoney(const CTxDestination &address, CAmount nValue, CWalletTx& wtxNew
    
     if (pwalletMain->IsLocked())
     {
-        strError = "Error: Wallet locked, unable to create transaction!";
+        strError = "Wallet locked, unable to create transaction!";
         
         if (fDebug)
         {
-            LogPrint("darksend", "%s : %s", __FUNCTION__, strError);
+            LogPrint("darksend", "%s : ERROR - %s \n", __FUNCTION__, strError);
         }
 
         throw JSONRPCError(RPC_WALLET_ERROR, strError);
@@ -81,11 +92,11 @@ Value SendMoney(const CTxDestination &address, CAmount nValue, CWalletTx& wtxNew
     {
         if (nValue + nFeeRequired > pwalletMain->GetBalance())
         {
-            strError = strprintf("Error: This transaction requires a transaction fee of at least %s because of its amount, complexity, or use of recently received funds!", FormatMoney(nFeeRequired));
+            strError = strprintf("This transaction requires a transaction fee of at least %s because of its amount, complexity, or use of recently received funds!", FormatMoney(nFeeRequired));
 
             if (fDebug)
             {
-                LogPrint("darksend", "%s : %s\n", __FUNCTION__, strError);
+                LogPrint("darksend", "%s : ERROR - %s \n", __FUNCTION__, strError);
             }
 
             throw JSONRPCError(RPC_WALLET_ERROR, strError);
@@ -96,11 +107,11 @@ Value SendMoney(const CTxDestination &address, CAmount nValue, CWalletTx& wtxNew
     
     if (!pwalletMain->CommitTransaction(wtxNew, reservekey))
     {
-        strError = "Error: The transaction was rejected! This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.\n";
+        strError = "The transaction was rejected! This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.";
 
         if (fDebug)
         {
-            LogPrint("darksend", "%s : %s\n", __FUNCTION__, strError);
+            LogPrint("darksend", "%s : ERROR - %s \n", __FUNCTION__, strError);
         }
         
         throw JSONRPCError(RPC_WALLET_ERROR, strError);
@@ -114,9 +125,10 @@ Value SendMoney(const CTxDestination &address, CAmount nValue, CWalletTx& wtxNew
 
 Value darksend(const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() == 0)
+    if (fHelp
+        || params.size() == 0)
     {
-        throw runtime_error("darksend <PHCaddress> <amount>\n"
+        throw runtime_error("darksend <PHCaddress> <amount> \n"
                             "PHCaddress, reset, or auto (AutoDenominate)"
                             "<amount> is a real and is rounded to the nearest 0.00000001"
                             + HelpRequiringPassphrase());
@@ -124,14 +136,14 @@ Value darksend(const Array& params, bool fHelp)
 
     if (pwalletMain->IsLocked())
     {
-        throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "Error: Please enter the wallet passphrase with walletpassphrase first.");
+        throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "ERROR - Please enter the wallet passphrase with walletpassphrase first.");
     }
 
     if(params[0].get_str() == "auto")
     {
         if(fMasterNode)
         {
-            return "DarkSend is not supported from masternodes";
+            return "ERROR - DarkSend is not supported from masternodes";
         }
 
         return "DoAutomaticDenominating " + (darkSendPool.DoAutomaticDenominating() ? "successful" : ("failed: " + darkSendPool.GetStatus()));
@@ -146,7 +158,7 @@ Value darksend(const Array& params, bool fHelp)
 
     if (params.size() != 2)
     {
-        throw runtime_error("darksend <PHCaddress> <amount>\n"
+        throw runtime_error("darksend <PHCaddress> <amount> \n"
                             "PHCaddress, denominate, or auto (AutoDenominate)"
                             "<amount> is type \"real\" and will be rounded to the nearest 0.1"
                             + HelpRequiringPassphrase());
@@ -156,7 +168,7 @@ Value darksend(const Array& params, bool fHelp)
 
     if (!address.IsValid())
     {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid PHC address");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "ERROR - Invalid PHC address");
     }
 
     // Amount
@@ -166,14 +178,16 @@ Value darksend(const Array& params, bool fHelp)
     CWalletTx wtx;
     std::string sNarr;
 
-    if (params.size() > 6 && params[6].type() != null_type && !params[6].get_str().empty())
+    if (params.size() > 6
+        && params[6].type() != null_type
+        && !params[6].get_str().empty())
     {
         sNarr = params[6].get_str();
     }
     
     if (sNarr.length() > 24)
     {
-        throw runtime_error("Narration must be 24 characters or less.");
+        throw runtime_error("ERROR - Narration must be 24 characters or less.");
     }
     
     //string strError = pwalletMain->SendMoneyToDestination(address.Get(), nAmount, sNarr, wtx, ONLY_DENOMINATED);
@@ -196,9 +210,10 @@ Value darksend(const Array& params, bool fHelp)
 
 Value getpoolinfo(const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() != 0)
+    if (fHelp
+        || params.size() != 0)
     {
-        throw runtime_error("getpoolinfo\n"
+        throw runtime_error("getpoolinfo \n"
                             "Returns an object containing anonymous pool-related information.");
     }
 
@@ -222,52 +237,52 @@ Value masternode(const Array& params, bool fHelp)
         strCommand = params[0].get_str();
     }
 
-    if (fHelp  ||
-        (strCommand != "count" &&
-        strCommand != "current" &&
-        strCommand != "debug" &&
-        strCommand != "genkey" &&
-        strCommand != "enforce" &&
-        strCommand != "list" &&
-        strCommand != "list-conf" &&
-        strCommand != "start" && 
-        strCommand != "start-alias" && 
-        strCommand != "start-many" && 
-        strCommand != "status" && 
-        strCommand != "stop" && 
-        strCommand != "stop-alias" &&
-        strCommand != "stop-many" &&
-        strCommand != "winners" &&
-        strCommand != "connect" &&
-        strCommand != "outputs" &&
-        strCommand != "vote-many" &&
-        strCommand != "vote"))
+    if (fHelp 
+        || (strCommand != "count"
+        && strCommand != "current" 
+        && strCommand != "debug"
+        && strCommand != "genkey"
+        && strCommand != "enforce" 
+        && strCommand != "list"
+        && strCommand != "list-conf"
+        && strCommand != "start"
+        && strCommand != "start-alias"
+        && strCommand != "start-many"
+        && strCommand != "status"
+        && strCommand != "stop"
+        && strCommand != "stop-alias" 
+        && strCommand != "stop-many" 
+        && strCommand != "winners" 
+        && strCommand != "connect" 
+        && strCommand != "outputs" 
+        && strCommand != "vote-many" 
+        && strCommand != "vote"))
     {
         throw runtime_error(
-                "masternode \"command\"... ( \"passphrase\" )\n"
-                "Set of commands to execute masternode related actions\n"
-                "\nArguments:\n"
-                "1. \"command\"        (string or set of strings, required) The command to execute\n"
-                "2. \"passphrase\"     (string, optional) The wallet passphrase\n"
-                "\nAvailable commands:\n"
-                "  count        - Print number of all known masternodes (optional: 'enabled', 'both')\n"
-                "  current      - Print info on current masternode winner\n"
-                "  debug        - Print masternode status\n"
-                "  genkey       - Generate new masternodeprivkey\n"
-                "  enforce      - Enforce masternode payments\n"
-                "  list         - Print list of all known masternodes (see masternodelist for more info)\n"
-                "  list-conf    - Print masternode.conf in JSON format\n"
-                "  outputs      - Print masternode compatible outputs\n"
-                "  start        - Start masternode configured in phc.conf\n"
-                "  start-alias  - Start single masternode by assigned alias configured in masternode.conf\n"
-                "  start-many   - Start all masternodes configured in masternode.conf\n"
-                "  status       - Print masternode status information\n"
-                "  stop         - Stop masternode configured in phc.conf\n"
-                "  stop-alias   - Stop single masternode by assigned alias configured in masternode.conf\n"
-                "  stop-many    - Stop all masternodes configured in masternode.conf\n"
-                "  winners      - Print list of masternode winners\n"
-                "  vote-many    - Vote on a PHC initiative\n"
-                "  vote         - Vote on a PHC initiative\n"
+                "masternode \"command\"... ( \"passphrase\" ) \n"
+                "Set of commands to execute masternode related actions \n"
+                "\nArguments: \n"
+                "1. \"command\"        (string or set of strings, required) The command to execute \n"
+                "2. \"passphrase\"     (string, optional) The wallet passphrase \n"
+                "\nAvailable commands: \n"
+                "  count        - Print number of all known masternodes (optional: 'enabled', 'both') \n"
+                "  current      - Print info on current masternode winner \n"
+                "  debug        - Print masternode status \n"
+                "  genkey       - Generate new masternodeprivkey \n"
+                "  enforce      - Enforce masternode payments \n"
+                "  list         - Print list of all known masternodes (see masternodelist for more info) \n"
+                "  list-conf    - Print masternode.conf in JSON format \n"
+                "  outputs      - Print masternode compatible outputs \n"
+                "  start        - Start masternode configured in phc.conf \n"
+                "  start-alias  - Start single masternode by assigned alias configured in masternode.conf \n"
+                "  start-many   - Start all masternodes configured in masternode.conf \n"
+                "  status       - Print masternode status information \n"
+                "  stop         - Stop masternode configured in phc.conf \n"
+                "  stop-alias   - Stop single masternode by assigned alias configured in masternode.conf \n"
+                "  stop-many    - Stop all masternodes configured in masternode.conf \n"
+                "  winners      - Print list of masternode winners \n"
+                "  vote-many    - Vote on a PHC initiative \n"
+                "  vote         - Vote on a PHC initiative \n"
                 );
     }
 
@@ -290,12 +305,12 @@ Value masternode(const Array& params, bool fHelp)
             }
             else
             {
-                throw runtime_error("Your wallet is locked, passphrase is required\n");
+                throw runtime_error("ERROR - Your wallet is locked, passphrase is required\n");
             }
 
             if(!pwalletMain->Unlock(strWalletPass))
             {
-                return "incorrect passphrase";
+                return "ERROR - Incorrect passphrase";
             }
         }
 
@@ -347,7 +362,7 @@ Value masternode(const Array& params, bool fHelp)
 
 			if(!pwalletMain->Unlock(strWalletPass))
             {
-				return "incorrect passphrase";
+				return "ERROR - Incorrect passphrase";
 			}
         }
 
@@ -403,12 +418,12 @@ Value masternode(const Array& params, bool fHelp)
 			}
             else
             {
-				throw runtime_error("Your wallet is locked, passphrase is required\n");
+				throw runtime_error("ERROR - Your wallet is locked, passphrase is required\n");
 			}
 
 			if(!pwalletMain->Unlock(strWalletPass))
             {
-				return "incorrect passphrase";
+				return "ERROR - Incorrect passphrase";
 			}
 		}
 
@@ -472,7 +487,7 @@ Value masternode(const Array& params, bool fHelp)
     {
         if (params.size() > 2)
         {
-            throw runtime_error("too many parameters\n");
+            throw runtime_error("ERROR - Too many parameters \n");
         }
 
         if (params.size() == 2)
@@ -484,7 +499,8 @@ Value masternode(const Array& params, bool fHelp)
 
             if(params[1] == "both")
             {
-                return boost::lexical_cast<std::string>(mnodeman.CountEnabled()) + " / " + boost::lexical_cast<std::string>(mnodeman.size());
+                return boost::lexical_cast<std::string>(mnodeman.CountEnabled())
+                            + " / " + boost::lexical_cast<std::string>(mnodeman.size());
             }
         }
 
@@ -495,7 +511,7 @@ Value masternode(const Array& params, bool fHelp)
     {
         if(!fMasterNode)
         {
-            return "you must set masternode=1 in the configuration";
+            return "ERROR - You must set masternode=1 in the configuration";
         }
 
         if(pwalletMain->IsLocked())
@@ -510,18 +526,19 @@ Value masternode(const Array& params, bool fHelp)
             }
             else
             {
-                throw runtime_error("Your wallet is locked, passphrase is required\n");
+                throw runtime_error("ERROR - Your wallet is locked, passphrase is required \n");
             }
 
             if(!pwalletMain->Unlock(strWalletPass))
             {
-                return "incorrect passphrase";
+                return " ERROR - Incorrect passphrase";
             }
         }
 
         if(activeMasternode.status != MASTERNODE_REMOTELY_ENABLED && activeMasternode.status != MASTERNODE_IS_CAPABLE)
         {
-            activeMasternode.status = MASTERNODE_NOT_PROCESSED; // TODO: consider better way
+            // TODO: consider better way
+            activeMasternode.status = MASTERNODE_NOT_PROCESSED;
 
             std::string errorMessage;
 
@@ -577,7 +594,7 @@ Value masternode(const Array& params, bool fHelp)
     {
 	    if (params.size() < 2)
         {
-			throw runtime_error("command needs at least 2 parameters\n");
+			throw runtime_error("ERROR - Command needs at least 2 parameters \n");
 	    }
 
 	    std::string alias = params[1].get_str().c_str();
@@ -594,12 +611,12 @@ Value masternode(const Array& params, bool fHelp)
 			}
             else
             {
-				throw runtime_error("Your wallet is locked, passphrase is required\n");
+				throw runtime_error("ERROR - Your wallet is locked, passphrase is required \n");
 			}
 
 			if(!pwalletMain->Unlock(strWalletPass))
             {
-				return "incorrect passphrase";
+				return "ERROR - Incorrect passphrase";
 			}
         }
 
@@ -654,12 +671,12 @@ Value masternode(const Array& params, bool fHelp)
 			} 
             else
             {
-				throw runtime_error("Your wallet is locked, passphrase is required\n");
+				throw runtime_error("ERROR - Your wallet is locked, passphrase is required \n");
 			}
 
 			if(!pwalletMain->Unlock(strWalletPass))
             {
-				return "incorrect passphrase";
+				return "ERROR - Incorrect passphrase";
 			}
 		}
 
@@ -759,17 +776,17 @@ Value masternode(const Array& params, bool fHelp)
         
         if(!found)
         {
-            return "Missing masternode input, please look at the documentation for instructions on masternode creation";
+            return "ERROR - Missing masternode input, please look at the documentation for instructions on masternode creation";
         }
         else
         {
-            return "No problems were found";
+            return "OK - No problems were found";
         }
     }
 
     if (strCommand == "create")
     {
-        return "Not implemented yet, please look at the documentation for instructions on masternode creation";
+        return "ERROR - Not implemented yet, please look at the documentation for instructions on masternode creation";
     }
 
     if (strCommand == "current")
@@ -868,18 +885,18 @@ Value masternode(const Array& params, bool fHelp)
         }
         else
         {
-            throw runtime_error("Masternode address required\n");
+            throw runtime_error("ERROR - Masternode address required \n");
         }
 
         CService addr = CService(strAddress);
 
         if(ConnectNode((CAddress)addr, NULL, true))
         {
-            return "successfully connected";
+            return "OK - Successfully connected";
         }
         else
         {
-            return "error connecting";
+            return "ERROR - Not connecting";
         }
     }
 
@@ -929,14 +946,15 @@ Value masternode(const Array& params, bool fHelp)
 
         if (params.size() != 2)
         {
-            throw runtime_error("You can only vote 'yay' or 'nay'");
+            throw runtime_error("ERROR - You can only vote 'yay' or 'nay'");
         }
 
         std::string vote = params[1].get_str().c_str();
 
-        if(vote != "yay" && vote != "nay")
+        if(vote != "yay"
+            && vote != "nay")
         {
-            return "You can only vote 'yay' or 'nay'";
+            return "ERROR - You can only vote 'yay' or 'nay'";
         }
 
         int nVote = 0;
@@ -969,7 +987,7 @@ Value masternode(const Array& params, bool fHelp)
 
             if(!darkSendSigner.SetKey(mne.getPrivKey(), errorMessage, keyMasternode, pubKeyMasternode))
             {
-                printf(" Error upon calling SetKey for %s\n", mne.getAlias().c_str());
+                printf("ERROR - Upon calling SetKey for %s \n", mne.getAlias().c_str());
             
                 failed++;
             
@@ -980,18 +998,19 @@ Value masternode(const Array& params, bool fHelp)
 
             if(pmn == NULL)
             {
-                printf("Can't find masternode by pubkey for %s\n", mne.getAlias().c_str());
+                printf("ERROR - Can't find masternode by pubkey for %s \n", mne.getAlias().c_str());
                 
                 failed++;
                 
                 continue;
             }
 
-            std::string strMessage = pmn->vin.ToString() + boost::lexical_cast<std::string>(nVote);
+            std::string strMessage = pmn->vin.ToString()
+                                    + boost::lexical_cast<std::string>(nVote);
 
             if(!darkSendSigner.SignMessage(strMessage, errorMessage, vchMasterNodeSignature, keyMasternode))
             {
-                printf(" Error upon calling SignMessage for %s\n", mne.getAlias().c_str());
+                printf("ERROR - Upon calling SignMessage for %s \n", mne.getAlias().c_str());
             
                 failed++;
             
@@ -1000,7 +1019,7 @@ Value masternode(const Array& params, bool fHelp)
 
             if(!darkSendSigner.VerifyMessage(pubKeyMasternode, vchMasterNodeSignature, strMessage, errorMessage))
             {
-                printf(" Error upon calling VerifyMessage for %s\n", mne.getAlias().c_str());
+                printf("ERROR - Upon calling VerifyMessage for %s \n", mne.getAlias().c_str());
                 
                 failed++;
                 
@@ -1018,7 +1037,11 @@ Value masternode(const Array& params, bool fHelp)
             }
         }
 
-        return("Voted successfully " + boost::lexical_cast<std::string>(success) + " time(s) and failed " + boost::lexical_cast<std::string>(failed) + " time(s).");
+        return("Voted successfully "
+                + boost::lexical_cast<std::string>(success)
+                + " time(s) and failed "
+                + boost::lexical_cast<std::string>(failed)
+                + " time(s).");
     }
 
     if(strCommand == "vote")
@@ -1028,14 +1051,15 @@ Value masternode(const Array& params, bool fHelp)
 
         if (params.size() != 2)
         {
-            throw runtime_error("You can only vote 'yay' or 'nay'");
+            throw runtime_error("ERROR - You can only vote 'yay' or 'nay'");
         }
 
         std::string vote = params[1].get_str().c_str();
 
-        if(vote != "yay" && vote != "nay")
+        if(vote != "yay"
+            && vote != "nay")
         {
-            return "You can only vote 'yay' or 'nay'";
+            return "ERROR - You can only vote 'yay' or 'nay'";
         }
         
         int nVote = 0;
@@ -1062,17 +1086,17 @@ Value masternode(const Array& params, bool fHelp)
 
         if(!darkSendSigner.SetKey(strMasterNodePrivKey, errorMessage, keyMasternode, pubKeyMasternode))
         {
-            return(" Error upon calling SetKey");
+            return("ERROR - Upon calling SetKey");
         }
 
         if(!darkSendSigner.SignMessage(strMessage, errorMessage, vchMasterNodeSignature, keyMasternode))
         {
-            return(" Error upon calling SignMessage");
+            return("ERROR - Upon calling SignMessage");
         }
 
         if(!darkSendSigner.VerifyMessage(pubKeyMasternode, vchMasterNodeSignature, strMessage, errorMessage))
         {
-            return(" Error upon calling VerifyMessage");
+            return("ERROR - Upon calling VerifyMessage");
         }
 
         //send to all peers
@@ -1129,36 +1153,36 @@ Value masternodelist(const Array& params, bool fHelp)
         strFilter = params[1].get_str();
     }
 
-    if (fHelp ||
-            (strMode != "activeseconds" &&
-            strMode != "reward" &&
-            strMode != "full" &&
-            strMode != "lastseen" &&
-            strMode != "protocol" &&
-            strMode != "pubkey" &&
-            strMode != "rank" &&
-            strMode != "status" &&
-            strMode != "addr" &&
-            strMode != "votes" &&
-            strMode != "lastpaid"))
+    if (fHelp
+        || (strMode != "activeseconds"
+        && strMode != "reward"
+        && strMode != "full"
+        && strMode != "lastseen"
+        && strMode != "protocol"
+        && strMode != "pubkey"
+        && strMode != "rank"
+        && strMode != "status"
+        && strMode != "addr" 
+        && strMode != "votes" 
+        && strMode != "lastpaid"))
     {
-        throw runtime_error("masternodelist ( \"mode\" \"filter\" )\n"
-                            "Get a list of masternodes in different modes\n"
-                            "\nArguments:\n"
-                            "1. \"mode\"      (string, optional/required to use filter, defaults = status) The mode to run list in\n"
-                            "2. \"filter\"    (string, optional) Filter results. Partial match by IP by default in all modes, additional matches in some modes\n"
-                            "\nAvailable modes:\n"
-                            "  activeseconds  - Print number of seconds masternode recognized by the network as enabled\n"
-                            "  reward         - Show reward settings\n"
-                            "  full           - Print info in format 'status protocol pubkey vin lastseen activeseconds' (can be additionally filtered, partial match)\n"
-                            "  lastseen       - Print timestamp of when a masternode was last seen on the network\n"
-                            "  protocol       - Print protocol of a masternode (can be additionally filtered, exact match)\n"
-                            "  pubkey         - Print public key associated with a masternode (can be additionally filtered, partial match)\n"
+        throw runtime_error("masternodelist ( \"mode\" \"filter\" ) \n"
+                            "Get a list of masternodes in different modes \n"
+                            "\nArguments: \n"
+                            "1. \"mode\"      (string, optional/required to use filter, defaults = status) The mode to run list in \n"
+                            "2. \"filter\"    (string, optional) Filter results. Partial match by IP by default in all modes, additional matches in some modes \n"
+                            "\nAvailable modes: \n"
+                            "  activeseconds  - Print number of seconds masternode recognized by the network as enabled \n"
+                            "  reward         - Show reward settings \n"
+                            "  full           - Print info in format 'status protocol pubkey vin lastseen activeseconds' (can be additionally filtered, partial match) \n"
+                            "  lastseen       - Print timestamp of when a masternode was last seen on the network \n"
+                            "  protocol       - Print protocol of a masternode (can be additionally filtered, exact match) \n"
+                            "  pubkey         - Print public key associated with a masternode (can be additionally filtered, partial match) \n"
                             "  rank           - Print rank of a masternode based on current block\n"
-                            "  status         - Print masternode status: ENABLED / EXPIRED / VIN_SPENT / REMOVE / POS_ERROR (can be additionally filtered, partial match)\n"
-                            "  addr           - Print ip address associated with a masternode (can be additionally filtered, partial match)\n"
-                            "  votes          - Print all masternode votes for a PHC initiative (can be additionally filtered, partial match)\n"
-                            "  lastpaid       - The last time a node was paid on the network\n");
+                            "  status         - Print masternode status: ENABLED / EXPIRED / VIN_SPENT / REMOVE / POS_ERROR (can be additionally filtered, partial match) \n"
+                            "  addr           - Print ip address associated with a masternode (can be additionally filtered, partial match) \n"
+                            "  votes          - Print all masternode votes for a PHC initiative (can be additionally filtered, partial match) \n"
+                            "  lastpaid       - The last time a node was paid on the network \n");
     }
 
     Object obj;
@@ -1171,7 +1195,8 @@ Value masternodelist(const Array& params, bool fHelp)
         {
             std::string strVin = s.second.vin.prevout.ToStringShort();
 
-            if(strFilter !="" && strVin.find(strFilter) == string::npos)
+            if(strFilter !=""
+                && strVin.find(strFilter) == string::npos)
             {
                 continue;
             }
@@ -1189,7 +1214,8 @@ Value masternodelist(const Array& params, bool fHelp)
             
             if (strMode == "activeseconds")
             {
-                if(strFilter !="" && strVin.find(strFilter) == string::npos)
+                if(strFilter !=""
+                    && strVin.find(strFilter) == string::npos)
                 {
                     continue;
                 }
@@ -1204,7 +1230,9 @@ Value masternodelist(const Array& params, bool fHelp)
 
                 CCoinAddress address2(address1);
 
-                if(strFilter !="" && address2.ToString().find(strFilter) == string::npos && strVin.find(strFilter) == string::npos)
+                if(strFilter !=""
+                    && address2.ToString().find(strFilter) == string::npos
+                    && strVin.find(strFilter) == string::npos)
                 {
                     continue;
                 }
@@ -1248,7 +1276,9 @@ Value masternodelist(const Array& params, bool fHelp)
                 std::string output = stringStream.str();
                 stringStream << " " << strVin;
                 
-                if(strFilter !="" && stringStream.str().find(strFilter) == string::npos && strVin.find(strFilter) == string::npos)
+                if(strFilter != ""
+                    && stringStream.str().find(strFilter) == string::npos
+                    && strVin.find(strFilter) == string::npos)
                 {
                     continue;
                 }
@@ -1257,7 +1287,8 @@ Value masternodelist(const Array& params, bool fHelp)
             }
             else if (strMode == "lastseen")
             {
-                if(strFilter !="" && strVin.find(strFilter) == string::npos)
+                if(strFilter != ""
+                    && strVin.find(strFilter) == string::npos)
                 {
                     continue;
                 }
@@ -1266,7 +1297,9 @@ Value masternodelist(const Array& params, bool fHelp)
             }
             else if (strMode == "protocol")
             {
-                if(strFilter !="" && strFilter != boost::lexical_cast<std::string>(mn.protocolVersion) && strVin.find(strFilter) == string::npos)
+                if(strFilter != ""
+                    && strFilter != boost::lexical_cast<std::string>(mn.protocolVersion)
+                    && strVin.find(strFilter) == string::npos)
                 {
                     continue;
                 }
@@ -1285,7 +1318,9 @@ Value masternodelist(const Array& params, bool fHelp)
 
                 CCoinAddress address2(address1);
 
-                if(strFilter !="" && address2.ToString().find(strFilter) == string::npos && strVin.find(strFilter) == string::npos)
+                if(strFilter != ""
+                    && address2.ToString().find(strFilter) == string::npos
+                    && strVin.find(strFilter) == string::npos)
                 {
                     continue;
                 }
@@ -1296,7 +1331,9 @@ Value masternodelist(const Array& params, bool fHelp)
             {
                 std::string strStatus = mn.Status();
                 
-                if(strFilter !="" && strVin.find(strFilter) == string::npos && strStatus.find(strFilter) == string::npos)
+                if(strFilter != ""
+                    && strVin.find(strFilter) == string::npos
+                    && strStatus.find(strFilter) == string::npos)
                 {
                     continue;
                 }
@@ -1305,7 +1342,9 @@ Value masternodelist(const Array& params, bool fHelp)
             }
             else if (strMode == "addr")
             {
-                if(strFilter !="" && mn.vin.prevout.hash.ToString().find(strFilter) == string::npos && strVin.find(strFilter) == string::npos)
+                if(strFilter != ""
+                    && mn.vin.prevout.hash.ToString().find(strFilter) == string::npos
+                    && strVin.find(strFilter) == string::npos)
                 {
                     continue;
                 }
@@ -1330,7 +1369,9 @@ Value masternodelist(const Array& params, bool fHelp)
                     }
                 }
 
-                if(strFilter !="" && (strVin.find(strFilter) == string::npos && strStatus.find(strFilter) == string::npos))
+                if(strFilter != ""
+                    && (strVin.find(strFilter) == string::npos
+                    && strStatus.find(strFilter) == string::npos))
                 {
                     continue;
                 }
@@ -1339,7 +1380,9 @@ Value masternodelist(const Array& params, bool fHelp)
             }
             else if(strMode == "lastpaid")
             {
-                if(strFilter !="" && mn.vin.prevout.hash.ToString().find(strFilter) == string::npos && strVin.find(strFilter) == string::npos)
+                if(strFilter !=""
+                    && mn.vin.prevout.hash.ToString().find(strFilter) == string::npos
+                    && strVin.find(strFilter) == string::npos)
                 {
                     continue;
                 }

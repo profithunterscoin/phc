@@ -6,404 +6,344 @@
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015 The Crave developers
 // Copyright (c) 2017 XUVCoin developers
-// Copyright (C) 2017-2018 Crypostle Core developers
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
 
+//
+// Alert system
+//
 
-#include "arith_uint256.h"
+#include "alert.h"
 
-#include "uint256.h"
-#include "utilstrencodings.h"
-#include "crypto/common.h"
+#include "chainparams.h"
+#include "pubkey.h"
+#include "net.h"
+#include "ui_interface.h"
+#include "util.h"
 
-#include <stdio.h>
-#include <string.h>
+#include <stdint.h>
+#include <algorithm>
+#include <map>
 
-/* ONLY NEEDED FOR UNIT TESTING */
-#include <iostream>
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/replace.hpp>
+
 using namespace std;
 
+map<uint256, CAlert> mapAlerts;
+CCriticalSection cs_mapAlerts;
 
-// base_uint2(string)
-template <unsigned int BITS> base_uint2<BITS>::base_uint2(const std::string& str)
+void CUnsignedAlert::SetNull()
 {
-    SetHex(str);
+    nVersion = 1;
+    nRelayUntil = 0;
+    nExpiration = 0;
+    nID = 0;
+    nCancel = 0;
+    nMinVer = 0;
+    nMaxVer = 0;
+    nPriority = 0;
+
+    setSubVer.clear();
+    setCancel.clear();
+    strComment.clear();
+    strStatusBar.clear();
+    strReserved.clear();
 }
 
-// base_uint2::operator<<=
-template <unsigned int BITS> base_uint2<BITS>& base_uint2<BITS>::operator<<=(unsigned int shift)
-{
-    base_uint2<BITS> a(*this);
 
-    for (int i = 0; i < WIDTH; i++)
-    {   
-        pn[i] = 0;
+std::string CUnsignedAlert::ToString() const
+{
+    std::string strSetCancel;
+
+    for(int n: setCancel)
+    {
+        strSetCancel += strprintf("%d ", n);
     }
+
+    std::string strSetSubVer;
+
+    for(std::string str: setSubVer)
+    {
+        strSetSubVer += "\"" + str + "\" ";
+    }
+
+    return strprintf(
+        "CAlert(\n"
+        "    nVersion     = %d\n"
+        "    nRelayUntil  = %d\n"
+        "    nExpiration  = %d\n"
+        "    nID          = %d\n"
+        "    nCancel      = %d\n"
+        "    setCancel    = %s\n"
+        "    nMinVer      = %d\n"
+        "    nMaxVer      = %d\n"
+        "    setSubVer    = %s\n"
+        "    nPriority    = %d\n"
+        "    strComment   = \"%s\"\n"
+        "    strStatusBar = \"%s\"\n"
+        ")\n",
+        nVersion,
+        nRelayUntil,
+        nExpiration,
+        nID,
+        nCancel,
+        strSetCancel,
+        nMinVer,
+        nMaxVer,
+        strSetSubVer,
+        nPriority,
+        strComment,
+        strStatusBar);
+}
+
+
+void CAlert::SetNull()
+{
+    CUnsignedAlert::SetNull();
+
+    vchMsg.clear();
+    vchSig.clear();
+}
+
+
+bool CAlert::IsNull() const
+{
+    return (nExpiration == 0);
+}
+
+
+uint256 CAlert::GetHash() const
+{
+    return Hash(this->vchMsg.begin(), this->vchMsg.end());
+}
+
+
+bool CAlert::IsInEffect() const
+{
+    return (GetAdjustedTime() < nExpiration);
+}
+
+
+bool CAlert::Cancels(const CAlert& alert) const
+{
+    if (!IsInEffect())
+    {
+        return false; // this was a no-op before 31403
+    }
+
+    return (alert.nID <= nCancel || setCancel.count(alert.nID));
+}
+
+
+bool CAlert::AppliesTo(int nVersion, std::string strSubVerIn) const
+{
+    // TODO: rework for client-version-embedded-in-strSubVer ?
+    return (IsInEffect() && nMinVer <= nVersion && nVersion <= nMaxVer && (setSubVer.empty() || setSubVer.count(strSubVerIn)));
+}
+
+
+bool CAlert::AppliesToMe() const
+{
+    return AppliesTo(PROTOCOL_VERSION, FormatSubVersion(CLIENT_NAME, CLIENT_VERSION, std::vector<std::string>()));
+}
+
+
+bool CAlert::RelayTo(CNode* pnode) const
+{
+    if (!IsInEffect())
+    {
+        return false;
+    }
+
+    // don't relay to nodes which haven't sent their version message
+    if (pnode->nVersion == 0)
+    {
+        return false;
+    }
+
+    // returns true if wasn't already contained in the set
+    if (pnode->setKnown.insert(GetHash()).second)
+    {
+        if (AppliesTo(pnode->nVersion, pnode->strSubVer) || AppliesToMe() || GetAdjustedTime() < nRelayUntil)
+        {
+            pnode->PushMessage("alert", *this);
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+bool CAlert::CheckSignature() const
+{
+    CPubKey key(Params().AlertKey());
+
+    if (!key.Verify(Hash(vchMsg.begin(), vchMsg.end()), vchSig))
+    {
+        return error("%s : ERROR - Verify signature failed", __FUNCTION__);
+    }
+
+    // Now unserialize the data
+    CDataStream sMsg(vchMsg, SER_NETWORK, PROTOCOL_VERSION);
+
+    sMsg >> *(CUnsignedAlert*)this;
+
+    return true;
+}
+
+
+CAlert CAlert::getAlertByHash(const uint256 &hash)
+{
+    CAlert retval;
+    
+    // Global Namespace Start
+    {
+        LOCK(cs_mapAlerts);
         
-    int k = shift / 32;
-    shift = shift % 32;
+        map<uint256, CAlert>::iterator mi = mapAlerts.find(hash);
 
-    for (int i = 0; i < WIDTH; i++)
-    {
-        if (i + k + 1 < WIDTH && shift != 0)
+        if(mi != mapAlerts.end())
         {
-            pn[i + k + 1] |= (a.pn[i] >> (32 - shift));
+            retval = mi->second;
         }
-            
-        if (i + k < WIDTH)
-        {
-            pn[i + k] |= (a.pn[i] << shift);
-        }
-            
     }
+    // Global Namespace End
 
-    return *this;
+    return retval;
 }
 
-// base_uint2::operator>>=
-template <unsigned int BITS> base_uint2<BITS>& base_uint2<BITS>::operator>>=(unsigned int shift)
+
+bool CAlert::ProcessAlert(bool fThread)
 {
-    base_uint2<BITS> a(*this);
-
-    for (int i = 0; i < WIDTH; i++)
+    if (!CheckSignature())
     {
-        pn[i] = 0;
-    }
-        
-    int k = shift / 32;
-    shift = shift % 32;
-
-    for (int i = 0; i < WIDTH; i++)
-    {
-        if (i - k - 1 >= 0 && shift != 0)
-        {
-            pn[i - k - 1] |= (a.pn[i] << (32 - shift));
-        }
-            
-        if (i - k >= 0)
-        {
-            pn[i - k] |= (a.pn[i] >> shift);
-        }
-            
+        return false;
     }
 
-    return *this;
-}
-
-// base_uint2::operator*=
-template <unsigned int BITS> base_uint2<BITS>& base_uint2<BITS>::operator*=(uint32_t b32)
-{
-    uint64_t carry = 0;
-
-    for (int i = 0; i < WIDTH; i++)
+    if (!IsInEffect())
     {
-        uint64_t n = carry + (uint64_t)b32 * pn[i];
-        pn[i] = n & 0xffffffff;
-        carry = n >> 32;
+        return false;
     }
 
-    return *this;
-}
+    // alert.nID=max is reserved for if the alert key is
+    // compromised. It must have a pre-defined message,
+    // must never expire, must apply to all versions,
+    // and must cancel all previous
+    // alerts or it will be ignored (so an attacker can't
+    // send an "everything is OK, don't panic" version that
+    // cannot be overridden):
+    int maxInt = std::numeric_limits<int>::max();
 
-// base_uint2::operator*=
-template <unsigned int BITS> base_uint2<BITS>& base_uint2<BITS>::operator*=(const base_uint2& b)
-{
-    base_uint2<BITS> a = *this;
-    *this = 0;
-
-    for (int j = 0; j < WIDTH; j++)
+    if (nID == maxInt)
     {
-        uint64_t carry = 0;
-
-        for (int i = 0; i + j < WIDTH; i++)
-        {
-            uint64_t n = carry + pn[i + j] + (uint64_t)a.pn[j] * b.pn[i];
-            pn[i + j] = n & 0xffffffff;
-            carry = n >> 32;
-        }
-    }
-
-    return *this;
-}
-
-// base_uint2::operator/=
-template <unsigned int BITS> base_uint2<BITS>& base_uint2<BITS>::operator/=(const base_uint2& b)
-{
-    base_uint2<BITS> div = b;     // make a copy, so we can shift.
-    base_uint2<BITS> num = *this; // make a copy, so we can subtract.
-    *this = 0;                   // the quotient.
-
-    int num_bits = num.bits();
-    int div_bits = div.bits();
-
-    if (div_bits == 0)
-    {
-        throw uint_error("Division by zero");
-    }
-        
-    if (div_bits > num_bits)
-    {
-        // the result is certainly 0.
-        return *this;
-    } 
-
-    int shift = num_bits - div_bits;
-    div <<= shift; // shift so that div and num align.
-
-    while (shift >= 0)
-    {
-        if (num >= div)
-        {
-            num -= div;
-            pn[shift / 32] |= (1 << (shift & 31)); // set a bit of the result.
-        }
-
-        div >>= 1; // shift back.
-        shift--;
-    }
-
-    // num now contains the remainder of the division.
-    return *this;
-}
-
-// base_uint2::CompareTo()
-template <unsigned int BITS> int base_uint2<BITS>::CompareTo(const base_uint2<BITS>& b) const
-{
-    for (int i = WIDTH - 1; i >= 0; i--)
-    {
-        if (pn[i] < b.pn[i])
-        {
-            return -1;
-        }
-            
-        if (pn[i] > b.pn[i])
-        {
-            return 1;
-        }
-    }
-
-    return 0;
-}
-
-// base_uint2::EqualTo()
-template <unsigned int BITS> bool base_uint2<BITS>::EqualTo(uint64_t b) const
-{
-    for (int i = WIDTH - 1; i >= 2; i--)
-    {
-        if (pn[i])
+        if (!(nExpiration == maxInt
+            && nCancel == (maxInt-1)
+            && nMinVer == 0
+            && nMaxVer == maxInt
+            && setSubVer.empty()
+            && nPriority == maxInt
+            && strStatusBar == "URGENT: Alert key compromised, upgrade required"
+            ))
         {
             return false;
         }
     }
 
-    if (pn[1] != (b >> 32))
+    // Global Namespace Start
     {
-        return false;
-    }
-        
+        LOCK(cs_mapAlerts);
 
-    if (pn[0] != (b & 0xfffffffful))
+        // Cancel previous alerts
+        for (map<uint256, CAlert>::iterator mi = mapAlerts.begin(); mi != mapAlerts.end();)
+        {
+            const CAlert& alert = (*mi).second;
+            
+            if (Cancels(alert))
+            {
+                if (fDebug)
+                {
+                    LogPrint("alert", "%s : OK - Cancelling alert %d \n", __FUNCTION__, alert.nID);
+                }
+
+                uiInterface.NotifyAlertChanged((*mi).first, CT_DELETED);
+                mapAlerts.erase(mi++);
+            }
+            else if (!alert.IsInEffect())
+            {
+                if (fDebug)
+                {
+                    LogPrint("alert", "%s : NOTICE - expiring alert %d \n", __FUNCTION__, alert.nID);
+                }
+
+                uiInterface.NotifyAlertChanged((*mi).first, CT_DELETED);
+                mapAlerts.erase(mi++);
+            }
+            else
+            {
+                mi++;
+            }
+        }
+
+        // Check if this alert has been cancelled
+        for(PAIRTYPE(const uint256, CAlert)& item: mapAlerts)
+        {
+            const CAlert& alert = item.second;
+
+            if (alert.Cancels(*this))
+            {
+                if (fDebug)
+                {
+                    LogPrint("alert", "%s : ERROR - Alert already cancelled by %d \n", __FUNCTION__, alert.nID);
+                }
+
+                return false;
+            }
+        }
+
+        // Add to mapAlerts
+        mapAlerts.insert(make_pair(GetHash(), *this));
+
+        // Notify UI and -alertnotify if it applies to me
+        if(AppliesToMe())
+        {
+            uiInterface.NotifyAlertChanged(GetHash(), CT_NEW);
+
+            std::string strCmd = GetArg("-alertnotify", "");
+
+            if (!strCmd.empty())
+            {
+                // Alert text should be plain ascii coming from a trusted source, but to
+                // be safe we first strip anything not in safeChars, then add single quotes around
+                // the whole string before passing it to the shell:
+                std::string singleQuote("'");
+                std::string safeStatus = SanitizeString(strStatusBar);
+
+                safeStatus = singleQuote+safeStatus+singleQuote;
+                boost::replace_all(strCmd, "%s", safeStatus);
+
+                if (fThread)
+                {
+                    // thread runs free
+                    boost::thread t(runCommand, strCmd);
+                }
+                else
+                {
+                    runCommand(strCmd);
+                }
+            }
+        }
+    }
+    // Global Namespace End
+
+    if (fDebug)
     {
-        return false;
+        LogPrint("alert", "%s : OK - Accepted alert %d, AppliesToMe()=%d \n", __FUNCTION__, nID, AppliesToMe());
     }
 
     return true;
-}
-
-// base_uint2::getdouble()
-template <unsigned int BITS> double base_uint2<BITS>::getdouble() const
-{
-    double ret = 0.0;
-    double fact = 1.0;
-
-    for (int i = 0; i < WIDTH; i++)
-    {
-        ret += fact * pn[i];
-        fact *= 4294967296.0;
-    }
-
-    return ret;
-}
-
-// base_uint2::GetHex()
-template <unsigned int BITS> std::string base_uint2<BITS>::GetHex() const
-{
-    return ArithToUint256(*this).GetHex();
-}
-
-// base_uint2::SetHex()
-template <unsigned int BITS> void base_uint2<BITS>::SetHex(const char* psz)
-{
-    *this = UintToArith256(uint256S(psz));
-}
-
-// base_uint2::SetHex()
-template <unsigned int BITS> void base_uint2<BITS>::SetHex(const std::string& str)
-{
-    SetHex(str.c_str());
-}
-
-// base_uint2::ToString()
-template <unsigned int BITS> std::string base_uint2<BITS>::ToString() const
-{
-    return (GetHex());
-}
-
-// base_uint2::bits()
-template <unsigned int BITS> unsigned int base_uint2<BITS>::bits() const
-{
-    for (int pos = WIDTH - 1; pos >= 0; pos--)
-    {
-        if (pn[pos])
-        {
-            for (int bits = 31; bits > 0; bits--)
-            {
-                if (pn[pos] & 1 << bits)
-                {
-                    return 32 * pos + bits + 1;
-                }
-            }
-
-            return 32 * pos + 1;
-        }
-    }
-
-    return 0;
-}
-
-// Explicit instantiations for base_uint2<256>
-template base_uint2<256>::base_uint2(const std::string&);
-template base_uint2<256>& base_uint2<256>::operator<<=(unsigned int);
-template base_uint2<256>& base_uint2<256>::operator>>=(unsigned int);
-template base_uint2<256>& base_uint2<256>::operator*=(uint32_t b32);
-template base_uint2<256>& base_uint2<256>::operator*=(const base_uint2<256>& b);
-template base_uint2<256>& base_uint2<256>::operator/=(const base_uint2<256>& b);
-
-template int base_uint2<256>::CompareTo(const base_uint2<256>&) const;
-template bool base_uint2<256>::EqualTo(uint64_t) const;
-template double base_uint2<256>::getdouble() const;
-template std::string base_uint2<256>::GetHex() const;
-template std::string base_uint2<256>::ToString() const;
-template void base_uint2<256>::SetHex(const char*);
-template void base_uint2<256>::SetHex(const std::string&);
-template unsigned int base_uint2<256>::bits() const;
-
-// This implementation directly uses shifts instead of going
-// through an intermediate MPI representation.
-// arith_uint256::SetCompact()
-arith_uint256& arith_uint256::SetCompact(uint32_t nCompact, bool* pfNegative, bool* pfOverflow)
-{
-    int nSize = nCompact >> 24;
-    uint32_t nWord = nCompact & 0x007fffff;
-
-    if (nSize <= 3)
-    {
-        nWord >>= 8 * (3 - nSize);
-        *this = nWord;
-    }
-    else
-    {
-        *this = nWord;
-        *this <<= 8 * (nSize - 3);
-    }
-
-    if (pfNegative)
-    {
-        *pfNegative = nWord != 0 && (nCompact & 0x00800000) != 0;
-    }
-        
-    if (pfOverflow)
-    {
-        *pfOverflow = nWord != 0 && ((nSize > 34) || (nWord > 0xff && nSize > 33) || (nWord > 0xffff && nSize > 32));
-    }
-
-    return *this;
-}
-
-// arith_uint256::GetCompact()
-uint32_t arith_uint256::GetCompact(bool fNegative) const
-{
-    int nSize = (bits() + 7) / 8;
-    uint32_t nCompact = 0;
-
-    if (nSize <= 3)
-    {
-        nCompact = GetLow64() << 8 * (3 - nSize);
-    }
-    else
-    {
-        arith_uint256 bn = *this >> 8 * (nSize - 3);
-        nCompact = bn.GetLow64();
-    }
-
-    // The 0x00800000 bit denotes the sign.
-    // Thus, if it is already set, divide the mantissa by 256 and increase the exponent.
-    
-    if (nCompact & 0x00800000)
-    {
-        nCompact >>= 8;
-        nSize++;
-    }
-
-    if ((nCompact & ~0x007fffff) != 0)
-    {
-        /*
-        if (fDebug)
-        {
-            LogPrint("uint", "%s : (nCompact & ~0x007fffff) != 0 (assert-1)\n", __FUNCTION__);
-        }
-        */
-
-        cout << __FUNCTION__ << " (assert-1)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
-
-        return 0;
-    }
-    
-    if (nSize >= 256)
-    {
-        /*
-        if (fDebug)
-        {
-            LogPrint("uint", "%s : nSize >= 256 (assert-2)\n", __FUNCTION__);
-        }
-        */
-
-        cout << __FUNCTION__ << " (assert-2)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
-
-        return 0;
-    }
-    
-    nCompact |= nSize << 24;
-    nCompact |= (fNegative && (nCompact & 0x007fffff) ? 0x00800000 : 0);
-    
-    return nCompact;
-}
-
-// ArithToUint256()
-uint256 ArithToUint256(const arith_uint256 &a)
-{
-    uint256 b;
-
-    for(int x=0; x<a.WIDTH; ++x)
-    {
-        WriteLE32(b.begin() + x*4, a.pn[x]);
-    }
-        
-    return b;
-}
-
-// UintToArith256()
-arith_uint256 UintToArith256(const uint256 &a)
-{
-    arith_uint256 b;
-
-    for(int x=0; x<b.WIDTH; ++x)
-    {
-        b.pn[x] = ReadLE32(a.begin() + x*4);
-    }
-        
-    return b;
 }

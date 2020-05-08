@@ -7,7 +7,7 @@
 // Copyright (c) 2015 The Crave developers
 // Copyright (c) 2017 XUVCoin developers
 // Copyright (C) 2017-2018 Crypostle Core developers
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
@@ -81,9 +81,15 @@ bool DecodeBase58(const char* psz, std::vector<unsigned char>& vchRet)
         bnChar.setulong(p1 - pszBase58);
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
+// OPENSSL 1.0
+
         if (!BN_mul(&bn, &bn, &bn58, pctx))
-#else // OPENSSL 1.1+
+
+#else
+// OPENSSL 1.1+
+
         if (!BN_mul(bn.to_bignum(), bn.to_bignum(), bn58.to_bignum(), pctx))
+
 #endif
         {
             throw bignum_error("DecodeBase58 : BN_mul failed");
@@ -96,7 +102,8 @@ bool DecodeBase58(const char* psz, std::vector<unsigned char>& vchRet)
     std::vector<unsigned char> vchTmp = bn.getvch();
 
     // Trim off sign byte if present
-    if (vchTmp.size() >= 2 && vchTmp.end()[-1] == 0 && vchTmp.end()[-2] >= 0x80)
+    if (vchTmp.size() >= 2 && vchTmp.end()[-1] == 0
+        && vchTmp.end()[-2] >= 0x80)
     {
         vchTmp.erase(vchTmp.end()-1);
     }
@@ -144,10 +151,8 @@ bool DecodeBase58(const char* psz, std::vector<unsigned char>& vchRet)
         {
             if (fDebug)
             {
-                LogPrint("base58", "%s : carry != 0 (assert-1)\n", __FUNCTION__);
+                LogPrint("base58", "%s : ERROR - carry != 0 \n", __FUNCTION__);
             }
-
-            cout << __FUNCTION__ << " (assert-1)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
             return false;
         }
@@ -218,10 +223,8 @@ std::string EncodeBase58(const unsigned char* pbegin, const unsigned char* pend)
         {
             if (fDebug)
             {
-                LogPrint("base58", "%s : carry != 0 (assert-2)\n", __FUNCTION__);
+                LogPrint("base58", "%s : ERROR - carry != 0 \n", __FUNCTION__);
             }
-
-            cout << __FUNCTION__ << " (assert-2)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
             return "error";
         }
@@ -278,7 +281,8 @@ std::string EncodeBase58Check(const std::vector<unsigned char>& vchIn)
 
 bool DecodeBase58Check(const char* psz, std::vector<unsigned char>& vchRet)
 {
-    if (!DecodeBase58(psz, vchRet) || (vchRet.size() < 4))
+    if (!DecodeBase58(psz, vchRet)
+        || (vchRet.size() < 4))
     {
         vchRet.clear();
 
@@ -338,7 +342,8 @@ bool CBase58Data::SetString(const char* psz, unsigned int nVersionBytes)
 
     bool rc58 = DecodeBase58Check(psz, vchTemp);
 
-    if ((!rc58) || (vchTemp.size() < nVersionBytes))
+    if ((!rc58)
+        || (vchTemp.size() < nVersionBytes))
     {
         vchData.clear();
         vchVersion.clear();
@@ -369,6 +374,7 @@ bool CBase58Data::SetString(const std::string& str)
 std::string CBase58Data::ToString() const
 {
     std::vector<unsigned char> vch = vchVersion;
+
     vch.insert(vch.end(), vchData.begin(), vchData.end());
 
     return EncodeBase58Check(vch);
@@ -527,7 +533,8 @@ CTxDestination CCoinAddress::Get() const
 
 bool CCoinAddress::GetKeyID(CKeyID &keyID) const
 {
-    if (!IsValid() || vchVersion != Params().Base58Prefix(CChainParams::PUBKEY_ADDRESS))
+    if (!IsValid()
+        || vchVersion != Params().Base58Prefix(CChainParams::PUBKEY_ADDRESS))
     {
         return false;
     }
@@ -544,7 +551,8 @@ bool CCoinAddress::GetKeyID(CKeyID &keyID) const
 
 bool CCoinAddress::IsScript() const
 {
-    return IsValid() && vchVersion == Params().Base58Prefix(CChainParams::SCRIPT_ADDRESS);
+    return IsValid()
+            && vchVersion == Params().Base58Prefix(CChainParams::SCRIPT_ADDRESS);
 }
 
 
@@ -554,10 +562,8 @@ void CPHCcoinSecret::SetKey(const CKey& vchSecret)
     {
         if (fDebug)
         {
-            LogPrint("base58", "%s : vchSecret.IsValid() == false (assert-3)\n", __FUNCTION__);
+            LogPrint("base58", "%s : ERROR - vchSecret.IsValid() = false \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " assert-3" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return;
     }
@@ -668,7 +674,8 @@ CTxDestination CBitcoinAddress::Get() const
 
 bool CBitcoinAddress::GetKeyID(CKeyID &keyID) const
 {
-    if (!IsValid() || vchVersion != Params().Base58Prefix(pubkey_address))
+    if (!IsValid()
+        || vchVersion != Params().Base58Prefix(pubkey_address))
     {
         return false;
     }
@@ -685,5 +692,6 @@ bool CBitcoinAddress::GetKeyID(CKeyID &keyID) const
 
 bool CBitcoinAddress::IsScript() const
 {
-    return IsValid() && vchVersion == Params().Base58Prefix(script_address);
+    return IsValid()
+            && vchVersion == Params().Base58Prefix(script_address);
 }

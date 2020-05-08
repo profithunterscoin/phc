@@ -1,7 +1,7 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2012 The Bitcoin developers
 // Copyright (c) 2012 Pieter Wuille
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
@@ -58,7 +58,8 @@ int CAddrInfo::GetNewBucket(const std::vector<unsigned char> &nKey, const CNetAd
 
 bool CAddrInfo::IsTerrible(int64_t nNow) const
 {
-    if (nLastTry && nLastTry >= nNow-60)
+    if (nLastTry
+        && nLastTry >= nNow-60)
     {
         // never remove things tried the last minute
         return false;
@@ -70,19 +71,22 @@ bool CAddrInfo::IsTerrible(int64_t nNow) const
         return true;
     }
 
-    if (nTime==0 || nNow-nTime > ADDRMAN_HORIZON_DAYS*86400)
+    if (nTime==0
+        || nNow-nTime > ADDRMAN_HORIZON_DAYS*86400)
     {
         // not seen in over a month
         return true;
     }
 
-    if (nLastSuccess==0 && nAttempts>=ADDRMAN_RETRIES)
+    if (nLastSuccess == 0
+        && nAttempts >= ADDRMAN_RETRIES)
     {
         // tried three times and never a success
         return true;
     }
 
-    if (nNow-nLastSuccess > ADDRMAN_MIN_FAIL_DAYS*86400 && nAttempts>=ADDRMAN_MAX_FAILURES)
+    if (nNow-nLastSuccess > ADDRMAN_MIN_FAIL_DAYS*86400
+        && nAttempts >= ADDRMAN_MAX_FAILURES)
     {   
         // 10 successive failures in the last week
         return true;
@@ -175,14 +179,13 @@ void CAddrMan::SwapRandom(unsigned int nRndPos1, unsigned int nRndPos2)
         return;
     }
 
-    if (nRndPos1 > vRandom.size() && nRndPos2 > vRandom.size())
+    if (nRndPos1 > vRandom.size()
+        && nRndPos2 > vRandom.size())
     {
         if (fDebug)
         {
-            LogPrint("addrman", "%s : nRndPos1 > vRandom.size() && nRndPos2 > vRandom.size() (assert-1)\n", __FUNCTION__);
+            LogPrint("addrman", "%s : ERROR - nRndPos1 > vRandom.size() && nRndPos2 > vRandom.size() \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-1)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return;
     }
@@ -194,10 +197,8 @@ void CAddrMan::SwapRandom(unsigned int nRndPos1, unsigned int nRndPos2)
     {
         if (fDebug)
         {
-            LogPrint("addrman", "%s : mapInfo.count(nId1) != 1 (assert-2)\n", __FUNCTION__);
+            LogPrint("addrman", "%s : ERROR - mapInfo.count(nId1) != 1 \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-2)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return;
     }
@@ -207,10 +208,8 @@ void CAddrMan::SwapRandom(unsigned int nRndPos1, unsigned int nRndPos2)
     {
         if (fDebug)
         {
-            LogPrint("addrman", "%s : mapInfo.count(nId2) != 1 (assert-3)\n", __FUNCTION__);
+            LogPrint("addrman", "%s : ERROR - mapInfo.count(nId2) != 1 \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-3)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return;
     }
@@ -241,19 +240,19 @@ int CAddrMan::SelectTried(int nKBucket)
         vTried[nPos] = vTried[i];
         vTried[i] = nTemp;
         
-        if (nOldest != -1 || mapInfo.count(nTemp) != 1)
+        if (nOldest != -1
+            || mapInfo.count(nTemp) != 1)
         {
             if (fDebug)
             {
-                LogPrint("addrman", "%s : nOldest != -1 || mapInfo.count(nTemp) != 1  (assert-4)\n", __FUNCTION__);
+                LogPrint("addrman", "%s : ERROR - nOldest != -1 || mapInfo.count(nTemp) != 1 \n", __FUNCTION__);
             }
-
-            cout << __FUNCTION__ << " assert-4" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
             return 0;
         }
         
-        if (nOldest == -1 || mapInfo[nTemp].nLastSuccess < mapInfo[nOldest].nLastSuccess)
+        if (nOldest == -1
+            || mapInfo[nTemp].nLastSuccess < mapInfo[nOldest].nLastSuccess)
         {
            nOldest = nTemp;
            nOldestPos = nPos;
@@ -270,10 +269,8 @@ int CAddrMan::ShrinkNew(int nUBucket)
     {
         if (fDebug)
         {
-            LogPrint("addrman", "%s : nUBucket < 0 && (unsigned int)nUBucket >= vvNew.size() (assert-5)\n", __FUNCTION__);
+            LogPrint("addrman", "%s : ERROR - nUBucket < 0 && (unsigned int)nUBucket >= vvNew.size() \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-5)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return 0;
     }
@@ -287,10 +284,8 @@ int CAddrMan::ShrinkNew(int nUBucket)
         {
             if (fDebug)
             {
-                LogPrint("addrman", "%s : mapInfo.count(*it) == 0 (assert-6)\n", __FUNCTION__);
+                LogPrint("addrman", "%s : ERROR - mapInfo.count(*it) == 0 \n", __FUNCTION__);
             }
-
-            cout << __FUNCTION__ << " (assert-6)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
             return 0;
         }
@@ -324,9 +319,13 @@ int CAddrMan::ShrinkNew(int nUBucket)
     
     for (std::set<int>::iterator it = vNew.begin(); it != vNew.end(); it++)
     {
-        if (nI == n[0] || nI == n[1] || nI == n[2] || nI == n[3])
+        if (nI == n[0]
+            || nI == n[1]
+            || nI == n[2]
+            || nI == n[3])
         {
-            if (nOldest == -1 || mapInfo[*it].nTime < mapInfo[nOldest].nTime)
+            if (nOldest == -1
+                || mapInfo[*it].nTime < mapInfo[nOldest].nTime)
             {
                 nOldest = *it;
             }
@@ -339,10 +338,8 @@ int CAddrMan::ShrinkNew(int nUBucket)
     {
         if (fDebug)
         {
-            LogPrint("addrman", "%s : mapInfo.count(nOldest) != 1 (assert-8)\n", __FUNCTION__);
+            LogPrint("addrman", "%s : ERROR - mapInfo.count(nOldest) != 1 \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-8)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return 0;
     }
@@ -373,10 +370,8 @@ void CAddrMan::MakeTried(CAddrInfo& info, int nId, int nOrigin)
     {
         if (fDebug)
         {
-            LogPrint("addrman", "%s : vvNew[nOrigin].count(nId) != 1 (assert-9)\n", __FUNCTION__);
+            LogPrint("addrman", "%s : ERROR - vvNew[nOrigin].count(nId) != 1 \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-9)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return;
     }
@@ -396,10 +391,8 @@ void CAddrMan::MakeTried(CAddrInfo& info, int nId, int nOrigin)
     {
         if (fDebug)
         {
-            LogPrint("addrman", "%s : info.nRefCount != 0 (assert-10)\n", __FUNCTION__);
+            LogPrint("addrman", "%s : ERROR - info.nRefCount != 0 \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-10)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return;
     }
@@ -429,10 +422,8 @@ void CAddrMan::MakeTried(CAddrInfo& info, int nId, int nOrigin)
     {
         if (fDebug)
         {
-            LogPrint("addrman", "%s : mapInfo.count(vTried[nPos]) != 1 (assert-11)\n", __FUNCTION__);
+            LogPrint("addrman", "%s : ERROR - mapInfo.count(vTried[nPos]) != 1 \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-11)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return;        
     }
@@ -528,7 +519,7 @@ void CAddrMan::Good_(const CService &addr, int64_t nTime)
 
     if (fDebug)
     {
-        LogPrint("addrman", "%s : Moving %s to tried\n", __FUNCTION__, addr.ToString());
+        LogPrint("addrman", "%s : ERROR - Moving %s to tried \n", __FUNCTION__, addr.ToStringIPPort());
     }
     
     // move nId to the tried tables
@@ -559,7 +550,9 @@ bool CAddrMan::Add_(const CAddress &addr, const CNetAddr& source, int64_t nTimeP
         bool fCurrentlyOnline = (GetAdjustedTime() - addr.nTime < 24 * 60 * 60);
         int64_t nUpdateInterval = (fCurrentlyOnline ? 60 * 60 : 24 * 60 * 60);
         
-        if (addr.nTime && (!pinfo->nTime || pinfo->nTime < addr.nTime - nUpdateInterval - nTimePenalty))
+        if (addr.nTime
+            && (!pinfo->nTime
+            || pinfo->nTime < addr.nTime - nUpdateInterval - nTimePenalty))
         {
             pinfo->nTime = max((int64_t)0, addr.nTime - nTimePenalty);
         }
@@ -568,7 +561,8 @@ bool CAddrMan::Add_(const CAddress &addr, const CNetAddr& source, int64_t nTimeP
         pinfo->nServices |= addr.nServices;
 
         // do not update if no new information is present
-        if (!addr.nTime || (pinfo->nTime && addr.nTime <= pinfo->nTime))
+        if (!addr.nTime
+            || (pinfo->nTime && addr.nTime <= pinfo->nTime))
         {
             return false;
         }
@@ -684,10 +678,8 @@ CAddress CAddrMan::Select_(int nUnkBias)
             {
                 if (fDebug)
                 {
-                    LogPrint("addrman", "%s : mapInfo.count(vTried[nPos]) != 1 (assert-12)\n", __FUNCTION__);
+                    LogPrint("addrman", "%s : ERROR - mapInfo.count(vTried[nPos]) != 1 \n", __FUNCTION__);
                 }
-                
-                cout << __FUNCTION__ << " (assert-12)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
                 continue;
             }
@@ -731,10 +723,8 @@ CAddress CAddrMan::Select_(int nUnkBias)
             {
                 if (fDebug)
                 {
-                    LogPrint("addrman", "%s : mapInfo.count(*it) != 1 (assert-13)\n", __FUNCTION__);
+                    LogPrint("addrman", "%s : ERROR - mapInfo.count(*it) != 1 \n", __FUNCTION__);
                 }
-
-                cout << __FUNCTION__ << " (assert-13)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
                 continue;
             }
@@ -786,7 +776,8 @@ int CAddrMan::Check_()
         }
         else
         {
-            if (info.nRefCount < 0 || info.nRefCount > ADDRMAN_NEW_BUCKETS_PER_ADDRESS)
+            if (info.nRefCount < 0
+                || info.nRefCount > ADDRMAN_NEW_BUCKETS_PER_ADDRESS)
             {
                 return -3;
             }
@@ -804,7 +795,9 @@ int CAddrMan::Check_()
             return -5;
         }
         
-        if (info.nRandomPos<0 || info.nRandomPos>=vRandom.size() || vRandom[info.nRandomPos] != n)
+        if (info.nRandomPos<0
+            || info.nRandomPos>=vRandom.size()
+            || vRandom[info.nRandomPos] != n)
         {
             return -14;
         }
@@ -898,10 +891,8 @@ void CAddrMan::GetAddr_(std::vector<CAddress> &vAddr)
         {
             if (fDebug)
             {
-                LogPrint("addrman", "%s : mapInfo.count(vRandom[n]) != 1 (assert-14)\n", __FUNCTION__);
+                LogPrint("addrman", "%s : ERROR - mapInfo.count(vRandom[n]) != 1 \n", __FUNCTION__);
             }
-
-            cout << __FUNCTION__ << " (assert-14)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
             return;
         }

@@ -6,7 +6,7 @@
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015 The Crave developers
 // Copyright (c) 2017 XUVCoin developers
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
@@ -27,8 +27,8 @@
 using namespace std;
 
 CCriticalSection cs_masternodes;
-// keep track of the scanning errors I've seen
 
+// keep track of the scanning errors I've seen
 map<uint256, int> mapSeenMasternodeScanningErrors;
 
 // cache block hashes as we calculate them
@@ -66,7 +66,12 @@ bool GetBlockHash(uint256& hash, int nBlockHeight)
     const CBlockIndex *BlockLastSolved = pindexBest;
     const CBlockIndex *BlockReading = pindexBest;
 
-    if (BlockLastSolved == NULL || BlockLastSolved->nHeight == 0 || pindexBest->nHeight+1 < nBlockHeight) return false;
+    if (BlockLastSolved == NULL 
+        || BlockLastSolved->nHeight == 0
+        || pindexBest->nHeight+1 < nBlockHeight)
+    {
+        return false;
+    }
 
     int nBlocksAgo = 0;
 
@@ -79,10 +84,8 @@ bool GetBlockHash(uint256& hash, int nBlockHeight)
     {
         if (fDebug)
         {
-            LogPrint("masternode", "%s : nBlocksAgo < 0 (assert-1)\n", __FUNCTION__);
+            LogPrint("masternode", "%s : ERROR - nBlocksAgo < 0 \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-1)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return false;
     }
@@ -108,10 +111,8 @@ bool GetBlockHash(uint256& hash, int nBlockHeight)
             {
                 if (fDebug)
                 {
-                    LogPrint("masternode", "%s : BlockReading == 0 (assert-2)\n", __FUNCTION__);
+                    LogPrint("masternode", "%s : ERROR - BlockReading = 0 \n", __FUNCTION__);
                 }
-
-                cout << __FUNCTION__ << " (assert-2)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
                 return false;
             }
@@ -303,5 +304,6 @@ void CMasternode::Check()
         }
     }
 
-    activeState = MASTERNODE_ENABLED; // OK
+    // OK
+    activeState = MASTERNODE_ENABLED;
 }

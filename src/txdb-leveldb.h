@@ -6,7 +6,7 @@
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015 The Crave developers
 // Copyright (c) 2017 XUVCoin developers
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Authored by Google, Inc. Learn more: http://code.google.com/p/leveldb/
 // Distributed under the MIT/X11 software license, see the accompanying
@@ -110,7 +110,7 @@ class CTxDB
                     if (fDebug)
                     {
                         // Some unexpected error.
-                        LogPrint("leveldb", "%s : LevelDB read failure: %s\n", __FUNCTION__, status.ToString());
+                        LogPrint("leveldb", "%s : ERROR - LevelDB read failure: %s\n", __FUNCTION__, status.ToString());
                     }
 
                     return false;
@@ -137,10 +137,8 @@ class CTxDB
             {
                 if (fDebug)
                 {
-                    LogPrint("leveldb", "%s : fReadOnly == true Write called on database in read-only mode (assert-1)\n", __FUNCTION__);
+                    LogPrint("leveldb", "%s : ERROR - fReadOnly = true Write called on database in read-only mode \n", __FUNCTION__);
                 }
-
-                cout << __FUNCTION__ << " (assert-1)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
                 return false;
             }
@@ -166,7 +164,7 @@ class CTxDB
             {
                 if (fDebug)
                 {
-                    LogPrint("leveldb", "%s : LevelDB write failure: %s\n", __FUNCTION__, status.ToString());
+                    LogPrint("leveldb", "%s : ERROR - LevelDB write failure: %s \n", __FUNCTION__, status.ToString());
                 }
 
                 return false;
@@ -186,10 +184,8 @@ class CTxDB
             {
                 if (fDebug)
                 {
-                    LogPrint("leveldb", "%s : fReadOnly == true Erase called on database in read-only mode (assert-2)\n", __FUNCTION__);
+                    LogPrint("leveldb", "%s : ERROR - fReadOnly = true Erase called on database in read-only mode \n", __FUNCTION__);
                 }
-
-                cout << __FUNCTION__ << " (assert-2)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
                 return false;
             }
@@ -207,7 +203,8 @@ class CTxDB
 
             leveldb::Status status = pdb->Delete(leveldb::WriteOptions(), ssKey.str());
             
-            return (status.ok() || status.IsNotFound());
+            return (status.ok()
+                    || status.IsNotFound());
         }
 
         template<typename K> bool Exists(const K& key)

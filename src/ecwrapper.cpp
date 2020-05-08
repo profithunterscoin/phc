@@ -6,7 +6,7 @@
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015 The Crave developers
 // Copyright (c) 2017 XUVCoin developers
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
@@ -117,11 +117,16 @@ namespace
         const BIGNUM *ecsig_r = NULL;
         const BIGNUM *ecsig_s = NULL;
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L  // OPENSSL 1.0
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+// OPENSSL 1.0
+
         ecsig_r = ecsig->r;
         ecsig_s = ecsig->s;
-#else  // OPENSSL 1.1+
+
+#else
+// OPENSSL 1.1+
         ECDSA_SIG_get0(ecsig, &ecsig_r, &ecsig_s);
+
 #endif
         const EC_GROUP *group = EC_KEY_get0_group(eckey);
         
@@ -335,10 +340,8 @@ CECKey::CECKey()
     {
         if (fDebug)
         {
-            LogPrint("key", "%s : pkey == NULL (assert-1)\n", __FUNCTION__);
+            LogPrint("key", "%s : ERROR - pkey = NULL \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-1)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return;
     }
@@ -355,15 +358,15 @@ void CECKey::GetSecretBytes(unsigned char vch[32]) const
 {
     const BIGNUM *bn = EC_KEY_get0_private_key(pkey);
 
-//#if OPENSSL_VERSION_NUMBER < 0x10100000L  // OPENSSL 1.0
+//#if OPENSSL_VERSION_NUMBER < 0x10100000L
+// OPENSSL 1.0
+
     if (bn == 0)
     {
         if (fDebug)
         {
-            LogPrint("key", "%s : bn == 0 (assert-2)\n", __FUNCTION__);
+            LogPrint("key", "%s : ERROR - bn = 0 \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-2)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return;
     }
@@ -376,24 +379,21 @@ void CECKey::GetSecretBytes(unsigned char vch[32]) const
     {
         if (fDebug)
         {
-            LogPrint("key", "%s : n != nBytes (assert-3)\n", __FUNCTION__);
+            LogPrint("key", "%s : ERROR - n != nBytes \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-3)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return;
     }
-/*   Does not appear to be working with 1.1+
 
-#else  // OPENSSL 1.1+
+/*   Does not appear to be working with 1.1+
+#else
+// OPENSSL 1.1+
     if (&bn == 0)
     {
         if (fDebug)
         {
-            LogPrint("key", "%s : bn == 0 (assert-4)\n", __FUNCTION__);
+            LogPrint("key", "%s : ERROR - bn = 0 \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-4)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return;
     }
@@ -406,10 +406,8 @@ void CECKey::GetSecretBytes(unsigned char vch[32]) const
     {
         if (fDebug)
         {
-            LogPrint("key", "%s : n != nBytes (assert-5)\n", __FUNCTION__);
+            LogPrint("key", "%s : ERROR - n != nBytes \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-5)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return;
     }
@@ -425,7 +423,9 @@ void CECKey::SetSecretBytes(const unsigned char vch[32])
 {
     bool ret;
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L  // OPENSSL 1.0
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+// OPENSSL 1.0
+
     BIGNUM bn;
     BN_init(&bn);
 
@@ -435,10 +435,8 @@ void CECKey::SetSecretBytes(const unsigned char vch[32])
     {
         if (fDebug)
         {
-            LogPrint("key", "%s : ret == 0 (assert-6)\n", __FUNCTION__);
+            LogPrint("key", "%s : ERROR - ret = 0 \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-6)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return;
     }
@@ -449,16 +447,17 @@ void CECKey::SetSecretBytes(const unsigned char vch[32])
     {
         if (fDebug)
         {
-            LogPrint("key", "%s : ret == 0 (assert-7)\n", __FUNCTION__);
+            LogPrint("key", "%s : ERROR - ret = 0 \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-7)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return;
     }
 
     BN_clear_free(&bn);
-#else  // OPENSSL 1.1+
+
+#else 
+// OPENSSL 1.1+
+
     BIGNUM* bn(BN_new());
     
     ret = BN_bin2bn(vch, 32, bn) != NULL;
@@ -467,10 +466,8 @@ void CECKey::SetSecretBytes(const unsigned char vch[32])
     {
         if (fDebug)
         {
-            LogPrint("key", "%s : ret == 0 (assert-8)\n", __FUNCTION__);
+            LogPrint("key", "%s : ERROR - ret = 0 \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-8)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return;
     }
@@ -481,15 +478,14 @@ void CECKey::SetSecretBytes(const unsigned char vch[32])
     {
         if (fDebug)
         {
-            LogPrint("key", "%s : ret == 0 (assert-9)\n", __FUNCTION__);
+            LogPrint("key", "%s : ERROR - ret = 0 \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-9)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return;
     }
 
     BN_clear_free(bn);
+
 #endif
 
 }
@@ -542,10 +538,8 @@ void CECKey::GetPubKey(std::vector<unsigned char> &pubkey, bool fCompressed)
     {
         if (fDebug)
         {
-            LogPrint("key", "%s : nSize == 0 (assert-10)\n", __FUNCTION__);
+            LogPrint("key", "%s : ERROR - nSize = 0 \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-10)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return;
     }
@@ -554,10 +548,8 @@ void CECKey::GetPubKey(std::vector<unsigned char> &pubkey, bool fCompressed)
     {
         if (fDebug)
         {
-            LogPrint("key", "%s : nSize > 65 (assert-11)\n", __FUNCTION__);
+            LogPrint("key", "%s : ERROR - nSize > 65 \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-11)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return;
     }
@@ -573,10 +565,8 @@ void CECKey::GetPubKey(std::vector<unsigned char> &pubkey, bool fCompressed)
     {
         if (fDebug)
         {
-            LogPrint("key", "%s : nSize != nSize2 (assert-12)\n", __FUNCTION__);
+            LogPrint("key", "%s : ERROR - nSize != nSize2 \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-12)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return;
     }
@@ -603,11 +593,17 @@ bool CECKey::Sign(const uint256 &hash, std::vector<unsigned char>& vchSig)
     const BIGNUM *sig_r = NULL;
     const BIGNUM *sig_s = NULL;
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L  // OPENSSL 1.0
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+// OPENSSL 1.0
+
     sig_r = sig->r;
     sig_s = sig->s;
-#else  // OPENSSL 1.1+
+
+#else
+// OPENSSL 1.1+
+
     ECDSA_SIG_get0(sig, &sig_r, &sig_s);
+
 #endif
     
     BN_CTX *ctx = BN_CTX_new();
@@ -630,16 +626,22 @@ bool CECKey::Sign(const uint256 &hash, std::vector<unsigned char>& vchSig)
 
         BN_sub(sig_s_new, order, sig_s);
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L  // OPENSSL 1.0
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+// OPENSSL 1.0
+
         BN_clear_free(sig->r);
         BN_clear_free(sig->s);
 
         sig->r = sig_r_new;
         sig->s = sig_s_new;
 
-#else  // OPENSSL 1.1+
+#else
+// OPENSSL 1.1+
+
         ECDSA_SIG_set0(sig, sig_r_new, sig_s_new);
+
 #endif
+
     }
     
     BN_CTX_end(ctx);
@@ -647,7 +649,8 @@ bool CECKey::Sign(const uint256 &hash, std::vector<unsigned char>& vchSig)
     
     unsigned int nSize = ECDSA_size(pkey);
 
-    vchSig.resize(nSize); // Make sure it is big enough
+    // Make sure it is big enough
+    vchSig.resize(nSize);
 
     unsigned char *pos = &vchSig[0];
     
@@ -655,7 +658,8 @@ bool CECKey::Sign(const uint256 &hash, std::vector<unsigned char>& vchSig)
     
     ECDSA_SIG_free(sig);
 
-    vchSig.resize(nSize); // Shrink to fit actual size
+    // Shrink to fit actual size
+    vchSig.resize(nSize);
 
     return true;
 }
@@ -679,7 +683,7 @@ bool CECKey::SignCompact(const uint256 &hash, unsigned char *p64, int &rec)
     
     ECDSA_SIG *sig = ECDSA_do_sign((unsigned char*)&hash, sizeof(hash), pkey);
     
-    if (sig==NULL)
+    if (sig == NULL)
     {
         return false;
     }
@@ -687,11 +691,17 @@ bool CECKey::SignCompact(const uint256 &hash, unsigned char *p64, int &rec)
     const BIGNUM *sig_r = NULL;
     const BIGNUM *sig_s = NULL;
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L  // OPENSSL 1.0
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+// OPENSSL 1.0
+
     sig_r = sig->r;
     sig_s = sig->s;
-#else  // OPENSSL 1.1+
+
+#else
+// OPENSSL 1.1+
+
     ECDSA_SIG_get0(sig, &sig_r, &sig_s);
+
 #endif
 
     memset(p64, 0, 64);
@@ -712,6 +722,7 @@ bool CECKey::SignCompact(const uint256 &hash, unsigned char *p64, int &rec)
             if (ECDSA_SIG_recover_key_GFp(keyRec.pkey, sig, (unsigned char*)&hash, sizeof(hash), i, 1) == 1)
             {
                 std::vector<unsigned char> pubkeyRec;
+
                 keyRec.GetPubKey(pubkeyRec, true);
 
                 if (pubkeyRec == pubkey)
@@ -728,10 +739,8 @@ bool CECKey::SignCompact(const uint256 &hash, unsigned char *p64, int &rec)
         {
             if (fDebug)
             {
-                LogPrint("key", "%s : fOk == 0 (assert-13)\n", __FUNCTION__);
+                LogPrint("key", "%s : ERROR - fOk = 0 \n", __FUNCTION__);
             }
-            
-            cout << __FUNCTION__ << " (assert-13)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
             return false;
         }
@@ -748,22 +757,28 @@ bool CECKey::SignCompact(const uint256 &hash, unsigned char *p64, int &rec)
 
 bool CECKey::Recover(const uint256 &hash, const unsigned char *p64, int rec)
 {
-    if (rec<0 || rec>=3)
+    if (rec<0
+        || rec>=3)
     {
         return false;
     }
     
     ECDSA_SIG *sig = ECDSA_SIG_new();
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L  // OPENSSL 1.0
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+// OPENSSL 1.0
+
     BN_bin2bn(&p64[0],  32, sig->r);
     BN_bin2bn(&p64[32], 32, sig->s);
 
-#else  // OPENSSL 1.1+
+#else
+// OPENSSL 1.1+
+
     BIGNUM *sig_r(BN_new());
     BIGNUM *sig_s(BN_new());
 
     ECDSA_SIG_set0(sig, sig_r, sig_s);
+    
 #endif
 
     bool ret = ECDSA_SIG_recover_key_GFp(pkey, sig, (unsigned char*)&hash, sizeof(hash), rec, 0) == 1;
@@ -788,13 +803,15 @@ bool CECKey::TweakSecret(unsigned char vchSecretOut[32], const unsigned char vch
     
     EC_GROUP *group = EC_GROUP_new_by_curve_name(NID_secp256k1);
 
-    EC_GROUP_get_order(group, bnOrder, ctx); // what a grossly inefficient way to get the (constant) group order...
+    // what a grossly inefficient way to get the (constant) group order...
+    EC_GROUP_get_order(group, bnOrder, ctx);
     
     BN_bin2bn(vchTweak, 32, bnTweak);
     
     if (BN_cmp(bnTweak, bnOrder) >= 0)
     {
-        ret = false; // extremely unlikely
+        // extremely unlikely
+        ret = false;
     }
     
     BN_bin2bn(vchSecretIn, 32, bnSecret);
@@ -803,7 +820,8 @@ bool CECKey::TweakSecret(unsigned char vchSecretOut[32], const unsigned char vch
     
     if (BN_is_zero(bnSecret))
     {
-        ret = false; // ridiculously unlikely
+        // ridiculously unlikely
+        ret = false;
     }
     
     int nBits = BN_num_bits(bnSecret);
@@ -835,13 +853,15 @@ bool CECKey::TweakPublic(const unsigned char vchTweak[32])
     
     const EC_GROUP *group = EC_KEY_get0_group(pkey);
     
-    EC_GROUP_get_order(group, bnOrder, ctx); // what a grossly inefficient way to get the (constant) group order...
+    // what a grossly inefficient way to get the (constant) group order...
+    EC_GROUP_get_order(group, bnOrder, ctx);
     
     BN_bin2bn(vchTweak, 32, bnTweak);
     
     if (BN_cmp(bnTweak, bnOrder) >= 0)
     {
-        ret = false; // extremely unlikely
+        // extremely unlikely
+        ret = false;
     }
     
     EC_POINT *point = EC_POINT_dup(EC_KEY_get0_public_key(pkey), group);
@@ -851,7 +871,8 @@ bool CECKey::TweakPublic(const unsigned char vchTweak[32])
     
     if (EC_POINT_is_at_infinity(group, point))
     {
-        ret = false; // ridiculously unlikely
+        // ridiculously unlikely
+        ret = false;
     }
     
     EC_KEY_set_public_key(pkey, point);

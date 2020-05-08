@@ -1,7 +1,7 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2012 The Bitcoin developers
 // Copyright (c) 2012 Pieter Wuille
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
@@ -329,6 +329,7 @@ class CAddrMan
                         }
 
                         CAddrInfo &info = (*it).second;
+
                         if (info.fInTried)
                         {
                             READWRITE(info);
@@ -429,7 +430,8 @@ class CAddrMan
                             
                             CAddrInfo &info = am->mapInfo[nIndex];
                             
-                            if (nUBuckets == ADDRMAN_NEW_BUCKET_COUNT && info.nRefCount < ADDRMAN_NEW_BUCKETS_PER_ADDRESS)
+                            if (nUBuckets == ADDRMAN_NEW_BUCKET_COUNT
+                                && info.nRefCount < ADDRMAN_NEW_BUCKETS_PER_ADDRESS)
                             {
                                 info.nRefCount++;
                                 vNew.insert(nIndex);
@@ -469,11 +471,11 @@ class CAddrMan
                 
                 int err;
 
-                if ((err=Check_()))
+                if ((err = Check_()))
                 {
                     if (fDebug)
                     {
-                        LogPrint("addrman", "%s : ADDRMAN CONSISTENCY CHECK FAILED!!! err=%i\n", __FUNCTION__, err);
+                        LogPrint("addrman", "%s : ERROR - ADDRMAN CONSISTENCY CHECK FAILED!!! err=%i \n", __FUNCTION__, err);
                     }
                 }
             }
@@ -502,7 +504,7 @@ class CAddrMan
             {
                 if (fDebug)
                 {
-                    LogPrint("addrman", "%s : Added %s from %s: %i tried, %i new\n", __FUNCTION__, addr.ToStringIPPort(), source.ToString(), nTried, nNew);
+                    LogPrint("addrman", "%s : ERROR - Added %s from %s: %i tried, %i new \n", __FUNCTION__, addr.ToStringIPPort(), source.ToString(), nTried, nNew);
                 }
             }
 

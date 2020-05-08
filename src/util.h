@@ -6,7 +6,7 @@
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015 The Crave developers
 // Copyright (c) 2017 XUVCoin developers
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
@@ -72,10 +72,10 @@ typedef int64_t CAmount;
 #define UEND(a)             ((unsigned char*)&((&(a))[1]))
 #define ARRAYLEN(array)     (sizeof(array)/sizeof((array)[0]))
 
-#define UVOIDBEGIN(a)        ((void*)&(a))
-#define CVOIDBEGIN(a)        ((const void*)&(a))
+#define UVOIDBEGIN(a)       ((void*)&(a))
+#define CVOIDBEGIN(a)       ((const void*)&(a))
 #define UINTBEGIN(a)        ((uint32_t*)&(a))
-#define CUINTBEGIN(a)        ((const uint32_t*)&(a))
+#define CUINTBEGIN(a)       ((const uint32_t*)&(a))
 
 /* Format characters for (s)size_t and ptrdiff_t */
 #if defined(_MSC_VER) || defined(__MSVCRT__)
@@ -137,8 +137,6 @@ inline void MilliSleep(int64_t n)
 #endif
 }
 
-
-
 //Dark features
 
 extern bool fMasterNode;
@@ -158,7 +156,6 @@ extern std::vector<int64_t> darkSendDenominations;
 extern std::map<std::string, std::string> mapArgs;
 extern std::map<std::string, std::vector<std::string> > mapMultiArgs;
 
-
 extern bool fDebug;
 extern bool fDebugSmsg;
 extern bool fNoSmsg;
@@ -175,6 +172,7 @@ extern vector<string> DebugCategories;
 
 void RandAddSeed();
 void RandAddSeedPerfmon();
+
 
 
 /* Return true if log accepts specified category */
@@ -202,7 +200,7 @@ int LogPrintStr(const std::string &str);
     static inline bool error(const char* format, TINYFORMAT_VARARGS(n))              \
     {                                                                                \
         if (!fDebug) { return false; }                                               \
-        LogPrintStr("ERROR: " + tfm::format(format, TINYFORMAT_PASSARGS(n)) + "\n"); \
+        LogPrintStr(tfm::format(format, TINYFORMAT_PASSARGS(n)) + "\n");             \
         return false;                                                                \
     }                                                                                \
     /*   Log error and return n */                                                   \
@@ -210,12 +208,14 @@ int LogPrintStr(const std::string &str);
     static inline int errorN(int rv, const char* format, TINYFORMAT_VARARGS(n))      \
     {                                                                                \
         if (!fDebug) { return 0; }                                                   \
-        LogPrintStr("ERROR: " + tfm::format(format, TINYFORMAT_PASSARGS(n)) + "\n"); \
+        LogPrintStr(tfm::format(format, TINYFORMAT_PASSARGS(n)) + "\n");             \
         return rv;                                                                   \
     }
 
 
 TINYFORMAT_FOREACH_ARGNUM(MAKE_ERROR_AND_LOG_FUNC)
+
+
 
 /* Zero-arg versions of logging and error, these are not covered by
  * TINYFORMAT_FOREACH_ARGNUM
@@ -235,6 +235,7 @@ static inline int LogPrint(const char* category, const char* format)
     return LogPrintStr(format);
 }
 
+
 static inline bool error(const char* format)
 {
     if (!fDebug)
@@ -242,10 +243,11 @@ static inline bool error(const char* format)
         return false;
     }
 
-    LogPrintStr(std::string("ERROR: ") + format + "\n");
+    LogPrintStr(std::string(" ") + format + "\n");
 
     return false;
 }
+
 
 static inline int errorN(int n, const char* format)
 {
@@ -254,10 +256,11 @@ static inline int errorN(int n, const char* format)
         return 0;
     }
 
-    LogPrintStr(std::string("ERROR: ") + format + "\n");
+    LogPrintStr(std::string(" ") + format + "\n");
     
     return n;
 }
+
 
 extern std::map<std::string, std::string> mapArgs;
 extern std::map<std::string, std::vector<std::string> > mapMultiArgs;
@@ -361,7 +364,6 @@ bool download_bootstrap(std::string pathBootstrap);
  */
 bool ParseInt32(const std::string& str, int32_t *out);
 
-
 /** 
  * Format a paragraph of text to a fixed width, adding spaces for
  * indentation to any added line.
@@ -442,7 +444,8 @@ std::string HexStr(const T itbegin, const T itend, bool fSpaces=false)
     {
         unsigned char val = (unsigned char)(*it);
         
-        if(fSpaces && it != itbegin)
+        if(fSpaces
+            && it != itbegin)
         {
             rv.push_back(' ');
         }
@@ -464,7 +467,9 @@ inline int64_t GetPerformanceCounter()
     int64_t nCounter = 0;
 
     timeval t;
+
     gettimeofday(&t, NULL);
+
     nCounter = (int64_t) t.tv_sec * 1000000 + t.tv_usec;
 
     return nCounter;
@@ -503,7 +508,8 @@ template<typename T> void skipspaces(T& it)
 inline bool IsSwitchChar(char c)
 {
 #ifdef WIN32
-    return c == '-' || c == '/';
+    return c == '-'
+        || c == '/';
 #else
     return c == '-';
 #endif
@@ -651,20 +657,20 @@ template <typename T> class CMedianFilter
             {
                 if (fDebug)
                 {
-                    LogPrint("core", "%s : size <= 0 (assert-1)\n", __FUNCTION__);
+                    LogPrint("core", "%s : ERROR - Size <= 0 \n", __FUNCTION__);
                 }
-
-                cout << __FUNCTION__ << " (assert-1)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
                 return vSorted[0];
             }
 
-            if(size & 1) // Odd number of elements
+            if(size & 1)
             {
+                // Odd number of elements
                 return vSorted[size/2];
             }
-            else // Even number of elements
+            else
             {
+                // Even number of elements
                 return (vSorted[size/2-1] + vSorted[size/2]) / 2;
             }
         }
@@ -730,7 +736,7 @@ template <typename Callable> void LoopForever(const char* name,  Callable func, 
     
     if (fDebug)
     {
-        LogPrint("util", "%s : %s thread start\n", __FUNCTION__, name);
+        LogPrint("util", "%s : NOTICE - %s thread start\n", __FUNCTION__, name);
     }
 
     try
@@ -746,7 +752,7 @@ template <typename Callable> void LoopForever(const char* name,  Callable func, 
     {
         if (fDebug)
         {
-            LogPrint("util", "%s : %s thread stop\n", __FUNCTION__, name);
+            LogPrint("util", "%s : WARNING - %s thread stop\n", __FUNCTION__, name);
         }
 
         throw;
@@ -773,21 +779,21 @@ template <typename Callable> void TraceThread(const char* name,  Callable func)
     {
         if (fDebug)
         {
-            LogPrint("util", "%s : %s thread start\n", __FUNCTION__, name);
+            LogPrint("util", "%s : NOTICE - %s thread start\n", __FUNCTION__, name);
         }
 
         func();
         
         if (fDebug)
         {
-            LogPrint("util", "%s : %s thread exit\n", __FUNCTION__, name);
+            LogPrint("util", "%s : OK - %s thread exit\n", __FUNCTION__, name);
         }
     }
     catch (boost::thread_interrupted)
     {
         if (fDebug)
         {
-            LogPrint("util", "%s : %s thread interrupt\n", __FUNCTION__, name);
+            LogPrint("util", "%s : WARNING - %s thread interrupt\n", __FUNCTION__, name);
         }
 
         throw;
@@ -853,7 +859,8 @@ inline const bool StringToBool(string b)
 
 inline const std::string StripPortFromAddrName(string str)
 {
-    if (str == "" || str.empty() == true)
+    if (str == ""
+        || str.empty() == true)
     {
         return str;
     }
@@ -861,6 +868,7 @@ inline const std::string StripPortFromAddrName(string str)
     std::size_t pos = str.find(":");
 
     std::string Tempstr;
+
     Tempstr = "";
 
     if ((int)pos > 0)

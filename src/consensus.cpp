@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
@@ -308,7 +308,9 @@ namespace Consensus
     int DynamicCoinDistribution::Max_StakePercent = 10;
     int DynamicCoinDistribution::Min_DistributionPercent = 5;
     int DynamicCoinDistribution::Max_DistributionPercent = 10;
+
     vector<std::string> DynamicCoinDistribution::Nodes_List;
+
     vector<pair<int, std::string>> DynamicCoinDistribution::mapPeerBlockHistory;
 
     /* FUNCTION: AddNode */
@@ -438,7 +440,8 @@ namespace Consensus
             // get all possible unique nodes
             AddNode(StripPortFromAddrName(PeerBlockIndex::map[item].second.addrname));
 
-            if (nHeight > Params().POSStartBlock()) // bypass POS checks until Staking is Active
+            // bypass POS checks until Staking is Active
+            if (nHeight > Params().POSStartBlock())
             {
                 // Count PoS Blocks,
                 if (PeerBlockIndex::map[item].second.proofofwork == false)
@@ -448,7 +451,8 @@ namespace Consensus
             }
         }
 
-        if (nHeight > Params().POSStartBlock()) // bypass POS checks until Staking is Active
+        // bypass POS checks until Staking is Active
+        if (nHeight > Params().POSStartBlock())
         {
             PoSPercent = (PoSCount / Items) * 100;
 
@@ -459,7 +463,7 @@ namespace Consensus
 
                 if (fDebug)
                 {
-                    LogPrint("asicchoker", "%s Min_Cycle Changed: %d\n", __FUNCTION__, DynamicCoinDistribution::Min_Cycle);
+                    LogPrint("asicchoker", "%s : NOTICE - Min_Cycle Changed: %d \n", __FUNCTION__, DynamicCoinDistribution::Min_Cycle);
                 }
             }
 
@@ -470,7 +474,7 @@ namespace Consensus
 
                 if (fDebug)
                 {
-                    LogPrint("asicchoker", "%s Min_Cycle Changed: %d\n", __FUNCTION__, DynamicCoinDistribution::Min_Cycle);
+                    LogPrint("asicchoker", "%s : NOTICE - Min_Cycle Changed: %d \n", __FUNCTION__, DynamicCoinDistribution::Min_Cycle);
                 }
             }
 
@@ -483,7 +487,7 @@ namespace Consensus
 
         if (fDebug)
         {
-            LogPrint("asicchoker", "%s PoS Percent %d\n", __FUNCTION__, PoSPercent);
+            LogPrint("asicchoker", "%s : NOTICE - PoS Percent %d \n", __FUNCTION__, PoSPercent);
         }
 
         vector<pair<int, std::string>> mapPeerBlockHistory;
@@ -504,16 +508,12 @@ namespace Consensus
         }
 
         //std::string LowestNode;
-        int LowestNodeBlockCount;
-        LowestNodeBlockCount = 0;
-        int LowestNodeBlockPercent;
-        LowestNodeBlockPercent = 0;
+        int LowestNodeBlockCount = 0;
+        int LowestNodeBlockPercent = 0;
 
         //std::string HighestNode;
-        int HighestNodeBlockCount;
-        HighestNodeBlockCount = 0;
-        int HighestNodeBlockPercent;
-        HighestNodeBlockPercent = 0;
+        int HighestNodeBlockCount = 0;
+        int HighestNodeBlockPercent = 0;
 
         // Find Most occuring Node & Count  & Least occuring Node & Count
         for (int node = 0; node < (signed)mapPeerBlockHistory.size() - 1; node++)
@@ -545,7 +545,7 @@ namespace Consensus
 
         if (fDebug)
         {
-            LogPrint("asicchoker", "%s LowestNodeBlockCount: %d (%d) HighestNodeBlockCount: %d (%d)\n", __FUNCTION__, LowestNodeBlockCount, LowestNodeBlockPercent, HighestNodeBlockCount, HighestNodeBlockPercent);
+            LogPrint("asicchoker", "%s : NOTICE - LowestNodeBlockCount: %d (%d) HighestNodeBlockCount: %d (%d) \n", __FUNCTION__, LowestNodeBlockCount, LowestNodeBlockPercent, HighestNodeBlockCount, HighestNodeBlockPercent);
         }
 
         // Adjust Cycle for too low of Distribution (Increase Minimum Cycle by / 2)
@@ -555,7 +555,7 @@ namespace Consensus
 
             if (fDebug)
             {
-                LogPrint("asicchoker", "%s Min_Cycle Changed: %d\n", __FUNCTION__, DynamicCoinDistribution::Min_Cycle);
+                LogPrint("asicchoker", "%s : NOTICE - Min_Cycle Changed: %d \n", __FUNCTION__, DynamicCoinDistribution::Min_Cycle);
             }
         }
 
@@ -566,11 +566,11 @@ namespace Consensus
 
             if (fDebug)
             {
-                LogPrint("asicchoker", "%s Min_Cycle Changed: %d\n", __FUNCTION__, DynamicCoinDistribution::Min_Cycle);
+                LogPrint("asicchoker", "%s : NOTICE - Min_Cycle Changed: %d \n", __FUNCTION__, DynamicCoinDistribution::Min_Cycle);
             }
         }
 
-        return false;
+        return true;
     }
 
     /* FUNCTION: ASIC_Choker */
@@ -579,9 +579,13 @@ namespace Consensus
         // Version 1.0.2 (C) 2019 Profit Hunters Coin in collaboration with Crypostle
         // Prevents consecutive blocks from the same node (decentralized coin distribution regardless of hash-power)
 
-        if (fReindex || fImporting || IsInitialBlockDownload() || !TestNet())
+        if (fReindex
+            || fImporting
+            || IsInitialBlockDownload()
+            || !TestNet())
         {
-            return false; // Bypass for Reindexing and Importing Bootstrap
+            // Bypass for Reindexing and Importing Bootstrap
+            return false; 
         }
 
         if (!pblock)
@@ -594,7 +598,9 @@ namespace Consensus
             addrname = "Unknown";
         }
 
-        int ActivationHeight = 1; // Block #1 (Default)
+        // Block #1 (Default)
+        int ActivationHeight = 1;
+
         int nHeight = 0;
 
         // PIP6 - ASIC Choker Activation
@@ -612,9 +618,10 @@ namespace Consensus
             nHeight = nBestHeight;
         }
 
+        // bypass Until Hard Fork 2
         if (nHeight < ActivationHeight)
         {
-            return false; // bypass Until Hard Fork 2
+            return false;
         }
 
         CBlockHeader TempHeader;
@@ -635,7 +642,8 @@ namespace Consensus
         PeerBlockIndex::SetMaxTransactionTime(pblock->GetMaxTransactionTime());
         PeerBlockIndex::AddPosition();
 
-        if (nHeight > Params().POSStartBlock()) // bypass POS checks until Staking is Active
+        // bypass POS checks until Staking is Active
+        if (nHeight > Params().POSStartBlock())
         {
             int PoSCount = 0;
             for (int item = 0; item < DynamicCoinDistribution::Min_Cycle; item++)
@@ -658,10 +666,11 @@ namespace Consensus
                     {
                         if (fDebug)
                         {
-                            LogPrint("asicchoker", "%s REJECTED Block: %d PoS Count: %d PoS Compare: %d\n", __FUNCTION__, nHeight, PoSCount, NodeCompare);
+                            LogPrint("asicchoker", "%s : ERROR - REJECTED Block: %d PoS Count: %d PoS Compare: %d \n", __FUNCTION__, nHeight, PoSCount, NodeCompare);
                         }
                         
-                        return true; // reject New PoW block from peer (wait until more Staking Blocks are generated)
+                        // reject New PoW block from peer (wait until more Staking Blocks are generated)
+                        return true;
                     }
                 }
             }
@@ -696,10 +705,11 @@ namespace Consensus
             {
                 if (fDebug)
                 {
-                    LogPrint("asicchoker", "%s REJECTED Block: %d Node Count: %d Node Compare: %d\n", __FUNCTION__, nHeight, NodeCount, NodeCompare);
+                    LogPrint("asicchoker", "%s : ERROR - REJECTED Block: %d Node Count: %d Node Compare: %d \n", __FUNCTION__, nHeight, NodeCount, NodeCompare);
                 }
 
-                return true; // reject too many NEW blocks from peer within cycle
+                // reject too many NEW blocks from peer within cycle
+                return true;
             }
         
         }
@@ -711,10 +721,11 @@ namespace Consensus
             {
                 if (fDebug)
                 {
-                    LogPrint("asicchoker", "%s REJECTED Block: %d Node: %s\n", __FUNCTION__, nHeight, PeerBlockIndex::map[NodesTotal].second.addrname);
+                    LogPrint("asicchoker", "%s : ERROR - REJECTED Block: %d Node: %s \n", __FUNCTION__, nHeight, PeerBlockIndex::map[NodesTotal].second.addrname);
                 }
 
-                return true; // reject consecutive new blocks
+                // reject consecutive new blocks
+                return true;
             }
         }
 
@@ -729,9 +740,14 @@ namespace Consensus
         ChainBuddy
     **/
 
+    // ChainBuddy Status
     bool ChainBuddy::Enabled = true;
-    DynamicCheckpoints::Checkpoint ChainBuddy::BestCheckpoint; // Best Chain                  
-    vector<std::pair<int, DynamicCheckpoints::Checkpoint>> ChainBuddy::ConsensusCheckpointMap; // History
+
+    // Best Chain
+    DynamicCheckpoints::Checkpoint ChainBuddy::BestCheckpoint;
+
+    // History        
+    vector<std::pair<int, DynamicCheckpoints::Checkpoint>> ChainBuddy::ConsensusCheckpointMap;
 
     bool ChainBuddy::FindHash(uint256 hash)
     {
@@ -766,7 +782,6 @@ namespace Consensus
 
         if (found == false)
         {
-
             if (ChainBuddy::ConsensusCheckpointMap.size() > 49)
             {
                 ConsensusCheckpointMap.erase(ConsensusCheckpointMap.begin());
@@ -849,7 +864,8 @@ namespace Consensus
                         found = ConsensusCheckpointMap[item].second.fromnode.find(TempAddrName); 
                     }
                     
-                    if (found == std::string::npos || found == 0)
+                    if (found == std::string::npos
+                        || found == 0)
                     {
                         ConsensusCheckpointMap[item].first = ConsensusCheckpointMap[item].first + 1;
 
@@ -881,7 +897,8 @@ namespace Consensus
         {
             ChainBuddy::Enabled = false;
             
-            return false; // Skip on mainnet until testing is completed
+            // Skip on mainnet until testing is completed
+            return false;
         }
 
         if (ChainBuddy::Enabled == false)
@@ -942,7 +959,7 @@ namespace Consensus
 
         if (fDebug)
         {
-            LogPrint("chainbuddy", "%s ConsensusCheckpoint failed: Block Count: %d NOT LOWER Than Count Compare: %d\n",
+            LogPrint("chainbuddy", "%s ERROR - ConsensusCheckpoint failed: Block Count: %d NOT LOWER Than Count Compare: %d \n",
                 __FUNCTION__, ConsensusCheckpointMap[ItemSelected].second.height, pindexBest->nHeight + 1);
         }          
 
@@ -955,7 +972,8 @@ namespace Consensus
         {
             ChainBuddy::Enabled = false;
 
-            return false; // Skip on mainnet until testing is completed
+            // Skip on mainnet until testing is completed
+            return false; 
         }
 
         if (ChainBuddy::Enabled == false)
@@ -976,11 +994,12 @@ namespace Consensus
 
                 if (fDebug)
                 {
-                    LogPrint("chainbuddy", "%s ConsensusCheckpoint failed: Block Count: %d NOT HIGHER THAN 5\n",
+                    LogPrint("chainbuddy", "%s ERROR - ConsensusCheckpoint failed: Block Count: %d NOT HIGHER THAN 5 \n",
                         __FUNCTION__, TempHeight);
                 } 
 
-                return false; // Local wallet is out of sync from network consensus
+                // Local wallet is out of sync from network consensus
+                return false;
             }
         }
 
@@ -997,7 +1016,7 @@ namespace Consensus
 
         if (fDebug)
         {
-            LogPrint("chainbuddy", "%s ConsensusCheckpoint failed: Block Count: %d NOT Equal to: %d\n",
+            LogPrint("chainbuddy", "%s ERROR - ConsensusCheckpoint failed: Block Count: %d NOT Equal to: %d \n",
                 __FUNCTION__, mapBlockIndex[BestCheckpoint.hash]->nHeight, (int)BestCheckpoint.height);
         } 
 
@@ -1027,10 +1046,17 @@ namespace Consensus
         ChainShield
     **/
 
+    // ChainShield Status
     bool ChainShield::Enabled = false;
-    int ChainShield::ChainShieldCache = 0; // Last Block Height protected
-    bool ChainShield::DisableNewBlocks = false; // Disable PoW/PoS/Masternode block creation (becomes true upon FindConsensus()=false)
-    bool ChainShield::Rollback_Runaway = true; // Rollback when local wallet is too far ahead of network
+
+    // Last Block Height protected
+    int ChainShield::ChainShieldCache = 0;
+
+    // Disable PoW/PoS/Masternode block creation (becomes true upon FindConsensus()=false)
+    bool ChainShield::DisableNewBlocks = false;
+
+    // Rollback when local wallet is too far ahead of network
+    bool ChainShield::Rollback_Runaway = true;
 
     bool ChainShield::Protect()
     {
@@ -1040,18 +1066,21 @@ namespace Consensus
             ChainShield::DisableNewBlocks = false;
             ChainShield::Rollback_Runaway = false;
             
-            return false; // Skip on mainnet until testing is completed
+            // Skip on mainnet until testing is completed
+            return false;
         }
 
         if (ChainShield::Enabled == false)
         {
-            return false; // Skip until enabled
+            // Skip until enabled
+            return false;
         }
 
         //  Only execute every 1 blocks
         if (ChainShield::ChainShieldCache > 0 && ChainShield::ChainShieldCache + 1 < pindexBest->nHeight)
         {
-            return false; // Skip and wait for more blocks
+            // Skip and wait for more blocks
+            return false;
         }
 
         if (ChainShield::ChainShieldCache > pindexBest->nHeight)
@@ -1077,7 +1106,8 @@ namespace Consensus
                 if (pnode->dCheckpointRecv.height == pnode->dCheckpointSent.height
                     && pnode->dCheckpointRecv.hash == pnode->dCheckpointSent.hash)
                 {
-                    Agreed++; // Local Wallet and Node have consensus (increment temp counter)
+                    // Local Wallet and Node have consensus (increment temp counter)
+                    Agreed++;
 
                     if (MaxHeight > pnode->dCheckpointSent.height)
                     {
@@ -1092,7 +1122,7 @@ namespace Consensus
                         {
                             if (fDebug)
                             {
-                                LogPrint("chainshield", "%s : Warning: IncrementCheckpoint Failed %d.\n", __FUNCTION__, pnode->dCheckpointRecv.height);
+                                LogPrint("chainshield", "%s : WARNING - IncrementCheckpoint Failed %d. \n", __FUNCTION__, pnode->dCheckpointRecv.height);
                             }
                         }
                     }
@@ -1104,7 +1134,7 @@ namespace Consensus
                             {
                                 if (fDebug)
                                 {
-                                    LogPrint("chainshield", "%s : Warning: AddHashCheckpoint Failed %d.\n", __FUNCTION__, pnode->dCheckpointRecv.height);
+                                    LogPrint("chainshield", "%s : WARNING - AddHashCheckpoint Failed %d. \n", __FUNCTION__, pnode->dCheckpointRecv.height);
                                 }
                             }
                         }
@@ -1116,7 +1146,8 @@ namespace Consensus
                     if (pnode->dCheckpointSent.timestamp - pnode->dCheckpointRecv.timestamp < 500
                         && pnode->dCheckpointSent.height - pnode->dCheckpointRecv.height > 1)
                     {
-                        Disagreed++;  // Local Wallet and Node DO NOT have consensus
+                        // Local Wallet and Node DO NOT have consensus
+                        Disagreed++;
 
                         if (MaxHeight > pnode->dCheckpointSent.height)
                         {
@@ -1132,42 +1163,51 @@ namespace Consensus
 
         if (ChainBuddy::WalletHasConsensus() == true)
         {
-            return false; // No Shielding Required
+            // No Shielding Required
+            return false;
         }
         else
         {
-            trigger = true; // Local wallet is out of sync, try to auto-correct
+            // Local wallet is out of sync, try to auto-correct
+            trigger = true;
         }
 
-        if (Disagreed > Agreed) // compare both Agreed and Disagreed temp counters and attempt to repair local wallet if no consensus is found among peers
+        // compare both Agreed and Disagreed temp counters and attempt to repair local wallet if no consensus is found among peers
+        if (Disagreed > Agreed)
         {
-            trigger = true; // Peers are not in consensus try to auto-correct if they're below current blockchain height
+            // Peers are not in consensus try to auto-correct if they're below current blockchain height
+            trigger = true; 
         }
 
         if (pindexBest->nHeight < ChainShield::ChainShieldCache)
         {
-            trigger = false; // Skip
+            // Skip
+            trigger = false; 
         }
 
         if (pindexBest->nHeight < MaxHeight && MaxHeight > 0)
         {
-            trigger = false; // Skip
+            // Skip
+            trigger = false; 
         }
 
         if (ChainBuddy::BestCheckpoint.height == 0)
         {
-            trigger = false; // skip if no bestcheckpoint is selected yet
+            // skip if no bestcheckpoint is selected yet
+            trigger = false;
         }
 
         if (ChainBuddy::BestCheckpoint.height < pindexBest->nHeight
             && ChainShield::ChainShieldCache == pindexBest->nHeight)
         {
-            trigger = false; // skip if no bestcheckpoint if checkpoint is too old
+            // skip if no bestcheckpoint if checkpoint is too old
+            trigger = false;
         }
 
         if (ChainShield::Rollback_Runaway == false)
         {
-            trigger = false; // skip if because user disabled it
+            // skip if because user disabled it
+            trigger = false;
         }
 
         // Forked wallet auto-correction
@@ -1175,7 +1215,7 @@ namespace Consensus
         {
             if (fDebug)
             {
-                LogPrint("chainshield", "%s Fork Detected (Runaway Exception), Rolling back 5 blocks, force resync %d\n", __FUNCTION__, pindexBest->nHeight);
+                LogPrint("chainshield", "%s : NOTICE - Fork Detected (Runaway Exception), Rolling back 5 blocks, force resync %d \n", __FUNCTION__, pindexBest->nHeight);
             }
 
             CChain::RollbackChain(2);
@@ -1186,10 +1226,12 @@ namespace Consensus
 
             CChain::ForceSync(blank_filter, uint256(0));
 
-            return true; // Shielding forced to protect local blockchain database
+            // Shielding forced to protect local blockchain database
+            return true;
         }
 
-        return false; // No Shielding Required
+        // No Shielding Required
+        return false; 
     }
 
     /** --------------------------  **/

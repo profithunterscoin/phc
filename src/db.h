@@ -6,7 +6,7 @@
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015 The Crave developers
 // Copyright (c) 2017 XUVCoin developers
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
@@ -110,7 +110,8 @@ class CDBEnv
 
             int ret = dbenv.txn_begin(NULL, &ptxn, flags);
             
-            if (!ptxn || ret != 0)
+            if (!ptxn
+                || ret != 0)
             {
                 return NULL;
             }
@@ -136,6 +137,7 @@ class CDB
         bool fReadOnly;
 
         explicit CDB(const std::string& strFilename, const char* pszMode="r+");
+
         ~CDB()
         {
             Close();
@@ -208,7 +210,7 @@ class CDB
 
             if (fReadOnly)
             {
-                LogPrint("db", "%s : Write called on database in read-only mode\n", __FUNCTION__);
+                LogPrint("db", "%s : ERROR - Write called on database in read-only mode \n", __FUNCTION__);
 
                 return false;
             }
@@ -246,7 +248,7 @@ class CDB
 
             if (fReadOnly)
             {
-                LogPrint("db", "%s : Erase called on database in read-only mode\n", __FUNCTION__);
+                LogPrint("db", "%s : ERROR - Erase called on database in read-only mode \n", __FUNCTION__);
 
                 return false;
             }
@@ -264,7 +266,8 @@ class CDB
             // Clear memory
             memset(datKey.get_data(), 0, datKey.get_size());
 
-            return (ret == 0 || ret == DB_NOTFOUND);
+            return (ret == 0
+                    || ret == DB_NOTFOUND);
         }
 
         template<typename K> bool Exists(const K& key)
@@ -314,7 +317,10 @@ class CDB
             // Read at cursor
             Dbt datKey;
 
-            if (fFlags == DB_SET || fFlags == DB_SET_RANGE || fFlags == DB_GET_BOTH || fFlags == DB_GET_BOTH_RANGE)
+            if (fFlags == DB_SET
+                || fFlags == DB_SET_RANGE
+                || fFlags == DB_GET_BOTH
+                || fFlags == DB_GET_BOTH_RANGE)
             {
                 datKey.set_data(&ssKey[0]);
                 datKey.set_size(ssKey.size());
@@ -322,7 +328,8 @@ class CDB
             
             Dbt datValue;
 
-            if (fFlags == DB_GET_BOTH || fFlags == DB_GET_BOTH_RANGE)
+            if (fFlags == DB_GET_BOTH
+                || fFlags == DB_GET_BOTH_RANGE)
             {
                 datValue.set_data(&ssValue[0]);
                 datValue.set_size(ssValue.size());
@@ -337,7 +344,8 @@ class CDB
             {
                 return ret;
             }
-            else if (datKey.get_data() == NULL || datValue.get_data() == NULL)
+            else if (datKey.get_data() == NULL
+                || datValue.get_data() == NULL)
             {
                 return 99999;
             }
@@ -352,8 +360,8 @@ class CDB
             ssValue.write((char*)datValue.get_data(), datValue.get_size());
 
             // Clear and free memory
-            //memset(datKey.get_data(), 0, datKey.get_size());
-            //memset(datValue.get_data(), 0, datValue.get_size());
+            memset(datKey.get_data(), 0, datKey.get_size());
+            memset(datValue.get_data(), 0, datValue.get_size());
 
             free(datKey.get_data());
             free(datValue.get_data());
@@ -365,7 +373,8 @@ class CDB
 
         bool TxnBegin()
         {
-            if (!pdb || activeTxn)
+            if (!pdb
+                || activeTxn)
             {
                 return false;
             }
@@ -384,7 +393,8 @@ class CDB
 
         bool TxnCommit()
         {
-            if (!pdb || !activeTxn)
+            if (!pdb 
+                || !activeTxn)
             {
                 return false;
             }
@@ -398,7 +408,8 @@ class CDB
 
         bool TxnAbort()
         {
-            if (!pdb || !activeTxn)
+            if (!pdb
+                || !activeTxn)
             {
                 return false;
             }

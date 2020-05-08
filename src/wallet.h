@@ -6,7 +6,7 @@
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015 The Crave developers
 // Copyright (c) 2017 XUVCoin developers
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
@@ -88,6 +88,7 @@ class CKeyPool
         CKeyPool(const CPubKey& vchPubKeyIn)
         {
             nTime = GetTime();
+
             vchPubKey = vchPubKeyIn;
         }
 
@@ -169,7 +170,8 @@ class CWallet : public CCryptoKeyStore, public CWalletInterface
 
         int nLastFilteredHeight;
 
-        uint32_t nStealth, nFoundStealth; // for reporting, zero before use
+        // for reporting, zero before use
+        uint32_t nStealth, nFoundStealth;
 
 
         typedef std::map<unsigned int, CMasterKey> MasterKeyMap;
@@ -399,7 +401,8 @@ class CWallet : public CCryptoKeyStore, public CWalletInterface
         {
             for(const CTxOut& txout: tx.vout)
             {
-                if (IsMine(txout) && txout.nValue >= nMinimumInputValue)
+                if (IsMine(txout)
+                    && txout.nValue >= nMinimumInputValue)
                 {
                     return true;
                 }
@@ -421,6 +424,7 @@ class CWallet : public CCryptoKeyStore, public CWalletInterface
             for(const CTxIn& txin: tx.vin)
             {
                 nDebit += GetDebit(txin, filter);
+
                 if (!MoneyRange(nDebit))
                 {
                     throw std::runtime_error("CWallet::GetDebit() : value out of range");
@@ -437,6 +441,7 @@ class CWallet : public CCryptoKeyStore, public CWalletInterface
             for(const CTxOut& txout: tx.vout)
             {
                 nCredit += GetCredit(txout, filter);
+
                 if (!MoneyRange(nCredit))
                 {
                     throw std::runtime_error("CWallet::GetCredit() : value out of range");
@@ -488,6 +493,7 @@ class CWallet : public CCryptoKeyStore, public CWalletInterface
             // Global Namespace Start
             {
                 LOCK(cs_wallet);
+
                 std::map<uint256, int>::iterator mi = mapRequestCount.find(hash);
 
                 if (mi != mapRequestCount.end())
@@ -500,7 +506,8 @@ class CWallet : public CCryptoKeyStore, public CWalletInterface
 
         unsigned int GetKeyPoolSize()
         {
-            AssertLockHeld(cs_wallet); // setKeyPool
+            // setKeyPool
+            AssertLockHeld(cs_wallet);
 
             return setKeyPool.size();
         }
@@ -625,14 +632,20 @@ class CWalletTx : public CMerkleTx
         std::vector<std::pair<std::string, std::string> > vOrderForm;
 
         unsigned int fTimeReceivedIsTxTime;
-        unsigned int nTimeReceived;  // time received by this node
+
+        // time received by this node
+        unsigned int nTimeReceived;
         unsigned int nTimeSmart;
 
         char fFromMe;
 
         std::string strFromAccount;
-        std::vector<char> vfSpent; // which outputs are already spent
-        int64_t nOrderPos;  // position in ordered transaction list
+
+        // which outputs are already spent
+        std::vector<char> vfSpent;
+
+        // position in ordered transaction list
+        int64_t nOrderPos;
 
         // memory only
         mutable bool fDebitCached;
@@ -742,6 +755,7 @@ class CWalletTx : public CMerkleTx
                 for(char f: vfSpent)
                 {
                     str += (f ? '1' : '0');
+
                     if (f)
                     {
                         fSpent = true;
@@ -808,7 +822,8 @@ class CWalletTx : public CMerkleTx
                     break;
                 }
 
-                if (vfNewSpent[i] && !vfSpent[i])
+                if (vfNewSpent[i]
+                    && !vfSpent[i])
                 {
                     vfSpent[i] = true;
                     fReturn = true;
@@ -850,6 +865,7 @@ class CWalletTx : public CMerkleTx
             }
 
             vfSpent.resize(vout.size());
+
             if (!vfSpent[nOut])
             {
                 vfSpent[nOut] = true;
@@ -865,6 +881,7 @@ class CWalletTx : public CMerkleTx
             }
 
             vfSpent.resize(vout.size());
+
             if (vfSpent[nOut])
             {
                 vfSpent[nOut] = false;
@@ -895,6 +912,7 @@ class CWalletTx : public CMerkleTx
             }
 
             CAmount debit = 0;
+
             if(filter & ISMINE_SPENDABLE)
             {
                 if (fDebitCached)
@@ -929,7 +947,9 @@ class CWalletTx : public CMerkleTx
         CAmount GetCredit(const isminefilter& filter) const
         {
             // Must wait until coinbase is safely deep enough in the chain before valuing it
-            if ((IsCoinBase() || IsCoinStake()) && GetBlocksToMaturity() > 0)
+            if ((IsCoinBase()
+                || IsCoinStake())
+                && GetBlocksToMaturity() > 0)
             {
                 return 0;
             }
@@ -970,9 +990,12 @@ class CWalletTx : public CMerkleTx
 
         CAmount GetImmatureCredit(bool fUseCache=true) const
         {
-            if (IsCoinBase() && GetBlocksToMaturity() > 0 && IsInMainChain())
+            if (IsCoinBase()
+                && GetBlocksToMaturity() > 0
+                && IsInMainChain())
             {
-                if (fUseCache && fImmatureCreditCached)
+                if (fUseCache
+                    && fImmatureCreditCached)
                 {
                     return nImmatureCreditCached;
                 }
@@ -994,7 +1017,9 @@ class CWalletTx : public CMerkleTx
             }
 
             // Must wait until coinbase is safely deep enough in the chain before valuing it
-            if ((IsCoinBase() || IsCoinStake()) && GetBlocksToMaturity() > 0)
+            if ((IsCoinBase()
+                || IsCoinStake())
+                && GetBlocksToMaturity() > 0)
             {
                 return 0;
             }
@@ -1011,6 +1036,7 @@ class CWalletTx : public CMerkleTx
                 if (!IsSpent(i))
                 {
                     const CTxOut &txout = vout[i];
+
                     nCredit += pwallet->GetCredit(txout, ISMINE_SPENDABLE);
 
                     if (!MoneyRange(nCredit))
@@ -1034,7 +1060,9 @@ class CWalletTx : public CMerkleTx
             }
 
             // Must wait until coinbase is safely deep enough in the chain before valuing it
-            if ((IsCoinBase() || IsCoinStake()) && GetBlocksToMaturity() > 0)
+            if ((IsCoinBase()
+                || IsCoinStake())
+                && GetBlocksToMaturity() > 0)
             {
                 return 0;
             }
@@ -1052,21 +1080,25 @@ class CWalletTx : public CMerkleTx
                 const CTxOut &txout = vout[i];
                 const CTxIn vin = CTxIn(hashTx, i);
 
-                if(pwallet->IsSpent(hashTx, i) || pwallet->IsLockedCoin(hashTx, i))
+                if(pwallet->IsSpent(hashTx, i)
+                    || pwallet->IsLockedCoin(hashTx, i))
                 {
                     continue;
                 }
 
-                if(fMasterNode && vout[i].nValue == GetMNCollateral(pindexBest->nHeight)*COIN)
+                if(fMasterNode
+                    && vout[i].nValue == GetMNCollateral(pindexBest->nHeight)*COIN)
                 {
                     continue; // do not count MN-like outputs
                 }
 
                 const int rounds = pwallet->GetInputDarksendRounds(vin);
 
-                if(rounds >=-2 && rounds < nDarksendRounds)
+                if(rounds >=-2
+                    && rounds < nDarksendRounds)
                 {
                     nCredit += pwallet->GetCredit(txout, ISMINE_SPENDABLE);
+
                     if (!MoneyRange(nCredit))
                     {
                         throw std::runtime_error("CWalletTx::GetAnonamizableCredit() : value out of range");
@@ -1088,7 +1120,9 @@ class CWalletTx : public CMerkleTx
             }
 
             // Must wait until coinbase is safely deep enough in the chain before valuing it
-            if ((IsCoinBase() || IsCoinStake()) && GetBlocksToMaturity() > 0)
+            if ((IsCoinBase()
+                || IsCoinStake())
+                && GetBlocksToMaturity() > 0)
             {
                 return 0;
             }
@@ -1106,7 +1140,8 @@ class CWalletTx : public CMerkleTx
                 const CTxOut &txout = vout[i];
                 const CTxIn vin = CTxIn(hashTx, i);
 
-                if(pwallet->IsSpent(hashTx, i) || !pwallet->IsDenominated(vin))
+                if(pwallet->IsSpent(hashTx, i)
+                    || !pwallet->IsDenominated(vin))
                 {
                     continue;
                 }
@@ -1138,7 +1173,9 @@ class CWalletTx : public CMerkleTx
             }
 
             // Must wait until coinbase is safely deep enough in the chain before valuing it
-            if ((IsCoinBase() || IsCoinStake()) && GetBlocksToMaturity() > 0)
+            if ((IsCoinBase()
+                || IsCoinStake())
+                && GetBlocksToMaturity() > 0)
             {
                 return 0;
             }
@@ -1159,11 +1196,13 @@ class CWalletTx : public CMerkleTx
 
             if (fUseCache)
             {
-                if(unconfirmed && fDenomUnconfCreditCached)
+                if(unconfirmed
+                    && fDenomUnconfCreditCached)
                 {
                     return nDenomUnconfCreditCached;
                 }
-                else if (!unconfirmed && fDenomConfCreditCached)
+                else if (!unconfirmed
+                    && fDenomConfCreditCached)
                 {
                     return nDenomConfCreditCached;
                 }
@@ -1176,12 +1215,14 @@ class CWalletTx : public CMerkleTx
             {
                 const CTxOut &txout = vout[i];
 
-                if(pwallet->IsSpent(hashTx, i) || !pwallet->IsDenominatedAmount(vout[i].nValue))
+                if(pwallet->IsSpent(hashTx, i)
+                    || !pwallet->IsDenominatedAmount(vout[i].nValue))
                 {
                     continue;
                 }
 
                 nCredit += pwallet->GetCredit(txout, ISMINE_SPENDABLE);
+
                 if (!MoneyRange(nCredit))
                 {
                     throw std::runtime_error("CWalletTx::GetDenominatedCredit() : value out of range");
@@ -1204,9 +1245,13 @@ class CWalletTx : public CMerkleTx
 
         CAmount GetImmatureWatchOnlyCredit(const bool& fUseCache=true) const
         {
-            if ((IsCoinBase() || IsCoinStake()) && GetBlocksToMaturity() > 0 && IsInMainChain())
+            if ((IsCoinBase()
+                || IsCoinStake())
+                && GetBlocksToMaturity() > 0
+                && IsInMainChain())
             {
-                if (fUseCache && fImmatureWatchCreditCached)
+                if (fUseCache
+                    && fImmatureWatchCreditCached)
                 {
                     return nImmatureWatchCreditCached;
                 }
@@ -1228,12 +1273,15 @@ class CWalletTx : public CMerkleTx
             }
 
             // Must wait until coinbase is safely deep enough in the chain before valuing it
-            if ((IsCoinBase() || IsCoinStake()) && GetBlocksToMaturity() > 0)
+            if ((IsCoinBase()
+                || IsCoinStake())
+                && GetBlocksToMaturity() > 0)
             {
                 return 0;
             }
 
-            if (fUseCache && fAvailableWatchCreditCached)
+            if (fUseCache
+                && fAvailableWatchCreditCached)
             {
                 return nAvailableWatchCreditCached;
             }
@@ -1246,6 +1294,7 @@ class CWalletTx : public CMerkleTx
                 if (!pwallet->IsSpent(hashTx, i))
                 {
                     const CTxOut &txout = vout[i];
+
                     nCredit += pwallet->GetCredit(txout, ISMINE_WATCH_ONLY);
 
                     if (!MoneyRange(nCredit))
@@ -1314,12 +1363,14 @@ class CWalletTx : public CMerkleTx
             {
                 // Transactions not sent by us: not trusted
                 const CWalletTx* parent = pwallet->GetWalletTx(txin.prevout.hash);
+
                 if (parent == NULL)
                 {
                     return false;
                 }
 
                 const CTxOut& parentOut = parent->vout[txin.prevout.n];
+
                 if (pwallet->IsMine(parentOut) != ISMINE_SPENDABLE)
                 {
                     return false;
@@ -1389,7 +1440,7 @@ class COutput
         {
             if (fDebug)
             {
-                LogPrint("wallet", "%s : %s\n", __FUNCTION__, ToString().c_str());
+                LogPrint("wallet", "%s : OK - %s\n", __FUNCTION__, ToString().c_str());
             }
 
         }

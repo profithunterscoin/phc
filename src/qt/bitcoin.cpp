@@ -7,7 +7,7 @@
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015 The Crave developers
 // Copyright (c) 2017 XUVCoin developers
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
@@ -69,7 +69,7 @@ static void ThreadSafeMessageBox(const std::string& message, const std::string& 
     {
         if (fDebug)
         {
-            LogPrint("qt", "%s : %s: %s\n", __FUNCTION__, caption, message);
+            LogPrint("qt", "%s : ERROR - %s: %s\n", __FUNCTION__, caption, message);
         }
 
         //fprintf(stderr, "%s: %s\n", caption.c_str(), message.c_str());
@@ -108,7 +108,7 @@ static void InitMessage(const std::string &message)
 
     if (fDebug)
     {
-        LogPrint("qt", "%s : init message: %s\n", __FUNCTION__, message);
+        LogPrint("qt", "%s : NOTICE - Init message: %s\n", __FUNCTION__, message);
     }
 }
 
@@ -140,15 +140,14 @@ void DebugMessageHandler(QtMsgType type, const char * msg)
 {
     const char *category = (type == QtDebugMsg) ? "qt" : NULL;
     
-    LogPrint(category, "%s : GUI: %s\n", __FUNCTION__, msg);
+    LogPrint(category, "%s : NOTICE - GUI: %s \n", __FUNCTION__, msg);
 }
 #else
-
 void DebugMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString &msg)
 {
     const char *category = (type == QtDebugMsg) ? "qt" : NULL;
     
-    LogPrint(category, "%s : GUI: %s\n", __FUNCTION__, msg.toStdString());
+    LogPrint(category, "%s : NOTICE - GUI: %s \n", __FUNCTION__, msg.toStdString());
 }
 #endif
 

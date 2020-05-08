@@ -6,7 +6,7 @@
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015 The Crave developers
 // Copyright (c) 2017 XUVCoin developers
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
@@ -47,13 +47,14 @@ static int noui_ThreadSafeMessageBox(const std::string& message, const std::stri
 
         default:
         {
-            strCaption += caption; // Use supplied caption
+            // Use supplied caption
+            strCaption += caption;
         }
     }
 
     if (fDebug)
     {
-        LogPrint("daemon", "%s : %s: %s\n", __FUNCTION__, caption, message);
+        LogPrint("daemon", "%s : ERROR - %s: %s\n", __FUNCTION__, caption, message);
     }
 
     fprintf(stderr, "%s: %s\n", strCaption.c_str(), message.c_str());
@@ -70,7 +71,7 @@ static void noui_InitMessage(const std::string &message)
 {
     if (fDebug)
     {
-        LogPrint("daemon", "%s : init message: %s\n", __FUNCTION__, message);
+        LogPrint("daemon", "%s : OK - Init message: %s\n", __FUNCTION__, message);
     }
 }
 
