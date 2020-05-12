@@ -5465,28 +5465,33 @@ void static ProcessGetData(CNode* pfrom)
             if (inv.type == MSG_BLOCK
                 || inv.type == MSG_FILTERED_BLOCK)
             {
-                // Send block from disk
-                map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(inv.hash);
-                
-                if (mi != mapBlockIndex.end())
+                if (IsInitialBlockDownload() == false
+                    && fImporting == false
+                    && fReindex == false)
                 {
-                    CBlock block;
-
-                    block.ReadFromDisk((*mi).second);
-                    pfrom->PushMessage("block", block);
-
-                    // Trigger them to send a getblocks request for the next batch of inventory
-                    if (inv.hash == pfrom->hashContinue)
+                    // Send block from disk
+                    map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(inv.hash);
+                    
+                    if (mi != mapBlockIndex.end())
                     {
-                        // Bypass PushInventory, this must send even if redundant,
-                        // and we want it right after the last block so they don't
-                        // wait for other stuff first.
-                        vector<CInv> vInv;
+                        CBlock block;
 
-                        vInv.push_back(CInv(MSG_BLOCK, hashBestChain));
-                        pfrom->PushMessage("inv", vInv);
+                        block.ReadFromDisk((*mi).second);
+                        pfrom->PushMessage("block", block);
 
-                        pfrom->hashContinue = 0;
+                        // Trigger them to send a getblocks request for the next batch of inventory
+                        if (inv.hash == pfrom->hashContinue)
+                        {
+                            // Bypass PushInventory, this must send even if redundant,
+                            // and we want it right after the last block so they don't
+                            // wait for other stuff first.
+                            vector<CInv> vInv;
+
+                            vInv.push_back(CInv(MSG_BLOCK, hashBestChain));
+                            pfrom->PushMessage("inv", vInv);
+
+                            pfrom->hashContinue = 0;
+                        }
                     }
                 }
             }
@@ -6163,7 +6168,9 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
     //
     // Get Message: getblocks
     //
-    else if (strCommand == "getblocks")
+    else if (strCommand == "getblocks"
+        && !fImporting
+        && !fReindex) // Ignore blocks received while importing
     {
         CBlockLocator locator;
         uint256 hashStop;
@@ -6222,7 +6229,9 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
     //
     // Get Message: getheaders
     //
-    else if (strCommand == "getheaders")
+    else if (strCommand == "getheaders"
+        && !fImporting
+        && !fReindex) // Ignore blocks received while importing
     {
         CBlockLocator locator;
         uint256 hashStop;
@@ -6230,8 +6239,9 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
         LOCK(cs_main);
 
-        if (IsInitialBlockDownload())
+        if (IsInitialBlockDownload() == true)
         {
+            // Do not send blocks while syncing
             return true;
         }
 
@@ -6253,6 +6263,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         {
             // Find the last block the caller has in the main chain
             pindex = locator.GetBlockIndex();
+
             if (pindex)
             {
                 pindex = pindex->pnext;
@@ -7472,6 +7483,14 @@ namespace CChain
         if (vNodes.size() < 1)
         {
             // Zero connections available, skip
+            return 0;
+        }
+
+        if (IsInitialBlockDownload() == true
+            || fImporting
+            || fReindex)
+        {
+            // Not fully synced
             return 0;
         }
 
