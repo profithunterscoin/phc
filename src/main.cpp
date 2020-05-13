@@ -4513,8 +4513,6 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
                     pfrom->dOrphanRecv.synced = true;
                 }
             }
-
-
         }
 
         // Auto Chain pruning Max X blocks, 0 block max default
@@ -6200,11 +6198,9 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         }
     }
 
-
-
     /////////////////////
     //
-    // Get Message: block
+    // Get Message: block (Legacy sync method)
     //
     else if (strCommand == "block"
         && fImporting == false 
@@ -6224,7 +6220,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         CInv inv(MSG_BLOCK, hashBlock);
 
         // Firewall
-        // Keep track of hash asked for from node
+        // Keep track of hash received for from node
         //pfrom->hashReceived = inv.hash;
 
         if (pfrom)
@@ -6241,12 +6237,11 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         {
             SecureMsgScanBlock(block);
         }
-
     }
 
     /////////////////////
     //
-    // Get Message: getblocks (NOT USED)
+    // Get Message: getblocks (Legacy Sync Method)
     //
     else if (strCommand == "getblocks"
         && !fImporting
@@ -6384,60 +6379,198 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
     //
     // Get Message: headers (NOT USED)
     //
-    else if (strCommand == "headers" && !fImporting && !fReindex) // Ignore headers received while importing
+    else if (strCommand == "headers"
+        && !fImporting
+        && !fReindex) // Ignore headers received while importing
     {
-        /*
         std::vector<CBlockHeader> headers;
 
         // Bypass the normal CBlock deserialization, as we don't want to risk deserializing 2000 full blocks.
         unsigned int nCount = ReadCompactSize(vRecv);
-        if (nCount > MAX_HEADERS_RESULTS) {
+
+        if (nCount > MAX_HEADERS_RESULTS)
+        {
             Misbehaving(pfrom->GetId(), 20);
+
             return error("headers message size = %u", nCount);
         }
+
         headers.resize(nCount);
-        for (unsigned int n = 0; n < nCount; n++) {
+        
+        for (unsigned int n = 0; n < nCount; n++)
+        {
             vRecv >> headers[n];
+
             ReadCompactSize(vRecv); // ignore tx count; assume it is 0.
         }
 
         LOCK(cs_main);
 
-        if (nCount == 0) {
+        if (nCount == 0)
+        {
             // Nothing interesting. Stop asking this peers for more headers.
             return true;
         }
 
         CBlockIndex *pindexLast = NULL;
-        BOOST_FOREACH(const CBlockHeader& header, headers) {
+        
+        for(const CBlockHeader& header: headers)
+        {
             CValidationState state;
-            if (pindexLast != NULL && header.hashPrevBlock != pindexLast->GetBlockHash()) {
+
+            if (pindexLast != NULL && header.hashPrevBlock != pindexLast->GetBlockHash())
+            {
                 Misbehaving(pfrom->GetId(), 20);
+
                 return error("non-continuous headers sequence");
             }
-            if (!AcceptBlockHeader(header, state, &pindexLast)) {
+
+            /* PHC TO-DO
+            if (!AcceptBlockHeader(header, state, &pindexLast))
+            {
                 int nDoS;
-                if (state.IsInvalid(nDoS)) {
-                    if (nDoS > 0)
-                        Misbehaving(pfrom->GetId(), nDoS);
+
+                if (state.IsInvalid(nDoS))
+                {
                     return error("invalid header received");
                 }
             }
+            */
+            
         }
 
+        /* PHC TO-DO
         if (pindexLast)
+        {
             UpdateBlockAvailability(pfrom->GetId(), pindexLast->GetBlockHash());
+        }
+        */
 
-        if (nCount == MAX_HEADERS_RESULTS && pindexLast) {
+        if (nCount == MAX_HEADERS_RESULTS && pindexLast)
+        {
             // Headers message had its maximum size; the peer may have more headers.
             // TODO: optimize: if pindexLast is an ancestor of chainActive.Tip or pindexBestHeader, continue
             // from there instead.
-            LogPrint("net", "more getheaders (%d) to end to peer=%d (startheight:%d)\n", pindexLast->nHeight, pfrom->id, pfrom->nStartingHeight);
+            if (fDebug)
+            {
+                LogPrint("net", "more getheaders (%d) to end to peer=%d (startheight:%d)\n", pindexLast->nHeight, pfrom->id, pfrom->nStartingHeight);
+            }
+
+            /* PHC TO-DO
             pfrom->PushMessage("getheaders", chainActive.GetLocator(pindexLast), uint256());
+            */
         }
 
-        CheckBlockIndex();
-        */
+    }
+
+    /////////////////////
+    //
+    // Get Message: chain
+    //
+    else if (strCommand == "chain"
+        && fImporting == false 
+        && fReindex == false) // Ignore blocks received while importing
+    {
+        CBlock block;
+        vRecv >> block;
+        uint256 hashBlock = block.GetHash();
+
+        if(fDebug)
+        {
+            LogPrint("net", "%s : NOTICE - Received chained blocks %s \n", __FUNCTION__, hashBlock.ToString());
+        }
+
+        LOCK(cs_main);
+
+        CInv inv(MSG_BLOCK, hashBlock);
+
+        // Firewall
+        // Keep track of hash asked for from node
+        //pfrom->hashReceived = inv.hash;
+
+        if (pfrom)
+        {
+            pfrom->AddInventoryKnown(inv);
+
+            if (ProcessBlock(pfrom, &block))
+            {
+                mapAlreadyAskedFor.erase(inv);
+            }
+        }
+
+        if (fSecMsgEnabled)
+        {
+            SecureMsgScanBlock(block);
+        }
+
+    }
+
+    /////////////////////
+    //
+    // Get Message: getchain (NOT USED)
+    //
+    else if (strCommand == "getchain"
+        && !fImporting
+        && !fReindex) // Ignore sending chained blocks while importing
+    {
+        CBlockLocator locator;
+        uint256 hashStop;
+        vRecv >> locator >> hashStop;
+
+        LOCK(cs_main);
+
+        if (IsInitialBlockDownload() == true)
+        {
+            // Do not send chained blocks while syncing
+            return true;
+        }
+
+        CBlockIndex* pindex = NULL;
+
+        if (locator.IsNull())
+        {
+            // If locator is null, return the hashStop block
+            map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hashStop);
+
+            if (mi == mapBlockIndex.end())
+            {
+                return true;
+            }
+
+            pindex = (*mi).second;
+        }
+        else
+        {
+            // Find the last block the caller has in the main chain
+            pindex = locator.GetBlockIndex();
+
+            if (pindex)
+            {
+                pindex = pindex->pnext;
+            }
+        }
+
+        vector<CBlock> vChain;
+
+        int nLimit = 2000;
+        
+        if(fDebug)
+        {
+            LogPrint("net", "%s : NOTICE - Getchain %d to %s \n", __FUNCTION__, (pindex ? pindex->nHeight : -1), hashStop.ToString());
+        }
+
+        for (; pindex; pindex = pindex->pnext)
+        {
+            vChain.push_back(pindex->GetBlock());
+
+            if (--nLimit <= 0
+                || pindex->GetBlockHash() == hashStop)
+            {
+                break;
+            }
+        }
+
+        pfrom->PushMessage("chain", vChain);
     }
 
     /////////////////////
