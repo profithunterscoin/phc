@@ -91,9 +91,14 @@ static const int64_t MIN_RELAY_TX_FEE = MIN_TX_FEE;
 /** No amount larger than this (in satoshi) is valid (100 Million coins) */
 static const int64_t MAX_MONEY = 100000000 * COIN;
 
+/** Number of headers sent in one getheaders result. We rely on the assumption that if a peer sends
+ *  less than this number, we reached its tip. Changing this value is a protocol upgrade. */
+static const unsigned int MAX_HEADERS_RESULTS = 2000;
+
 inline bool MoneyRange(int64_t nValue)
 {
-    return (nValue >= 0 && nValue <= MAX_MONEY);
+    return (nValue >= 0
+        && nValue <= MAX_MONEY);
 }
 
 /** Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp. */
