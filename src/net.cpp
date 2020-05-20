@@ -115,6 +115,8 @@ CNodeSignals& GetNodeSignals()
 }
 
 
+
+
 void AddOneShot(string strDest)
 {
     LOCK(cs_vOneShots);
@@ -142,6 +144,7 @@ void CNode::PushGetBlocks(CBlockIndex* pindexBegin, uint256 hashEnd)
 
     PushMessage("getblocks", CBlockLocator(pindexBegin), hashEnd);
 }
+
 
 // find 'best' local address for a particular peer
 bool GetLocal(CService& addr, const CNetAddr *paddrPeer)
@@ -1326,6 +1329,7 @@ void IdleNodeCheck(CNode *pnode)
         }
     }
 }
+
 
 // requires LOCK(cs_vSend)
 void SocketSendData(CNode *pnode)

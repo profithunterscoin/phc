@@ -169,7 +169,14 @@ class CReserveKey;
 class CTxDB;
 class CTxIndex;
 class CWalletInterface;
-struct CNodeStateStats;
+
+struct CNodeStateStats {
+    int nMisbehavior;
+    int nSyncHeight;
+    int nCommonHeight;
+    std::vector<int> vHeightInFlight;
+};
+
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -309,12 +316,6 @@ bool AbortNode(const std::string &msg, const std::string &userMessage="");
 bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats);
 
 int64_t GetMasternodePayment(int nHeight, int64_t blockValue);
-
-struct CNodeStateStats
-{
-    int nMisbehavior;
-};
-
 
 /** Position on disk for a particular transaction. */
 class CDiskTxPos

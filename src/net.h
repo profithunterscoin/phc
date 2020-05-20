@@ -96,8 +96,6 @@ void SocketSendData(CNode *pnode);
 
 typedef int NodeId;
 
-
-
 inline int GetMaxInvBandwidth(int64_t TurboSyncMax)
 {
     switch (TurboSyncMax)
