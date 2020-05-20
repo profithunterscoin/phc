@@ -1,34 +1,51 @@
-
-
 [HOWTO] compile altcoin for windows on linux using mxe and mingw
 June 04, 2015, 02:45:26 PM
-Reply with quote  +Merit  #1
+
 Hello!
 In this tutorial I show you how to cross compile altcoin-qt using mxe and mingw.
 What is mxe? Well this is set of makefiles allowing you compile an cross environment with needed packages (mingw-w64, qt, boost, etc) without pain.
 
-For example I will compile blackcoin-qt for 32-bit Windows on 64-bit Ubuntu 14.04 LTS, but this method should work with another altcoins.
+For example I will compile phc-qt for 32-bit Windows on 64-bit Ubuntu 14.04 LTS, but this method should work with another altcoins.
 
+AMD64 CPU required
+Tested on: Mint 18.3 (Ubuntu)
+
+--------
 Step 1.
-Firstly we need install cross compile environment.
+Firstly we need install cross compile environment (Ubuntu 14.04)
 
 Install mxe dependencies:
 Code:
-sudo apt-get install p7zip-full autoconf automake autopoint bash bison bzip2 cmake flex gettext git g++ gperf intltool libffi-dev libtool libltdl-dev libssl-dev libxml-parser-perl make openssl patch perl pkg-config python ruby scons sed unzip wget xz-utils
+sudo apt-get install lzip libgtk2.0-dev p7zip-full autoconf automake autopoint bash bison bzip2 cmake flex gettext git g++ gperf intltool libffi-dev libtool libltdl-dev libssl-dev libxml-parser-perl make openssl patch perl pkg-config python ruby scons sed unzip wget xz-utils
 
 For 64-bit Ubuntu also install:
 Code:
 sudo apt-get install g++-multilib libc6-dev-i386
 
+
+Creating a swap space (optional):
+----------------------------
+
+sudo fallocate -l 3G /swapfile
+sudo sudo dd if=/dev/zero of=swapfile bs=1M count=3072
+sudo mkswap /swapfile
+sudo chmod 600 /swapfile
+sudo swapon /swapfile
+sudo echo -e "/swapfile none swap sw 0 0 \n" >> /etc/fstab
+sudo cat /proc/meminfo
+
+
+--------
 Step 2.
 
 Clone mxe github repo (if you just download zip archive from guthub, mxe may not work):
 Code:
 cd /mnt
-git clone https://github.com/mxe/mxe.git
+sudo git clone https://github.com/mxe/mxe.git
 
 Our environment will be placed in /mnt/mxe
 
+--------
 Step 3.
 Now we need compile boost and qt5 for our environment (need a couple of hours for this).
 If you compile something using mxe and move mxe directory to another place, then mxe will not work because all what you compile linked statically
@@ -37,11 +54,16 @@ Compiling boost will fail if memory of your PC less then 2GB. Making swap partit
 Compile boost:
 Code:
 cd /mnt/mxe
-make MXE_TARGETS="i686-w64-mingw32.static" boost
+sudo make MXE_TARGETS="i686-w64-mingw32.static" boost
+
+Compile openssl:
+Code:
+sudo make MXE_TARGETS="i686-w64-mingw32.static" openssl
 
 Compile qt5:
 Code:
-make MXE_TARGETS="i686-w64-mingw32.static" qttools
+sudo make MXE_TARGETS="i686-w64-mingw32.static" qttools
+sudo make MXE_TARGETS="i686-w64-mingw32.static" qt5
 
 If you need qt4 (for some altcoins):
 Code:
@@ -49,6 +71,7 @@ make MXE_TARGETS="i686-w64-mingw32.static" qt
 
 mxe automatically determine all dependencies and compile it.
 
+--------
 Step 4.
 Unfortunately mxe not support berkeley db and miniupnpc so we need compile them manually.
 
@@ -56,14 +79,35 @@ Compiling berkley db:
 Download and unpack berkeley db:
 Code:
 cd /mnt
-wget http://download.oracle.com/berkeley-db/db-5.3.28.tar.gz
-tar zxvf db-5.3.28.tar.gz
+
+Version 4.8.30 (Recommended)
+wget http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz
+tar zxvf db-4.8.30.NC.tar.gz
+
+Version 18.1.32 (Optional)
+wget https://fossies.org/linux/misc/db-18.1.32.tar.gz
+tar zxvf db-18.1.32.tar.gz
 
 Make bash script for compilation:
 Code:
-cd /mnt/db-5.3.28
+
+Version 4.8.30
+cd /mnt/deps/db-4.8.30.NC
+
+Version 18.1.32
+cd /mnt/deps/db-18.1.32
+
+Replace this in step 5:
+BDB_INCLUDE_PATH=/mnt/db-4.8.30/include \
+BDB_LIB_PATH=/mnt/db-4.8.30 \
+With this:
+BDB_INCLUDE_PATH=/mnt/db-18.1.32/include \
+BDB_LIB_PATH=/mnt/db-18.1.32 \
+
 touch compile-db.sh
 chmod ugo+x compile-db.sh
+
+nano compile-db.sh
 
 Content of compile-db.sh:
 Code:
@@ -76,6 +120,7 @@ cd build_mxe
 CC=$MXE_PATH/usr/bin/i686-w64-mingw32.static-gcc \
 CXX=$MXE_PATH/usr/bin/i686-w64-mingw32.static-g++ \
 ../dist/configure \
+  --with-mutex=x86/gcc-assembly \
 	--disable-replication \
 	--enable-mingw \
 	--enable-cxx \
@@ -86,22 +131,28 @@ make
 
 make install
 
+Save and exit Nano:
+CTRL+X  (Y to save)
+
+
 Compile:
 Code:
-./compile-db.sh
+sudo ./compile-db.sh
 
 Compiling miniupnpc:
 Download and unpack miniupnpc:
 Code:
-cd /mnt
+cd /mnt/deps
 wget http://miniupnp.free.fr/files/miniupnpc-1.6.20120509.tar.gz
 tar zxvf miniupnpc-1.6.20120509.tar.gz
 
 Make bash script for compilation:
 Code:
-cd /mnt/miniupnpc-1.6.20120509
+cd /mnt/deps/miniupnpc-1.6.20120509
 touch compile-m.sh
 chmod ugo+x compile-m.sh
+
+nano compile-m.sh
 
 Content of compile-m.sh:
 Code:
@@ -118,63 +169,501 @@ mkdir $MXE_PATH/usr/i686-w64-mingw32.static/include/miniupnpc
 cp *.h $MXE_PATH/usr/i686-w64-mingw32.static/include/miniupnpc
 cp libminiupnpc.a $MXE_PATH/usr/i686-w64-mingw32.static/lib
 
+Save and exit Nano:
+CTRL+X  (Y to save)
+
 Compile:
-Code:
-./compile-m.sh
+sudo ./compile-m.sh
 
+
+Build qrencode (optional)
+cd /mnt/deps
+wget http://fukuchi.org/works/qrencode/qrencode-3.4.2.tar.gz
+tar -xvf qrencode-3.4.2.tar.gz
+cd qrencode-3.4.2
+./configure --host=i686-w64-mingw32.static --prefix=/mnt/mxe/usr/i686-w64-mingw32.static --enable-static --disable-shared --without-tools
+sudo make && sudo make install
+
+Build Boost (optional)
+cd /mnt/deps
+wget https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.bz2
+tar xvjf boost_1_70_0.tar.bz2
+cd boost_1_70_0
+./bootstrap.sh --prefix=/mnt/mxe/usr/i686-w64-mingw32.static
+Compile:
+./b2
+Install: (optional)
+sudo ./b2
+
+Build Openssl
+cd /mnt/deps
+
+Version 1.1.1 (Recommended)
+wget https://www.openssl.org/source/openssl-1.1.1d.tar.gz
+tar -xvf openssl-1.1.1d.tar.gz
+cd openssl-1.1.1d
+
+Version 1.0.2 (Legacy)
+wget https://www.openssl.org/source/openssl-1.0.2u.tar.gz
+tar -xvf openssl-1.0.2u.tar.gz
+cd openssl-1.0.2u
+
+
+for MinGW-w64 do: (recommended)
+./Configure --cross-compile-prefix=x86_64-w64-mingw32- mingw64
+
+for MinGW (32 bit) do:
+./Configure --cross-compile-prefix=x86_64-w64-mingw32- mingw
+Add: -m32 if building on Intel 32 bit CPU not AMD
+Try adding if errors: no-idea no-mdc2 no-rc5 shared
+
+Compile:
+make
+
+Install: (Optional)
+sudo make install
+
+--------
 Step 5.
-Yay! Making our environment is done! Now we can compile blackcoin.
+Yay! Making our environment is done! Now we can compile PHC.
 
-Add mxe bins to PATH:
-Code:
-export PATH=/mnt/mxe/usr/bin:$PATH
-
-Download and unpack blackcoin sources:
+Download and unpack PHC sources:
 Code:
 cd /mnt
-git clone https://github.com/rat4/blackcoin.git
+sudo git clone https://github.com/profithunterscoin/phc.git
+
+Development branch 1.0.0.7-dev (Optional)
+cd /mnt/phc
+sudo git checkout 1.0.0.7-dev
+cd /mnt
+
+Prepare directory permissions:
+sudo chmod +777 phc -R
 
 Make bash script for compilation:
 Code:
-cd /mnt/blackcoin
-touch compile-blk.sh
-chmod ugo+x compile-blk.sh
+cd /mnt/phc
+touch compile-phc.sh
+chmod ugo+x compile-phc.sh
 
-Content of compile-blk.sh:
+nano compile-phc.sh
+
+Content of compile-phc.sh:
 Code:
 #!/bin/bash
+export PATH=/mnt/mxe/usr/bin:$PATH
+
 MXE_INCLUDE_PATH=/mnt/mxe/usr/i686-w64-mingw32.static/include
 MXE_LIB_PATH=/mnt/mxe/usr/i686-w64-mingw32.static/lib
 
 i686-w64-mingw32.static-qmake-qt5 \
 	BOOST_LIB_SUFFIX=-mt \
 	BOOST_THREAD_LIB_SUFFIX=_win32-mt \
-	BOOST_INCLUDE_PATH=$MXE_INCLUDE_PATH/boost \
-	BOOST_LIB_PATH=$MXE_LIB_PATH \
-	OPENSSL_INCLUDE_PATH=$MXE_INCLUDE_PATH/openssl \
-	OPENSSL_LIB_PATH=$MXE_LIB_PATH \
-	BDB_INCLUDE_PATH=$MXE_INCLUDE_PATH \
-	BDB_LIB_PATH=$MXE_LIB_PATH \
+  BOOST_INCLUDE_PATH=/mnt/deps/boost_1_70_0 \
+	BOOST_LIB_PATH=/mnt/deps/boost_1_70_0/stage/lib \
+	OPENSSL_INCLUDE_PATH=/mnt/deps/openssl-1.1.1d/include \
+	OPENSSL_LIB_PATH=/mnt/deps/openssl-1.1.1d \
+	BDB_INCLUDE_PATH=/mnt/deps/db-4.8.30/include \
+	BDB_LIB_PATH=/mnt/deps/db-4.8.30 \
 	MINIUPNPC_INCLUDE_PATH=$MXE_INCLUDE_PATH \
 	MINIUPNPC_LIB_PATH=$MXE_LIB_PATH \
-	QMAKE_LRELEASE=/mnt/mxe/usr/i686-w64-mingw32.static/qt5/bin/lrelease blackcoin-qt.pro
+  SECP256K1_INCLUDE_PATH=/mnt/phc/src/secp256k1/include \
+  SECP256K1_LIB_PATH=/mnt/phc/src/secp256k1/src/libsecp256k1_la-secp256k1.o \
+	QMAKE_LRELEASE=/mnt/mxe/usr/i686-w64-mingw32.static/qt5/bin/lrelease phc-qt.pro
 
-make -f Makefile.Release
+make -f Makefile
+
+Save and exit Nano:
+CTRL+X  (Y to save)
 
 Compile:
 Code:
-./compile-blk.sh
+./compile-phc.sh
 
 And that all.
-Our blackcoin-qt.exe placed in /mnt/blackcoin/release
+Our phc-qt.exe placed in /mnt/phc/release
 Hope this help someone
 
+===========================================================
+If you have levelDB issue (libleveldb.a / libmemenv.a), plz follow below instruction.
+
+Code:
+cd %coin_folder%/src/leveldb
+TARGET_OS=NATIVE_WINDOWS make libleveldb.a libmemenv.a CC=/mnt/mxe/usr/bin/i686-w64-mingw32.static-gcc CXX=/mnt/mxe/usr/bin/i686-w64-mingw32.static-g++
+
+
+https://bitcointalk.org/index.php?topic=1080289.0
+
+============================================================
+If you have secp256k1 issue (src/secp256k1/src/libsecp256k1_la-secp256k1.o), plz follow below instruction.
+
+cd src/secp256k1
+
+./autogen.sh
+./configure --host=i686-w64-mingw32.static --enable-static --disable-shared --enable-modulerecovery
+make
+
+
+===========================================================
+NOTE: NOT WORKING
+/mnt/mxe/usr/i686-w64-mingw32.static/lib/libboost_filesystem-mt.a(codecvt_error_category.o): duplicate section `.rdata$_ZTIN5boost12noncopyable_11noncopyableE[__ZTIN5boost12noncopyable_11noncopyableE]' has different size
+/mnt/mxe/usr/i686-w64-mingw32.static/lib/libboost_filesystem-mt.a(codecvt_error_category.o): duplicate section `.rdata$_ZTIN5boost6system14error_categoryE[__ZTIN5boost6system14error_categoryE]' has different size
+/mnt/mxe/usr/i686-w64-mingw32.static/lib/libboost_thread_win32-mt.a(thread.o): duplicate section `.rdata$_ZTVN5boost6detail17sp_counted_impl_pINS_16exception_detail10clone_implINS2_10bad_alloc_EEEEE[__ZTVN5boost6detail17sp_counted_impl_pINS_16exception_detail10clone_implINS2_10bad_alloc_EEEEE]' has different size
+/mnt/mxe/usr/i686-w64-mingw32.static/lib/libboost_thread_win32-mt.a(thread.o): duplicate section `.rdata$_ZTVN5boost6detail17sp_counted_impl_pINS_16exception_detail10clone_implINS2_14bad_exception_EEEEE[__ZTVN5boost6detail17sp_counted_impl_pINS_16exception_detail10clone_implINS2_14bad_exception_EEEEE]' has different size
+/mnt/mxe/usr/i686-w64-mingw32.static/lib/libboost_filesystem-mt.a(operations.o):operations.cpp:(.text+0xb49): undefined reference to `boost::system::system_category()'
+/mnt/mxe/usr/i686-w64-mingw32.static/lib/libboost_filesystem-mt.a(operations.o):operations.cpp:(.text+0xccb): undefined reference to `boost::system::system_category()'
+/mnt/mxe/usr/i686-w64-mingw32.static/lib/libboost_filesystem-mt.a(operations.o):operations.cpp:(.text+0xf7a): undefined reference to `boost::system::system_category()'
+/mnt/mxe/usr/i686-w64-mingw32.static/lib/libboost_filesystem-mt.a(operations.o):operations.cpp:(.text+0xfaf): undefined reference to `boost::system::system_category()'
+/mnt/mxe/usr/i686-w64-mingw32.static/lib/libboost_filesystem-mt.a(operations.o):operations.cpp:(.text+0xfd7): undefined reference to `boost::system::system_category()'
+/mnt/mxe/usr/i686-w64-mingw32.static/lib/libboost_filesystem-mt.a(operations.o):operations.cpp:(.text+0x1751): more undefined references to `boost::system::system_category()' follow
+/mnt/mxe/usr/i686-w64-mingw32.static/lib/libboost_filesystem-mt.a(operations.o):operations.cpp:(.text+0xc6b7): undefined reference to `boost::system::generic_category()'
+/mnt/mxe/usr/i686-w64-mingw32.static/lib/libboost_filesystem-mt.a(operations.o):operations.cpp:(.text+0xcb0c): undefined reference to `boost::system::generic_category()'
+/mnt/mxe/usr/i686-w64-mingw32.static/lib/libboost_filesystem-mt.a(operations.o):operations.cpp:(.text+0xcc98): undefined reference to `boost::system::system_category()'
+/mnt/mxe/usr/i686-w64-mingw32.static/lib/libboost_filesystem-mt.a(operations.o):operations.cpp:(.text+0xcf1a): undefined reference to `boost::system::system_category()'
+/mnt/mxe/usr/i686-w64-mingw32.static/lib/libboost_filesystem-mt.a(operations.o):operations.cpp:(.text+0xcf5a): undefined reference to `boost::system::system_category()'
+/mnt/mxe/usr/i686-w64-mingw32.static/lib/libboost_filesystem-mt.a(operations.o):operations.cpp:(.text+0xcfe1): undefined reference to `boost::system::system_category()'
+/mnt/mxe/usr/i686-w64-mingw32.static/lib/libboost_filesystem-mt.a(operations.o):operations.cpp:(.text+0xd0e0): undefined reference to `boost::system::system_category()'
+/mnt/mxe/usr/i686-w64-mingw32.static/lib/libboost_filesystem-mt.a(operations.o):operations.cpp:(.text+0xdd68): more undefined references to `boost::system::system_category()' follow
+build/smessage.o:smessage.cpp:(.text$_ZN5boost11shared_lockINS_12shared_mutexEE4lockEv[__ZN5boost11shared_lockINS_12shared_mutexEE4lockEv]+0x330): undefined reference to `boost::this_thread::interruptible_wait(void*, boost::detail::mono_platform_timepoint const&)'
+build/smessage.o:smessage.cpp:(.text$_ZN13SecMsgCrypter7EncryptEPhjRSt6vectorIhSaIhEE.part.1122+0x76): undefined reference to `EVP_CIPHER_CTX_init'
+build/smessage.o:smessage.cpp:(.text$_ZN13SecMsgCrypter7EncryptEPhjRSt6vectorIhSaIhEE.part.1122+0x7b): undefined reference to `EVP_aes_256_cbc'
+build/smessage.o:smessage.cpp:(.text$_ZN13SecMsgCrypter7EncryptEPhjRSt6vectorIhSaIhEE.part.1122+0x9a): undefined reference to `EVP_EncryptInit_ex'
+build/smessage.o:smessage.cpp:(.text$_ZN13SecMsgCrypter7EncryptEPhjRSt6vectorIhSaIhEE.part.1122+0xa6): undefined reference to `EVP_CIPHER_CTX_cleanup'
+build/smessage.o:smessage.cpp:(.text$_ZN13SecMsgCrypter7EncryptEPhjRSt6vectorIhSaIhEE.part.1122+0xe8): undefined reference to `EVP_EncryptUpdate'
+build/smessage.o:smessage.cpp:(.text$_ZN13SecMsgCrypter7EncryptEPhjRSt6vectorIhSaIhEE.part.1122+0x106): undefined reference to `EVP_EncryptFinal_ex'
+build/smessage.o:smessage.cpp:(.text$_ZN13SecMsgCrypter7EncryptEPhjRSt6vectorIhSaIhEE.part.1122+0x110): undefined reference to `EVP_CIPHER_CTX_cleanup'
+build/smessage.o:smessage.cpp:(.text$_ZN13SecMsgCrypter7DecryptEPhjRSt6vectorIhSaIhEE.part.1123+0x3b): undefined reference to `EVP_CIPHER_CTX_init'
+build/smessage.o:smessage.cpp:(.text$_ZN13SecMsgCrypter7DecryptEPhjRSt6vectorIhSaIhEE.part.1123+0x40): undefined reference to `EVP_aes_256_cbc'
+build/smessage.o:smessage.cpp:(.text$_ZN13SecMsgCrypter7DecryptEPhjRSt6vectorIhSaIhEE.part.1123+0x5f): undefined reference to `EVP_DecryptInit_ex'
+build/smessage.o:smessage.cpp:(.text$_ZN13SecMsgCrypter7DecryptEPhjRSt6vectorIhSaIhEE.part.1123+0x6b): undefined reference to `EVP_CIPHER_CTX_cleanup'
+build/smessage.o:smessage.cpp:(.text$_ZN13SecMsgCrypter7DecryptEPhjRSt6vectorIhSaIhEE.part.1123+0xa2): undefined reference to `EVP_DecryptUpdate'
+build/smessage.o:smessage.cpp:(.text$_ZN13SecMsgCrypter7DecryptEPhjRSt6vectorIhSaIhEE.part.1123+0xc1): undefined reference to `EVP_DecryptFinal_ex'
+build/smessage.o:smessage.cpp:(.text$_ZN13SecMsgCrypter7DecryptEPhjRSt6vectorIhSaIhEE.part.1123+0xcb): undefined reference to `EVP_CIPHER_CTX_cleanup'
+build/smessage.o:smessage.cpp:(.text$_Z11ValueStringB5cxx11RKSt6vectorIhSaIhEE[__Z11ValueStringB5cxx11RKSt6vectorIhSaIhEE]+0x65): undefined reference to `BN_init'
+build/smessage.o:smessage.cpp:(.text$_Z11ValueStringB5cxx11RKSt6vectorIhSaIhEE[__Z11ValueStringB5cxx11RKSt6vectorIhSaIhEE]+0x121): undefined reference to `BN_mpi2bn'
+build/smessage.o:smessage.cpp:(.text$_Z11ValueStringB5cxx11RKSt6vectorIhSaIhEE[__Z11ValueStringB5cxx11RKSt6vectorIhSaIhEE]+0x141): undefined reference to `BN_get_word'
+build/smessage.o:smessage.cpp:(.text$_Z11ValueStringB5cxx11RKSt6vectorIhSaIhEE[__Z11ValueStringB5cxx11RKSt6vectorIhSaIhEE]+0x19d): undefined reference to `BN_clear_free'
+build/smessage.o:smessage.cpp:(.text$_Z11ValueStringB5cxx11RKSt6vectorIhSaIhEE[__Z11ValueStringB5cxx11RKSt6vectorIhSaIhEE]+0x23e): undefined reference to `BN_clear_free'
+build/smessage.o:smessage.cpp:(.text$_Z17SecureMsgValidatePhS_j.part.909+0x55): undefined reference to `HMAC_CTX_init'
+build/smessage.o:smessage.cpp:(.text$_Z17SecureMsgValidatePhS_j.part.909+0x5a): undefined reference to `EVP_sha256'
+build/smessage.o:smessage.cpp:(.text$_Z17SecureMsgValidatePhS_j.part.909+0x7e): undefined reference to `HMAC_Init_ex'
+build/smessage.o:smessage.cpp:(.text$_Z17SecureMsgValidatePhS_j.part.909+0xa5): undefined reference to `HMAC_CTX_cleanup'
+build/smessage.o:smessage.cpp:(.text$_Z17SecureMsgValidatePhS_j.part.909+0xd3): undefined reference to `HMAC_Update'
+build/smessage.o:smessage.cpp:(.text$_Z17SecureMsgValidatePhS_j.part.909+0xe7): undefined reference to `HMAC_Update'
+build/smessage.o:smessage.cpp:(.text$_Z17SecureMsgValidatePhS_j.part.909+0xfb): undefined reference to `HMAC_Update'
+build/smessage.o:smessage.cpp:(.text$_Z17SecureMsgValidatePhS_j.part.909+0x117): undefined reference to `HMAC_Final'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgSetHashPhS_j+0x30): undefined reference to `HMAC_CTX_init'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgSetHashPhS_j+0x8b): undefined reference to `EVP_sha256'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgSetHashPhS_j+0xab): undefined reference to `HMAC_Init_ex'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgSetHashPhS_j+0xc7): undefined reference to `HMAC_Update'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgSetHashPhS_j+0xdb): undefined reference to `HMAC_Update'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgSetHashPhS_j+0xef): undefined reference to `HMAC_Update'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgSetHashPhS_j+0x10b): undefined reference to `HMAC_Final'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgSetHashPhS_j+0x11e): undefined reference to `HMAC_CTX_cleanup'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgSetHashPhS_j+0x1ec): undefined reference to `HMAC_CTX_cleanup'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgEncryptR13SecureMessageRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES8_S8_+0x3df): undefined reference to `RAND_bytes'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgEncryptR13SecureMessageRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES8_S8_+0x50e): undefined reference to `ECDH_OpenSSL'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgEncryptR13SecureMessageRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES8_S8_+0x520): undefined reference to `ECDH_set_method'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgEncryptR13SecureMessageRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES8_S8_+0x52e): undefined reference to `EC_KEY_get0_public_key'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgEncryptR13SecureMessageRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES8_S8_+0x55a): undefined reference to `ECDH_compute_key'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgEncryptR13SecureMessageRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES8_S8_+0x8fd): undefined reference to `SHA512'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgEncryptR13SecureMessageRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES8_S8_+0xd21): undefined reference to `HMAC_CTX_init'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgEncryptR13SecureMessageRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES8_S8_+0xd26): undefined reference to `EVP_sha256'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgEncryptR13SecureMessageRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES8_S8_+0xd52): undefined reference to `HMAC_Init_ex'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgEncryptR13SecureMessageRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES8_S8_+0xd79): undefined reference to `HMAC_CTX_cleanup'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgEncryptR13SecureMessageRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES8_S8_+0xe37): undefined reference to `SHA256'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgEncryptR13SecureMessageRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES8_S8_+0xe80): undefined reference to `SHA256'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgEncryptR13SecureMessageRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES8_S8_+0xf4c): undefined reference to `HMAC_Update'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgEncryptR13SecureMessageRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES8_S8_+0xf78): undefined reference to `HMAC_Update'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgEncryptR13SecureMessageRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES8_S8_+0xfa2): undefined reference to `HMAC_Final'
+build/smessage.o:smessage.cpp:(.text$_ZL9ScanBlockR6CBlockR5CTxDBR8SecMsgDBRjS5_S5_S5_.isra.1167+0x702): undefined reference to `BN_init'
+build/smessage.o:smessage.cpp:(.text$_ZL9ScanBlockR6CBlockR5CTxDBR8SecMsgDBRjS5_S5_S5_.isra.1167+0xcdd): undefined reference to `BN_mpi2bn'
+build/smessage.o:smessage.cpp:(.text$_ZL9ScanBlockR6CBlockR5CTxDBR8SecMsgDBRjS5_S5_S5_.isra.1167+0xd03): undefined reference to `BN_get_word'
+build/smessage.o:smessage.cpp:(.text$_ZL9ScanBlockR6CBlockR5CTxDBR8SecMsgDBRjS5_S5_S5_.isra.1167+0xd62): undefined reference to `BN_clear_free'
+build/smessage.o:smessage.cpp:(.text$_ZL9ScanBlockR6CBlockR5CTxDBR8SecMsgDBRjS5_S5_S5_.isra.1167+0xe24): undefined reference to `SHA256'
+build/smessage.o:smessage.cpp:(.text$_ZL9ScanBlockR6CBlockR5CTxDBR8SecMsgDBRjS5_S5_S5_.isra.1167+0xe76): undefined reference to `RIPEMD160'
+build/smessage.o:smessage.cpp:(.text$_ZL9ScanBlockR6CBlockR5CTxDBR8SecMsgDBRjS5_S5_S5_.isra.1167+0x1322): undefined reference to `BN_clear_free'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgDecryptbRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPhS6_jR11MessageData+0x650): undefined reference to `ECDH_OpenSSL'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgDecryptbRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPhS6_jR11MessageData+0x662): undefined reference to `ECDH_set_method'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgDecryptbRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPhS6_jR11MessageData+0x670): undefined reference to `EC_KEY_get0_public_key'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgDecryptbRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPhS6_jR11MessageData+0x69c): undefined reference to `ECDH_compute_key'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgDecryptbRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPhS6_jR11MessageData+0x766): undefined reference to `SHA512'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgDecryptbRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPhS6_jR11MessageData+0x7d7): undefined reference to `HMAC_CTX_init'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgDecryptbRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPhS6_jR11MessageData+0x7dc): undefined reference to `EVP_sha256'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgDecryptbRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPhS6_jR11MessageData+0x808): undefined reference to `HMAC_Init_ex'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgDecryptbRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPhS6_jR11MessageData+0x82f): undefined reference to `HMAC_CTX_cleanup'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgDecryptbRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPhS6_jR11MessageData+0x9bb): undefined reference to `HMAC_Update'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgDecryptbRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPhS6_jR11MessageData+0x9df): undefined reference to `HMAC_Update'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgDecryptbRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPhS6_jR11MessageData+0xa09): undefined reference to `HMAC_Final'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgDecryptbRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPhS6_jR11MessageData+0xe7d): undefined reference to `SHA256'
+build/smessage.o:smessage.cpp:(.text$_Z16SecureMsgDecryptbRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPhS6_jR11MessageData+0xec4): undefined reference to `SHA256'
+build/net.o:net.cpp:(.text$_ZN5boost6detail24basic_condition_variable13do_wait_untilINS_11unique_lockINS_5mutexEEEEEbRT_RKNS0_23mono_platform_timepointE[__ZN5boost6detail24basic_condition_variable13do_wait_untilINS_11unique_lockINS_5mutexEEEEEbRT_RKNS0_23mono_platform_timepointE]+0x15d): undefined reference to `boost::this_thread::interruptible_wait(void*, boost::detail::mono_platform_timepoint const&)'
+build/net.o:net.cpp:(.text$_ZN10CSemaphore4waitEv[__ZN10CSemaphore4waitEv]+0x2d0): undefined reference to `boost::this_thread::interruptible_wait(void*, boost::detail::mono_platform_timepoint const&)'
+build/net.o:net.cpp:(.text$_Z7MapPortb+0xaf): undefined reference to `boost::thread::do_try_join_until_noexcept(boost::detail::mono_platform_timepoint const&, bool&)'
+build/net.o:net.cpp:(.text$_ZN7CAddrDB5WriteERK8CAddrMan+0x7ab): undefined reference to `SHA256'
+build/net.o:net.cpp:(.text$_ZN7CAddrDB5WriteERK8CAddrMan+0x7df): undefined reference to `SHA256'
+build/net.o:net.cpp:(.text$_Z13ThreadMapPortv+0xc0): undefined reference to `upnpDiscover'
+build/net.o:net.cpp:(.text$_Z13ThreadMapPortv+0xf4): undefined reference to `UPNP_GetValidIGD'
+build/net.o:net.cpp:(.text$_Z13ThreadMapPortv+0x120): undefined reference to `freeUPNPDevlist'
+build/net.o:net.cpp:(.text$_Z13ThreadMapPortv+0x1a7): undefined reference to `UPNP_GetExternalIPAddress'
+build/net.o:net.cpp:(.text$_Z13ThreadMapPortv+0x2d3): undefined reference to `UPNP_AddPortMapping'
+build/net.o:net.cpp:(.text$_Z13ThreadMapPortv+0x31e): undefined reference to `strupnperror'
+build/net.o:net.cpp:(.text$_Z13ThreadMapPortv+0x4d9): undefined reference to `FreeUPNPUrls'
+build/net.o:net.cpp:(.text$_Z13ThreadMapPortv+0x7b7): undefined reference to `UPNP_DeletePortMapping'
+build/net.o:net.cpp:(.text$_Z13ThreadMapPortv+0x7de): undefined reference to `freeUPNPDevlist'
+build/net.o:net.cpp:(.text$_Z13ThreadMapPortv+0x7f6): undefined reference to `FreeUPNPUrls'
+build/net.o:net.cpp:(.text$_ZN6CBanDB5WriteERKSt3mapI7CSubNetN4CBan9CBanEntryESt4lessIS1_ESaISt4pairIKS1_S3_EEE+0x187): undefined reference to `SHA256'
+build/net.o:net.cpp:(.text$_ZN6CBanDB5WriteERKSt3mapI7CSubNetN4CBan9CBanEntryESt4lessIS1_ESaISt4pairIKS1_S3_EEE+0x1bd): undefined reference to `SHA256'
+build/net.o:net.cpp:(.text$_ZN6CBanDB4ReadERSt3mapI7CSubNetN4CBan9CBanEntryESt4lessIS1_ESaISt4pairIKS1_S3_EEE+0x2e0): undefined reference to `SHA256'
+build/net.o:net.cpp:(.text$_ZN6CBanDB4ReadERSt3mapI7CSubNetN4CBan9CBanEntryESt4lessIS1_ESaISt4pairIKS1_S3_EEE+0x31f): undefined reference to `SHA256'
+build/net.o:net.cpp:(.text$_ZN7CAddrDB4ReadER8CAddrMan+0x2e0): undefined reference to `SHA256'
+build/net.o:net.cpp:(.text$_ZN7CAddrDB4ReadER8CAddrMan+0x320): more undefined references to `SHA256' follow
+build/net.o:net.cpp:(.text$_Z26ThreadOpenAddedConnectionsv+0x4f0): undefined reference to `boost::this_thread::interruptible_wait(void*, boost::detail::mono_platform_timepoint const&)'
+build/net.o:net.cpp:(.text$_Z26ThreadOpenAddedConnectionsv+0x1620): undefined reference to `boost::this_thread::interruptible_wait(void*, boost::detail::mono_platform_timepoint const&)'
+build/rpcserver.o:rpcserver.cpp:(.text$_ZN5boost4asio3ssl7context11set_optionsEl[__ZN5boost4asio3ssl7context11set_optionsEl]+0x2a): undefined reference to `SSL_CTX_ctrl'
+build/rpcserver.o:rpcserver.cpp:(.text$_Z14StopRPCThreadsv+0x3df): undefined reference to `SSL_CTX_get_ex_data'
+build/rpcserver.o:rpcserver.cpp:(.text$_Z14StopRPCThreadsv+0x3f8): undefined reference to `SSL_CTX_get_ex_data'
+build/rpcserver.o:rpcserver.cpp:(.text$_Z14StopRPCThreadsv+0x427): undefined reference to `SSL_CTX_set_ex_data'
+build/rpcserver.o:rpcserver.cpp:(.text$_Z14StopRPCThreadsv+0x43b): undefined reference to `SSL_CTX_free'
+build/rpcserver.o:rpcserver.cpp:(.text$_ZN22AcceptedConnectionImplIN5boost4asio2ip3tcpEED0Ev[__ZN22AcceptedConnectionImplIN5boost4asio2ip3tcpEED0Ev]+0xa1): undefined reference to `SSL_get_ex_data'
+build/rpcserver.o:rpcserver.cpp:(.text$_ZN22AcceptedConnectionImplIN5boost4asio2ip3tcpEED0Ev[__ZN22AcceptedConnectionImplIN5boost4asio2ip3tcpEED0Ev]+0xb8): undefined reference to `SSL_get_ex_data'
+build/rpcserver.o:rpcserver.cpp:(.text$_ZN22AcceptedConnectionImplIN5boost4asio2ip3tcpEED0Ev[__ZN22AcceptedConnectionImplIN5boost4asio2ip3tcpEED0Ev]+0xe6): undefined reference to `SSL_set_ex_data'
+build/rpcserver.o:rpcserver.cpp:(.text$_ZN22AcceptedConnectionImplIN5boost4asio2ip3tcpEED0Ev[__ZN22AcceptedConnectionImplIN5boost4asio2ip3tcpEED0Ev]+0xf9): undefined reference to `BIO_free'
+build/rpcserver.o:rpcserver.cpp:(.text$_ZN22AcceptedConnectionImplIN5boost4asio2ip3tcpEED0Ev[__ZN22AcceptedConnectionImplIN5boost4asio2ip3tcpEED0Ev]+0x104): undefined reference to `SSL_free'
+build/rpcserver.o:rpcserver.cpp:(.text$_ZN22AcceptedConnectionImplIN5boost4asio2ip3tcpEED1Ev[__ZN22AcceptedConnectionImplIN5boost4asio2ip3tcpEED1Ev]+0xa1): undefined reference to `SSL_get_ex_data'
+build/rpcserver.o:rpcserver.cpp:(.text$_ZN22AcceptedConnectionImplIN5boost4asio2ip3tcpEED1Ev[__ZN22AcceptedConnectionImplIN5boost4asio2ip3tcpEED1Ev]+0xb8): undefined reference to `SSL_get_ex_data'
+build/rpcserver.o:rpcserver.cpp:(.text$_ZN22AcceptedConnectionImplIN5boost4asio2ip3tcpEED1Ev[__ZN22AcceptedConnectionImplIN5boost4asio2ip3tcpEED1Ev]+0xe6): undefined reference to `SSL_set_ex_data'
+build/rpcserver.o:rpcserver.cpp:(.text$_ZN22AcceptedConnectionImplIN5boost4asio2ip3tcpEED1Ev[__ZN22AcceptedConnectionImplIN5boost4asio2ip3tcpEED1Ev]+0xf9): undefined reference to `BIO_free'
+build/rpcserver.o:rpcserver.cpp:(.text$_ZN22AcceptedConnectionImplIN5boost4asio2ip3tcpEED1Ev[__ZN22AcceptedConnectionImplIN5boost4asio2ip3tcpEED1Ev]+0x104): undefined reference to `SSL_free'
+build/rpcserver.o:rpcserver.cpp:(.text$_Z9RPCListenIN5boost4asio2ip3tcpENS1_8executorEEvNS0_10shared_ptrINS1_21basic_socket_acceptorIT_T0_EEEERNS1_3ssl7contextEb+0x2da): undefined reference to `SSL_new'
+build/rpcserver.o:rpcserver.cpp:(.text$_Z9RPCListenIN5boost4asio2ip3tcpENS1_8executorEEvNS0_10shared_ptrINS1_21basic_socket_acceptorIT_T0_EEEERNS1_3ssl7contextEb+0x315): undefined reference to `SSL_ctrl'
+build/rpcserver.o:rpcserver.cpp:(.text$_Z9RPCListenIN5boost4asio2ip3tcpENS1_8executorEEvNS0_10shared_ptrINS1_21basic_socket_acceptorIT_T0_EEEERNS1_3ssl7contextEb+0x33e): undefined reference to `SSL_ctrl'
+build/rpcserver.o:rpcserver.cpp:(.text$_Z9RPCListenIN5boost4asio2ip3tcpENS1_8executorEEvNS0_10shared_ptrINS1_21basic_socket_acceptorIT_T0_EEEERNS1_3ssl7contextEb+0x367): undefined reference to `SSL_ctrl'
+build/rpcserver.o:rpcserver.cpp:(.text$_Z9RPCListenIN5boost4asio2ip3tcpENS1_8executorEEvNS0_10shared_ptrINS1_21basic_socket_acceptorIT_T0_EEEERNS1_3ssl7contextEb+0x396): undefined reference to `BIO_new_bio_pair'
+build/rpcserver.o:rpcserver.cpp:(.text$_Z9RPCListenIN5boost4asio2ip3tcpENS1_8executorEEvNS0_10shared_ptrINS1_21basic_socket_acceptorIT_T0_EEEERNS1_3ssl7contextEb+0x3b2): undefined reference to `SSL_set_bio'
+build/rpcserver.o:rpcserver.cpp:(.text$_Z9RPCListenIN5boost4asio2ip3tcpENS1_8executorEEvNS0_10shared_ptrINS1_21basic_socket_acceptorIT_T0_EEEERNS1_3ssl7contextEb+0xe2b): undefined reference to `ERR_get_error'
+build/rpcserver.o:rpcserver.cpp:(.text$_Z9RPCListenIN5boost4asio2ip3tcpENS1_8executorEEvNS0_10shared_ptrINS1_21basic_socket_acceptorIT_T0_EEEERNS1_3ssl7contextEb+0x1437): undefined reference to `SSL_get_ex_data'
+build/rpcserver.o:rpcserver.cpp:(.text$_Z9RPCListenIN5boost4asio2ip3tcpENS1_8executorEEvNS0_10shared_ptrINS1_21basic_socket_acceptorIT_T0_EEEERNS1_3ssl7contextEb+0x1454): undefined reference to `SSL_get_ex_data'
+build/rpcserver.o:rpcserver.cpp:(.text$_Z9RPCListenIN5boost4asio2ip3tcpENS1_8executorEEvNS0_10shared_ptrINS1_21basic_socket_acceptorIT_T0_EEEERNS1_3ssl7contextEb+0x148a): undefined reference to `SSL_set_ex_data'
+build/rpcserver.o:rpcserver.cpp:(.text$_Z9RPCListenIN5boost4asio2ip3tcpENS1_8executorEEvNS0_10shared_ptrINS1_21basic_socket_acceptorIT_T0_EEEERNS1_3ssl7contextEb+0x14a5): undefined reference to `BIO_free'
+build/rpcserver.o:rpcserver.cpp:(.text$_Z9RPCListenIN5boost4asio2ip3tcpENS1_8executorEEvNS0_10shared_ptrINS1_21basic_socket_acceptorIT_T0_EEEERNS1_3ssl7contextEb+0x14b6): undefined reference to `SSL_free'
+
+
+
+===================
+
+cd leveldb
+chmod ugo+x build_detect_platform
+sh build_detect_platform build_config.mk ./
+TARGET_OS=NATIVE_WINDOWS make libleveldb.a libmemenv.a CC=/mnt/mxe/usr/bin/i686-w64-mingw32.static-gcc CXX=/mnt/mxe/usr/bin/i686-w64-mingw32.static-g++
+
+
+goodthebest commented on Mar 9, 2018
+Hi @Bitspacedev
+I'm trying to compile on ubuntu 16.04, however I keep geting error. What is the correct way to compile it on OS Ubuntu 16.04?
+
+cd BitSpace/src
+make -f makefile.unix
+
+/root/BitSpace/src/txdb-leveldb.h:114: undefined reference to leveldb::WriteBatch::Put(leveldb::Slice const&, leveldb::Slice const&)' /root/BitSpace/src/txdb-leveldb.h:119: undefined reference to leveldb::Status::ToStringabi:cxx11 const'
+obj/txdb-leveldb.o: In function bool CTxDB::Write<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, uint256>, CTxIndex>(std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, uint256> const&, CTxIndex const&)': /root/BitSpace/src/txdb-leveldb.h:114: undefined reference to leveldb::WriteBatch::Put(leveldb::Slice const&, leveldb::Slice const&)'
+/root/BitSpace/src/txdb-leveldb.h:119: undefined reference to leveldb::Status::ToString[abi:cxx11]() const' obj/txdb-leveldb.o:(.rodata._ZTI13CBatchScanner[_ZTI13CBatchScanner]+0x10): undefined reference to typeinfo for leveldb::WriteBatch::Handler'
+collect2: error: ld returned 1 exit status
+makefile.unix:206: recipe for target 'bitspaced' failed
+make: *** [bitspaced] Error 1
+
+@Bitspacedev
+ 
+Owner
+ Bitspacedev commented on Mar 10, 2018
+You have to use Ubuntu 14.04.
+
+- sudo apt-get update
+
+- sudo apt-get upgrade
+
+- sudo apt-get install build-essential libssl-dev libdb-dev libdb++-dev
+libboost-all-dev git libssl1.0.0-dbg
+
+- sudo apt-get install libdb-dev libdb++-dev libboost-all-dev
+libminiupnpc-dev libminiupnpc-dev libevent-dev libcrypto++-dev libgmp3-dev
+
+===================
+
+more info https://bitcointalk.org/index.php?topic=1080289.260
+
+===================
+
+i'm having trouble with building a coin using secp256k1
+
+Code:
+libsecp256k1_la-secp256k1.o: file not recognized: File format not recognized
+
+generally it seems like i have success with secp256k1 but it is not recognized on qt build.
+
+i've tried a variety of things including
+
+Code:
+./autogen.sh
+./configure --host=i686-w64-mingw32.static
+make
+
+fails on qt build
+
+and
+Code:
+./configure --host=i686-w64-mingw32.static --prefix=/home/mxe/mxe/usr/i686-w64-mingw32.static --enable-static --disable-shared
+
+gives error during configure
+Code:
+./configure: line 12234: SECP_64BIT_ASM_CHECK: command not found
+./configure: line 12263: SECP_INT128_CHECK: command not found
+./configure: line 12291: SECP_INT128_CHECK: command not found
+./configure: line 12316: SECP_GMP_CHECK: command not found
+./configure: line 12422: SECP_OPENSSL_CHECK: command not found
+
+also fails on qt build
+
+
+
+===========================================================
+Quote from: main.h on June 04, 2015, 02:45:26 PM
+
+Compile boost:
+Code:
+cd /mnt/mxe
+make MXE_TARGETS="i686-w64-mingw32.static" boost
+
+if error message:
+Missing requirement: libtool
+than
+Code:
+sudo apt-get install libtool-bin
+
+Quote from: main.h on June 04, 2015, 02:45:26 PM
+
+Step 3.
+Now we need compile boost and qt5 for our environment (need a couple of hours for this).
+
+less than one hour if i5+SSD
+
+=======================================================
+
+
+cd src/leveldb
+TARGET_OS=NATIVE_WINDOWS make CC=i686-w64-mingw32.static-g++ CXX=i686-w64-mingw32.static-g++ libleveldb.a libmemenv.a
+cd ../..
+
+cd ./src/secp256k1
+sudo ./autogen.sh
+sudo ./configure --host=i686-w64-mingw32.static --with-bignum=no --enable-module-recovery
+TARGET_OS=NATIVE_WINDOWS make CC=i686-w64-mingw32.static-g++ CXX=i686-w64-mingw32.static-g++ libsecp256k1.la libsecp256k1.so
+sudo make install
+cd ../..
+
+cd src/leveldb
+make clean
+export PATH=/mnt/mxe/usr/bin:$PATH
+export PATH=$MXEPATH/bin:$PATH
+TARGET_OS=NATIVE_WINDOWS make -j4 CC=i686-w64-mingw32.static-gcc CXX=i686-w64-
+mingw32.static-g++ libleveldb.a libmemenv.a
+cd ../..
+chmod 775 * -R
+
+cd src/secp256k1
+make clean
+export PATH=/mnt/mxe/usr/bin:$PATH
+export PATH=$MXEPATH/bin:$PATH
+chmod 775 * -R
+./autogen.sh
+./configure --host=i686-w64-mingw32.static --enable-static --disable-shared --enable-modulerecovery
+make -j4
+
+cd ../..
+export PATH=/mnt/mxe/usr/bin:$PATH
+export PATH=$MXEPATH/bin:$PATH
+/mnt/mxe/usr/i686-w64-mingw32.static/qt5/bin/qmake phc-qt.pro
+make -j4
+
+==========================================================
+win32 {
+BOOST_LIB_SUFFIX=-mt
+BOOST_INCLUDE_PATH=$MXEPATH/i686-w64-mingw32.static/include/boost
+BOOST_LIB_PATH=$MXEPATH/i686-w64-mingw32.static/lib
+BDB_INCLUDE_PATH=/mnt/db-4.8.30/build_mxe
+BDB_LIB_PATH=/mnt/db-4.8.30/build_mxe
+OPENSSL_INCLUDE_PATH=$MXEPATH/i686-w64-mingw32.static/include
+OPENSSL_LIB_PATH=$MXEPATH/i686-w64-mingw32.static/lib
+MINIUPNPC_INCLUDE_PATH=$MXEPATH/i686-w64-mingw32.static/include
+MINIUPNPC_LIB_PATH=$MXEPATH/i686-w64-mingw32.static/lib
+LIBPNG_INCLUDE_PATH=$MXEPATH/i686-w64-mingw32.static/include
+LIBPNG_LIB_PATH=$MXEPATH/i686-w64-mingw32.static/lib
+QRENCODE_INCLUDE_PATH=$MXEPATH/i686-w64-mingw32.static/include
+QRENCODE_LIB_PATH=$MXEPATH/i686-w64-mingw32.static/lib
+SECP256K1_LIB_PATH=/mnt/phc/src/secp256k1/.libs
+SECP256K1_INCLUDE_PATH=/mnt/phc/src/secp256k1/include
+}
+
+===========================================================
+https://github.com/mxe/mxe/issues/2126
+https://github.com/openssl/openssl/issues/7686
+https://bitcointalk.org/index.php?topic=149479.540
+https://bitcoin.stackexchange.com/questions/28063/got-an-issue-compiling
+https://media.spectresecurity.io/docs/SpectreSecurityCoin-Wallet-Building-Release.pdf
+https://github.com/doged/secp256k1/blob/77d8ff2bd8edcdef40795145a309bd91dc4100a6/Makefile.am
+https://bitcointalk.org/index.php?topic=1080289.180
+https://github.com/EidasCoin/Eidas/blob/master/doc/windows-cross-compile.md
+https://bitcointalk.org/index.php?topic=1080289.270;wap
+http://dillingers.com/blog/2015/04/18/how-to-make-an-altcoin/
+https://bitcointalk.org/index.php?topic=1080289.105;wap
+https://steemit.com/howto/@pxlfussel/howto-cross-compile-coins-with-mxe-or-some-other-needs
+https://github.com/ofek/coincurve/blob/master/.travis/build_windows_wheels.sh
+https://github.com/bitcoin-core/secp256k1/issues/451
+
+
+===========================================================
+macro AM_PATH_SDL not found in library
+
+apt install libsdl1.2-dev
 
 
 
 ===========================================================
 
 
+Downloading libiconv:
+Run the command below,
+wget http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.11.tar.gz
+
+Extracting files from the downloaded package:
+tar -xvzf libiconv-1.11.tar.gz
+
+Now, enter the directory where the package is extracted.
+cd libiconv-1.11
+
+Configuring libiconv Library:
+./configure --prefix=/usr/local/libiconv
+
+Replace "/usr/local/libiconv" above with the directory path where you want to copy the files and folders. Note: check for any error message.
+Compiling libiconv:
+make
+
+Note: check for any error message.
+
+Installing libiconv:
+As root (for privileges on destination directory), run the following.
+
+With sudo,
+sudo make install
+
+Without sudo,
+make install
+
+Note: check for any error messages.
+
+
+
+=============================================================
 
 Gavin's notes on getting gitian builds up and running using KVM:
 
@@ -267,3 +756,28 @@ Here's a description of Gavin's setup on OSX 10.6:
   export USE_LXC=1
   git clone http://github.com/profithunterscoin/phc/phc.git
   ... etc
+
+
+
+
+https://stackoverflow.com/questions/7561509/how-to-add-include-and-lib-paths-to-configure-make-cycle
+https://stackoverflow.com/questions/27679693/unsupported-x86-64-instruction-set-error-when-compiling-c-file
+https://bitcointalk.org/index.php?topic=53000.15
+https://bitcointalk.org/index.php?topic=5851.msg86700#msg86700
+https://bitcointalk.org/index.php?topic=52008.msg630712#msg630712
+https://bitcointalk.org/index.php?topic=52838.0
+https://github.com/cryptobiu/libscapi/issues/57
+https://wiki.qt.io/Compiling_OpenSSL_with_MinGW
+https://github.com/mongodb-partners/mongo-rocks/commit/3ffce604ac6399b4be0dcd90c47010d3b022dd93
+https://github.com/justmoon/leveldb-mingw
+https://github.com/facebook/rocksdb/issues/4903
+https://en.programqa.com/question/19380381/
+https://github.com/schismtracker/schismtracker/issues/22
+https://www.reddit.com/r/monacoin/comments/1ujhd1/how_to_build_wallet_on_linux/
+https://stackoverflow.com/questions/10419801/undefined-reference-to-unwind-resume-and-gxx-personality-v0
+
+
+
+https://steemit.com/howto/@pxlfussel/howto-cross-compile-coins-with-mxe-or-some-other-needs
+https://coins.newbium.com/post/4117-full-instructions-for-building-a-headless-bitcoin
+

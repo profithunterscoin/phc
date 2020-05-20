@@ -6,7 +6,7 @@
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015 The Crave developers
 // Copyright (c) 2017 XUVCoin developers
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
@@ -67,7 +67,7 @@ void ProcessSpork(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
             {
                 if(fDebug)
                 {
-                    LogPrint("spork", "%s : seen %s block %d \n", __FUNCTION__, hash.ToString().c_str(), pindexBest->nHeight);
+                    LogPrint("spork", "%s : ERROR - Seen %s block %d \n", __FUNCTION__, hash.ToString().c_str(), pindexBest->nHeight);
                 }
 
                 return;
@@ -76,21 +76,21 @@ void ProcessSpork(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
             {
                 if(fDebug)
                 {
-                    LogPrint("spork", "%s : got updated spork %s block %d \n", __FUNCTION__, hash.ToString().c_str(), pindexBest->nHeight);
+                    LogPrint("spork", "%s : OK - Got updated spork %s block %d \n", __FUNCTION__, hash.ToString().c_str(), pindexBest->nHeight);
                 }
             }
         }
 
         if (fDebug)
         {
-            LogPrint("spork", "%s : new %s ID %d Time %d bestHeight %d\n", __FUNCTION__, hash.ToString().c_str(), spork.nSporkID, spork.nValue, pindexBest->nHeight);
+            LogPrint("spork", "%s : NOTICE - New %s ID %d Time %d bestHeight %d \n", __FUNCTION__, hash.ToString().c_str(), spork.nSporkID, spork.nValue, pindexBest->nHeight);
         }
 
         if(!sporkManager.CheckSignature(spork))
         {
             if (fDebug)
             {
-                LogPrint("spork", "%s : invalid signature\n", __FUNCTION__);
+                LogPrint("spork", "%s : ERROR - Invalid signature \n", __FUNCTION__);
             }
 
             Misbehaving(pfrom->GetId(), 100);
@@ -211,7 +211,7 @@ bool IsSporkActive(int nSporkID)
         {
             if (fDebug)
             {
-                LogPrint("spork", "%s : Spork %d\n", __FUNCTION__, nSporkID);
+                LogPrint("spork", "%s : OK - Spork %d \n", __FUNCTION__, nSporkID);
             }
         }
     }
@@ -321,7 +321,7 @@ int64_t GetSporkValue(int nSporkID)
         {
             if (fDebug)
             {
-                LogPrint("spork", "%s : Spork %d\n", __FUNCTION__, nSporkID);
+                LogPrint("spork", "%s : OK - Spork %d \n", __FUNCTION__, nSporkID);
             }
         }
     }
@@ -348,7 +348,7 @@ void ExecuteSpork(int nSporkID, int nValue)
                 
                 if (fDebug)
                 {
-                    LogPrint("spork", "%s : ReprocessBlocks - %s\n", __FUNCTION__, (*it).first.ToString());
+                    LogPrint("spork", "%s : OK - ReprocessBlocks - %s \n", __FUNCTION__, (*it).first.ToString());
                 }
 
                 CValidationState state;
@@ -373,7 +373,10 @@ void ExecuteSpork(int nSporkID, int nValue)
 bool CSporkManager::CheckSignature(CSporkMessage& spork)
 {
     //note: need to investigate why this is failing
-    std::string strMessage = boost::lexical_cast<std::string>(spork.nSporkID) + boost::lexical_cast<std::string>(spork.nValue) + boost::lexical_cast<std::string>(spork.nTimeSigned);
+    std::string strMessage = boost::lexical_cast<std::string>(spork.nSporkID)
+                            + boost::lexical_cast<std::string>(spork.nValue)
+                            + boost::lexical_cast<std::string>(spork.nTimeSigned);
+
     std::string strPubKey = strMainPubKey;
     
     CPubKey pubkey(ParseHex(strPubKey));
@@ -391,7 +394,9 @@ bool CSporkManager::CheckSignature(CSporkMessage& spork)
 
 bool CSporkManager::Sign(CSporkMessage& spork)
 {
-    std::string strMessage = boost::lexical_cast<std::string>(spork.nSporkID) + boost::lexical_cast<std::string>(spork.nValue) + boost::lexical_cast<std::string>(spork.nTimeSigned);
+    std::string strMessage = boost::lexical_cast<std::string>(spork.nSporkID)
+                            + boost::lexical_cast<std::string>(spork.nValue)
+                            + boost::lexical_cast<std::string>(spork.nTimeSigned);
 
     CKey key2;
     CPubKey pubkey2;
@@ -402,7 +407,7 @@ bool CSporkManager::Sign(CSporkMessage& spork)
     {
         if (fDebug)
         {
-            LogPrint("spork", "%s : ERROR: Invalid masternodeprivkey: '%s'\n", __FUNCTION__, errorMessage.c_str());
+            LogPrint("spork", "%s : ERROR - Invalid masternodeprivkey: '%s' \n", __FUNCTION__, errorMessage.c_str());
         }
 
         return false;
@@ -412,7 +417,7 @@ bool CSporkManager::Sign(CSporkMessage& spork)
     {
         if (fDebug)
         {
-            LogPrint("spork", "%s : Sign message failed", __FUNCTION__);
+            LogPrint("spork", "%s : ERROR - Sign message failed \n", __FUNCTION__);
         }
 
         return false;
@@ -422,7 +427,7 @@ bool CSporkManager::Sign(CSporkMessage& spork)
     {
         if (fDebug)
         {
-            LogPrint("spork", "%s : Verify message failed", __FUNCTION__);
+            LogPrint("spork", "%s : ERROR - Verify message failed \n", __FUNCTION__);
         }
 
         return false;
@@ -476,7 +481,7 @@ bool CSporkManager::SetPrivKey(std::string strPrivKey)
     {
         if (fDebug)
         {
-            LogPrint("spork", "%s : Successfully initialized as spork signer\n", __FUNCTION__);
+            LogPrint("spork", "%s : OK - Successfully initialized as spork signer \n", __FUNCTION__);
         }
         
         return true;

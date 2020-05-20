@@ -95,7 +95,7 @@ bool static TestParse(string src, string canon)
         return canon == "";
     }
 
-    return canon == addr.ToString();
+    return canon == addr.ToStringIPPort();
 }
 
 BOOST_AUTO_TEST_CASE(netbase_lookupnumeric)

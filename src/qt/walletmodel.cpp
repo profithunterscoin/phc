@@ -6,7 +6,7 @@
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015 The Crave developers
 // Copyright (c) 2017 XUVCoin developers
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
@@ -77,7 +77,7 @@ CAmount WalletModel::getBalance(const CCoinControl *coinControl) const
         {
             if(out.fSpendable)
             {
-                    nBalance += out.tx->vout[out.i].nValue;
+                nBalance += out.tx->vout[out.i].nValue;
             }
         }
 
@@ -173,7 +173,10 @@ void WalletModel::pollBalanceChanged()
         return;
     }
 
-    if(fForceCheckBalanceChanged || nBestHeight != cachedNumBlocks || nDarksendRounds != cachedDarksendRounds || cachedTxLocks != nCompleteTXLocks)
+    if(fForceCheckBalanceChanged
+        || nBestHeight != cachedNumBlocks
+        || nDarksendRounds != cachedDarksendRounds
+        || cachedTxLocks != nCompleteTXLocks)
     {
         fForceCheckBalanceChanged = false;
 
@@ -296,7 +299,8 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
         return AnonymizeOnlyUnlocked;
     }
 
-    QSet<QString> setAddress; // Used to detect duplicates
+    // Used to detect duplicates
+    QSet<QString> setAddress;
 
     int nAddresses = 0;
 
@@ -359,7 +363,8 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
         
         transaction.setTransactionFee(nFeeRequired);
 
-        if(recipients[0].useInstantX && newTx->GetValueOut() > GetSporkValue(SPORK_5_MAX_VALUE)*COIN)
+        if(recipients[0].useInstantX
+            && newTx->GetValueOut() > GetSporkValue(SPORK_5_MAX_VALUE)*COIN)
         {
             return IXTransactionCreationFailed;
         }
@@ -385,7 +390,7 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
         {
             if (fDebug)
             {
-                LogPrint("wallet", "%s : nFeeRequired: %d -- InsaneFee: %d\n", __FUNCTION__, nFeeRequired, insanefee);
+                LogPrint("wallet", "%s : OK - nFeeRequired: %d -- InsaneFee: %d\n", __FUNCTION__, nFeeRequired, insanefee);
             }
 
             return InsaneFee;
@@ -399,7 +404,8 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
 
 WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &transaction, const CCoinControl *coinControl)
 {
-    QByteArray transaction_array; /* store serialized transaction */
+    /* store serialized transaction */
+    QByteArray transaction_array;
     
     CAmount total = 0;
 
@@ -445,7 +451,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
                     {
                         if (fDebug)
                         {
-                            LogPrint("wallet", "%s : GenerateRandomSecret failed.\n", __FUNCTION__);
+                            LogPrint("wallet", "%s : ERROR - GenerateRandomSecret failed. \n", __FUNCTION__);
                         }
 
                         return Aborted;
@@ -455,7 +461,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
                     {
                         if (fDebug)
                         {
-                            LogPrint("wallet", "%s : Could not generate receiving public key.\n", __FUNCTION__);
+                            LogPrint("wallet", "%s : ERROR - Could not generate receiving public key. \n", __FUNCTION__);
                         }
 
                         return Aborted;
@@ -466,7 +472,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
                     {
                         if (fDebug)
                         {
-                            LogPrint("wallet", "%s : Invalid public key generated.\n", __FUNCTION__);
+                            LogPrint("wallet", "%s : ERROR - Invalid public key generated. \n", __FUNCTION__);
                         }
 
                         return Aborted;
@@ -480,7 +486,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
                     {
                         if (fDebug)
                         {
-                            LogPrint("wallet", "%s : Could not generate ephem public key.\n", __FUNCTION__);
+                            LogPrint("wallet", "%s : ERROR - Could not generate ephem public key. \n", __FUNCTION__);
                         }
 
                         return Aborted;
@@ -508,7 +514,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
                         {
                             if (fDebug)
                             {
-                                LogPrint("wallet", "%s : Narration is too long.\n",  __FUNCTION__);
+                                LogPrint("wallet", "%s : ERROR - Narration is too long. \n",  __FUNCTION__);
                             }
 
                             return NarrationTooLong;
@@ -523,7 +529,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
                         {
                             if (fDebug)
                             {
-                                LogPrint("wallet", "%s : Narration encryption failed.\n", __FUNCTION__);
+                                LogPrint("wallet", "%s : ERROR - Narration encryption failed. \n", __FUNCTION__);
                             }
 
                             return Aborted;
@@ -533,7 +539,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
                         {
                             if (fDebug)
                             {
-                                LogPrint("wallet", "%s : Encrypted narration is too long.\n", __FUNCTION__);
+                                LogPrint("wallet", "%s : ERROR - Encrypted narration is too long. \n", __FUNCTION__);
                             }
 
                             return Aborted;
@@ -556,7 +562,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
                 {
                     if (fDebug)
                     {
-                        LogPrint("wallet", "%s : Couldn't parse stealth address!\n", __FUNCTION__);
+                        LogPrint("wallet", "%s : ERROR - Couldn't parse stealth address! \n", __FUNCTION__);
                     }
 
                     return Aborted;
@@ -575,7 +581,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
                 {
                     if (fDebug)
                     {
-                        LogPrint("wallet", "%s : Narration is too long.\n", __FUNCTION__);
+                        LogPrint("wallet", "%s : Narration is too long. \n", __FUNCTION__);
                     }
 
                     return NarrationTooLong;
@@ -607,6 +613,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
         transaction.setTransactionFee(nFeeRequired);
 
         std::map<int, std::string>::iterator it;
+
         for (it = mapStealthNarr.begin(); it != mapStealthNarr.end(); ++it)
         {
             int pos = it->first;
@@ -617,15 +624,17 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
             }
 
             char key[64];
+
             if (snprintf(key, sizeof(key), "n_%u", pos) < 1)
             {
                 if (fDebug)
                 {
-                    LogPrint("wallet", "%s : Error creating narration key.", __FUNCTION__);
+                    LogPrint("wallet", "%s : ERROR - Creating narration key.", __FUNCTION__);
                 }
 
                 continue;
-            };
+            }
+
             wtx.mapValue[key] = it->second;
         }
 
@@ -638,7 +647,8 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
                 return AmountExceedsBalance;
             }
 
-            if((total + nFeeRequired) > nBalance) // FIXME: could cause collisions in the future
+            // FIXME: could cause collisions in the future
+            if((total + nFeeRequired) > nBalance)
             {
                 return SendCoinsReturn(AmountWithFeeExceedsBalance);
             }
@@ -678,7 +688,8 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
                 std::map<CTxDestination, std::string>::iterator mi = wallet->mapAddressBook.find(dest);
 
                 // Check if we have a new address or an updated label
-                if (mi == wallet->mapAddressBook.end() || mi->second != strLabel)
+                if (mi == wallet->mapAddressBook.end()
+                    || mi->second != strLabel)
                 {
                     wallet->SetAddressBookName(dest, strLabel);
                 }
@@ -687,7 +698,8 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
         emit coinsSent(wallet, rcp, transaction_array);
     }
 
-    checkBalanceChanged(); // update balance immediately, otherwise there could be a short noticeable delay until pollBalanceChanged hits
+    // update balance immediately, otherwise there could be a short noticeable delay until pollBalanceChanged hits
+    checkBalanceChanged();
 
     return SendCoinsReturn(OK);
 }
@@ -821,7 +833,14 @@ static void NotifyAddressBookChanged(WalletModel *walletmodel, CWallet *wallet, 
         QString strAddress = QString::fromStdString(CCoinAddress(address).ToString());
         QString strLabel = QString::fromStdString(label);
 
-        qDebug() << "NotifyAddressBookChanged : " + strAddress + " " + strLabel + " isMine=" + QString::number(isMine) + " status=" + QString::number(status);
+        qDebug() << "NotifyAddressBookChanged : "
+                    + strAddress
+                    + " "
+                    + strLabel
+                    + " isMine="
+                    + QString::number(isMine)
+                    + " status="
+                    + QString::number(status);
         
         QMetaObject::invokeMethod(walletmodel, "updateAddressBook", Qt::QueuedConnection,
                                 Q_ARG(QString, strAddress),
@@ -846,7 +865,10 @@ static void NotifyTransactionChanged(WalletModel *walletmodel, CWallet *wallet, 
 
     QString strHash = QString::fromStdString(hash.GetHex());
 
-    qDebug() << "NotifyTransactionChanged : " + strHash + " status= " + QString::number(status);
+    qDebug() << "NotifyTransactionChanged : "
+                + strHash
+                + " status= "
+                + QString::number(status);
 
     QMetaObject::invokeMethod(walletmodel, "updateTransaction", Qt::QueuedConnection/*,
                               Q_ARG(QString, strHash),
@@ -889,7 +911,8 @@ static void ShowProgress(WalletModel *walletmodel, const std::string &title, int
             NotifyTransactionChanged(walletmodel, NULL, vQueueNotifications[i].first, vQueueNotifications[i].second);
         }
 
-        std::vector<std::pair<uint256, ChangeType> >().swap(vQueueNotifications); // clear
+        // clear
+        std::vector<std::pair<uint256, ChangeType> >().swap(vQueueNotifications);
     }
 }
 
@@ -927,9 +950,11 @@ WalletModel::UnlockContext WalletModel::requestUnlock()
 {
     bool was_locked = getEncryptionStatus() == Locked;
 
-    if ((!was_locked) && fWalletUnlockStakingOnly && isAnonymizeOnlyUnlocked())
+    if ((!was_locked)
+        && fWalletUnlockStakingOnly && isAnonymizeOnlyUnlocked())
     {
        setWalletLocked(true);
+
        was_locked = getEncryptionStatus() == Locked;
 
     }
@@ -1004,12 +1029,12 @@ void WalletModel::getOutputs(const std::vector<COutPoint>& vOutpoints, std::vect
 // AvailableCoins + LockedCoins grouped by wallet address (put change in one group with wallet address)
 void WalletModel::listCoins(std::map<QString, std::vector<COutput> >& mapCoins) const
 {
-
     std::vector<COutput> vCoins;
 
     wallet->AvailableCoins(vCoins);
 
-    LOCK2(cs_main, wallet->cs_wallet); // ListLockedCoins, mapWallet
+    // ListLockedCoins, mapWallet
+    LOCK2(cs_main, wallet->cs_wallet);
 
     std::vector<COutPoint> vLockedCoins;
     
@@ -1032,7 +1057,8 @@ void WalletModel::listCoins(std::map<QString, std::vector<COutput> >& mapCoins) 
         
         COutput out(&wallet->mapWallet[outpoint.hash], outpoint.n, nDepth, true);
 
-        if (outpoint.n < out.tx->vout.size() && wallet->IsMine(out.tx->vout[outpoint.n]) == ISMINE_SPENDABLE)
+        if (outpoint.n < out.tx->vout.size()
+            && wallet->IsMine(out.tx->vout[outpoint.n]) == ISMINE_SPENDABLE)
         {
             vCoins.push_back(out);
         }
@@ -1054,7 +1080,8 @@ void WalletModel::listCoins(std::map<QString, std::vector<COutput> >& mapCoins) 
 
         CTxDestination address;
 
-        if(!out.fSpendable || !ExtractDestination(cout.tx->vout[cout.i].scriptPubKey, address))
+        if(!out.fSpendable
+            || !ExtractDestination(cout.tx->vout[cout.i].scriptPubKey, address))
         {
             continue;
         }

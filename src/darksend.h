@@ -6,7 +6,7 @@
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015 The Crave developers
 // Copyright (c) 2017 XUVCoin developers
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
@@ -33,28 +33,28 @@ class CDarksendBroadcastTx;
 class CActiveMasternode;
 
 // pool states for mixing
-#define POOL_STATUS_UNKNOWN                    0 // waiting for update
-#define POOL_STATUS_IDLE                       1 // waiting for update
-#define POOL_STATUS_QUEUE                      2 // waiting in a queue
-#define POOL_STATUS_ACCEPTING_ENTRIES          3 // accepting entries
-#define POOL_STATUS_FINALIZE_TRANSACTION       4 // master node will broadcast what it accepted
-#define POOL_STATUS_SIGNING                    5 // check inputs/outputs, sign final tx
-#define POOL_STATUS_TRANSMISSION               6 // transmit transaction
-#define POOL_STATUS_ERROR                      7 // error
-#define POOL_STATUS_SUCCESS                    8 // success
+#define POOL_STATUS_UNKNOWN                     0 // waiting for update
+#define POOL_STATUS_IDLE                        1 // waiting for update
+#define POOL_STATUS_QUEUE                       2 // waiting in a queue
+#define POOL_STATUS_ACCEPTING_ENTRIES           3 // accepting entries
+#define POOL_STATUS_FINALIZE_TRANSACTION        4 // master node will broadcast what it accepted
+#define POOL_STATUS_SIGNING                     5 // check inputs/outputs, sign final tx
+#define POOL_STATUS_TRANSMISSION                6 // transmit transaction
+#define POOL_STATUS_ERROR                       7 // error
+#define POOL_STATUS_SUCCESS                     8 // success
 
 // status update message constants
-#define MASTERNODE_ACCEPTED                    1
-#define MASTERNODE_REJECTED                    0
-#define MASTERNODE_RESET                       -1
+#define MASTERNODE_ACCEPTED                     1
+#define MASTERNODE_REJECTED                     0
+#define MASTERNODE_RESET                        -1
 
-#define DARKSEND_QUEUE_TIMEOUT                 30
-#define DARKSEND_SIGNING_TIMEOUT               15
+#define DARKSEND_QUEUE_TIMEOUT                  30
+#define DARKSEND_SIGNING_TIMEOUT                15
 
 // used for anonymous relaying of inputs/outputs/sigs
-#define DARKSEND_RELAY_IN                 1
-#define DARKSEND_RELAY_OUT                2
-#define DARKSEND_RELAY_SIG                3
+#define DARKSEND_RELAY_IN                       1
+#define DARKSEND_RELAY_OUT                      2
+#define DARKSEND_RELAY_SIG                      3
 
 extern CDarksendPool darkSendPool;
 extern CDarkSendSigner darkSendSigner;
@@ -69,9 +69,11 @@ class CTxDSIn : public CTxIn
 {
     public:
 
-        bool fHasSig; // flag to indicate if signed
+        // flag to indicate if signed
+        bool fHasSig;
         
-        int nSentTimes; //times we've sent this anonymously
+        //times we've sent this anonymously
+        int nSentTimes;
 
         CTxDSIn(const CTxIn& in)
         {
@@ -91,7 +93,8 @@ class CTxDSOut : public CTxOut
 {
     public:
 
-        int nSentTimes; //times we've sent this anonymously
+        //times we've sent this anonymously
+        int nSentTimes;
 
         CTxDSOut(const CTxOut& out)
         {
@@ -114,7 +117,9 @@ class CDarkSendEntry
         int64_t amount;
         CTransaction collateral;
         CTransaction txSupporting;
-        int64_t addedTime; // time in UTC milliseconds
+
+        // time in UTC milliseconds
+        int64_t addedTime;
 
         CDarkSendEntry()
         {
@@ -153,7 +158,8 @@ class CDarkSendEntry
         {
             for(CTxDSIn& s: sev)
             {
-                if(s.prevout == vin.prevout && s.nSequence == vin.nSequence)
+                if(s.prevout == vin.prevout
+                    && s.nSequence == vin.nSequence)
                 {
                     if(s.fHasSig)
                     {
@@ -173,7 +179,8 @@ class CDarkSendEntry
 
         bool IsExpired()
         {
-            return (GetTime() - addedTime) > DARKSEND_QUEUE_TIMEOUT;// 120 seconds
+            // 120 seconds
+            return (GetTime() - addedTime) > DARKSEND_QUEUE_TIMEOUT;
         }
 };
 
@@ -190,7 +197,9 @@ class CDarksendQueue
         int64_t time;
         int nDenom;
         
-        bool ready; //ready for submit
+        //ready for submit
+        bool ready;
+
         std::vector<unsigned char> vchSig;
 
         CDarksendQueue()
@@ -304,12 +313,18 @@ class CDarksendPool
 
         mutable CCriticalSection cs_darksend;
 
-        std::vector<CDarkSendEntry> entries; // Masternode entries
-        CTransaction finalTransaction; // the finalized transaction ready for signing
+        // Masternode entries
+        std::vector<CDarkSendEntry> entries;
 
-        int64_t lastTimeChanged; // last time the 'state' changed, in UTC milliseconds
+        // the finalized transaction ready for signing
+        CTransaction finalTransaction;
 
-        unsigned int state; // should be one of the POOL_STATUS_XXX values
+        // last time the 'state' changed, in UTC milliseconds
+        int64_t lastTimeChanged;
+
+        // should be one of the POOL_STATUS_XXX values
+        unsigned int state;
+
         unsigned int entriesCount;
         unsigned int lastEntryAccepted;
         unsigned int countEntriesAccepted;
@@ -321,13 +336,19 @@ class CDarksendPool
 
         int sessionID;
 
-        int sessionUsers; //N Users have said they'll join
-        bool sessionFoundMasternode; //If we've found a compatible Masternode
+        //N Users have said they'll join
+        int sessionUsers;
+
+        //If we've found a compatible Masternode
+        bool sessionFoundMasternode;
+
         std::vector<CTransaction> vecSessionCollateral;
 
         int cachedLastSuccess;
 
-        int minBlockSpacing; //required blocks between mixes
+        //required blocks between mixes
+        int minBlockSpacing;
+
         CTransaction txCollateral;
 
         int64_t lastNewBlock;
@@ -368,9 +389,11 @@ class CDarksendPool
 
         CMasternode* pSubmittedToMasternode;
 
-        int sessionDenom; //Users must submit an denom matching this
+        //Users must submit an denom matching this
+        int sessionDenom;
 
-        int cachedNumBlocks; //used for the overview screen
+        //used for the overview screen
+        int cachedNumBlocks;
 
         CDarksendPool()
         {
@@ -456,7 +479,7 @@ class CDarksendPool
             {
                 if (fDebug)
                 {
-                    LogPrint("darksend", "%s : Can't set state to ERROR or SUCCESS as a Masternode. \n", __FUNCTION__);
+                    LogPrint("darksend", "%s : ERROR - Can't set state properly as a Masternode. \n", __FUNCTION__);
                 }
 
                 return;
@@ -464,7 +487,7 @@ class CDarksendPool
 
             if (fDebug)
             {
-                LogPrint("darksend", "%s : == %d | %d \n", __FUNCTION__, state, newState);
+                LogPrint("darksend", "%s : OK - Masternode state = %d | %d \n", __FUNCTION__, state, newState);
             }
 
             if(state != newState)
@@ -561,8 +584,10 @@ class CDarksendPool
 
         void GetDenominationsToString(int nDenom, std::string& strDenom);
 
-        /// Get the denominations for a specific amount of tx.
-        int GetDenominationsByAmount(int64_t nAmount, int nDenomTarget=0); // is not used anymore?
+        /// Get the denominations for a specific amount of tx. is not used anymore?
+        int GetDenominationsByAmount(int64_t nAmount, int nDenomTarget=0); 
+
+        /// Get the denominations for many specific amount of txs.
         int GetDenominationsByAmounts(std::vector<int64_t>& vecAmount);
 
         std::string GetMessageByID(int messageID);

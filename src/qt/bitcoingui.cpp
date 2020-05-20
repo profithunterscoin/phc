@@ -7,7 +7,7 @@
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015 The Crave developers
 // Copyright (c) 2017 XUVCoin developers
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
@@ -268,29 +268,203 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 
 							"QPushButton"
 							"{"
-							"	color:#000000;"
-							"	border-radius:5px;"
-							"	border:solid 1px #E5D738;"
-							"	background:#E5D738;"
-							"	padding:3px 30px;"
+							"	color: #000000;"
+							"	border-radius: 5px;"
+							"	border: solid 1px #E5D738;"
+							"	background-color: #A4D300;"
+							"	padding: 3px 30px;"
 							"}"
 
 							"QPushButton:hover"
 							"{"
-							"	background-color: #E5D738;"
 							"	color: #000000;"
-							"}"
-
-							"QPushButton:focus"
-							"{"
-							"	border:none;"
-							"	outline:none;"
+							"	background-color: #FFF700;"
 							"}"
 
 							"QPushButton:pressed"
 							"{"
-							"	background-color: #E5D738;"
 							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"
+
+							"QPushButton#runAutoDenom"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#runAutoDenom:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#runAutoDenom:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"
+
+							"QPushButton#darksendAuto"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#darksendAuto:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#darksendAuto:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"
+
+							"QPushButton#toggleDarksend"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#toggleDarksend:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#toggleDarksend:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"
+
+							"QPushButton#darksendReset"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#darksendReset:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#darksendReset:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"
+
+							"QPushButton#openDebugLogfileButton"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#openDebugLogfileButton:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#openDebugLogfileButton:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"
+
+							"QPushButton#openDebugLogfileButton"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#openDebugLogfileButton:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#openDebugLogfileButton:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"
+
+							"QPushButton#openConfigfileButton"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#openConfigfileButton:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#openConfigfileButton:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"
+
+							"QPushButton#openMNConfigfileButton"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#openMNConfigfileButton:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#openMNConfigfileButton:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"
+
+							"QPushButton#showCLOptionsButton"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#showCLOptionsButton:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#showCLOptionsButton:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"
+
+							"QPushButton#btnClearTrafficGraph"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#btnClearTrafficGraph:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#btnClearTrafficGraph:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
 							"}"
 
 							"QMenuBar"
@@ -343,6 +517,30 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 							"}"
 
 							"QTextEdit#messagesWidget"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"}"
+
+							"QTabWidget::tab::selected"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QTabWidget"
+							"{"
+							"	color: #A4D300;"
+							"	background-color: #000000;"
+							"}"
+
+							"QWidget::tab::selected"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QWidget"
 							"{"
 							"	color: #A4D300;"
 							"	background-color: #000000;"
@@ -1055,6 +1253,14 @@ void BitcoinGUI::createMenuBar()
 	wallet->addAction(importPrivateKeyAction);
 	wallet->addAction(exportAction);
 
+	QMenu *staking = appMenuBar->addMenu(tr("&Staking"));
+	staking->addAction(setstakingTRUEAction);
+	staking->addAction(setstakingFALSEAction);
+
+	QMenu *mining = appMenuBar->addMenu(tr("&Mining"));
+	mining->addAction(setgenerateTRUEAction);
+	mining->addAction(setgenerateFALSEAction);
+	//mining->addAction(setgenproclimitAction);
 
 	QMenu *tools = appMenuBar->addMenu(tr("&Tools"));
 	tools->addAction(optionsAction);
@@ -1068,15 +1274,6 @@ void BitcoinGUI::createMenuBar()
 	tools->addAction(openConfigFileAction);
 	tools->addAction(openMasternodeConfigFileAction);
 	tools->addAction(openDebugFileAction);
-
-	QMenu *staking = appMenuBar->addMenu(tr("&Staking"));
-	staking->addAction(setstakingTRUEAction);
-	staking->addAction(setstakingFALSEAction);
-
-	QMenu *mining = appMenuBar->addMenu(tr("&Mining"));
-	mining->addAction(setgenerateTRUEAction);
-	mining->addAction(setgenerateFALSEAction);
-	//mining->addAction(setgenproclimitAction);
 
 	QMenu *help = appMenuBar->addMenu(tr("&Help"));
 	help->addAction(aboutAction);
@@ -2164,21 +2361,23 @@ void BitcoinGUI::updateStakingIcon()
 		{
 			labelStakingIcon->setToolTip(tr("Not staking because wallet is syncing"));
 		}
-		/*
 		else if (pindexBest->GetBlockTime() < GetTime() - 10 * 60)
 		{
 			labelStakingIcon->setToolTip(tr("Not staking, waiting for full syncronization"));
 		}
-		*/
 		else if (!nWeight)
 		{
 			labelStakingIcon->setToolTip(tr("Not staking because you don't have mature coins"));
 		}
-        else if (nLastCoinStakeSearchInterval == 0 && GetBoolArg("-staking", true) == true)
+        else if (nLastCoinStakeSearchInterval == 0 && GetBoolArg("-staking", true) == true && pwalletMain->GetStake() > 0)
 		{
-			labelStakingIcon->setToolTip(tr("Not staking, CoinStakeSearchInterval = 0, Staking = enabled."));
+			labelStakingIcon->setToolTip(tr("Not staking, waiting to unlock coins..."));
 		}
-        else if (GetBoolArg("-staking", true) == true)
+        else if (GetBoolArg("-staking", true) == true && nLastCoinStakeSearchInterval == 0)
+		{
+			labelStakingIcon->setToolTip(tr("Not staking, waiting to sign a block."));
+		}
+		else if (GetBoolArg("-staking", true) == true)
 		{
 			labelStakingIcon->setToolTip(tr("Not staking, unknown error."));
 		}

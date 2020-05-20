@@ -8,7 +8,7 @@
 // Copyright (c) 2017 XUVCoin developers
 // Copyright (C) 2017-2018 Crypostle Core developers
 // Copyright (c) 2015-2018 The PIVX developers
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
@@ -28,21 +28,33 @@
 
 using namespace std;
 
-bool fDebugConsoleOutputMining = false;
-
 bool fGenerating;
 int GenerateProcLimit;
 
 bool fStaking;
 
+extern unsigned int nMinerSleep;
+
+static const unsigned int pSHA256InitState[8] = {0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19};
+
+// We want to sort transactions by priority and fee, so:
+typedef boost::tuple<double, double, CTransaction*> TxPriority;
+
+uint64_t nLastBlockTx = 0;
+uint64_t nLastBlockSize = 0;
+int64_t nLastCoinStakeSearchInterval = 0;
+
+// LogCache for Miner
 std::string MinerLogCache;
+
+// Log for InternalStakeMiner
+int LastBlockStake;
+int LastBlockStakeTime;
 
 //////////////////////////////////////////////////////////////////////////////
 //
 // Miner Functions
 //
-
-extern unsigned int nMinerSleep;
 
 int static FormatHashBlocks(void* pbuffer, unsigned int len)
 {
@@ -63,9 +75,6 @@ int static FormatHashBlocks(void* pbuffer, unsigned int len)
 
     return blocks;
 }
-
-
-static const unsigned int pSHA256InitState[8] = {0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19};
 
 
 void SHA256Transform(void* pstate, void* pinput, const void* pinit)
@@ -115,12 +124,6 @@ class COrphan
 };
 
 
-uint64_t nLastBlockTx = 0;
-uint64_t nLastBlockSize = 0;
-int64_t nLastCoinStakeSearchInterval = 0;
-
-// We want to sort transactions by priority and fee, so:
-typedef boost::tuple<double, double, CTransaction*> TxPriority;
 class TxPriorityCompare
 {
     bool byFee;
@@ -156,20 +159,11 @@ class TxPriorityCompare
 
 CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
 {
-    if (!IsInitialBlockDownload() && !fReindex && !fImporting)
+    if (IsInitialBlockDownload()
+        || fReindex
+        || fImporting)
     {
-        if (Consensus::ChainShield::Enabled == true && Consensus::ChainBuddy::Enabled == true)
-        {
-            if (Consensus::ChainBuddy::WalletHasConsensus() == false)
-            {
-                Consensus::ChainShield::Protect();
-            }
-
-            if (Consensus::ChainShield::DisableNewBlocks == true)
-            {
-                return NULL;
-            }
-        }
+        return NULL;
     }
 
     int64_t pFees = 0;
@@ -258,7 +252,9 @@ CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
         {
             CTransaction& tx = (*mi).second;
 
-            if (tx.IsCoinBase() || tx.IsCoinStake() || !IsFinalTx(tx, nHeight))
+            if (tx.IsCoinBase()
+                || tx.IsCoinStake()
+                || !IsFinalTx(tx, nHeight))
             {
                 continue;
             }
@@ -285,7 +281,7 @@ CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
                     {
                         if (fDebug)
                         {
-                            LogPrint("mempool", "%s : ERROR: mempool transaction missing input\n", __FUNCTION__);
+                            LogPrint("mempool", "%s : ERROR - Mempool transaction missing input \n", __FUNCTION__);
                         }
 
                         fMissingInputs = true;
@@ -368,6 +364,7 @@ CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
 
             // Size limits
             unsigned int nTxSize = ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
+
             if (nBlockSize + nTxSize >= nBlockMaxSize)
             {
                 continue;
@@ -382,20 +379,25 @@ CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
             }
 
             // Timestamp limit
-            if (tx.nTime > GetAdjustedTime() || (false && tx.nTime > pblock->vtx[0].nTime))
+            if (tx.nTime > GetAdjustedTime()
+                || (false && tx.nTime > pblock->vtx[0].nTime))
             {
                 continue;
             }
 
             // Skip free transactions if we're past the minimum block size:
-            if (fSortedByFee && (dFeePerKb < nMinTxFee) && (nBlockSize + nTxSize >= nBlockMinSize))
+            if (fSortedByFee
+                && (dFeePerKb < nMinTxFee)
+                && (nBlockSize + nTxSize >= nBlockMinSize))
             {
                 continue;
             }
 
             // Prioritize by fee once past the priority size or we run out of high-priority
             // transactions:
-            if (!fSortedByFee && ((nBlockSize + nTxSize >= nBlockPrioritySize) || (dPriority < COIN * 144 / 250)))
+            if (!fSortedByFee
+                && ((nBlockSize + nTxSize >= nBlockPrioritySize)
+                || (dPriority < COIN * 144 / 250)))
             {
                 fSortedByFee = true;
                 comparer = TxPriorityCompare(fSortedByFee);
@@ -444,11 +446,12 @@ CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
 
             if (fDebug && GetBoolArg("-printpriority", false))
             {
-                LogPrint("miner", "%s : priority %.1f feeperkb %.1f txid %s\n", __FUNCTION__, dPriority, dFeePerKb, tx.GetHash().ToString());
+                LogPrint("miner", "%s : NOTICE - Priority %.1f feeperkb %.1f txid %s \n", __FUNCTION__, dPriority, dFeePerKb, tx.GetHash().ToString());
             }
 
             // Add transactions that depend on this one to the priority queue
             uint256 hash = tx.GetHash();
+
             if (mapDependers.count(hash))
             {
                 for(COrphan* porphan: mapDependers[hash])
@@ -456,9 +459,11 @@ CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
                     if (!porphan->setDependsOn.empty())
                     {
                         porphan->setDependsOn.erase(hash);
+
                         if (porphan->setDependsOn.empty())
                         {
                             vecPriority.push_back(TxPriority(porphan->dPriority, porphan->dFeePerKb, porphan->ptx));
+
                             std::push_heap(vecPriority.begin(), vecPriority.end(), comparer);
                         }
                     }
@@ -471,7 +476,7 @@ CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
 
         if (fDebug && GetBoolArg("-printpriority", false))
         {
-            LogPrint("miner", "%s : total size %u\n", __FUNCTION__, nBlockSize);
+            LogPrint("miner", "%s : NOTICE - Total size %u \n", __FUNCTION__, nBlockSize);
         }
         
         // >PHC< POW
@@ -502,20 +507,11 @@ CBlock* CreateNewBlockWithKey(CReserveKey& reservekey, CWallet *pwallet)
 // CreateNewBlock: create new block (without proof-of-work/proof-of-stake)
 CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFees)
 {
-    if (!IsInitialBlockDownload() && !fReindex && !fImporting)
+    if (IsInitialBlockDownload()
+        || fReindex
+        || fImporting)
     {
-        if (Consensus::ChainShield::Enabled == true && Consensus::ChainBuddy::Enabled == true)
-        {
-            if (Consensus::ChainBuddy::WalletHasConsensus() == false)
-            {
-                Consensus::ChainShield::Protect();
-            }
-
-            if (Consensus::ChainShield::DisableNewBlocks == true)
-            {
-                return NULL;
-            }
-        }
+        return NULL;
     }
 
     // Create new block
@@ -538,6 +534,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
     if (!fProofOfStake)
     {
         CPubKey pubkey;
+
         if (!reservekey.GetReservedKey(pubkey))
         {
             return NULL;
@@ -554,7 +551,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
         {
             if (fDebug)
             {
-                LogPrint("miner", "%s : VIN ScriptSig Size Invalid: %d\n", __FUNCTION__, pblock->vtx[0].vin[0].scriptSig.size());
+                LogPrint("miner", "%s : ERROR - VIN ScriptSig Size Invalid: %d \n", __FUNCTION__, pblock->vtx[0].vin[0].scriptSig.size());
             }
 
             return NULL;
@@ -607,7 +604,9 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
 
         //>PHC<
         // Priority order to process transactions
-        list<COrphan> vOrphan; // list memory doesn't move
+
+        // list memory doesn't move
+        list<COrphan> vOrphan;
         map<uint256, vector<COrphan*> > mapDependers;
 
         // This vector will be sorted into a priority queue:
@@ -618,7 +617,9 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
         {
             CTransaction& tx = (*mi).second;
 
-            if (tx.IsCoinBase() || tx.IsCoinStake() || !IsFinalTx(tx, nHeight))
+            if (tx.IsCoinBase()
+                || tx.IsCoinStake()
+                || !IsFinalTx(tx, nHeight))
             {
                 continue;
             }
@@ -645,7 +646,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
                     {
                         if (fDebug)
                         {
-                            LogPrint("mempool", "%s : ERROR: mempool transaction missing input\n", __FUNCTION__);
+                            LogPrint("mempool", "%s : ERROR - Mempool transaction missing input \n", __FUNCTION__);
                         }
 
                         fMissingInputs = true;
@@ -743,20 +744,24 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
             }
 
             // Timestamp limit
-            if (tx.nTime > GetAdjustedTime() || (fProofOfStake && tx.nTime > pblock->vtx[0].nTime))
+            if (tx.nTime > GetAdjustedTime()
+                || (fProofOfStake && tx.nTime > pblock->vtx[0].nTime))
             {
                 continue;
             }
 
             // Skip free transactions if we're past the minimum block size:
-            if (fSortedByFee && (dFeePerKb < nMinTxFee) && (nBlockSize + nTxSize >= nBlockMinSize))
+            if (fSortedByFee
+                && (dFeePerKb < nMinTxFee)
+                && (nBlockSize + nTxSize >= nBlockMinSize))
             {
                 continue;
             }
 
             // Prioritize by fee once past the priority size or we run out of high-priority
             // transactions:
-            if (!fSortedByFee && ((nBlockSize + nTxSize >= nBlockPrioritySize) || (dPriority < COIN * 144 / 250)))
+            if (!fSortedByFee && ((nBlockSize + nTxSize >= nBlockPrioritySize)
+                || (dPriority < COIN * 144 / 250)))
             {
                 fSortedByFee = true;
                 comparer = TxPriorityCompare(fSortedByFee);
@@ -794,6 +799,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
             }
 
             mapTestPoolTmp[tx.GetHash()] = CTxIndex(CDiskTxPos(1,1,1), tx.vout.size());
+
             swap(mapTestPool, mapTestPoolTmp);
 
             // Added
@@ -804,9 +810,10 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
             nBlockSigOps += nTxSigOps;
             nFees += nTxFees;
 
-            if (fDebug && GetBoolArg("-printpriority", false))
+            if (fDebug
+                && GetBoolArg("-printpriority", false))
             {
-                LogPrint("miner", "%s : priority %.1f feeperkb %.1f txid %s\n", __FUNCTION__, dPriority, dFeePerKb, tx.GetHash().ToString());
+                LogPrint("miner", "%s : NOTICE - Priority %.1f feeperkb %.1f txid %s \n", __FUNCTION__, dPriority, dFeePerKb, tx.GetHash().ToString());
             }
 
             // Add transactions that depend on this one to the priority queue
@@ -836,7 +843,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
 
         if (fDebug && GetBoolArg("-printpriority", false))
         {
-            LogPrint("miner", "%s : total size %u\n", __FUNCTION__, nBlockSize);
+            LogPrint("miner", "%s : NOTICE - Total size %u\n", __FUNCTION__, nBlockSize);
         }
         
         // >PHC<
@@ -889,7 +896,7 @@ void IncrementExtraNonce(CBlock* pblock, CBlockIndex* pindexPrev, unsigned int& 
     {
         if (fDebug)
         {
-            LogPrint("miner", "%s : VIN ScriptSig Size Invalid: %d\n", __FUNCTION__, pblock->vtx[0].vin[0].scriptSig.size());
+            LogPrint("miner", "%s : ERROR - VIN ScriptSig Size Invalid: %d \n", __FUNCTION__, pblock->vtx[0].vin[0].scriptSig.size());
         }
 
         return;
@@ -959,21 +966,21 @@ bool ProcessBlockStake(CBlock* pblock, CWallet& wallet)
 
     if(!pblock->IsProofOfStake())
     {
-        return error("%s : %s is not a proof-of-stake block", __FUNCTION__, hashBlock.GetHex());
+        return error("%s : ERROR - %s is not a proof-of-stake block", __FUNCTION__, hashBlock.GetHex());
     }
 
     // verify hash target and signature of coinstake tx
     if (!CheckProofOfStake(mapBlockIndex[pblock->hashPrevBlock], pblock->vtx[1], pblock->nBits, proofHash, hashTarget))
     {
-        return error("%s : proof-of-stake checking failed", __FUNCTION__);
+        return error("%s : ERROR - Proof-of-stake checking failed", __FUNCTION__);
     }
 
     if (fDebug)
     {
         //// debug print
-        LogPrint("coinstake", "%s : new proof-of-stake block found  \n  hash: %s \nproofhash: %s  \ntarget: %s\n", __FUNCTION__, hashBlock.GetHex(), proofHash.GetHex(), hashTarget.GetHex());
-        LogPrint("coinstake", "%s : %s\n", __FUNCTION__, pblock->ToString());
-        LogPrint("coinstake", "%s : out %s\n", __FUNCTION__, FormatMoney(pblock->vtx[1].GetValueOut()));
+        LogPrint("coinstake", "%s : WARNING - New proof-of-stake block found \n hash: %s \n proofhash: %s  \n target: %s \n", __FUNCTION__, hashBlock.GetHex(), proofHash.GetHex(), hashTarget.GetHex());
+        LogPrint("coinstake", "%s : WARNING - %s \n", __FUNCTION__, pblock->ToString());
+        LogPrint("coinstake", "%s : WARNING - Out %s \n", __FUNCTION__, FormatMoney(pblock->vtx[1].GetValueOut()));
     }
 
     // Global Namespace Start
@@ -984,7 +991,7 @@ bool ProcessBlockStake(CBlock* pblock, CWallet& wallet)
 
         if (pblock->hashPrevBlock != hashBestChain)
         {
-            return error("%s : generated block is stale", __FUNCTION__);
+            return error("%s : ERROR - Generated block is stale", __FUNCTION__);
         }
 
         // Global Namespace Start
@@ -999,7 +1006,7 @@ bool ProcessBlockStake(CBlock* pblock, CWallet& wallet)
         // Process this block the same as if we had received it from another node
         if (!ProcessBlock(NULL, pblock))
         {
-            return error("%s : ProcessBlock, block not accepted", __FUNCTION__);
+            return error("%s : ERROR - Block not accepted", __FUNCTION__);
         }
         else
         {
@@ -1007,13 +1014,14 @@ bool ProcessBlockStake(CBlock* pblock, CWallet& wallet)
             int nMismatchSpent;
 
             CAmount nBalanceInQuestion;
+
             wallet.FixSpentCoins(nMismatchSpent, nBalanceInQuestion);
 
             if (nMismatchSpent != 0)
             {
                 if (fDebug)
                 {
-                    LogPrint("coinstake", "%s : PoS mismatched spent coins = %d and balance affects = %d \n", __FUNCTION__, nMismatchSpent, nBalanceInQuestion);
+                    LogPrint("coinstake", "%s : NOTICE - PoS mismatched spent coins = %d and balance affects = %d \n", __FUNCTION__, nMismatchSpent, nBalanceInQuestion);
                 }
             }
         }
@@ -1035,80 +1043,115 @@ void ThreadStakeMiner(CWallet *pwallet)
 
     unsigned int nExtraNonce = 0;
 
-    bool fTryToSync = true;
-
-    int LastStakeEarned = 0;
 
     while (fStaking == true)
     {
-        while (pwallet->IsLocked())
+        if (!IsInitialBlockDownload()
+            && !fReindex
+            && !fImporting)
+        {
+            if (Consensus::ChainShield::Enabled == true
+                && Consensus::ChainBuddy::Enabled == true)
+            {
+                if (Consensus::ChainBuddy::WalletHasConsensus() == false)
+                {
+                    Consensus::ChainShield::Protect();
+                }
+
+                if (Consensus::ChainShield::DisableNewBlocks == true)
+                {
+                    nLastCoinStakeSearchInterval = 0;
+
+                    if (fDebug)
+                    {
+                        LogPrint("coinstake", "%s : ERROR - ChainShield disabled blocks \n", __FUNCTION__);
+                    }
+
+                    MilliSleep(nMinerSleep * 100);
+
+                    // Skip tryng to stake this round
+                    continue;
+                }
+            }
+        }
+        
+        // No less than 10 masternodes in list allowed for staking
+        if (mnodeman.size() < 10
+            && TestNet() == false)
         {
             nLastCoinStakeSearchInterval = 0;
 
-            boost::this_thread::sleep_for(boost::chrono::seconds(5));
+            if (fDebug)
+            {
+                LogPrint("coinstake", "%s : ERROR - Minimum masternodes less than 10 \n", __FUNCTION__);
+            }
+
+            MilliSleep(nMinerSleep * 100);
+
+            // Skip tryng to stake this round
+            continue;
         }
 
-        while (vNodes.empty() || IsInitialBlockDownload())
+        // Wait for another block from network to continue staking (max 5 minutes)
+        if (pindexBest->nHeight == LastBlockStake
+            || pindexBest->nHeight-1 == LastBlockStake)
+        {
+            if (LastBlockStakeTime > 0
+                && GetTime() - LastBlockStakeTime < 5 * 60)
+            {
+                nLastCoinStakeSearchInterval = 0;
+
+                // Force asking all other peers for new blocks
+                CChain::ForceSync(NULL, pindexBest->pprev->pprev->GetBlockHash());
+
+                if (fDebug)
+                {
+                    LogPrint("coinstake", "%s : ERROR - Generating Stake Blocks too quickly, waiting... \n", __FUNCTION__);
+                }
+
+                MilliSleep(nMinerSleep * 100);
+
+                // Skip tryng to stake this round
+                continue;
+            }
+        }
+
+        if (pwallet->IsLocked() == true
+                || pwallet->GetStake() > 0)
         {
             nLastCoinStakeSearchInterval = 0;
-            
-            fTryToSync = true;
-            
-            boost::this_thread::sleep_for(boost::chrono::seconds(5));
-        }
 
-        if (fTryToSync)
-        {
-            fTryToSync = false;
-
-            if (vNodes.size() < 8)
+            if (fDebug)
             {
-                boost::this_thread::sleep_for(boost::chrono::seconds(60));
-            
-                continue;
+                LogPrint("coinstake", "%s : ERROR - Coins are locked or currently staking \n", __FUNCTION__);
             }
-        }
 
-        if (mnodeman.size() < 20)
-        {
-            boost::this_thread::sleep_for(boost::chrono::seconds(5));
+            MilliSleep(nMinerSleep * 100);
 
+            // Skip tryng to stake this round
             continue;
         }
 
-        // Don't even try unless fully synced
-        if (pindexBest->GetBlockTime() < GetTime() - 10 * 60)
+        if (vNodes.empty() == true
+                || IsInitialBlockDownload()
+                || vNodes.size() < 8)
         {
-            boost::this_thread::sleep_for(boost::chrono::seconds(5));
+            nLastCoinStakeSearchInterval = 0;
 
+            if (fDebug)
+            {
+                LogPrint("coinstake", "%s : ERROR - Wallet is not synced \n", __FUNCTION__);
+            }
+
+            MilliSleep(nMinerSleep * 100);
+
+            // Skip tryng to stake this round
             continue;
         }
 
-        // HardFork 2 Activate strict PoS rules
-        if (pindexBest->nHeight >= Params().GetHardFork_2())
+        if (fDebug)
         {
-            // Try to be on target (60 seconds per block)
-            if (GetTime() - pindexBest->GetBlockTime() < 58)
-            {
-                boost::this_thread::sleep_for(boost::chrono::seconds(5));
-
-                continue;
-            }
-
-            //Wait for PoW block (TO REVIEW for Hard Fork 2)
-            if (pindexBest->IsProofOfStake())
-            {
-                boost::this_thread::sleep_for(boost::chrono::seconds(5));
-
-                continue;
-            }
-
-            if (GetTime() - LastStakeEarned < 2 * 60)
-            {
-                boost::this_thread::sleep_for(boost::chrono::seconds(5));
-
-                continue;
-            }
+            LogPrint("coinstake", "%s : NOTICE - Attempting to create new PoS block \n", __FUNCTION__);
         }
 
         LOCK(cs_main);
@@ -1122,32 +1165,73 @@ void ThreadStakeMiner(CWallet *pwallet)
 
         if (!pblock.get())
         {
+            if (fDebug)
+            {
+                LogPrint("coinstake", "%s : ERROR - FAILED creating a PoS block \n", __FUNCTION__);
+            }
+
             return;
         }
 
-        if (pindexBest->nHeight >= Params().GetHardFork_2())
+        // PIP7 - Activate IncrementExtraNonce
+        if (pindexBest->nHeight >= Params().PIP7_Height())
         {
             IncrementExtraNonce(pblock.get(), pindexBest, nExtraNonce);
+        }
+
+        if (fDebug)
+        {
+            LogPrint("coinstake", "%s : NOTICE - Trying to sign new PoS block \n", __FUNCTION__);
         }
 
         // Trying to sign a block
         if (pblock->SignBlock(*pwallet, nFees))
         {
+            // Set Thread Priority to Normal
             Set_ThreadPriority(THREAD_PRIORITY_NORMAL);
 
-            ProcessBlockStake(pblock.get(), *pwallet);
-            
-            LastStakeEarned = GetTime();
-            
+            // Process the pblock (Attempt to accept)
+            if (ProcessBlockStake(pblock.get(), *pwallet) == true)
+            {
+                // LastStakeEarned (Block Number)
+                LastBlockStake = pindexBest->nHeight;
+                LastBlockStakeTime = GetTime();
+
+                // Broadcast Block to connected peers
+                CChain::BlockBroadCast(pblock.get());
+
+                if (fDebug)
+                {
+                    LogPrint("coinstake", "%s : OK - New PoS block ACCEPTED: %s @ %d \n", __FUNCTION__,  pblock->GetHash().ToString().c_str(), LastBlockStake);
+                }
+
+                MilliSleep(500);
+
+                // Force asking all other peers for new blocks
+                CChain::ForceSync(NULL, pindexBest->pprev->pprev->GetBlockHash());
+
+                MilliSleep(500);
+            }
+            else
+            {
+                if (fDebug)
+                {
+                    LogPrint("coinstake", "%s : ERROR - New PoS block REJECTED: %s @ %d \n", __FUNCTION__, pblock->GetHash().ToString().c_str(), LastBlockStake);
+                }
+            }
+
+            // Set Thread Priority to Lowest
             Set_ThreadPriority(THREAD_PRIORITY_LOWEST);
-            
-            boost::this_thread::sleep_for(boost::chrono::milliseconds(500));
         }
         else
         {
-            boost::this_thread::sleep_for(boost::chrono::milliseconds(nMinerSleep));
+            if (fDebug)
+            {
+                LogPrint("coinstake", "%s : ERROR - New PoS block signing failed \n", __FUNCTION__);
+            }
         }
-
+        
+        MilliSleep(nMinerSleep);
     }
 }
 
@@ -1167,20 +1251,20 @@ bool ProcessBlockFound(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
 
     if(!pblock->IsProofOfWork())
     {
-        return error("%s : %s is not a proof-of-work block", __FUNCTION__, hashBlock.GetHex());
+        return error("%s : ERROR - %s is not a proof-of-work block", __FUNCTION__, hashBlock.GetHex());
     }
 
     if (hashProof > hashTarget)
     {
-        return error("%s : proof-of-work not meeting target", __FUNCTION__);
+        return error("%s : ERROR - Proof-of-work not meeting target", __FUNCTION__);
     }
 
     if (fDebug)
     {
         //// debug print
-        LogPrint("miner", "%s : new proof-of-work block found  \n  proof hash: %s  \ntarget: %s\n",  __FUNCTION__, hashProof.GetHex(), hashTarget.GetHex());
-        LogPrint("miner", "%s : %s\n", __FUNCTION__, pblock->ToString());
-        LogPrint("miner", "%s : generated %s\n", __FUNCTION__, FormatMoney(pblock->vtx[0].vout[0].nValue));
+        LogPrint("miner", "%s : NOTICE - New proof-of-work block found  \n  proof hash: %s  \ntarget: %s \n",  __FUNCTION__, hashProof.GetHex(), hashTarget.GetHex());
+        LogPrint("miner", "%s : NOTICE - %s \n", __FUNCTION__, pblock->ToString());
+        LogPrint("miner", "%s : NOTICE - generated %s \n", __FUNCTION__, FormatMoney(pblock->vtx[0].vout[0].nValue));
     }
 
     // Global Namespace Start
@@ -1191,7 +1275,7 @@ bool ProcessBlockFound(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
 
         if (pblock->hashPrevBlock != hashBestChain)
         {
-            return error("%s : generated block is stale", __FUNCTION__);
+            return error("%s : ERROR - Generated block is stale", __FUNCTION__);
         }
 
         // Remove key from key pool
@@ -1210,7 +1294,7 @@ bool ProcessBlockFound(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
         // Process this block the same as if we had received it from another node
         if (!ProcessBlock(NULL, pblock))
         {
-            return error("%s : ProcessBlock, block not accepted", __FUNCTION__);
+            return error("%s : ERROR - ProcessBlock, block not accepted", __FUNCTION__);
         }
     }
     // Global Namespace End
@@ -1222,11 +1306,9 @@ void static InternalcoinMiner(CWallet *pwallet)
 {
     std::string TempMinerLogCache;
 
-    printf("PHC-PoW-Miner - Started!\n");
-
     if (fDebug)
     {
-        LogPrint("miner", "%s : PHC-PoW-Miner - Started!\n", __FUNCTION__);
+        LogPrint("miner", "%s : NOTICE - PoW-Miner - Started! \n", __FUNCTION__);
     }
 
     Set_ThreadPriority(THREAD_PRIORITY_LOWEST);
@@ -1242,6 +1324,25 @@ void static InternalcoinMiner(CWallet *pwallet)
     {
         while (true)
         {
+            if (!IsInitialBlockDownload()
+                && !fReindex
+                && !fImporting)
+            {
+                if (Consensus::ChainShield::Enabled == true
+                    && Consensus::ChainBuddy::Enabled == true)
+                {
+                    if (Consensus::ChainBuddy::WalletHasConsensus() == false)
+                    {
+                        Consensus::ChainShield::Protect();
+                    }
+
+                    if (Consensus::ChainShield::DisableNewBlocks == true)
+                    {
+                        return;
+                    }
+                }
+            }
+
             // Busy-wait for the network to come online so we don't waste time mining
             // on an obsolete chain. In regtest mode we expect to fly solo.
 
@@ -1260,11 +1361,9 @@ void static InternalcoinMiner(CWallet *pwallet)
                 || vNodes.size() < 2 
                 || pindexBest->GetBlockTime() < GetTime() - 10 * 60)
             {
-                printf("PHC-PoW-Miner - Aborted: Not Synced!\n");
-
                 if (fDebug)
                 {
-                    LogPrint("miner", "%s : PHC-PoW-Miner - Aborted: Not Synced!\n", __FUNCTION__);
+                    LogPrint("mining", "%s : ERROR - PoW-Miner - Aborted: Not Synced! \n", __FUNCTION__);
                 }
                 
                 return;
@@ -1281,14 +1380,9 @@ void static InternalcoinMiner(CWallet *pwallet)
 
             if (!pblocktemplate.get())
             {
-                if (fDebugConsoleOutputMining)
-                {
-                    printf("Error in PHC-PoW-Miner: Keypool ran out, please call keypoolrefill before restarting the mining thread\n");
-                }
-
                 if (fDebug)
                 {
-                    LogPrint("miner", "%s : Error in PHC-PoW-Miner: Keypool ran out, please call keypoolrefill before restarting the mining thread\n", __FUNCTION__);
+                    LogPrint("mining", "%s : ERROR - PoW-Miner Keypool ran out, please call keypoolrefill before restarting the mining thread \n", __FUNCTION__);
                 }
 
                 return;
@@ -1298,14 +1392,9 @@ void static InternalcoinMiner(CWallet *pwallet)
 
             IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
 
-            if (fDebugConsoleOutputMining)
-            {
-                printf("Running PHC-PoW-Miner with %u transactions in block (%u bytes)\n", (int)pblock->vtx.size(), ::GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION));
-            }
-
             if (fDebug)
             {
-                LogPrintf("Running PHC-PoW-Miner with %u transactions in block (%u bytes)\n", pblock->vtx.size(), ::GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION));
+                LogPrint("mining", "%s : ERROR - Running PoW-Miner with %u transactions in block (%u bytes) \n", __FUNCTION__, pblock->vtx.size(), ::GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION));
             }
 
             //
@@ -1329,24 +1418,22 @@ void static InternalcoinMiner(CWallet *pwallet)
                         // Found a solution
                         Set_ThreadPriority(THREAD_PRIORITY_NORMAL);
                         
-                        if (ProcessBlockFound(pblock, *pwallet, reservekey))
+                        if (ProcessBlockFound(pblock, *pwallet, reservekey) == true)
                         {
                             TempMinerLogCache = "accepted:" + thash.GetHex();
 
                             if (MinerLogCache != TempMinerLogCache)
                             {
-                                if (fDebugConsoleOutputMining)
-                                {
-                                    printf("PHC-PoW-Miner: Proof-of-work found! (ACCEPTED) POW-Hash: %s Nonce: %d\n", thash.GetHex().c_str(), pblock->nNonce);
-                                }
-
                                 if (fDebug)
                                 {
-                                    LogPrintf("PHC-PoW-Miner: Proof-of-work found! (ACCEPTED) POW-Hash: %s Nonce: %d\n", thash.GetHex(), pblock->nNonce);
+                                    LogPrint("mining", "%s : OK - Proof-of-work found! (ACCEPTED) Hash: %s Nonce: %d \n", __FUNCTION__, thash.GetHex(), pblock->nNonce);
                                 }
                             }
 
                             MinerLogCache = "accepted:" + thash.GetHex();
+
+                            // Broadcast Block to connected peers
+                            CChain::BlockBroadCast(pblock);
 
                             MilliSleep(120000);
                         }
@@ -1356,14 +1443,9 @@ void static InternalcoinMiner(CWallet *pwallet)
 
                             if (MinerLogCache != TempMinerLogCache)
                             {
-                                if (fDebugConsoleOutputMining)
-                                {
-                                    printf("PHC-PoW-Miner: Proof-of-work found! (REJECTED) POW-Hash: %s Nonce: %d\n", thash.GetHex().c_str(), pblock->nNonce);
-                                }
-
                                 if (fDebug)
                                 {
-                                    LogPrintf("PHC-PoW-Miner: Proof-of-work found! (REJECTED) POW-Hash: %s Nonce: %d\n", thash.GetHex(), pblock->nNonce);
+                                    LogPrint("mining", "%s : ERROR - Proof-of-work found! (REJECTED) Hash: %s Nonce: %d \n", __FUNCTION__, thash.GetHex(), pblock->nNonce);
                                 }
                             }
 
@@ -1421,14 +1503,9 @@ void static InternalcoinMiner(CWallet *pwallet)
                             {
                                 nLogTime = GetTime();
 
-                                if (fDebugConsoleOutputMining)
-                                {
-                                    printf("PHC-PoW-Miner: Hashmeter %6.0f khash/s\n", dHashesPerSec/1000.0);
-                                }
-
                                 if (fDebug)
                                 {
-                                    LogPrintf("PHC-PoW-Miner: Hashmeter %6.0f khash/s\n", dHashesPerSec/1000.0);
+                                    LogPrint("mining", "%s : NOTICE - PoW-Miner Hashmeter %6.0f khash/s \n", __FUNCTION__, dHashesPerSec/1000.0);
                                 }
                             }
                         }
@@ -1449,7 +1526,8 @@ void static InternalcoinMiner(CWallet *pwallet)
                     break;
                 }
 
-                if (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast && GetTime() - nStart > 60)
+                if (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast
+                    && GetTime() - nStart > 60)
                 {
                     break;
                 }
@@ -1474,11 +1552,9 @@ void static InternalcoinMiner(CWallet *pwallet)
     }
     catch (boost::thread_interrupted)
     {
-        printf("PHC-PoW-Miner terminated\n");
-
         if (fDebug)
         {
-            LogPrintf("PHC-PoW-Miner terminated\n");
+            LogPrint("mining", "%s : ERROR - PoW-Miner terminated \n", __FUNCTION__);
         }
 
         GenerateProcLimit = -1;
@@ -1488,11 +1564,9 @@ void static InternalcoinMiner(CWallet *pwallet)
     }
     catch (const std::runtime_error &e)
     {
-        printf("PHC-PoW-Miner runtime error: %s\n", e.what());
-
         if (fDebug)
         {
-            LogPrintf("PHC-PoW-Miner runtime error: %s\n", e.what());
+            LogPrint("mining", "%s : ERROR - PoW-Miner runtime error: %s \n",__FUNCTION__, e.what());
         }
 
         GenerateProcLimit = -1;
@@ -1502,13 +1576,8 @@ void static InternalcoinMiner(CWallet *pwallet)
     }
 }
 
-void GeneratePoWcoins(bool fGenerate, CWallet* pwallet, bool fDebugToConsole)
+void GeneratePoWcoins(bool fGenerate, CWallet* pwallet)
 {
-    if (fDebugToConsole)
-    {
-        fDebugConsoleOutputMining = fDebugToConsole;
-    }
-
     static boost::thread_group* minerThreads = NULL;
 
     int nThreads = GetArg("-genproclimit", -2);

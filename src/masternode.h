@@ -74,7 +74,8 @@ class CMasternode
             MASTERNODE_EXPIRED = 2,
             MASTERNODE_VIN_SPENT = 3,
             MASTERNODE_REMOVE = 4,
-            MASTERNODE_POS_ERROR = 5
+            MASTERNODE_POS_ERROR = 5,
+            MASTERNODE_UNREACHABLE = 6
         };
 
         CTxIn vin;  
@@ -252,7 +253,7 @@ class CMasternode
         {
             if (fDebug)
             {
-                LogPrint("masternode", "%s : %d, %d --  %d \n", __FUNCTION__, GetAdjustedTime(), lastTimeSeen, (GetAdjustedTime() - lastTimeSeen) < seconds);
+                LogPrint("masternode", "%s : NOTICE - %d, %d --  %d \n", __FUNCTION__, GetAdjustedTime(), lastTimeSeen, (GetAdjustedTime() - lastTimeSeen) < seconds);
             }
 
             return (GetAdjustedTime() - lastTimeSeen) < seconds;
@@ -265,7 +266,7 @@ class CMasternode
 
         bool IsEnabled()
         {
-            return isPortOpen && activeState == MASTERNODE_ENABLED;
+            return activeState == MASTERNODE_ENABLED;
         }
 
         int GetMasternodeInputAge()

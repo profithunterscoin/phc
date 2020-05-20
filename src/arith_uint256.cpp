@@ -7,7 +7,7 @@
 // Copyright (c) 2015 The Crave developers
 // Copyright (c) 2017 XUVCoin developers
 // Copyright (C) 2017-2018 Crypostle Core developers
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
@@ -353,11 +353,9 @@ uint32_t arith_uint256::GetCompact(bool fNegative) const
         /*
         if (fDebug)
         {
-            LogPrint("uint", "%s : (nCompact & ~0x007fffff) != 0 (assert-1)\n", __FUNCTION__);
+            LogPrint("uint", "%s : ERROR - (nCompact & ~0x007fffff) != 0 \n", __FUNCTION__);
         }
         */
-
-        cout << __FUNCTION__ << " (assert-1)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return 0;
     }
@@ -367,11 +365,9 @@ uint32_t arith_uint256::GetCompact(bool fNegative) const
         /*
         if (fDebug)
         {
-            LogPrint("uint", "%s : nSize >= 256 (assert-2)\n", __FUNCTION__);
+            LogPrint("uint", "%s : ERROR - nSize >= 256 \n", __FUNCTION__);
         }
         */
-
-        cout << __FUNCTION__ << " (assert-2)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return 0;
     }

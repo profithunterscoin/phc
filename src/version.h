@@ -61,7 +61,7 @@ static const int MIN_MASTERNODE_PAYMENT_PROTO_VERSION_2 = 10006;
 // Dynamic Checkpoints starting at version #
 static const int MIN_PEER_DCHECKPOINTS_VERSION = 10007;
 
-// Dynamic Checkpoints starting at version #
+// Turbosync starting at version #
 static const int MIN_PEER_TURBOSYNC_VERSION = 10007;
 
 // nTime field added to CAddress, starting with this version;

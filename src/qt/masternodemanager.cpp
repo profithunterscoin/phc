@@ -211,7 +211,7 @@ void MasternodeManager::updateNodeList()
 
         // populate list
         // Address, Protocol, Status, Active Seconds, Last Seen, Pub Key
-        QTableWidgetItem* addressItem = new QTableWidgetItem(QString::fromStdString(mn.addr.ToString()));
+        QTableWidgetItem* addressItem = new QTableWidgetItem(QString::fromStdString(mn.addr.ToStringIPPort()));
         QTableWidgetItem* protocolItem = new QTableWidgetItem(QString::number(mn.protocolVersion));
         QTableWidgetItem* statusItem = new QTableWidgetItem(QString::number(mn.IsEnabled()));
         QTableWidgetItem* activeSecondsItem = new QTableWidgetItem(seconds_to_DHMS((qint64)(mn.lastTimeSeen - mn.sigTime)));
@@ -444,7 +444,7 @@ void MasternodeManager::on_UpdateButton_clicked()
 
         for(CMasternode& mn: vMasternodes)
         {
-            if (mn.addr.ToString().c_str() == mne.getIp())
+            if (mn.addr.ToStringIPPort().c_str() == mne.getIp())
             {
                 updateAdrenalineNode(QString::fromStdString(mne.getAlias()), QString::fromStdString(mne.getIp()), QString::fromStdString(mne.getPrivKey()), QString::fromStdString(mne.getTxHash()),
                 QString::fromStdString(mne.getOutputIndex()), QString::fromStdString(strRewardAddress), QString::fromStdString(strRewardPercentage), QString::fromStdString("Masternode is Running."));

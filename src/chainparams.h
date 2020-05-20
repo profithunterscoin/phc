@@ -154,14 +154,47 @@ class CChainParams
             return strDevRewardAddress;
         }
 
-        int GetHardFork_1() const
+        // Protocol Improvement Proposals (PIPs)
+        // Strict Range controls after fork height (Mitigates mining-centralization without 100% reward loss)
+        int PIP1_Height() const
         {
-            return nHardFork_1;
+            return nPIP1;
         }
 
-        int GetHardFork_2() const
+        // TargetTimespan correction after development testing
+        int PIP2_Height() const
         {
-            return nHardFork_2;
+            return nPIP2;
+        }
+
+        // Do not allow blank payments (deactivation)
+        int PIP3_Height() const
+        {
+            return nPIP3;
+        }
+
+        // Developers fee
+        int PIP4_Height() const
+        {
+            return nPIP4;
+        }
+
+        // Blockshield
+        int PIP5_Height() const
+        {
+            return nPIP5;
+        }
+
+        // ASIC Choker
+        int PIP6_Height() const
+        {
+            return nPIP6;
+        }
+
+        // IncrementExtraNonce
+        int PIP7_Height() const
+        {
+            return nPIP7;
         }
 
         //std::string SporkKey() const { return strSporkKey; }
@@ -192,8 +225,15 @@ class CChainParams
         int nPOSStartBlock;
         int nPoolMaxTransactions;
 
-        int nHardFork_1;
-        int nHardFork_2;
+        // Protocol Improvement Proposals (PIPs)
+        int nPIP1; // Strict Range controls after fork height (Mitigates mining-centralization without 100% reward loss)
+        int nPIP2; // TargetTimespan correction after development testing
+        int nPIP3; // Do not allow blank payments (deactivation)
+        int nPIP4; // Developers fee
+        int nPIP5; // Blockshield
+        int nPIP6; // ASIC Choker
+        int nPIP7; // strict PoS rules
+        int nPIP8; // IncrementExtraNonce
 
         std::string strDarksendPoolDummyAddress;
         std::string strDevRewardAddress;

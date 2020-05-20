@@ -6,7 +6,7 @@
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015 The Crave developers
 // Copyright (c) 2017 XUVCoin developers
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
@@ -63,20 +63,25 @@ static int ec_privkey_import_der(const secp256k1_context* ctx, unsigned char *ou
     memset(out32, 0, 32);
     
     /* sequence header */
-    if (end < privkey+1 || *privkey != 0x30)
+    if (end < privkey+1
+        || *privkey != 0x30)
     {
         return 0;
     }
 
     privkey++;
+
     /* sequence length constructor */
-    if (end < privkey+1 || !(*privkey & 0x80))
+    if (end < privkey+1
+        || !(*privkey & 0x80))
     {
         return 0;
     }
 
     lenb = *privkey & ~0x80; privkey++;
-    if (lenb < 1 || lenb > 2)
+
+    if (lenb < 1
+        || lenb > 2)
     {
         return 0;
     }
@@ -96,7 +101,10 @@ static int ec_privkey_import_der(const secp256k1_context* ctx, unsigned char *ou
     }
 
     /* sequence element 0: version number (=1) */
-    if (end < privkey+3 || privkey[0] != 0x02 || privkey[1] != 0x01 || privkey[2] != 0x01)
+    if (end < privkey+3
+        || privkey[0] != 0x02
+        || privkey[1] != 0x01
+        || privkey[2] != 0x01)
     {
        return 0;
     }
@@ -104,7 +112,10 @@ static int ec_privkey_import_der(const secp256k1_context* ctx, unsigned char *ou
     privkey += 3;
 
     /* sequence element 1: octet string, up to 32 bytes */
-    if (end < privkey+2 || privkey[0] != 0x04 || privkey[1] > 0x20 || end < privkey+2+privkey[1])
+    if (end < privkey+2
+        || privkey[0] != 0x04
+        || privkey[1] > 0x20
+        || end < privkey+2+privkey[1])
     {
         return 0;
     }
@@ -249,10 +260,8 @@ CPrivKey CKey::GetPrivKey() const
     {
         if (fDebug)
         {
-            LogPrint("key", "%s : fValid == false (assert-1)\n", __FUNCTION__);
+            LogPrint("key", "%s : ERROR - fValid = false \n", __FUNCTION__);
         }
-        
-        cout << __FUNCTION__ << " (assert-1)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         CPrivKey privkey;
         
@@ -273,10 +282,8 @@ CPrivKey CKey::GetPrivKey() const
     {
         if (fDebug)
         {
-            LogPrint("key", "%s : ret == 0 (assert-2)\n", __FUNCTION__);
+            LogPrint("key", "%s : ERROR - ret = 0 \n", __FUNCTION__);
         }
-        
-        cout << __FUNCTION__ << " (assert-2)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         CPrivKey privkey;
         
@@ -295,10 +302,8 @@ CPubKey CKey::GetPubKey() const
     {
         if (fDebug)
         {
-            LogPrint("key", "%s : fValid == false (assert-3)\n", __FUNCTION__);
+            LogPrint("key", "%s : ERROR - fValid = false \n", __FUNCTION__);
         }
-        
-        cout << __FUNCTION__ << " (assert-3)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         CPubKey null_key;
         
@@ -315,10 +320,8 @@ CPubKey CKey::GetPubKey() const
     {
         if (fDebug)
         {
-            LogPrint("key", "%s : ret == 0 (assert-4)\n", __FUNCTION__);
+            LogPrint("key", "%s : ERROR - ret = 0 \n", __FUNCTION__);
         }
-        
-        cout << __FUNCTION__ << " (assert-4)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         CPubKey null_key;
         
@@ -331,10 +334,8 @@ CPubKey CKey::GetPubKey() const
     {
         if (fDebug)
         {
-            LogPrint("key", "%s : result.size() != clen (assert-5)\n", __FUNCTION__);
+            LogPrint("key", "%s : ERROR - result.size() != clen \n", __FUNCTION__);
         }
-        
-        cout << __FUNCTION__ << " (assert-5)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         CPubKey null_key;
         
@@ -345,10 +346,8 @@ CPubKey CKey::GetPubKey() const
     {
         if (fDebug)
         {
-            LogPrint("key", "%s : result.IsValid() == false (assert-6)\n", __FUNCTION__);
+            LogPrint("key", "%s : ERROR - result.IsValid() = false \n", __FUNCTION__);
         }
-        
-        cout << __FUNCTION__ << " (assert-6)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         CPubKey null_key;
         
@@ -381,10 +380,8 @@ bool CKey::Sign(const uint256 &hash, std::vector<unsigned char>& vchSig, uint32_
     {
         if (fDebug)
         {
-            LogPrint("key", "%s : ret == 0 (assert-7)\n", __FUNCTION__);
+            LogPrint("key", "%s : ERROR - ret = 0 \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-7)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return false;
     }
@@ -441,10 +438,8 @@ bool CKey::SignCompact(const uint256 &hash, std::vector<unsigned char>& vchSig) 
     {
         if (fDebug)
         {
-            LogPrint("key", "%s : ret == 0 (assert-8)\n", __FUNCTION__);
+            LogPrint("key", "%s : ERROR - ret = 0 \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-8)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return false;
     }
@@ -455,10 +450,8 @@ bool CKey::SignCompact(const uint256 &hash, std::vector<unsigned char>& vchSig) 
     {
         if (fDebug)
         {
-            LogPrint("key", "%s : ret == 0 (assert-9)\n", __FUNCTION__);
+            LogPrint("key", "%s : ERROR - ret = 0 \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-9)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return false;
     }
@@ -467,10 +460,8 @@ bool CKey::SignCompact(const uint256 &hash, std::vector<unsigned char>& vchSig) 
     {
         if (fDebug)
         {
-            LogPrint("key", "%s : rec == -1 (assert-10)\n", __FUNCTION__);
+            LogPrint("key", "%s : ERROR - rec = -1 \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-10)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return false;
     }
@@ -506,10 +497,8 @@ bool CKey::Derive(CKey& keyChild, unsigned char ccChild[32], unsigned int nChild
     {
         if (fDebug)
         {
-            LogPrint("key", "%s : IsValid() == false (assert-11)\n", __FUNCTION__);
+            LogPrint("key", "%s : ERROR - IsValid() = false \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-11)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return false;
     }
@@ -518,10 +507,8 @@ bool CKey::Derive(CKey& keyChild, unsigned char ccChild[32], unsigned int nChild
     {
         if (fDebug)
         {
-            LogPrint("key", "%s : IsCompressed() == false (assert-12)\n", __FUNCTION__);
+            LogPrint("key", "%s : ERROR - IsCompressed() == false \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-12)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return false;
     }
@@ -538,11 +525,8 @@ bool CKey::Derive(CKey& keyChild, unsigned char ccChild[32], unsigned int nChild
         {
             if (fDebug)
             {
-                LogPrint("key", "%s : pubkey.begin() + 33 != pubkey.end() (assert-13)\n", __FUNCTION__);
+                LogPrint("key", "%s : ERROR - Pubkey.begin() + 33 != pubkey.end() \n", __FUNCTION__);
             }
-
-            cout << __FUNCTION__ << " (assert-13)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
-
             return false;
         }
 
@@ -554,10 +538,8 @@ bool CKey::Derive(CKey& keyChild, unsigned char ccChild[32], unsigned int nChild
         {
             if (fDebug)
             {
-                LogPrint("key", "%s : begin() + 32 != end() (assert-14)\n", __FUNCTION__);
+                LogPrint("key", "%s : ERROR - Begin() + 32 != end() \n", __FUNCTION__);
             }
-
-            cout << __FUNCTION__ << " (assert-14)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
             return false;
         }
@@ -653,10 +635,8 @@ void CExtKey::Encode(unsigned char code[74]) const
     {
         if (fDebug)
         {
-            LogPrint("key", "%s : key.size() != 32 (assert-15)\n", __FUNCTION__);
+            LogPrint("key", "%s : ERROR - Key.size() != 32 \n", __FUNCTION__);
         }
-        
-        cout << __FUNCTION__ << " (assert-15)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return;
     }
@@ -697,10 +677,8 @@ void ECC_Start()
     {
         if (fDebug)
         {
-            LogPrint("key", "%s : secp256k1_context_sign != NULL (assert-16)\n", __FUNCTION__);
+            LogPrint("key", "%s : ERROR - Secp256k1_context_sign != NULL \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-16)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return;
     }
@@ -711,10 +689,8 @@ void ECC_Start()
     {
         if (fDebug)
         {
-            LogPrint("key", "%s : ctx == NULL (assert-17)\n", __FUNCTION__);
+            LogPrint("key", "%s : ERROR - Ctx = NULL \n", __FUNCTION__);
         }
-
-        cout << __FUNCTION__ << " (assert-17)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
         return;
     }
@@ -734,10 +710,8 @@ void ECC_Start()
         {
             if (fDebug)
             {
-                LogPrint("key", "%s : ret == 0 (assert-18)\n", __FUNCTION__);
+                LogPrint("key", "%s : ERROR - Ret = 0 \n", __FUNCTION__);
             }
-
-            cout << __FUNCTION__ << " (assert-18)" << endl; // REMOVE AFTER UNIT TESTING COMPLETED
 
             return;
         }

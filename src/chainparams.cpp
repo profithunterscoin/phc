@@ -22,11 +22,13 @@
 
 using namespace boost::assign;
 
+/* Not used yet
 struct SeedSpec6
 {
     uint8_t addr[16];
     uint16_t port;
 };
+*/
 
 #include "chainparamsseeds.h"
 
@@ -156,6 +158,9 @@ class CMainParams : public CChainParams
             base58Prefixes[STEALTH_ADDRESS] = std::vector<unsigned char>(1,40);
             base58Prefixes[EXT_PUBLIC_KEY] = list_of(0x04)(0x88)(0xB2)(0x1E).convert_to_container<std::vector<unsigned char> >();;
             base58Prefixes[EXT_SECRET_KEY] = list_of(0x04)(0x88)(0xAD)(0xE4).convert_to_container<std::vector<unsigned char> >();;
+
+            //vFixedSeeds.clear();
+            //vSeeds.clear();
 
             vSeeds.push_back(CDNSSeedData("0",  "54.37.233.45"));
             vSeeds.push_back(CDNSSeedData("1",  "142.44.246.195"));
@@ -290,15 +295,44 @@ class CMainParams : public CChainParams
             //strMasternodePaymentsPubKey = "046f78dcf911fbd61910136f7f0f8d90578f68d0b3ac973b5040fb7afb501b5939f39b108b0569dca71488f5bbf498d92e4d1194f6f941307ffd95f75e76869f0e";
             strDarksendPoolDummyAddress = "PXeU4EGgDEnFJHuNptvqsWHs4qsdYg3Ypu";
 
-            strDevRewardAddress = "PTxSxCoYi7nVs5hhDMKE5B8JuBVFdgWFaz";
+            strDevRewardAddress = "PTxSxCoYi7nVs5hhDMKE5B8JuBVFdgWFaz"; // Not used yet
             
             nLastPOWBlock = 0x7fffffff;
             nPOSStartBlock = 10000;
             //nStakeMaxAge = 9999; // 9999 days
 
+
+            ///////////////////////
+            // 1.0.0.6 - Hard Forks
+
+            // PIP1 - Strict Range controls after fork height (Mitigates mining-centralization without 100% reward loss)
+            nPIP1 = 120000; // Block #120000 Activation
+
+
+            ///////////////////////
             // 1.0.0.7 - Hard Forks
-            nHardFork_1 = 120000; // Block #120000 Activation (HardFork_1)
-            nHardFork_2 = 10000000; // Block #10000000 Activation (HardFork_2) (UNDECIDED)
+
+            // PIP3 - Do not allow blank payments (deactivation)
+            nPIP3 = 999999999; // Block # Activation (UNDECIDED)
+
+
+            ///////////////////////
+            // 1.0.0.8 - Hard Forks (Proposed)
+
+            // PIP2 - TargetTimespan correction after development testing
+            nPIP2 = 999999999; // Block # Activation (UNDECIDED)
+
+            // PIP4 - Developers fee
+            nPIP4 = 999999999; // Block # Activation (UNDECIDED)
+
+            // PIP5 - Blockshield
+            nPIP5 = 999999999; // Block # Activation (UNDECIDED)
+
+            // PIP6 - ASIC Choker
+            nPIP6 = 999999999; // Block # Activation (UNDECIDED)
+
+            // PIP7 - IncrementExtraNonce
+            nPIP7 = 999999999; // Block # Activation (UNDECIDED)
         }
 
         virtual const CBlock& GenesisBlock() const
@@ -403,11 +437,11 @@ class CTestNetParams : public CMainParams
 
             assert(hashGenesisBlock == uint256("0000ce8f49c8c59ed8a4c50cdacddc1f84b1be04e52232989887c99aad3e8e4e"));
 
-            vFixedSeeds.clear();
-            vSeeds.clear();
+            //vFixedSeeds.clear();
+            //vSeeds.clear();
 
             vSeeds.push_back(CDNSSeedData("1",  "54.37.233.45"));
-            vSeeds.push_back(CDNSSeedData("2",  "173.199.114.227"));
+            //vSeeds.push_back(CDNSSeedData("2",  "173.199.114.227"));
             vSeeds.push_back(CDNSSeedData("3",  "178.33.146.163"));
             vSeeds.push_back(CDNSSeedData("4",  "194.182.66.218"));
             vSeeds.push_back(CDNSSeedData("5",  "80.211.194.210"));
@@ -428,12 +462,41 @@ class CTestNetParams : public CMainParams
 
             nLastPOWBlock = 0x7fffffff;
             nPOSStartBlock = 10000;
+            //nStakeMaxAge = 9999; // 9999 days (not implemented yet)
 
-            //nStakeMaxAge = 9999; // 9999 days
 
-            // 1.0.0.7 - Hard Forks
-            nHardFork_1 = 1200; // Block #1 Activation (HardFork_1)
-            nHardFork_2 = 1; // Block #1 Activation (HardFork_2)
+            ///////////////////////
+            // 1.0.0.6 - Protocol Improvement Proposals (Hard Forks)
+
+            // PIP1 - Strict Range controls after fork height (Mitigates mining-centralization without 100% reward loss)
+            nPIP1 = 1200; // Block #1200 Activation
+
+
+            ///////////////////////
+            // 1.0.0.7 - Protocol Improvement Proposals (Hard Forks)
+
+            // PIP3 - Do not allow blank payments (deactivation)
+            nPIP3 = 1; // Block #1 Activation
+
+            // PIP2 - TargetTimespan correction after development testing
+            nPIP2 = 1; // Block #1 Activation
+
+            // PIP5 - Blockshield
+            nPIP5 = 1; // Block #1 Activation
+
+            // PIP6 - ASIC Choker
+            nPIP6 = 1; // Block #1 Activation
+
+            // PIP7 - IncrementExtraNonce
+            nPIP7 = 1; // Block #1 Activation
+
+
+            ///////////////////////
+            // 1.0.0.8 - Protocol Improvement Proposals (Proposed Hard Forks)
+
+            // PIP4 - Developers fee
+            nPIP4 = 999999999; // Block # Activation (UNDECIDED)
+
         }
 
         virtual Network NetworkID() const

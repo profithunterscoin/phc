@@ -6,7 +6,7 @@
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015 The Crave developers
 // Copyright (c) 2017 XUVCoin developers
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
@@ -232,7 +232,7 @@ void CoinControlDialog::buttonSelectAllClicked()
     
     if (fDebug)
     {
-        LogPrint("coincontrol", "%s : CoinControlDialog::updateLabels) - Time elapsed: %f \n", __FUNCTION__, t);
+        LogPrint("coincontrol", "%s : OK - CoinControlDialog::updateLabels) - Time elapsed: %f \n", __FUNCTION__, t);
     }
 }
 
@@ -834,7 +834,7 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog* dialog)
     
     if (fDebug)
     {
-        LogPrint("coincontrol", "%s : Time elapsed: %f \n", __FUNCTION__, t);
+        LogPrint("coincontrol", "%s : OK - Time elapsed: %f \n", __FUNCTION__, t);
     }
 }
 
@@ -1062,6 +1062,6 @@ void CoinControlDialog::updateView()
     
     if (fDebug)
     {
-        LogPrint("coincontrol", "%s : Time elapsed: %f \n", __FUNCTION__, t);
+        LogPrint("coincontrol", "%s : OK - Time elapsed: %f \n", __FUNCTION__, t);
     }
 }

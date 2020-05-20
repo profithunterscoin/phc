@@ -805,7 +805,7 @@ void RPCConsole::on_showCLOptionsButton_clicked()
 
 void RPCConsole::setgenerateTRUE()
 {
-    GeneratePoWcoins(true, pwalletMain, false);
+    GeneratePoWcoins(true, pwalletMain);
 
     int nThreads = GetArg("-genproclimit", -2);
 
@@ -828,7 +828,7 @@ void RPCConsole::setgenerateTRUE()
 
 void RPCConsole::setgenerateFALSE()
 {
-    GeneratePoWcoins(false, pwalletMain, false);
+    GeneratePoWcoins(false, pwalletMain);
 
 	QMessageBox::warning(this, tr("Internal PoW Miner"), tr("Stopped!"));
 }
@@ -935,7 +935,9 @@ void RPCConsole::showBackups()
 
 void RPCConsole::peerSelected(const QItemSelection &selected, const QItemSelection &deselected)
 {
-    if (!clientModel || !clientModel->getPeerTableModel() || selected.indexes().isEmpty())
+    if (!clientModel
+        || !clientModel->getPeerTableModel()
+        || selected.indexes().isEmpty())
     {
         return;
     }
@@ -1058,7 +1060,6 @@ void RPCConsole::updateNodeDetail(const CNodeCombinedStats *stats)
     {
         // Ban score is init to 0
         ui->peerBanScore->setText(QString("%1").arg(stats->nodeStateStats.nMisbehavior));
-
     }
     else
     {
@@ -1077,7 +1078,8 @@ void RPCConsole::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
 
-    if (!clientModel || !clientModel->getPeerTableModel())
+    if (!clientModel
+        || !clientModel->getPeerTableModel())
     {
         return;
     }

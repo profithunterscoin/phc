@@ -63,10 +63,7 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("protocol_turbosyncmax",                     TURBOSYNC_MAX));
     obj.push_back(Pair("timeoffset",                                (int64_t)GetTimeOffset()));
 
-    if (nBestHeight)
-    {
-        obj.push_back(Pair("blocks",                                (int)nBestHeight));
-    }
+    obj.push_back(Pair("blocks",                                    (int)nBestHeight));
 
     if (pindexBest)
     {
@@ -101,7 +98,7 @@ Value getinfo(const Array& params, bool fHelp)
         }
 
         obj.push_back(Pair("pow_newmint",                           ValueFromAmount(pwalletMain->GetNewPOWMint())));
-        obj.push_back(Pair("pos_newmint",                           ValueFromAmount(pwalletMain->GetNewPOSMint())));
+        //obj.push_back(Pair("pos_newmint",                           ValueFromAmount(pwalletMain->GetNewPOSMint())));
 
         obj.push_back(Pair("stake_locked",                          ValueFromAmount(pwalletMain->GetStake())));
 

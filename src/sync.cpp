@@ -6,7 +6,7 @@
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015 The Crave developers
 // Copyright (c) 2017 XUVCoin developers
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
@@ -22,8 +22,8 @@ void PrintLockContention(const char* pszName, const char* pszFile, int nLine)
 {
     if (fDebug)
     {
-        LogPrint("sync", "%s : LOCKCONTENTION: %s\n", __FUNCTION__, pszName);
-        LogPrint("sync", "%s : Locker: %s:%d\n", __FUNCTION__, pszFile, nLine);
+        LogPrint("sync", "%s : NOTICE - LOCKCONTENTION: %s\n", __FUNCTION__, pszName);
+        LogPrint("sync", "%s : NOTICE - Locker: %s:%d\n", __FUNCTION__, pszFile, nLine);
     }
 }
 #endif /* DEBUG_LOCKCONTENTION */
@@ -78,9 +78,9 @@ static void potential_deadlock_detected(const std::pair<void*, void*>& mismatch,
 {
     if (fDebug)
     {
-        LogPrint("sync", "%s : POTENTIAL DEADLOCK DETECTED\n", __FUNCTION__);
+        LogPrint("sync", "%s : WARNING - POTENTIAL DEADLOCK DETECTED \n", __FUNCTION__);
         
-        LogPrint("sync", "%s : Previous lock order was:\n", __FUNCTION__);
+        LogPrint("sync", "%s : WARNING - Previous lock order was: \n", __FUNCTION__);
     }
 
     for(const PAIRTYPE(void*, CLockLocation)& i: s2)
@@ -89,7 +89,7 @@ static void potential_deadlock_detected(const std::pair<void*, void*>& mismatch,
         {
             if (fDebug)
             {
-                LogPrint("sync", "%s :  (1)", __FUNCTION__);
+                LogPrint("sync", "%s : (1)", __FUNCTION__);
             }
         }
 
@@ -97,19 +97,19 @@ static void potential_deadlock_detected(const std::pair<void*, void*>& mismatch,
         {
             if (fDebug)
             {
-                LogPrint("sync", "%s :  (2)", __FUNCTION__)
+                LogPrint("sync", "%s : (2)", __FUNCTION__)
             }
         }
 
         if (fDebug)
         {
-            LogPrint("sync", "%s :  %s\n", __FUNCTION__, i.second.ToString());
+            LogPrint("sync", "%s : NOTICE - %s\n", __FUNCTION__, i.second.ToString());
         }
     }
     
     if (fDebug)
     {
-        LogPrint("sync", "%s : Current lock order is:\n", __FUNCTION__);
+        LogPrint("sync", "%s : COK - Current lock order is: \n", __FUNCTION__);
     }
 
     for(const PAIRTYPE(void*, CLockLocation)& i: s1)
@@ -118,7 +118,7 @@ static void potential_deadlock_detected(const std::pair<void*, void*>& mismatch,
         {
             if (fDebug)
             {
-                LogPrint("sync", "%s :  (1)", __FUNCTION__);
+                LogPrint("sync", "%s : (1)", __FUNCTION__);
             }
         }
 
@@ -126,13 +126,13 @@ static void potential_deadlock_detected(const std::pair<void*, void*>& mismatch,
         {
             if (fDebug)
             {
-                LogPrint("sync", "%s :  (2)", __FUNCTION__);
+                LogPrint("sync", "%s : (2)", __FUNCTION__);
             }
         }
 
         if (fDebug)
         {
-            LogPrint("sync", "%s :  %s\n", __FUNCTION__, i.second.ToString());
+            LogPrint("sync", "%s : NOTICE - %s \n", __FUNCTION__, i.second.ToString());
         }
     }
 }
@@ -147,7 +147,7 @@ static void push_lock(void* c, const CLockLocation& locklocation, bool fTry)
 
     if (fDebug)
     {
-        LogPrint("lock", "%s : Locking: %s\n", __FUNCTION__, locklocation.ToString());
+        LogPrint("lock", "%s : NOTICE - Locking: %s \n", __FUNCTION__, locklocation.ToString());
     }
 
     dd_mutex.lock();
@@ -192,7 +192,7 @@ static void pop_lock()
 
     if (fDebug)
     {
-        LogPrint("lock", "%s : Unlocked: %s\n", __FUNCTION__, locklocation.ToString());
+        LogPrint("lock", "%s : OK - Unlocked: %s \n", __FUNCTION__, locklocation.ToString());
     }
 
     dd_mutex.lock();
@@ -240,7 +240,7 @@ void AssertLockHeldInternal(const char *pszName, const char* pszFile, int nLine,
 
     if (fDebug)
     {
-        fprintf(stderr, "%s : Assertion failed: lock %s not held in %s:%i; locks held:\n%s", __FUNCTION__, pszName, pszFile, nLine, LocksHeld().c_str());
+        fprintf(stderr, "%s : ERROR - Assertion failed: lock %s not held in %s:%i; locks held: \n %s", __FUNCTION__, pszName, pszFile, nLine, LocksHeld().c_str());
     }
     
     abort();
