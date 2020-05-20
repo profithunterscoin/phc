@@ -155,7 +155,8 @@ CMasternode::CMasternode()
     
     //mark last paid as current for new entries
     nLastPaid = GetAdjustedTime();
-    isPortOpen = true;
+
+    isPortOpen = false;
     isOldNode = true;
 }
 
@@ -217,7 +218,7 @@ CMasternode::CMasternode(CService newAddr, CTxIn newVin, CPubKey newPubkey, std:
     lastVote = 0;
     nScanningErrorCount = 0;
     nLastScanningErrorBlockHeight = 0;
-    isPortOpen = true;
+    isPortOpen = false;
     isOldNode = true;
 }
 
@@ -289,7 +290,6 @@ void CMasternode::Check()
     if(!unitTest)
     {
         CValidationState state;
-        
         CTransaction tx = CTransaction();
         CTxOut vout = CTxOut((GetMNCollateral(pindexBest->nHeight)-1)*COIN, darkSendPool.collateralPubKey);
         
@@ -304,6 +304,46 @@ void CMasternode::Check()
         }
     }
 
+    addrman.Add(CAddress(addr), addr, 2*60*60);
+
+    LOCK(cs_vNodes);
+
+    bool node_found = false;
+
+    // Check for peer connection
+    for(CNode* pnode: vNodes)
+    {
+        if (pnode->addr.ToStringIP() == addr.ToStringIP())
+        {   
+            node_found = true;
+
+            // OK
+            isPortOpen = true;
+            activeState = MASTERNODE_ENABLED;
+
+            return;
+        }
+        
+        node_found = false;
+    }
+
+    if (node_found == false)
+    {
+        activeState = MASTERNODE_UNREACHABLE;
+
+        return;
+    }
+
+    // Test Node for incoming connectivity (minimum requirements for active masternode status)
+    if (!CheckNode((CAddress)addr))
+    {
+        isPortOpen = false;
+        activeState = MASTERNODE_UNREACHABLE;
+
+        return;
+    }
+
     // OK
+    isPortOpen = true;
     activeState = MASTERNODE_ENABLED;
 }

@@ -287,14 +287,8 @@ bool CMasternodeMan::Add(CMasternode &mn)
 {
     LOCK(cs);
 
-    // Check Port is not closed
-    if (mn.isPortOpen == false)
+    if (!mn.IsEnabled())
     {
-        if (fDebug)
-        {
-            LogPrint("masternode", "%s : ERROR - Port Closed for masternode %s - %i skipping \n", __FUNCTION__, mn.addr.ToStringIPPort().c_str(), size() + 1);
-        }
-
         return false;
     }
 
@@ -384,7 +378,7 @@ void CMasternodeMan::CheckAndRemove()
     while(it != vMasternodes.end())
     {
         if((*it).activeState != CMasternode::MASTERNODE_ENABLED
-            || (*it).isPortOpen == false
+            || (*it).activeState != CMasternode::MASTERNODE_UNREACHABLE
             || (*it).protocolVersion < nMasternodeMinProtocol)
         {
             if (fDebug)
@@ -1153,18 +1147,8 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
                 if(pmn->sigTime < sigTime)
                 {
-                    //take the newest entry
-                    if (!CheckNode((CAddress)addr))
-                    {
-                        pmn->isPortOpen = false;
-                    }
-                    else
-                    {
-                        pmn->isPortOpen = true;
-
-                        // use this as a peer
-                        addrman.Add(CAddress(addr), pfrom->addr, 2*60*60);
-                    }
+                    // use this as a peer
+                    addrman.Add(CAddress(addr), pfrom->addr, 2*60*60);
 
                     if (fDebug)
                     {
@@ -1282,15 +1266,8 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
             CMasternode mn(addr, vin, pubkey, vchSig, sigTime, pubkey2, protocolVersion, rewardAddress, rewardPercentage);
             mn.UpdateLastSeen(lastUpdated);
 
-            if (!CheckNode((CAddress)addr))
-            {
-                mn.ChangePortStatus(false);
-            }
-            else
-            {
-                // use this as a peer
-                addrman.Add(CAddress(addr), pfrom->addr, 2*60*60);
-            }
+            // use this as a peer
+            addrman.Add(CAddress(addr), pfrom->addr, 2*60*60);
             
             mn.ChangeNodeStatus(true);
             this->Add(mn);
@@ -1523,20 +1500,11 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
             {
                 pmn->UpdateLastSeen();
 
+                // take the newest entry
                 if(pmn->sigTime < sigTime)
                 {
-                    //take the newest entry
-                    if (!CheckNode((CAddress)addr))
-                    {
-                        pmn->isPortOpen = false;
-                    }
-                    else
-                    {
-                        pmn->isPortOpen = true;
-
-                        // use this as a peer
-                        addrman.Add(CAddress(addr), pfrom->addr, 2*60*60);
-                    }
+                    // use this as a peer
+                    addrman.Add(CAddress(addr), pfrom->addr, 2*60*60);
 
                     if (fDebug)
                     {
@@ -1782,7 +1750,8 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
                         LogPrint("masternode", "%s : WARNING - Got bad masternode address signature %s \n", __FUNCTION__, vin.ToString().c_str());
                     }
 
-                    //Misbehaving(pfrom->GetId(), 100);
+                    Misbehaving(pfrom->GetId(), 100);
+                    
                     return;
                 }
 

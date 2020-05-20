@@ -135,7 +135,6 @@ int fReorganizeCount;
 // Keep track of ForceSync cyles when OrphanBlock is received, Reset when Block is accepted.
 unsigned fForceSyncAfterOrphan;
 
-
 //////////////////////////////////////////////////////////////////////////////
 //
 // dispatching functions
@@ -202,6 +201,83 @@ void ResendWalletTransactions(bool fForce)
 {
     g_signals.Broadcast(fForce);
 }
+
+//////////////////////////////////////////////////////////////////////////////
+//
+// Block/Peer Management
+//
+
+// Internal stuff
+namespace
+{
+    /** Number of nodes with fSyncStarted. */
+    //int nSyncStarted = 0;
+
+    /**
+     * Every received block is assigned a unique and increasing identifier, so we
+     * know which one to give priority in case of a fork.
+     */
+    //CCriticalSection cs_nBlockSequenceId;
+
+    /** Blocks loaded from disk are assigned id 0, so start the counter at 1. */
+    //uint32_t nBlockSequenceId = 1;
+
+    /**
+     * Sources of received blocks, saved to be able to send them reject
+     * messages or ban them when processing happens afterwards. Protected by
+     * cs_main.
+     */
+    //map<uint256, NodeId> mapBlockSource;
+
+    /**
+     * Filter for transactions that were recently rejected by
+     * AcceptToMemoryPool. These are not rerequested until the chain tip
+     * changes, at which point the entire filter is reset. Protected by
+     * cs_main.
+     *
+     * Without this filter we'd be re-requesting txs from each of our peers,
+     * increasing bandwidth consumption considerably. For instance, with 100
+     * peers, half of which relay a tx we don't accept, that might be a 50x
+     * bandwidth increase. A flooding attacker attempting to roll-over the
+     * filter using minimum-sized, 60byte, transactions might manage to send
+     * 1000/sec if we have fast peers, so we pick 120,000 to give our peers a
+     * two minute window to send invs to us.
+     *
+     * Decreasing the false positive rate is fairly cheap, so we pick one in a
+     * million to make it highly unlikely for users to have issues with this
+     * filter.
+     *
+     * Memory used: 1.7MB
+     */
+    //boost::scoped_ptr<CRollingBloomFilter> recentRejects;
+    //uint256 hashRecentRejectsBlock;
+
+    /** Blocks that are in flight, and that are in the queue to be downloaded. Protected by cs_main. */
+    //struct QueuedBlock
+    //{
+    //    uint256 hash;
+    //    CBlockIndex *pindex;  //! Optional.
+    //    int64_t nTime;  //! Time of "getdata" request in microseconds.
+    //    bool fValidatedHeaders;  //! Whether this block has validated headers at the time of request.
+    //    int64_t nTimeDisconnect; //! The timeout for this block request (for disconnecting a slow peer)
+    //};
+
+    //map<uint256, pair<NodeId, list<QueuedBlock>::iterator> > mapBlocksInFlight;
+
+    /** Number of blocks in flight with validated headers. */
+    //int nQueuedValidatedHeaders = 0;
+
+    /** Number of preferable block download peers. */
+    //int nPreferredDownload = 0;
+
+    /** Dirty block index entries. */
+    //set<CBlockIndex*> setDirtyBlockIndex;
+
+    /** Dirty block file entries. */
+    //set<int> setDirtyFileInfo;
+
+} // anon namespace
+
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -317,6 +393,7 @@ void UnregisterNodeSignals(CNodeSignals& nodeSignals)
     nodeSignals.InitializeNode.disconnect(&InitializeNode);
     nodeSignals.FinalizeNode.disconnect(&FinalizeNode);
 }
+
 
 
 bool AbortNode(const std::string &strMessage, const std::string &userMessage)
@@ -4343,6 +4420,7 @@ bool static IsCanonicalBlockSignature(CBlock* pblock)
 }
 
 
+
 void Misbehaving(NodeId pnode, int howmuch)
 {
     if (howmuch == 0)
@@ -4694,7 +4772,6 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     // Block processed and written to disk
     return true;
 }
-
 
 #ifdef ENABLE_WALLET
 // novacoin: attempt to generate suitable proof-of-stake
@@ -6471,6 +6548,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         && fImporting == false 
         && fReindex == false) // Ignore blocks received while importing
     {
+        std::vector<CBlock> chain;
+
         CBlock block;
         vRecv >> block;
         uint256 hashBlock = block.GetHash();

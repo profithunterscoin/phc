@@ -483,6 +483,22 @@ class CAddrMan
     #endif
         }
 
+        // Find a single address.
+        bool Find(const CAddress &addr)
+        {
+            int nId;
+            CAddrInfo *pinfo = Find(addr, &nId);
+
+            // not found
+            if (!pinfo)
+            {
+                return false;
+            }
+
+            // found
+            return true;
+        }
+
         // Add a single address.
         bool Add(const CAddress &addr, const CNetAddr& source, int64_t nTimePenalty = 0)
         {
