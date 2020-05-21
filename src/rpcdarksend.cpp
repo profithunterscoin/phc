@@ -797,13 +797,13 @@ Value masternode(const Array& params, bool fHelp)
         {
             Object obj;
             
-            CScript pubkey;
+            CScript pubKeyCollateralAddress;
 
-            pubkey.SetDestination(winner->pubkey.GetID());
+            pubKeyCollateralAddress.SetDestination(winner->pubKeyCollateralAddress.GetID());
             
             CTxDestination address1;
 
-            ExtractDestination(pubkey, address1);
+            ExtractDestination(pubKeyCollateralAddress, address1);
 
             CCoinAddress address2(address1);
 
@@ -1250,13 +1250,13 @@ Value masternodelist(const Array& params, bool fHelp)
             }
             else if (strMode == "full")
             {
-                CScript pubkey;
+                CScript pubKeyCollateralAddress;
 
-                pubkey.SetDestination(mn.pubkey.GetID());
+                pubKeyCollateralAddress.SetDestination(mn.pubKeyCollateralAddress.GetID());
                 
                 CTxDestination address1;
 
-                ExtractDestination(pubkey, address1);
+                ExtractDestination(pubKeyCollateralAddress, address1);
 
                 CCoinAddress address2(address1);
 
@@ -1308,13 +1308,13 @@ Value masternodelist(const Array& params, bool fHelp)
             }
             else if (strMode == "pubkey")
             {
-                CScript pubkey;
+                CScript pubKeyCollateralAddress;
 
-                pubkey.SetDestination(mn.pubkey.GetID());
+                pubKeyCollateralAddress.SetDestination(mn.pubKeyCollateralAddress.GetID());
 
                 CTxDestination address1;
 
-                ExtractDestination(pubkey, address1);
+                ExtractDestination(pubKeyCollateralAddress, address1);
 
                 CCoinAddress address2(address1);
 

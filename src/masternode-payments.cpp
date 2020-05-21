@@ -159,13 +159,13 @@ bool CMasternodePayments::CheckSignature(CMasternodePaymentWinner& winner)
                                 + boost::lexical_cast<std::string>(winner.nBlockHeight)
                                 + winner.payee.ToString();
 
-    std::string strPubKey = strMainPubKey ;
+    std::string strPubKeyCollateralAddress = strPubKeyCollateralAddress;
 
-    CPubKey pubkey(ParseHex(strPubKey));
+    CPubKey PubKeyCollateralAddress(ParseHex(strPubKeyCollateralAddress));
 
     std::string errorMessage = "";
 
-    if(!darkSendSigner.VerifyMessage(pubkey, winner.vchSig, strMessage, errorMessage))
+    if(!darkSendSigner.VerifyMessage(PubKeyCollateralAddress, winner.vchSig, strMessage, errorMessage))
     {
         return false;
     }
@@ -414,10 +414,10 @@ bool CMasternodePayments::ProcessBlock(int nBlockHeight)
         }
         else
         {
-            newWinner.payee = GetScriptForDestination(pmn->pubkey.GetID());
+            newWinner.payee = GetScriptForDestination(pmn->pubKeyCollateralAddress.GetID());
         }
 
-        payeeSource = GetScriptForDestination(pmn->pubkey.GetID());
+        payeeSource = GetScriptForDestination(pmn->pubKeyCollateralAddress.GetID());
     }
 
     //if we can't find new MN to get paid, pick first active MN counting back from the end of vecLastPayments list
@@ -453,10 +453,10 @@ bool CMasternodePayments::ProcessBlock(int nBlockHeight)
                 }
                 else
                 {
-                    newWinner.payee = GetScriptForDestination(pmn->pubkey.GetID());
+                    newWinner.payee = GetScriptForDestination(pmn->pubKeyCollateralAddress.GetID());
                 }
 
-                payeeSource = GetScriptForDestination(pmn->pubkey.GetID());
+                payeeSource = GetScriptForDestination(pmn->pubKeyCollateralAddress.GetID());
 
                 break; // we found active MN
             }

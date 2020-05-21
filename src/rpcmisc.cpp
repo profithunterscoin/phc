@@ -6,7 +6,7 @@
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015 The Crave developers
 // Copyright (c) 2017 XUVCoin developers
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
@@ -120,6 +120,9 @@ Value getinfo(const Array& params, bool fHelp)
 
     obj.push_back(Pair("proxy",                                     (proxy.first.IsValid() ? proxy.first.ToStringIPPort() : string())));
     obj.push_back(Pair("ip",                                        GetLocalAddress(NULL).ToStringIP()));
+
+    bool staking = nLastCoinStakeSearchInterval && pwalletMain->GetStakeWeight();
+    obj.push_back(Pair("staking status", (staking ? "Staking Active" : "Staking Not Active")));
 
     obj.push_back(Pair("errors",                                    GetWarnings("statusbar")));
 

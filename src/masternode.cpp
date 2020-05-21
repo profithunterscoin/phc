@@ -133,8 +133,8 @@ CMasternode::CMasternode()
 
     vin = CTxIn();
     addr = CService();
-    pubkey = CPubKey();
-    pubkey2 = CPubKey();
+    pubKeyCollateralAddress = CPubKey();
+    pubKeyMasternode = CPubKey();
     sig = std::vector<unsigned char>();
     activeState = MASTERNODE_ENABLED;
     sigTime = GetAdjustedTime();
@@ -167,8 +167,8 @@ CMasternode::CMasternode(const CMasternode& other)
 
     vin = other.vin;
     addr = other.addr;
-    pubkey = other.pubkey;
-    pubkey2 = other.pubkey2;
+    pubKeyCollateralAddress = other.pubKeyCollateralAddress;
+    pubKeyMasternode = other.pubKeyMasternode;
     sig = other.sig;
     activeState = other.activeState;
     sigTime = other.sigTime;
@@ -193,14 +193,14 @@ CMasternode::CMasternode(const CMasternode& other)
 }
 
 
-CMasternode::CMasternode(CService newAddr, CTxIn newVin, CPubKey newPubkey, std::vector<unsigned char> newSig, int64_t newSigTime, CPubKey newPubkey2, int protocolVersionIn, CScript newRewardAddress, int newRewardPercentage)
+CMasternode::CMasternode(CService newAddr, CTxIn newVin, CPubKey newPubkey, std::vector<unsigned char> newSig, int64_t newSigTime, CPubKey newpubKeyMasternode, int protocolVersionIn, CScript newRewardAddress, int newRewardPercentage)
 {
     LOCK(cs);
 
     vin = newVin;
     addr = newAddr;
-    pubkey = newPubkey;
-    pubkey2 = newPubkey2;
+    pubKeyCollateralAddress = newPubkey;
+    pubKeyMasternode = newpubKeyMasternode;
     sig = newSig;
     activeState = MASTERNODE_ENABLED;
     sigTime = newSigTime;
@@ -327,18 +327,18 @@ void CMasternode::Check()
         node_found = false;
     }
 
-    if (node_found == false)
-    {
-        activeState = MASTERNODE_UNREACHABLE;
-
-        return;
-    }
-
     // Test Node for incoming connectivity (minimum requirements for active masternode status)
     if (!CheckNode((CAddress)addr))
     {
         isPortOpen = false;
         activeState = MASTERNODE_UNREACHABLE;
+
+        return;
+    }
+
+    if (node_found == false)
+    {
+        activeState = MASTERNODE_PEER_ERROR;
 
         return;
     }

@@ -735,7 +735,7 @@ bool CConsensusVote::SignatureValid()
         return false;
     }
 
-    if(!darkSendSigner.VerifyMessage(pmn->pubkey2, vchMasterNodeSignature, strMessage, errorMessage))
+    if(!darkSendSigner.VerifyMessage(pmn->pubKeyMasternode, vchMasterNodeSignature, strMessage, errorMessage))
     {
         if (fDebug)
         {
@@ -754,7 +754,7 @@ bool CConsensusVote::Sign()
     std::string errorMessage;
 
     CKey key2;
-    CPubKey pubkey2;
+    CPubKey pubKeyMasternode;
     std::string strMessage = txHash.ToString().c_str()
                             + boost::lexical_cast<std::string>(nBlockHeight);
 
@@ -765,7 +765,7 @@ bool CConsensusVote::Sign()
         LogPrint("instantx", "%s : NOTICE - Signing privkey %s \n", __FUNCTION__, strMasterNodePrivKey.c_str());
     }
 
-    if(!darkSendSigner.SetKey(strMasterNodePrivKey, errorMessage, key2, pubkey2))
+    if(!darkSendSigner.SetKey(strMasterNodePrivKey, errorMessage, key2, pubKeyMasternode))
     {
         if (fDebug)
         {
@@ -785,7 +785,7 @@ bool CConsensusVote::Sign()
         return false;
     }
 
-    if(!darkSendSigner.VerifyMessage(pubkey2, vchMasterNodeSignature, strMessage, errorMessage))
+    if(!darkSendSigner.VerifyMessage(pubKeyMasternode, vchMasterNodeSignature, strMessage, errorMessage))
     {
         if (fDebug)
         {
@@ -801,7 +801,6 @@ bool CConsensusVote::Sign()
 
 bool CTransactionLock::SignaturesValid()
 {
-
     for(CConsensusVote vote: vecConsensusVotes)
     {
         int n = mnodeman.GetMasternodeRank(vote.vinMasternode, vote.nBlockHeight, MIN_INSTANTX_PROTO_VERSION);

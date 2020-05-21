@@ -6,7 +6,7 @@
 // Copyright (c) 2014-2015 The Dash developers
 // Copyright (c) 2015 The Crave developers
 // Copyright (c) 2017 XUVCoin developers
-// Copyright (c) 2018-2019 Profit Hunters Coin developers
+// Copyright (c) 2018-2020 Profit Hunters Coin developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
@@ -75,18 +75,22 @@ class CMasternode
             MASTERNODE_VIN_SPENT = 3,
             MASTERNODE_REMOVE = 4,
             MASTERNODE_POS_ERROR = 5,
-            MASTERNODE_UNREACHABLE = 6
+            MASTERNODE_UNREACHABLE = 6,
+            MASTERNODE_PEER_ERROR = 7
         };
 
         CTxIn vin;  
         CService addr;
-        CPubKey pubkey;
-        CPubKey pubkey2;
+        CPubKey pubKeyCollateralAddress;
+        CPubKey pubKeyMasternode;
 
         std::vector<unsigned char> sig;
         
         int activeState;
-        int64_t sigTime; //dsee message times
+
+        //dsee message times
+        int64_t sigTime;
+
         int64_t lastDseep;
         int64_t lastTimeSeen;
         
@@ -98,7 +102,8 @@ class CMasternode
         
         int protocolVersion;
         
-        int64_t nLastDsq; //the dsq count from the last dsq broadcast of this node
+        //the dsq count from the last dsq broadcast of this node
+        int64_t nLastDsq;
         
         CScript rewardAddress;
         
@@ -117,7 +122,7 @@ class CMasternode
 
         CMasternode();
         CMasternode(const CMasternode& other);
-        CMasternode(CService newAddr, CTxIn newVin, CPubKey newPubkey, std::vector<unsigned char> newSig, int64_t newSigTime, CPubKey newPubkey2, int protocolVersionIn, CScript rewardAddress, int rewardPercentage);
+        CMasternode(CService newAddr, CTxIn newVin, CPubKey newPubkeyCollateralAddress, std::vector<unsigned char> newSig, int64_t newSigTime, CPubKey newPubKeyMasternode, int protocolVersionIn, CScript rewardAddress, int rewardPercentage);
 
         void swap(CMasternode& first, CMasternode& second) // nothrow
         {
@@ -128,8 +133,8 @@ class CMasternode
             // the two classes are effectively swapped
             swap(first.vin, second.vin);
             swap(first.addr, second.addr);
-            swap(first.pubkey, second.pubkey);
-            swap(first.pubkey2, second.pubkey2);
+            swap(first.pubKeyCollateralAddress, second.pubKeyCollateralAddress);
+            swap(first.pubKeyMasternode, second.pubKeyMasternode);
             swap(first.sig, second.sig);
             swap(first.activeState, second.activeState);
             swap(first.sigTime, second.sigTime);
@@ -178,12 +183,14 @@ class CMasternode
             // Global Namespace Start
             {
                     LOCK(cs);
+
                     unsigned char nVersion = 0;
+
                     READWRITE(nVersion);
                     READWRITE(vin);
                     READWRITE(addr);
-                    READWRITE(pubkey);
-                    READWRITE(pubkey2);
+                    READWRITE(pubKeyCollateralAddress);
+                    READWRITE(pubKeyMasternode);
                     READWRITE(sig);
                     READWRITE(activeState);
                     READWRITE(sigTime);
@@ -318,6 +325,18 @@ class CMasternode
                 case CMasternode::MASTERNODE_POS_ERROR:
                 {
                     strStatus = "POS_ERROR";
+                }
+                break;
+
+                case CMasternode::MASTERNODE_UNREACHABLE:
+                {
+                    strStatus = "UNREACHABLE";
+                }
+                break;
+
+                case CMasternode::MASTERNODE_PEER_ERROR:
+                {
+                    strStatus = "PEER_ERROR";
                 }
                 break;
             }
