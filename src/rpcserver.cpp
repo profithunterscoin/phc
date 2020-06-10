@@ -619,9 +619,11 @@ template <typename Protocol> class AcceptedConnectionImpl : public AcceptedConne
     public:
 
 #if BOOST_VERSION >= 107000
-        AcceptedConnectionImpl(asio::executor io_service, ssl::context &context, bool fUseSSL) : sslStream(io_service, context), _d(sslStream, fUseSSL), _stream(_d)
+        AcceptedConnectionImpl(asio::executor io_service, ssl::context &context, bool fUseSSL)
+            : sslStream(io_service, context), _d(sslStream, fUseSSL), _stream(_d)
 #else
-        AcceptedConnectionImpl(asio::io_service& io_service, ssl::context &context, bool fUseSSL) : sslStream(io_service, context), _d(sslStream, fUseSSL), _stream(_d)
+        AcceptedConnectionImpl(asio::io_service& io_service, ssl::context &context, bool fUseSSL)
+            : sslStream(io_service, context), _d(sslStream, fUseSSL), _stream(_d)
 #endif  
         {
         }
@@ -667,9 +669,15 @@ template <typename Protocol, typename SocketAcceptorService> static void RPCList
 {
     // Accept connection
 #if BOOST_VERSION >= 107000
+// Boost 1.7+
+
     AcceptedConnectionImpl<Protocol>* conn = new AcceptedConnectionImpl<Protocol>(acceptor->get_executor(), context, fUseSSL);
+
 #else
+// Boost 1.6-
+
     AcceptedConnectionImpl<Protocol>* conn = new AcceptedConnectionImpl<Protocol>(acceptor->get_io_service(), context, fUseSSL);
+
 #endif
 
     acceptor->async_accept(conn->sslStream.lowest_layer(), conn->peer, boost::bind(&RPCAcceptHandler<Protocol, SocketAcceptorService>, acceptor, boost::ref(context), fUseSSL, conn, boost::asio::placeholders::error));

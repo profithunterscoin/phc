@@ -97,6 +97,8 @@ class CAutoBN_CTX
 
 class CBigNum : public BIGNUM
 {
+    BIGNUM* bn;
+    
     public:
 
         CBigNum()
