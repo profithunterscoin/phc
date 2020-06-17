@@ -253,16 +253,16 @@ namespace
     //uint256 hashRecentRejectsBlock;
 
     /** Blocks that are in flight, and that are in the queue to be downloaded. Protected by cs_main. */
-    //struct QueuedBlock
-    //{
-    //    uint256 hash;
-    //    CBlockIndex *pindex;  //! Optional.
-    //    int64_t nTime;  //! Time of "getdata" request in microseconds.
-    //    bool fValidatedHeaders;  //! Whether this block has validated headers at the time of request.
-    //    int64_t nTimeDisconnect; //! The timeout for this block request (for disconnecting a slow peer)
-    //};
+    struct QueuedBlock
+    {
+        uint256 hash;
+        CBlockIndex *pindex;  //! Optional.
+        int64_t nTime;  //! Time of "getdata" request in microseconds.
+        bool fValidatedHeaders;  //! Whether this block has validated headers at the time of request.
+        int64_t nTimeDisconnect; //! The timeout for this block request (for disconnecting a slow peer)
+    };
 
-    //map<uint256, pair<NodeId, list<QueuedBlock>::iterator> > mapBlocksInFlight;
+    map<uint256, pair<NodeId, list<QueuedBlock>::iterator> > mapBlocksInFlight;
 
     /** Number of blocks in flight with validated headers. */
     //int nQueuedValidatedHeaders = 0;
@@ -286,12 +286,25 @@ namespace
 
 namespace
 {
+
+    struct CBlockReject {
+        unsigned char chRejectCode;
+        string strRejectReason;
+        uint256 hashBlock;
+    };
+
     // Maintain validation-specific state about nodes, protected by cs_main, instead
     // by CNode's own locks. This simplifies asynchronous operation, where
     // processing of incoming data is done after the ProcessMessage call returns,
     // and we're no longer holding the node's locks.
     struct CNodeState
     {
+        //! The peer's address
+        CService address;
+        //! Whether we have a fully established connection.
+        bool fCurrentlyConnected;
+        //! Accumulated misbehaviour score for this peer.
+
         // Accumulated misbehaviour score for this peer.
         int nMisbehavior;
         
@@ -300,10 +313,35 @@ namespace
         
         std::string name;
 
+        //! List of asynchronously-determined block rejections to notify this peer about.
+        std::vector<CBlockReject> rejects;
+        //! The best known block we know this peer has announced.
+        CBlockIndex* pindexBestKnownBlock;
+        //! The hash of the last unknown block this peer has announced.
+        uint256 hashLastUnknownBlock;
+        //! The last full block we both have.
+        CBlockIndex* pindexLastCommonBlock;
+        //! Whether we've started headers synchronization with this peer.
+        bool fSyncStarted;
+        //! Since when we're stalling block download progress (in microseconds), or 0.
+        int64_t nStallingSince;
+        list<QueuedBlock> vBlocksInFlight;
+        int nBlocksInFlight;
+        //! Whether we consider this a preferred download peer.
+        bool fPreferredDownload;
+
         CNodeState()
         {
+            fCurrentlyConnected = false;
             nMisbehavior = 0;
             fShouldBan = false;
+            pindexBestKnownBlock = NULL;
+            hashLastUnknownBlock = uint256(0);
+            pindexLastCommonBlock = NULL;
+            fSyncStarted = false;
+            nStallingSince = 0;
+            nBlocksInFlight = 0;
+            fPreferredDownload = false;
         }
     };
 
@@ -370,6 +408,16 @@ bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats)
     }
 
     stats.nMisbehavior = state->nMisbehavior;
+    stats.nSyncHeight = state->pindexBestKnownBlock ? state->pindexBestKnownBlock->nHeight : -1;
+    stats.nCommonHeight = state->pindexLastCommonBlock ? state->pindexLastCommonBlock->nHeight : -1;
+
+    for (const QueuedBlock& queue: state->vBlocksInFlight)
+    {
+        if (queue.pindex)
+        {
+            stats.vHeightInFlight.push_back(queue.pindex->nHeight);
+        }
+    }
 
     return true;
 }
@@ -6715,7 +6763,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 
                 std::string errorMessage = "";
 
-                if(!darkSendSigner.VerifyMessage(pmn->pubkey2, vchSig, strMessage, errorMessage))
+                if(!darkSendSigner.VerifyMessage(pmn->pubKeyMasternode, vchSig, strMessage, errorMessage))
                 {
                     if(fDebug)
                     {

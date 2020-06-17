@@ -1110,9 +1110,9 @@ void CDarksendPool::CheckFinalTransaction()
         std::vector<unsigned char> vchSig;
 
         CKey key2;
-        CPubKey pubkey2;
+        CPubKey pubKeyMasternode;
 
-        if(!darkSendSigner.SetKey(strMasterNodePrivKey, strError, key2, pubkey2))
+        if(!darkSendSigner.SetKey(strMasterNodePrivKey, strError, key2, pubKeyMasternode))
         {
             if (fDebug)
             {
@@ -1132,7 +1132,7 @@ void CDarksendPool::CheckFinalTransaction()
             return;
         }
 
-        if(!darkSendSigner.VerifyMessage(pubkey2, vchSig, strMessage, strError))
+        if(!darkSendSigner.VerifyMessage(pubKeyMasternode, vchSig, strMessage, strError))
         {
             if (fDebug)
             {
@@ -3835,24 +3835,24 @@ bool CDarkSendSigner::VerifyMessage(CPubKey pubkey, vector<unsigned char>& vchSi
     ss << strMessageMagic;
     ss << strMessage;
 
-    CPubKey pubkey2;
+    CPubKey pubKeyMasternode;
 
-    if (!pubkey2.RecoverCompact(ss.GetHash(), vchSig))
+    if (!pubKeyMasternode.RecoverCompact(ss.GetHash(), vchSig))
     {
         errorMessage = _("Error recovering public key.");
 
         return false;
     }
 
-    if (fDebug && (pubkey2.GetID() != pubkey.GetID()))
+    if (fDebug && (pubKeyMasternode.GetID() != pubkey.GetID()))
     {
         if (fDebug)
         {
-            LogPrint("darksend", "%s : ERROR - Keys don't match: %s %s \n", __FUNCTION__, pubkey2.GetID().ToString(), pubkey.GetID().ToString());
+            LogPrint("darksend", "%s : ERROR - Keys don't match: %s %s \n", __FUNCTION__, pubKeyMasternode.GetID().ToString(), pubkey.GetID().ToString());
         }
     }
 
-    return (pubkey2.GetID() == pubkey.GetID());
+    return (pubKeyMasternode.GetID() == pubkey.GetID());
 }
 
 
@@ -3869,10 +3869,10 @@ bool CDarksendQueue::Sign()
                             + boost::lexical_cast<std::string>(ready);
 
     CKey key2;
-    CPubKey pubkey2;
+    CPubKey pubKeyMasternode;
     std::string errorMessage = "";
 
-    if(!darkSendSigner.SetKey(strMasterNodePrivKey, errorMessage, key2, pubkey2))
+    if(!darkSendSigner.SetKey(strMasterNodePrivKey, errorMessage, key2, pubKeyMasternode))
     {
         if (fDebug)
         {
@@ -3892,7 +3892,7 @@ bool CDarksendQueue::Sign()
         return false;
     }
 
-    if(!darkSendSigner.VerifyMessage(pubkey2, vchSig, strMessage, errorMessage))
+    if(!darkSendSigner.VerifyMessage(pubKeyMasternode, vchSig, strMessage, errorMessage))
     {
         if (fDebug)
         {
@@ -3957,7 +3957,7 @@ bool CDarksendQueue::CheckSignature()
 
         std::string errorMessage = "";
 
-        if(!darkSendSigner.VerifyMessage(pmn->pubkey2, vchSig, strMessage, errorMessage))
+        if(!darkSendSigner.VerifyMessage(pmn->pubKeyMasternode, vchSig, strMessage, errorMessage))
         {
             return error("%s : ERROR - Got bad Masternode address signature %s", __FUNCTION__, vin.ToString().c_str());
         }

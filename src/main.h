@@ -170,7 +170,8 @@ class CTxDB;
 class CTxIndex;
 class CWalletInterface;
 
-struct CNodeStateStats {
+struct CNodeStateStats
+{
     int nMisbehavior;
     int nSyncHeight;
     int nCommonHeight;
