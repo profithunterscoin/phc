@@ -158,10 +158,19 @@ class CBigNum
             return (*this);
         }
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+// OPENSSL 1.0
+
+            // Not used
+
+#else
+// OPENSSL 1.1+
         BIGNUM *operator &() const
         {
             return bn;
         }
+
+#endif
 
         ~CBigNum()
         {
