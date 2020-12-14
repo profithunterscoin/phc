@@ -211,6 +211,10 @@ Value addnode(const Array& params, bool fHelp)
         }
 
         vAddedNodes.push_back(strNode);
+
+        CAddress addr;
+        
+        ConnectNode(addr, strNode.c_str());
     }
     else if(strCommand == "remove")
     {
