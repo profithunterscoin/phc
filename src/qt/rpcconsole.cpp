@@ -339,6 +339,13 @@ RPCConsole::RPCConsole(QWidget *parent) : QWidget(parent), ui(new Ui::RPCConsole
     // set OpenSSL version label
     ui->openSSLVersion->setText(SSLeay_version(SSLEAY_VERSION));
 
+#ifdef ENABLE_WALLET
+    ui->berkeleyDBVersion->setText(DbEnv::version(0, 0, 0));
+#else
+    ui->label_berkeleyDBVersion->hide();
+    ui->berkeleyDBVersion->hide();
+#endif
+
     startExecutor();
 
     setTrafficGraphRange(INITIAL_TRAFFIC_GRAPH_MINS);
