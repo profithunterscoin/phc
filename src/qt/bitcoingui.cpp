@@ -467,6 +467,691 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 							"	background-color: rgb(80, 80, 80);"
 							"}"
 
+
+							"QPushButton#txButton"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#txButton:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#txButton:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"
+
+
+							"QPushButton#blockButton"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#blockButton:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#blockButton:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"
+
+
+							"QPushButton#btnSaveAs"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#btnSaveAs:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#btnSaveAs:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"
+
+
+							"QPushButton#backButton"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#backButton:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#backButton:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"							
+
+
+							"QPushButton#newButton"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#newButton:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#newButton:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"							
+
+
+							"QPushButton#sendButton"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#sendButton:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#sendButton:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"							
+
+
+							"QPushButton#copyFromAddressButton"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#copyFromAddressButton:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#copyFromAddressButton:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"		
+
+
+							"QPushButton#deleteButton"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#deleteButton:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#deleteButton:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"							
+
+
+							"QPushButton#addressBookButton_SM"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#addressBookButton_SM:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#addressBookButton_SM:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"							
+
+
+							"QPushButton#pasteButton_SM"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#pasteButton_SM:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#pasteButton_SM:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"
+
+
+							"QPushButton#copySignatureButton_SM"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#copySignatureButton_SM:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#copySignatureButton_SM:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"							
+
+
+							"QPushButton#signMessageButton_SM"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#signMessageButton_SM:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#signMessageButton_SM:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"							
+
+
+							"QPushButton#clearButton_SM"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#clearButton_SM:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#clearButton_SM:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"							
+
+
+							"QPushButton#okButton"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#clearButton_SM:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#clearButton_SM:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"							
+
+
+							"QPushButton#cancelButton"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#cancelButton:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#cancelButton:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"							
+
+
+							"QPushButton#closeButton"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#closeButton:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#closeButton:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"							
+
+
+							"QPushButton#addButton"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#addButton:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#addButton:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"							
+
+
+							"QPushButton#clearButton"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#clearButton:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#clearButton:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"							
+
+
+							"QPushButton#pushButtonCoinControl"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#pushButtonCoinControl:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#pushButtonCoinControl:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"							
+
+
+							"QPushButton#sendButton"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#sendButton:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#sendButton:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"							
+
+
+							"QPushButton#createButton"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#createButton:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#createButton:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"							
+
+
+							"QPushButton#sendButton"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#sendButton:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#sendButton:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"							
+
+
+							"QPushButton#createButton"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#createButton:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#createButton:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"							
+
+
+							"QPushButton#startButton"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#startButton:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#startButton:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"							
+
+
+							"QPushButton#startAllButton"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#startAllButton:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#startAllButton:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"							
+
+
+							"QPushButton#UpdateButton"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#UpdateButton:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#UpdateButton:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"							
+
+
+							"QPushButton#btnSaveAs"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#btnSaveAs:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#btnSaveAs:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"							
+
+
+							"QPushButton#buttonBasic"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#buttonBasic:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#buttonBasic:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"							
+
+
+							"QPushButton#buttonHigh"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#buttonHigh:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#buttonHigh:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"							
+
+
+							"QPushButton#buttonMax"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#buttonMax:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#buttonMax:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"							
+
+
+							"QPushButton#newAddressButton"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#newAddressButton:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#newAddressButton:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"							
+
+
+							"QPushButton#copyToClipboard"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#copyToClipboard:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#copyToClipboard:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"							
+
+
+							"QPushButton#showQRCode"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#showQRCode:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#showQRCode:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"							
+
+
+							"QPushButton#signMessage"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#signMessage:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#signMessage:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"							
+
+
+							"QPushButton#verifyMessage"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#verifyMessage:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#verifyMessage:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"							
+
+
+							"QPushButton#deleteButton"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#deleteButton:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#deleteButton:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"							
+
+
 							"QMenuBar"
 							"{"
 							"	color: #000000;"
