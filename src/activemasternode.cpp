@@ -110,6 +110,7 @@ void CActiveMasternode::ManageStatus()
             return;
         }
 
+        // Remote Activation of masternode
         if (status != MASTERNODE_REMOTELY_ENABLED)
         {
             // Set defaults
