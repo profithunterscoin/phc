@@ -38,7 +38,7 @@ void CActiveMasternode::ManageStatus()
     //need correct adjusted time to send ping
     bool fIsInitialDownload = IsInitialBlockDownload();
     
-    if(fIsInitialDownload)
+    if(fIsInitialDownload && GetTime() - pindexBest->nTime > 600)
     {
         status = MASTERNODE_SYNC_IN_PROCESS;
 
