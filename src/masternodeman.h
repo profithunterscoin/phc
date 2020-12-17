@@ -145,7 +145,7 @@ class CMasternodeDB
             CMasternode* Find(const CService& addr);
             CMasternode* Find(const CPubKey& pubKeyMasternode);
 
-            //Find an entry thta do not match every entry provided vector
+            //Find an entry that do not match every entry provided vector
             CMasternode* FindOldestNotInVec(const std::vector<CTxIn> &vVins, int nMinimumAge);
 
             // Find a random entry
@@ -153,6 +153,9 @@ class CMasternodeDB
 
             /// Find a random entry
             CMasternode* FindRandomNotInVec(std::vector<CTxIn> &vecToExclude, int protocolVersion = -1);
+
+            // Count how many duplicate IPs in list
+            int* Count(const CService& addr);
 
             // Get the current winner for this block
             CMasternode* GetCurrentMasterNode(int mod=1, int64_t nBlockHeight=0, int minProtocol=0);

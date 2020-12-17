@@ -308,39 +308,51 @@ void CMasternode::Check()
 
     LOCK(cs_vNodes);
 
-    bool node_found = false;
+    string extIP;
 
-    // Check for peer connection
-    for(CNode* pnode: vNodes)
+    for(string strAddr: mapMultiArgs["-externalip"])
     {
-        if (pnode->addr.ToStringIP() == addr.ToStringIP())
-        {   
-            node_found = true;
+        extIP = strAddr;
+    }
 
-            // OK
-            isPortOpen = true;
-            activeState = MASTERNODE_ENABLED;
+    // Fake masternode protection (Full node)
+    if (extIP != addr.ToStringIP())
+    {
+        bool node_found = false;
+
+        // Check for peer connection
+        for(CNode* pnode: vNodes)
+        {
+            if (pnode->addr.ToStringIP() == addr.ToStringIP())
+            {   
+                node_found = true;
+
+                // OK
+                isPortOpen = true;
+                activeState = MASTERNODE_ENABLED;
+
+                return;
+            }
+            
+            node_found = false;
+        }
+
+        // Test Node for incoming connectivity (minimum requirements for active masternode status)
+        if (!CheckNode((CAddress)addr))
+        {
+            isPortOpen = false;
+            activeState = MASTERNODE_UNREACHABLE;
 
             return;
         }
-        
-        node_found = false;
-    }
 
-    // Test Node for incoming connectivity (minimum requirements for active masternode status)
-    if (!CheckNode((CAddress)addr))
-    {
-        isPortOpen = false;
-        activeState = MASTERNODE_UNREACHABLE;
+        if (node_found == false)
+        {
+            activeState = MASTERNODE_PEER_ERROR;
 
-        return;
-    }
+            return;
+        }
 
-    if (node_found == false)
-    {
-        activeState = MASTERNODE_PEER_ERROR;
-
-        return;
     }
 
     // OK

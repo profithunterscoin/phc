@@ -38,7 +38,7 @@ void CActiveMasternode::ManageStatus()
     //need correct adjusted time to send ping
     bool fIsInitialDownload = IsInitialBlockDownload();
     
-    if(fIsInitialDownload && GetTime() - pindexBest->nTime > 600)
+    if(fIsInitialDownload && GetTime() - pindexBest->nTime > 1000)
     {
         status = MASTERNODE_SYNC_IN_PROCESS;
 
@@ -110,7 +110,6 @@ void CActiveMasternode::ManageStatus()
             return;
         }
 
-        // Remote Activation of masternode
         if (status != MASTERNODE_REMOTELY_ENABLED)
         {
             // Set defaults
