@@ -68,6 +68,7 @@ Value getinfo(const Array& params, bool fHelp)
     if (pindexBest)
     {
         obj.push_back(Pair("bestblockhash",                         pindexBest->GetBlockHash().GetHex()));
+        obj.push_back(Pair("bestblocktime",                         (int)pindexBest->nTime));
         obj.push_back(Pair("blockvalue",                            (int64_t)GetProofOfWorkReward(pindexBest->nHeight, false)));
         obj.push_back(Pair("currentblocksize",                      (uint64_t)nLastBlockSize));
         obj.push_back(Pair("currentblocktx",                        (uint64_t)nLastBlockTx));

@@ -219,7 +219,7 @@ void MasternodeManager::updateNodeList()
 
         CScript pubkey;
 
-        pubkey =GetScriptForDestination(mn.pubkey.GetID());
+        pubkey = GetScriptForDestination(mn.pubKeyMasternode.GetID());
 
         CTxDestination address1;
 
