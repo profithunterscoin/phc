@@ -412,24 +412,12 @@ void MasternodeManager::on_UpdateButton_clicked()
 {
     std::string errorMessage;
 
-    static int64_t nTimeListUpdated = GetTime();
-
-    int64_t nSecondsSinceUpdate = nTimeListUpdated - GetTime();
-
     for(CMasternodeConfig::CMasternodeEntry mne: masternodeConfig.getEntries())
     {
         std::string strRewardAddress = mne.getRewardAddress();
         std::string strRewardPercentage = mne.getRewardPercentage();
 
         std::vector<CMasternode> vMasternodes = mnodeman.GetFullMasternodeVector();
-
-        if (nSecondsSinceUpdate < 900)
-        {
-            if (ui->tableWidgetMasternodes->rowCount() < 80)
-            {
-                errorMessage = "Masternode list downloading...";
-            }
-        }
 
         if (errorMessage == "")
         {

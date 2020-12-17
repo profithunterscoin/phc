@@ -287,11 +287,13 @@ bool CMasternodeMan::Add(CMasternode &mn)
 {
     LOCK(cs);
 
+    /*
     if (!mn.IsEnabled())
     {
         return false;
     }
-
+    */
+    
     // Check IP is not already found in the list
     CMasternode *pmn1 = Find(mn.addr);
 
@@ -372,14 +374,17 @@ void CMasternodeMan::CheckAndRemove()
 
     Check();
 
-    //remove inactive
     vector<CMasternode>::iterator it = vMasternodes.begin();
-
+    
     while(it != vMasternodes.end())
     {
-        if((*it).activeState != CMasternode::MASTERNODE_ENABLED
+        if( (*it).activeState == CMasternode::MASTERNODE_REMOVE
+            || (*it).activeState == CMasternode::MASTERNODE_VIN_SPENT
+            || (*it).activeState != CMasternode::MASTERNODE_UNREACHABLE
             || (*it).activeState != CMasternode::MASTERNODE_PEER_ERROR
-            || (*it).protocolVersion < nMasternodeMinProtocol)
+            || (*it).protocolVersion < nMasternodeMinProtocol
+            || Count((*it).addr) > 1
+            )
         {
             if (fDebug)
             {
@@ -392,51 +397,6 @@ void CMasternodeMan::CheckAndRemove()
         {
             ++it;
         }
-    }
-
-    // Remove duplicate nodes
-    while(it != vMasternodes.end())
-    {
-        CMasternode *pmn;
-
-        bool fMNRemoved;
-
-        // Find Masternode based on IP address
-        pmn = Find((*it).addr);
-
-        if(pmn != NULL)
-        {
-            it = vMasternodes.erase(it);
-            fMNRemoved = true;
-        } 
-        
-        // Search for duplicate add from previous removal if not still found
-        CMasternode *pmn1;
-
-        // Find Masternode based on IP address
-        pmn1 = Find((*it).addr);
-
-        if(pmn1 == NULL)
-        {
-            if (fMNRemoved == true)
-            {
-                vMasternodes.push_back((*it));
-            }
-        }
-        else
-        {
-            if (fDebug)
-            {
-                LogPrint("masternode", "%s : WARNING - Removed duplicate masternode %s - %i now \n", __FUNCTION__, (*it).addr.ToStringIPPort().c_str(), size() - 1);
-            }
-        }
-
-        // Search for unreachable connections (give them 100 block intervals)
-        // TO-DO: Connect, and ask for hash of (dynamiccheckpoint & MN.pubkey)
-        // Check for version 1.0.0.7
-        // Add new mn2mn commands
-
-        ++it;
     }
 
     // check who's asked for the masternode list
@@ -763,6 +723,24 @@ CMasternode *CMasternodeMan::FindRandomNotInVec(std::vector<CTxIn> &vecToExclude
     return NULL;
 }
 
+
+int *CMasternodeMan::Count(const CService &addr)
+{
+    LOCK(cs);
+
+    int nCount = 0;
+
+    for(CMasternode& mn: vMasternodes)
+    {
+        // Find number of occurances IP Address but ignore Port
+        if(mn.addr.ToString() == addr.ToString())
+        {
+            nCount++;
+        }
+    }
+
+    return nCount;
+}
 
 CMasternode* CMasternodeMan::GetCurrentMasterNode(int mod, int64_t nBlockHeight, int minProtocol)
 {
@@ -1291,7 +1269,14 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
             mn.UpdateLastSeen(lastUpdated);
 
             // use this as a peer
-            addrman.Add(CAddress(addr), pfrom->addr, 2*60*60);
+            if (!CheckNode((CAddress)addr))
+            {
+                mn.ChangePortStatus(false);
+            }
+            else
+            {
+                addrman.Add(CAddress(addr), pfrom->addr, 2*60*60); // use this as a peer
+            }
             
             mn.ChangeNodeStatus(true);
             this->Add(mn);

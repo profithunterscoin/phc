@@ -488,7 +488,7 @@ CNode* FindNode(const CNetAddr& ip)
 
     for(CNode* pnode: vNodes)
     {
-        if ((CNetAddr)pnode->addr == ip)
+        if (pnode->addr.ToStringIP().c_str() == ip.ToStringIP().c_str())
         {
             return (pnode);
         }
@@ -521,6 +521,11 @@ CNode* FindNode(std::string addrName)
     for(CNode* pnode: vNodes)
     {
         if (pnode->addrName == addrName)
+        {
+            return (pnode);
+        }
+
+        if (pnode->addrName.ToStringIP().c_str() == addrName)
         {
             return (pnode);
         }
@@ -1753,9 +1758,16 @@ void ThreadSocketHandler()
                     setsockopt(hSocket, IPPROTO_TCP, TCP_NODELAY, (void*)&set, sizeof(int));
 #endif
 
-                    if (fDebug)
+                    if (FindNode(addr.ToStringIP().c_str()))
                     {
-                        LogPrint("net", "%s : OK - Accepted connection %s \n", __FUNCTION__, addr.ToStringIPPort());
+                        if (fDebug)
+                        {
+                            LogPrint("net", "%s : WARNING - Connection from %s dropped (duplicate connection) \n", __FUNCTION__, addr.ToStringIPPort());
+                        }
+
+                        closesocket(hSocket);
+                        
+                        continue;
                     }
 
                     CNode* pnode = new CNode(hSocket, addr, "", true);
@@ -1769,6 +1781,11 @@ void ThreadSocketHandler()
                         vNodes.push_back(pnode);
                     }
                     // Global Namespace End
+
+                    if (fDebug)
+                    {
+                        LogPrint("net", "%s : OK - Accepted connection %s \n", __FUNCTION__, addr.ToStringIPPort());
+                    }
                 }
             }
         }
@@ -2544,17 +2561,17 @@ bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant *grantOu
 
     if (!strDest)
     {
-        if (IsLocal(addrConnect)
-            || FindNode((CNetAddr)addrConnect)
-            || CNode::IsBanned(addrConnect)
-            || FindNode(addrConnect.ToStringIPPort().c_str()))
+        if (IsLocal(addrConnect) == true
+            || FindNode((CNetAddr)addrConnect) != NULL
+            || CNode::IsBanned(addrConnect) == true
+            || FindNode(addrConnect.ToStringIP().c_str()) != NULL
+            )
         {
             return false;
         }
     }
 
-    if (strDest
-        && FindNode(strDest))
+    if (strDest && FindNode(strDest))
     {
         return false;
     }
