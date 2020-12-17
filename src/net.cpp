@@ -525,7 +525,7 @@ CNode* FindNode(std::string addrName)
             return (pnode);
         }
 
-        if (pnode->addrName.ToStringIP().c_str() == addrName)
+        if (pnode->addr.ToStringIP().c_str() == addrName)
         {
             return (pnode);
         }
@@ -1766,7 +1766,7 @@ void ThreadSocketHandler()
                         }
 
                         closesocket(hSocket);
-                        
+
                         continue;
                     }
 
