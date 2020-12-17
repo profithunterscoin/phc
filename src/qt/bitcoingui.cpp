@@ -753,6 +753,25 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 							"}"							
 
 
+							"QPushButton#applyButton"
+							"{"
+							"	color: #000000;"
+							"	background-color: #A4D300;"
+							"}"
+
+							"QPushButton#applyButton:hover"
+							"{"
+							"	color: #000000;"
+							"	background-color: #FFF700;"
+							"}"
+
+							"QPushButton#applyButton:pressed"
+							"{"
+							"	color: #000000;"
+							"	background-color: rgb(80, 80, 80);"
+							"}"		
+
+
 							"QPushButton#closeButton"
 							"{"
 							"	color: #000000;"

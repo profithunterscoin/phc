@@ -186,7 +186,10 @@ Value addnode(const Array& params, bool fHelp)
     {
         CAddress addr;
         
-        ConnectNode(addr, strNode.c_str());
+        if (!FindNode(strNode.c_str()))
+        {
+            ConnectNode(addr, strNode.c_str());
+        }
         
         return Value::null;
     }
@@ -214,13 +217,16 @@ Value addnode(const Array& params, bool fHelp)
 
         CAddress addr;
         
-        ConnectNode(addr, strNode.c_str());
+        if (!FindNode(strNode.c_str()))
+        {
+            ConnectNode(addr, strNode.c_str());
+        }
     }
     else if(strCommand == "remove")
     {
         if (it == vAddedNodes.end())
         {
-            throw JSONRPCError(RPC_CLIENT_NODE_NOT_ADDED, "Error: Node has not been added.");
+            throw JSONRPCError(RPC_CLIENT_NODE_NOT_ADDED, "Error: Node has not been removed.");
         }
 
         vAddedNodes.erase(it);
