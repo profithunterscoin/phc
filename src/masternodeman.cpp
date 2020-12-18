@@ -293,7 +293,7 @@ bool CMasternodeMan::Add(CMasternode &mn)
         return false;
     }
     */
-    
+
     // Check IP is not already found in the list
     CMasternode *pmn1 = Find(mn.addr);
 
@@ -1058,11 +1058,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         std::string vchPubKeyCollateralAddress(pubKeyCollateralAddress.begin(), pubKeyCollateralAddress.end());
         std::string vchPubKeyMasternode(pubKeyMasternode.begin(), pubKeyMasternode.end());
 
-        strMessage = addr.ToStringIPPort()
-            + boost::lexical_cast<std::string>(sigTime)
-            + vchPubKeyCollateralAddress
-            + vchPubKeyMasternode
-            + boost::lexical_cast<std::string>(protocolVersion);    
+        strMessage = addr.ToStringIPPort() + boost::lexical_cast<std::string>(sigTime) + vchPubKeyCollateralAddress + vchPubKeyMasternode + boost::lexical_cast<std::string>(protocolVersion);    
 
         if(protocolVersion < MIN_POOL_PEER_PROTO_VERSION)
         {
@@ -1081,7 +1077,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         {
             if (fDebug)
             {
-                LogPrint("masternode", "%s : ERROR - PubkeySCRIPT the wrong size \n", __FUNCTION__);
+                LogPrint("masternode", "%s : ERROR - pubKeyCollateralAddress the wrong size \n", __FUNCTION__);
             }
 
             Misbehaving(pfrom->GetId(), 100);
@@ -1345,18 +1341,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         std::string strMessage;
 
         // 70047 and greater
-        vRecv >> vin
-                >> addr
-                >> vchSig
-                >> sigTime
-                >> pubKeyCollateralAddress
-                >> pubKeyMasternode
-                >> count
-                >> current
-                >> lastUpdated
-                >> protocolVersion
-                >> rewardAddress
-                >> rewardPercentage;
+        vRecv >> vin >> addr >> vchSig >> sigTime >> pubKeyCollateralAddress>> pubKeyMasternode >> count >> current >> lastUpdated >> protocolVersion >> rewardAddress >> rewardPercentage;
 
         //Invalid nodes check
         if (sigTime < 1511159400)
@@ -1910,6 +1895,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
 
         int count = this->size();
         int i = 0;
+
 
         for(CMasternode& mn: vMasternodes)
         {
