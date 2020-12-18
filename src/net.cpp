@@ -1404,20 +1404,24 @@ void SocketSendData(CNode *pnode)
                     && nErr != WSAEINTR
                     && nErr != WSAEINPROGRESS)
                 {
+                    /*
                     if (fDebug)
                     {
                         LogPrint("net", "%s : ERROR - Socket send error %d \n", __FUNCTION__, nErr);
                     }
+                    */
 
                     IdleNodeCheck(pnode);
                 }
             }
 
+            /*
             if (fDebug)
             {
                 // couldn't send anything at all
                 LogPrint("net", "%s : ERROR - Socket send data failure \n", __FUNCTION__);
             }
+            */
 
             IdleNodeCheck(pnode);
 

@@ -3829,7 +3829,7 @@ bool CDarkSendSigner::SignMessage(std::string strMessage, std::string& errorMess
 }
 
 
-bool CDarkSendSigner::VerifyMessage(CPubKey pubkey, vector<unsigned char>& vchSig, std::string strMessage, std::string& errorMessage)
+bool CDarkSendSigner::VerifyMessage(CPubKey pubKeyCollateralAddress, vector<unsigned char>& vchSig, std::string strMessage, std::string& errorMessage)
 {
     CHashWriter ss(SER_GETHASH, 0);
     ss << strMessageMagic;
@@ -3841,18 +3841,23 @@ bool CDarkSendSigner::VerifyMessage(CPubKey pubkey, vector<unsigned char>& vchSi
     {
         errorMessage = _("Error recovering public key.");
 
+        if (fDebug)
+        {
+            LogPrint("darksend", "%s : ERROR - Error recovering public key!\n", __FUNCTION__);
+        }
+
         return false;
     }
 
-    if (fDebug && (pubKeyMasternode.GetID() != pubkey.GetID()))
+    if (fDebug && (pubKeyMasternode.GetID() != pubKeyCollateralAddress.GetID()))
     {
         if (fDebug)
         {
-            LogPrint("darksend", "%s : ERROR - Keys don't match: %s %s \n", __FUNCTION__, pubKeyMasternode.GetID().ToString(), pubkey.GetID().ToString());
+            LogPrint("darksend", "%s : ERROR - Keys don't match: %s %s \n", __FUNCTION__, pubKeyMasternode.GetID().ToString(), pubKeyCollateralAddress.GetID().ToString());
         }
     }
 
-    return (pubKeyMasternode.GetID() == pubkey.GetID());
+    return (pubKeyMasternode.GetID() == pubKeyCollateralAddress.GetID());
 }
 
 
@@ -3863,16 +3868,13 @@ bool CDarksendQueue::Sign()
         return false;
     }
 
-    std::string strMessage = vin.ToString()
-                            + boost::lexical_cast<std::string>(nDenom)
-                            + boost::lexical_cast<std::string>(time)
-                            + boost::lexical_cast<std::string>(ready);
+    std::string strMessage = vin.ToString() + boost::lexical_cast<std::string>(nDenom) + boost::lexical_cast<std::string>(time) + boost::lexical_cast<std::string>(ready);
 
-    CKey key2;
+    CKey pubKeyCollateralAddress;
     CPubKey pubKeyMasternode;
     std::string errorMessage = "";
 
-    if(!darkSendSigner.SetKey(strMasterNodePrivKey, errorMessage, key2, pubKeyMasternode))
+    if(!darkSendSigner.SetKey(strMasterNodePrivKey, errorMessage, pubKeyCollateralAddress, pubKeyMasternode))
     {
         if (fDebug)
         {
@@ -3882,7 +3884,7 @@ bool CDarksendQueue::Sign()
         return false;
     }
 
-    if(!darkSendSigner.SignMessage(strMessage, errorMessage, vchSig, key2))
+    if(!darkSendSigner.SignMessage(strMessage, errorMessage, vchSig, pubKeyCollateralAddress))
     {
         if (fDebug)
         {
@@ -3950,10 +3952,7 @@ bool CDarksendQueue::CheckSignature()
 
     if(pmn != NULL)
     {
-        std::string strMessage = vin.ToString()
-                                + boost::lexical_cast<std::string>(nDenom)
-                                + boost::lexical_cast<std::string>(time)
-                                + boost::lexical_cast<std::string>(ready);
+        std::string strMessage = vin.ToString() + boost::lexical_cast<std::string>(nDenom) + boost::lexical_cast<std::string>(time) + boost::lexical_cast<std::string>(ready);
 
         std::string errorMessage = "";
 
@@ -4036,18 +4035,13 @@ void CDarksendPool::RelayCompletedTransaction(const int sessionID, const bool er
 }
 
 
-//TODO: Rename/move to core
+// TO-DO: Rename/move to core
 void ThreadCheckDarkSendPool()
 {
     if(fLiteMode)
     {
         //disable all Darksend/Masternode related functionality
         return; 
-    }
-
-    if (IsInitialBlockDownload())
-    {
-        return;
     }
 
     // Make this thread recognisable as the wallet flushing thread
@@ -4057,7 +4051,7 @@ void ThreadCheckDarkSendPool()
 
     while (true)
     {
-        MilliSleep(100);
+        MilliSleep(1000);
 
         // try to sync from all available nodes, one step at a time
         //masternodeSync.Process();
